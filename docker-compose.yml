@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: gta5rp-postgres
+
+    environment:
+      POSTGRES_DB: forms
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
