@@ -35,9 +35,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
 
-                .oauth2Login(oauth -> oauth
-                        .successHandler(this::oauthSuccessHandler)
-                )
+                .oauth2Login(Customizer.withDefaults())
 
                 .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/oauth2/**", "/login/**").permitAll()
@@ -54,29 +52,7 @@ public class SecurityConfig {
                 .build();
     }
 
-    /**
-     * OAuth success → превращаем Discord user в JWT
-     */
-    private void oauthSuccessHandler(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            Authentication authentication
-    ) throws IOException {
 
-        OAuth2User user = (OAuth2User) authentication.getPrincipal();
-
-        String discordId = user.getAttribute("id");
-
-        System.out.println(user.getAttributes());
-
-        String jwt = jwtUtil.generateToken(Long.parseLong(discordId));
-
-        System.out.println("OAUTH SUCCESS HIT");
-        System.out.println(jwt);
-        response.sendRedirect(
-                "http://localhost:5173/auth?token=" + jwt
-        );
-    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {

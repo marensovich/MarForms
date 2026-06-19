@@ -1,4 +1,4 @@
-package me.marensovich.gta5rpformapp.backend.data;
+package me.marensovich.gta5rpformapp.backend.data.forms;
 
 import java.util.List;
 
