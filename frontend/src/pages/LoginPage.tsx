@@ -15,8 +15,13 @@ export default function LoginPage() {
         className="relative z-10 w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl sm:p-10"
       >
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-lg font-bold text-white shadow-lg shadow-indigo-500/30">
-            MF
+          <div className="relative mb-4 flex h-100 w-100 items-center justify-center">
+            <div className="absolute inset-0 h-100 w-100 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 blur-2xl opacity-50" />
+              <img
+                src="/logo.png"
+                alt="MarForms Logo"
+                className="relative h-135 w-135 -translate-x-0.5 -translate-y-0.5 rounded-full object-cover"
+              />
           </div>
           <h1 className="text-2xl font-semibold text-white">Welcome to MarForms</h1>
           <p className="mt-2 text-sm text-white/50">
