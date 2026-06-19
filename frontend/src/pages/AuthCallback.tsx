@@ -1,12 +1,14 @@
+// src/pages/AuthCallback.tsx
 import { useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { consumeRedirectPath } from "../auth/redirectStorage";
 import LoadingScreen from "../components/LoadingScreen";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { finalizeLogin } = useAuth();
+  const { login } = useAuth();
   const hasRun = useRef(false);
 
   useEffect(() => {
@@ -20,14 +22,11 @@ export default function AuthCallback() {
       return;
     }
 
-    finalizeLogin(token);
+    login(token);
 
-    const redirectTimer = setTimeout(() => {
-      navigate("/", { replace: true });
-    }, 600);
-
-    return () => clearTimeout(redirectTimer);
-  }, [searchParams, finalizeLogin, navigate]);
+    const redirectPath = consumeRedirectPath();
+    navigate(redirectPath ?? "/", { replace: true });
+  }, [searchParams, login, navigate]);
 
   return <LoadingScreen label="Signing you in..." />;
 }

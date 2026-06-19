@@ -13,6 +13,8 @@ import java.util.List;
  * Configuration class for enabling Cross-Origin Resource Sharing (CORS).
  * <p>
  * Configures allowed origins, methods, headers, and credentials for all endpoints.
+ * This allows the frontend application (running on a different origin) to communicate
+ * with the backend API.
  * </p>
  *
  * @author marensovich
@@ -23,9 +25,17 @@ import java.util.List;
 public class CorsConfig {
 
     /**
-     * Configures CORS mappings.
+     * Configures CORS mappings for the entire application.
+     * <p>
+     * Creates a CORS configuration that allows requests from the specified origin
+     * with the specified HTTP methods and headers. Credentials (cookies, authorization
+     * headers) are also allowed.
+     * </p>
+     * <p>
+     * The configuration is applied to all endpoints ({@code /**}).
+     * </p>
      *
-     * @return a {@link WebMvcConfigurer} with CORS settings
+     * @return a {@link CorsConfigurationSource} containing the CORS settings
      * @since v.0.1
      */
     @Bean

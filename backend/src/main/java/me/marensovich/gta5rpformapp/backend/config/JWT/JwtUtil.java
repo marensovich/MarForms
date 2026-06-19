@@ -60,6 +60,8 @@ public class JwtUtil {
      * Throws an exception if the secret key is not configured properly.
      * </p>
      *
+     * @throws IllegalArgumentException if the secret key is null or blank
+     * @throws RuntimeException        if key initialization fails
      * @since v.0.1
      */
     @PostConstruct
@@ -77,7 +79,7 @@ public class JwtUtil {
     /**
      * Generates a JWT token containing the user ID as a claim.
      *
-     * @param userId the ID of the user
+     * @param userId the ID of the user to encode in the token
      * @return a signed JWT token string
      * @since v.0.1
      */
@@ -89,6 +91,10 @@ public class JwtUtil {
 
     /**
      * Creates a JWT token with the given claims.
+     * <p>
+     * Sets the issued date to the current time and the expiration date based on
+     * the configured expiration duration.
+     * </p>
      *
      * @param claims the claims to include in the token
      * @return a signed JWT token string
@@ -107,7 +113,7 @@ public class JwtUtil {
      * Validates a JWT token by checking its signature and expiration date.
      *
      * @param token the JWT token to validate
-     * @return {@code true} if the token is valid, {@code false} otherwise
+     * @return {@code true} if the token is valid and not expired, {@code false} otherwise
      * @since v.0.1
      */
     public boolean validateToken(String token) {
@@ -123,11 +129,11 @@ public class JwtUtil {
     /**
      * Extracts all claims from a JWT token.
      *
-     * @param token the JWT token
-     * @return a {@link Claims} object containing all claims
+     * @param token the JWT token to parse
+     * @return a {@link Claims} object containing all claims from the token
+     * @throws io.jsonwebtoken.JwtException if the token is invalid or expired
      * @since v.0.1
      */
-
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
                 .setSigningKey(key)
@@ -139,8 +145,9 @@ public class JwtUtil {
     /**
      * Extracts the user ID from a JWT token.
      *
-     * @param token the JWT token
+     * @param token the JWT token containing the user ID claim
      * @return the user ID stored in the token claims
+     * @throws io.jsonwebtoken.JwtException if the token is invalid or the claim is missing
      * @since v.0.1
      */
     public Long getUserIdFromToken(String token) {
@@ -150,10 +157,11 @@ public class JwtUtil {
     /**
      * Extracts a specific claim from a JWT token using a resolver function.
      *
-     * @param <T> the type of the claim
-     * @param token the JWT token
-     * @param claimsResolver a function to extract the desired claim
+     * @param <T>            the type of the claim to extract
+     * @param token          the JWT token
+     * @param claimsResolver a function that extracts the desired claim from {@link Claims}
      * @return the extracted claim value
+     * @throws io.jsonwebtoken.JwtException if the token is invalid
      * @since v.0.1
      */
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {

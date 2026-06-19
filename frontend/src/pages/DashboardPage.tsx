@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getMe } from "../api/client";
 import {useNavigate} from "react-router-dom";
 
-export default function Dashboard() {
+export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
 
   const navigate = useNavigate();
