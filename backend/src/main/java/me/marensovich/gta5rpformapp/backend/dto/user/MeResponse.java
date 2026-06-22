@@ -7,14 +7,16 @@ import java.util.Set;
 /**
  * Data Transfer Object representing the currently authenticated user's information.
  * <p>
- * Contains user identity, assigned roles, and permissions. Used by the frontend
- * to determine the user's access levels and display user information.
+ * Contains user identity, assigned roles, permissions, and a permission hash
+ * for efficient frontend permission checking.
  * </p>
  *
  * @param discordId       the Discord ID of the authenticated user
  * @param discordUsername the Discord username of the authenticated user
  * @param roles           the set of role names assigned to the user
  * @param permissions     the set of permissions granted to the user
+ * @param permissionsHash a hash value representing the user's permission set
+ *                        for frontend permission caching and quick checks
  * @author marensovich
  * @version v.0.1
  * @since v.0.1
@@ -23,6 +25,7 @@ public record MeResponse(
         Long discordId,
         String discordUsername,
         Set<String> roles,
-        Set<Permission> permissions
+        Set<Permission> permissions,
+        long permissionsHash
 ) {
 }

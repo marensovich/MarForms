@@ -1,10 +1,11 @@
 import {apiRequest} from "./client";
 
 export interface MeResponse {
-    discordId: number;
+    discordId: string;
     discordUsername: string;
     roles: string[];
     permissions: string[];
+    permissionsHash: string;
 }
 
 export function fetchMe(): Promise<MeResponse> {

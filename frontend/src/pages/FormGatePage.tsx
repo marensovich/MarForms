@@ -2,11 +2,11 @@ import {useParams} from "react-router-dom";
 import {useFormAccess} from "../hooks/useFormAccess";
 import LoadingScreen from "../components/LoadingScreen";
 import {
-  FormErrorState,
-  FormInactiveState,
-  FormNotFoundState,
-  NotAuthenticatedState,
-  NotInGuildState,
+    FormErrorState,
+    FormInactiveState,
+    FormNotFoundState,
+    NotAuthenticatedState,
+    NotInGuildState,
 } from "../components/AccessStates";
 import FormRenderer from "../components/form/FormRenderer";
 

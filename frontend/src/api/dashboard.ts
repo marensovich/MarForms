@@ -1,13 +1,44 @@
 import {apiRequest} from "./client";
 import type {FormAnswers} from "../types/forms";
 
-// --- Forms ---
 export interface DashboardForm {
     id: string;
     title: string;
     active: boolean;
     submissionCount: number;
     createdAt: string;
+}
+
+export interface DashboardUser {
+    id: number;
+    discordId: string;
+    discordUsername: string;
+    roles: DashboardRole[];
+    bannedPermanently: boolean;
+    bannedUntil: string | null;
+    currentlyBanned: boolean;
+}
+
+export function getUsers(
+    page = 0,
+    size = 20,
+    search?: string,
+    roleId?: string
+): Promise<PageResponse<DashboardUser>> {
+    const params = new URLSearchParams({
+        page: String(page),
+        size: String(size),
+        ...(search ? {search} : {}),
+        ...(roleId ? {roleId} : {}),
+    });
+    return apiRequest(`/admin/users?${params}`);
+}
+
+export function updateRole(
+    roleId: string,
+    payload: { name?: string; permissions?: string[] }
+): Promise<DashboardRole> {
+    return apiRequest(`/roles/${roleId}`, {method: "PUT", body: payload});
 }
 
 export interface CreateFormPayload {
@@ -52,18 +83,6 @@ export function getFormSubmissions(
     return apiRequest(`/forms/${formId}/submissions?page=${page}&size=${size}`);
 }
 
-export interface DashboardUser {
-    id: number;
-    discordId: string;
-    discordUsername: string;
-    roles: string[];
-    bannedPermanently: boolean;
-    bannedUntil: string | null;
-}
-
-export function getUsers(page = 0, size = 20): Promise<PageResponse<DashboardUser>> {
-    return apiRequest(`/admin/users?page=${page}&size=${size}`);
-}
 
 export function assignUserRoles(discordId: string, roleIds: string[]): Promise<DashboardUser> {
     return apiRequest(`/admin/users/${discordId}/roles`, {

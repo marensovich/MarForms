@@ -3,6 +3,7 @@ package me.marensovich.gta5rpformapp.backend.service;
 import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.database.entity.Role;
 import me.marensovich.gta5rpformapp.backend.database.repository.RoleRepository;
+import me.marensovich.gta5rpformapp.backend.database.repository.UserRepository;
 import me.marensovich.gta5rpformapp.backend.dto.role.CreateRoleRequest;
 import me.marensovich.gta5rpformapp.backend.dto.role.UpdateRoleRequest;
 import me.marensovich.gta5rpformapp.backend.exception.NotFoundException;
@@ -28,6 +29,7 @@ import java.util.UUID;
 public class RoleService {
 
     private final RoleRepository roleRepository;
+    private final UserRepository userRepository;
 
     /**
      * Retrieves all roles.
@@ -100,15 +102,26 @@ public class RoleService {
 
     /**
      * Deletes a role by its ID.
+     * <p>
+     * Prevents deletion if the role is currently assigned to any users.
+     * Users must be unassigned from the role before deletion.
+     * </p>
      *
      * @param roleId the UUID of the role to delete
-     * @throws NotFoundException if the role does not exist
+     * @throws NotFoundException        if the role does not exist
+     * @throws IllegalArgumentException if the role is still assigned to one or more users
      * @since v.0.1
      */
     @Transactional
     public void delete(UUID roleId) {
         if (!roleRepository.existsById(roleId)) {
             throw new NotFoundException("Role not found: " + roleId);
+        }
+        if (userRepository.existsByRoles_Id(roleId)) {
+            throw new IllegalArgumentException(
+                    "Cannot delete role: there are users assigned to this role. " +
+                            "Remove the role from all users first."
+            );
         }
         roleRepository.deleteById(roleId);
     }

@@ -55,14 +55,14 @@ public class FormController {
     /**
      * Retrieves a paginated list of all forms for the admin dashboard.
      * <p>
-     * Requires the {@code FORM_READ} authority.
+     * Requires the {@code FORMS_VIEW} authority.
      * </p>
      *
      * @param pageable pagination parameters (page, size, sort)
      * @return a {@link Page} of {@link FormSummaryDto} containing form summaries
      * @since v.0.1
      */
-    @PreAuthorize("hasAuthority('FORM_READ')")
+    @PreAuthorize("hasAuthority('FORMS_VIEW')")
     @GetMapping
     public Page<FormSummaryDto> list(Pageable pageable) {
         return formService.listForDashboard(pageable);
@@ -71,14 +71,14 @@ public class FormController {
     /**
      * Creates a new form.
      * <p>
-     * Requires the {@code FORM_CREATE} authority.
+     * Requires the {@code FORMS_MANAGE} authority.
      * </p>
      *
      * @param request the {@link CreateFormRequest} containing form details
      * @return a {@link ResponseEntity} with status 201 (Created) containing the created form
      * @since v.0.1
      */
-    @PreAuthorize("hasAuthority('FORM_CREATE')")
+    @PreAuthorize("hasAuthority('FORMS_MANAGE')")
     @PostMapping
     public ResponseEntity<FormResponseDto> create(@Valid @RequestBody CreateFormRequest request) {
         var form = formService.create(request);
@@ -88,7 +88,7 @@ public class FormController {
     /**
      * Updates an existing form.
      * <p>
-     * Requires the {@code FORM_UPDATE} authority.
+     * Requires the {@code FORMS_MANAGE} authority.
      * </p>
      *
      * @param formId  the UUID of the form to update
@@ -96,7 +96,7 @@ public class FormController {
      * @return a {@link FormResponseDto} containing the updated form
      * @since v.0.1
      */
-    @PreAuthorize("hasAuthority('FORM_UPDATE')")
+    @PreAuthorize("hasAuthority('FORMS_MANAGE')")
     @PutMapping("/{formId}")
     public FormResponseDto update(@PathVariable UUID formId, @Valid @RequestBody UpdateFormRequest request) {
         return FormResponseDto.from(formService.update(formId, request));
@@ -105,14 +105,14 @@ public class FormController {
     /**
      * Deletes a form by its ID.
      * <p>
-     * Requires the {@code FORM_DELETE} authority.
+     * Requires the {@code FORMS_MANAGE} authority.
      * </p>
      *
      * @param formId the UUID of the form to delete
      * @return a {@link ResponseEntity} with status 204 (No Content)
      * @since v.0.1
      */
-    @PreAuthorize("hasAuthority('FORM_DELETE')")
+    @PreAuthorize("hasAuthority('FORMS_MANAGE')")
     @DeleteMapping("/{formId}")
     public ResponseEntity<Void> delete(@PathVariable UUID formId) {
         formService.delete(formId);

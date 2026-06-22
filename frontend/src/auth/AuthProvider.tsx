@@ -18,9 +18,10 @@ function stubUserFromToken(token: string): AuthUser | null {
         id: String(payload.userId ?? payload.sub ?? ""),
         discordUsername: "",
         avatarUrl: null,
-        role: payload.role ?? "USER",
+        role: payload.role ?? "VIEWER",
         guildIds: payload.guildIds ?? [],
         permissions: [],
+        permissionsHash: 0,
     };
 }
 
@@ -31,15 +32,22 @@ export function AuthProvider({children}: { children: ReactNode }) {
     const loadMe = useCallback(async () => {
         try {
             const me = await fetchMe();
-            setUser((prev) =>
-                prev
-                    ? {
-                        ...prev,
-                        discordUsername: me.discordUsername,
-                        permissions: me.permissions,
-                    }
-                    : null
-            );
+
+            setUser(prev => {
+                if (!prev) return null;
+
+                if (prev.permissionsHash !== 0 && prev.permissionsHash !== me.permissionsHash) {
+                    clearToken();
+                    return null;
+                }
+
+                return {
+                    ...prev,
+                    discordUsername: me.discordUsername,
+                    permissions: me.permissions,
+                    permissionsHash: me.permissionsHash,
+                };
+            });
         } catch {
             clearToken();
             setUser(null);
@@ -60,6 +68,16 @@ export function AuthProvider({children}: { children: ReactNode }) {
 
         loadMe().finally(() => setLoading(false));
     }, [loadMe]);
+
+    useEffect(() => {
+        if (!user) return;
+
+        const interval = setInterval(() => {
+            loadMe();
+        }, 30_000);
+
+        return () => clearInterval(interval);
+    }, [user, loadMe]);
 
     const login = useCallback(
         async (token: string) => {

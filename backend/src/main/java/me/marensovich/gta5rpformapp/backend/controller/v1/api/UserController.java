@@ -1,12 +1,14 @@
 package me.marensovich.gta5rpformapp.backend.controller.v1.api;
 
 import me.marensovich.gta5rpformapp.backend.config.security.CustomUserDetails;
+import me.marensovich.gta5rpformapp.backend.data.roles.Permission;
 import me.marensovich.gta5rpformapp.backend.dto.user.MeResponse;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -33,16 +35,24 @@ public class UserController {
      * </p>
      *
      * @param principal the currently authenticated user details
-     * @return a {@link MeResponse} containing user information
+     * @return a {@link MeResponse} containing user information including a permission hash
      * @since v.0.1
      */
     @GetMapping("/me")
     public MeResponse me(@AuthenticationPrincipal CustomUserDetails principal) {
+        Set<Permission> permissions = principal.getPermissions();
+        long hash = permissions.stream()
+                .mapToLong(p -> p.name().hashCode())
+                .sum();
+
         return new MeResponse(
                 principal.getDiscordId(),
                 principal.getUser().getDiscordUsername(),
-                principal.getUser().getRoles().stream().map(r -> r.getName()).collect(Collectors.toSet()),
-                principal.getPermissions()
+                principal.getUser().getRoles().stream()
+                        .map(r -> r.getName())
+                        .collect(Collectors.toSet()),
+                permissions,
+                hash
         );
     }
 }

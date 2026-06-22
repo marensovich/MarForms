@@ -42,6 +42,7 @@ public class Role {
      *
      * @since v.0.1
      */
+    @Column(unique = true)
     private String name;
 
     /**

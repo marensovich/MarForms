@@ -18,7 +18,7 @@ import java.util.UUID;
  * REST controller for managing roles.
  * <p>
  * Provides endpoints for retrieving, creating, updating, and deleting roles.
- * All endpoints require the {@code ROLE_MANAGE} authority.
+ * All endpoints require the {@code ROLES_MANAGE} authority.
  * </p>
  *
  * @author marensovich
@@ -28,7 +28,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/roles")
 @RequiredArgsConstructor
-@PreAuthorize("hasAuthority('ROLE_MANAGE')")
+@PreAuthorize("hasAuthority('ROLES_MANAGE')")
 public class RoleController {
 
     private final RoleService roleService;

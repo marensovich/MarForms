@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Service for managing users.
@@ -56,14 +57,27 @@ public class UserService {
     }
 
     /**
-     * Retrieves a paginated list of all users.
+     * Retrieves a paginated list of all users with optional search and role filters.
+     * <p>
+     * Supports filtering by:
+     * <ul>
+     *     <li><b>Search</b> — matches against {@code discordUsername} (case-insensitive, partial match)
+     *     or {@code discordId} (partial match)</li>
+     *     <li><b>Role ID</b> — filters users who have a specific role assigned</li>
+     * </ul>
+     * The search string is normalized by trimming whitespace. Empty or blank search strings
+     * are treated as {@code null} (no search filter).
+     * </p>
      *
+     * @param search   optional search string for username or Discord ID (case-insensitive)
+     * @param roleId   optional role UUID to filter users by role
      * @param pageable pagination parameters (page, size, sort)
-     * @return a {@link Page} of {@link User} entities
+     * @return a {@link Page} of {@link User} entities matching the filters
      * @since v.0.1
      */
-    public Page<User> listAll(Pageable pageable) {
-        return userRepository.findAll(pageable);
+    public Page<User> listAll(String search, UUID roleId, Pageable pageable) {
+        String normalizedSearch = (search != null && !search.isBlank()) ? search.trim() : null;
+        return userRepository.findAllWithFilters(normalizedSearch, roleId, pageable);
     }
 
     /**

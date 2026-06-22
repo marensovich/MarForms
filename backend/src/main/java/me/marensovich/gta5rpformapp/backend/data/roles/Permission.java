@@ -13,80 +13,98 @@ package me.marensovich.gta5rpformapp.backend.data.roles;
  */
 public enum Permission {
 
-    /**
-     * Permission to create new forms.
-     *
-     * @since v.0.1
-     */
-    FORM_CREATE,
+    // ============================================================
+    // Dashboard Permissions
+    // ============================================================
 
     /**
-     * Permission to view forms and their details.
+     * Permission to access the main dashboard page.
+     * <p>
+     * Replaces {@code DASHBOARD_READ}. Grants entry to the {@code /dashboard} endpoint.
+     * </p>
      *
      * @since v.0.1
      */
-    FORM_READ,
+    DASHBOARD_ACCESS,
+
+    // ============================================================
+    // Form Permissions
+    // ============================================================
 
     /**
-     * Permission to submit responses to forms.
+     * Permission to view the list of forms and their schemas.
      *
      * @since v.0.1
      */
-    FORM_SUBMIT,
+    FORMS_VIEW,
 
     /**
-     * Permission to update existing forms.
+     * Permission to manage forms.
+     * <p>
+     * Includes creating, editing, deleting, and activating/deactivating forms.
+     * </p>
      *
      * @since v.0.1
      */
-    FORM_UPDATE,
+    FORMS_MANAGE,
+
+    // ============================================================
+    // Response Permissions
+    // ============================================================
 
     /**
-     * Permission to delete forms.
+     * Permission to view user responses to forms.
      *
      * @since v.0.1
      */
-    FORM_DELETE,
+    RESPONSES_VIEW,
+
+    // ============================================================
+    // User Permissions
+    // ============================================================
 
     /**
-     * Permission to view form submissions/responses.
+     * Permission to view the list of users.
      *
      * @since v.0.1
      */
-    RESPONSE_READ,
+    USERS_VIEW,
 
     /**
-     * Permission to delete form submissions/responses.
+     * Permission to manage users.
+     * <p>
+     * Includes banning, timeout, and assigning roles to users.
+     * </p>
      *
      * @since v.0.1
      */
-    RESPONSE_DELETE,
+    USERS_MANAGE,
+
+    // ============================================================
+    // Role Permissions
+    // ============================================================
 
     /**
-     * Permission to view user information.
+     * Permission to manage roles.
+     * <p>
+     * Includes creating, editing, and deleting roles.
+     * </p>
      *
      * @since v.0.1
      */
-    USER_READ,
+    ROLES_MANAGE,
+
+    // ============================================================
+    // System Permissions
+    // ============================================================
 
     /**
-     * Permission to update user information, including roles and ban status.
+     * Permission for system administration.
+     * <p>
+     * Reserved for future system settings and advanced configuration.
+     * </p>
      *
      * @since v.0.1
      */
-    USER_UPDATE,
-
-    /**
-     * Permission to manage roles (create, update, delete, assign permissions).
-     *
-     * @since v.0.1
-     */
-    ROLE_MANAGE,
-
-    /**
-     * Permission to access the admin dashboard and view statistics.
-     *
-     * @since v.0.1
-     */
-    DASHBOARD_READ,
+    SYSTEM_ADMIN
 }

@@ -11,6 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 /**
  * REST controller for administrative user management operations.
  * <p>
@@ -30,25 +32,31 @@ public class AdminUserController {
     private final UserService userService;
 
     /**
-     * Retrieves a paginated list of all users.
+     * Retrieves a paginated list of all users with optional filtering.
      * <p>
-     * Requires the {@code USER_READ} authority.
+     * Requires the {@code USERS_VIEW} authority.
      * </p>
      *
+     * @param search   optional search filter for username or Discord ID (case-insensitive)
+     * @param roleId   optional filter to show only users with a specific role
      * @param pageable pagination parameters (page, size, sort)
      * @return a {@link Page} of {@link UserSummaryDto} containing user summaries
      * @since v.0.1
      */
-    @PreAuthorize("hasAuthority('USER_READ')")
+    @PreAuthorize("hasAuthority('USERS_VIEW')")
     @GetMapping
-    public Page<UserSummaryDto> list(Pageable pageable) {
-        return userService.listAll(pageable).map(UserSummaryDto::from);
+    public Page<UserSummaryDto> list(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) UUID roleId,
+            Pageable pageable
+    ) {
+        return userService.listAll(search, roleId, pageable).map(UserSummaryDto::from);
     }
 
     /**
      * Assigns roles to a specific user.
      * <p>
-     * Requires the {@code USER_UPDATE} authority.
+     * Requires the {@code USERS_MANAGE} authority.
      * </p>
      *
      * @param discordId the Discord ID of the user to update
@@ -56,7 +64,7 @@ public class AdminUserController {
      * @return a {@link UserSummaryDto} containing the updated user information
      * @since v.0.1
      */
-    @PreAuthorize("hasAuthority('USER_UPDATE')")
+    @PreAuthorize("hasAuthority('USERS_MANAGE')")
     @PutMapping("/{discordId}/roles")
     public UserSummaryDto assignRoles(
             @PathVariable Long discordId,
@@ -68,15 +76,16 @@ public class AdminUserController {
     /**
      * Bans a specific user.
      * <p>
-     * Requires the {@code USER_UPDATE} authority.
+     * Requires the {@code USERS_MANAGE} authority.
+     * Supports both permanent and temporary bans.
      * </p>
      *
      * @param discordId the Discord ID of the user to ban
-     * @param request   the {@link BanUserRequest} containing the ban reason
+     * @param request   the {@link BanUserRequest} containing the ban configuration
      * @return a {@link UserSummaryDto} containing the updated user information with ban status
      * @since v.0.1
      */
-    @PreAuthorize("hasAuthority('USER_UPDATE')")
+    @PreAuthorize("hasAuthority('USERS_MANAGE')")
     @PostMapping("/{discordId}/ban")
     public UserSummaryDto ban(
             @PathVariable Long discordId,
@@ -88,14 +97,15 @@ public class AdminUserController {
     /**
      * Unbans a specific user.
      * <p>
-     * Requires the {@code USER_UPDATE} authority.
+     * Requires the {@code USERS_MANAGE} authority.
+     * Removes both permanent and temporary ban status.
      * </p>
      *
      * @param discordId the Discord ID of the user to unban
      * @return a {@link UserSummaryDto} containing the updated user information with ban status removed
      * @since v.0.1
      */
-    @PreAuthorize("hasAuthority('USER_UPDATE')")
+    @PreAuthorize("hasAuthority('USERS_MANAGE')")
     @PostMapping("/{discordId}/unban")
     public UserSummaryDto unban(@PathVariable Long discordId) {
         return UserSummaryDto.from(userService.unban(discordId));

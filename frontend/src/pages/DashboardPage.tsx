@@ -19,7 +19,7 @@ export default function DashboardPage() {
     const {user} = useAuth();
     const [activeTab, setActiveTab] = useState<Tab>("forms");
 
-    const hasDashboardAccess = user?.permissions.includes("DASHBOARD_READ");
+    const hasDashboardAccess = user?.permissions.includes("DASHBOARD_ACCESS") || user?.role === "ADMIN";
 
     if (!hasDashboardAccess) {
         return <Navigate to="/" replace/>;
