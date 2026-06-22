@@ -2,10 +2,11 @@ export type UserRole = "USER" | "MODERATOR" | "ADMIN";
 
 export interface AuthUser {
   id: string;
-  username: string;
+  discordUsername: string;
   avatarUrl: string | null;
   role: UserRole;
   guildIds: string[];
+  permissions: string[];
 }
 
 export interface JwtPayload {

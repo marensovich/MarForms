@@ -10,8 +10,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 /**
  * Security configuration class for the application.
@@ -20,7 +24,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * session management, and password encoding. This class sets up:
  * <ul>
  *     <li>CORS and CSRF configuration</li>
- *     <li>OAuth2 login with a custom success handler</li>
+ *     <li>OAuth2 login with a custom success handler and PKCE-disabled resolver</li>
  *     <li>Endpoint authorization rules</li>
  *     <li>Stateless session management</li>
  *     <li>JWT authentication filter</li>
@@ -38,6 +42,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final OAuthSuccessHandler oAuthSuccessHandler;
+    private final NoPkceAuthorizationRequestResolver noPkceResolver;
 
     /**
      * Configures the security filter chain.
@@ -46,7 +51,7 @@ public class SecurityConfig {
      * <ul>
      *     <li>Enables CORS with default configuration</li>
      *     <li>Disables CSRF protection (stateless API)</li>
-     *     <li>Configures OAuth2 login with custom success handler</li>
+     *     <li>Configures OAuth2 login with custom authorization request resolver (PKCE disabled) and success handler</li>
      *     <li>Defines authorization rules for endpoints</li>
      *     <li>Sets session creation policy to STATELESS (JWT-based)</li>
      *     <li>Adds JWT authentication filter before standard authentication</li>
@@ -65,6 +70,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
 
                 .oauth2Login(oauth2 -> oauth2
+                        .authorizationEndpoint(auth -> auth
+                                .authorizationRequestResolver(noPkceResolver)
+                        )
                         .successHandler(oAuthSuccessHandler)
                 )
 

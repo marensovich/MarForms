@@ -1,4 +1,3 @@
-// src/pages/AuthCallback.tsx
 import { useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
@@ -22,10 +21,11 @@ export default function AuthCallback() {
       return;
     }
 
-    login(token);
-
-    const redirectPath = consumeRedirectPath();
-    navigate(redirectPath ?? "/", { replace: true });
+    // login теперь async — ждём /me перед редиректом
+    login(token).then(() => {
+      const redirectPath = consumeRedirectPath();
+      navigate(redirectPath ?? "/", { replace: true });
+    });
   }, [searchParams, login, navigate]);
 
   return <LoadingScreen label="Signing you in..." />;
