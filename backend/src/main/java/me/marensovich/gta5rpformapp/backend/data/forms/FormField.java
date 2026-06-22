@@ -90,35 +90,65 @@ public class FormField {
      * @since v.0.1
      */
     public enum FieldType {
-        /** Single-line text input */
+        /**
+         * Single-line text input
+         */
         TEXT,
-        /** Multi-line text input */
+        /**
+         * Multi-line text input
+         */
         TEXTAREA,
-        /** Numeric input with optional min/max constraints */
+        /**
+         * Numeric input with optional min/max constraints
+         */
         NUMBER,
-        /** Email address input with validation */
+        /**
+         * Email address input with validation
+         */
         EMAIL,
-        /** Password input (masked characters) */
+        /**
+         * Password input (masked characters)
+         */
         PASSWORD,
-        /** URL input with validation */
+        /**
+         * URL input with validation
+         */
         URL,
-        /** Phone number input */
+        /**
+         * Phone number input
+         */
         PHONE,
-        /** Single-select dropdown */
+        /**
+         * Single-select dropdown
+         */
         SELECT,
-        /** Multi-select dropdown */
+        /**
+         * Multi-select dropdown
+         */
         MULTI_SELECT,
-        /** Radio button group (single choice) */
+        /**
+         * Radio button group (single choice)
+         */
         RADIO,
-        /** Checkbox group (multiple choices) */
+        /**
+         * Checkbox group (multiple choices)
+         */
         CHECKBOX,
-        /** Single checkbox (true/false) */
+        /**
+         * Single checkbox (true/false)
+         */
         BOOLEAN,
-        /** Date picker input */
+        /**
+         * Date picker input
+         */
         DATE,
-        /** Time picker input */
+        /**
+         * Time picker input
+         */
         TIME,
-        /** Combined date and time picker */
+        /**
+         * Combined date and time picker
+         */
         DATETIME
     }
 }

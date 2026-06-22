@@ -54,7 +54,8 @@ public class DiscordApiClient {
                     DISCORD_API_BASE + "/users/@me/guilds",
                     HttpMethod.GET,
                     entity,
-                    new ParameterizedTypeReference<List<DiscordGuild>>() {}
+                    new ParameterizedTypeReference<List<DiscordGuild>>() {
+                    }
             );
 
             List<DiscordGuild> guilds = response.getBody();
@@ -78,5 +79,6 @@ public class DiscordApiClient {
      * @param name the guild name
      * @since v.0.1
      */
-    private record DiscordGuild(String id, String name) {}
+    private record DiscordGuild(String id, String name) {
+    }
 }

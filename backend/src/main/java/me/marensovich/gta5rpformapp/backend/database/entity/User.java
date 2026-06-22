@@ -146,7 +146,7 @@ public class User {
      *
      * @param guildId the Discord server (guild) ID to check
      * @return {@code true} if the user is a member of the specified guild,
-     *         {@code false} otherwise
+     * {@code false} otherwise
      * @since v.0.1
      */
     @Transient

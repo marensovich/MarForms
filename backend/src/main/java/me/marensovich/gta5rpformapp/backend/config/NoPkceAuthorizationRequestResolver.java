@@ -42,7 +42,7 @@ public class NoPkceAuthorizationRequestResolver implements OAuth2AuthorizationRe
      *
      * @param request the HTTP request
      * @return the resolved {@link OAuth2AuthorizationRequest} with PKCE parameters removed,
-     *         or {@code null} if resolution fails
+     * or {@code null} if resolution fails
      * @since v.0.1
      */
     @Override
@@ -53,10 +53,10 @@ public class NoPkceAuthorizationRequestResolver implements OAuth2AuthorizationRe
     /**
      * Resolves the OAuth2 authorization request for the given HTTP request and client registration ID.
      *
-     * @param request             the HTTP request
+     * @param request              the HTTP request
      * @param clientRegistrationId the client registration ID
      * @return the resolved {@link OAuth2AuthorizationRequest} with PKCE parameters removed,
-     *         or {@code null} if resolution fails
+     * or {@code null} if resolution fails
      * @since v.0.1
      */
     @Override
@@ -77,7 +77,7 @@ public class NoPkceAuthorizationRequestResolver implements OAuth2AuthorizationRe
      *
      * @param request the original {@link OAuth2AuthorizationRequest}
      * @return a new {@link OAuth2AuthorizationRequest} without PKCE parameters,
-     *         or {@code null} if the original request is {@code null}
+     * or {@code null} if the original request is {@code null}
      * @since v.0.1
      */
     private OAuth2AuthorizationRequest stripPkce(OAuth2AuthorizationRequest request) {

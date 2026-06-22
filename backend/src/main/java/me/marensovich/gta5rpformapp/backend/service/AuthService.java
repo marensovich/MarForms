@@ -3,7 +3,6 @@ package me.marensovich.gta5rpformapp.backend.service;
 import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.config.JWT.JwtUtil;
 import me.marensovich.gta5rpformapp.backend.database.entity.User;
-import me.marensovich.gta5rpformapp.backend.service.UserService;
 import me.marensovich.gta5rpformapp.backend.service.discord.DiscordApiClient;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;

@@ -134,8 +134,8 @@ public class UserService {
      * @param discordId the Discord ID of the user to ban
      * @param request   the {@link BanUserRequest} containing ban configuration
      * @return the updated {@link User} entity
-     * @throws NotFoundException          if the user does not exist
-     * @throws IllegalArgumentException   if a temporary ban is requested without a positive timeout
+     * @throws NotFoundException        if the user does not exist
+     * @throws IllegalArgumentException if a temporary ban is requested without a positive timeout
      * @since v.0.1
      */
     @Transactional

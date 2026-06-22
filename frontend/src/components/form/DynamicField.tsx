@@ -1,4 +1,4 @@
-import type { FormField, FormAnswers } from "../../types/forms";
+import type {FormAnswers, FormField} from "../../types/forms";
 import TextField from "./fields/TextField";
 import SelectField from "./fields/SelectField";
 import MultiSelectField from "./fields/MultiSelectField";
@@ -6,72 +6,72 @@ import RadioField from "./fields/RadioField";
 import CheckboxField from "./fields/CheckboxField";
 
 interface Props {
-  field: FormField;
-  value: FormAnswers[string];
-  onChange: (fieldId: string, value: FormAnswers[string]) => void;
-  error?: string;
+    field: FormField;
+    value: FormAnswers[string];
+    onChange: (fieldId: string, value: FormAnswers[string]) => void;
+    error?: string;
 }
 
 const TEXT_TYPES = new Set([
-  "TEXT", "TEXTAREA", "NUMBER", "EMAIL",
-  "PASSWORD", "URL", "PHONE", "DATE", "TIME", "DATETIME",
+    "TEXT", "TEXTAREA", "NUMBER", "EMAIL",
+    "PASSWORD", "URL", "PHONE", "DATE", "TIME", "DATETIME",
 ] satisfies FormField["type"][]);
 
-export default function DynamicField({ field, value, onChange, error }: Props) {
-  const onChangeStr = (v: string) => onChange(field.id, v);
-  const onChangeBool = (v: boolean) => onChange(field.id, v);
-  const onChangeArr = (v: string[]) => onChange(field.id, v);
+export default function DynamicField({field, value, onChange, error}: Props) {
+    const onChangeStr = (v: string) => onChange(field.id, v);
+    const onChangeBool = (v: boolean) => onChange(field.id, v);
+    const onChangeArr = (v: string[]) => onChange(field.id, v);
 
-  if (TEXT_TYPES.has(field.type as never)) {
-    return (
-      <TextField
-        field={field}
-        value={(value as string) ?? ""}
-        onChange={onChangeStr}
-        error={error}
-      />
-    );
-  }
+    if (TEXT_TYPES.has(field.type as never)) {
+        return (
+            <TextField
+                field={field}
+                value={(value as string) ?? ""}
+                onChange={onChangeStr}
+                error={error}
+            />
+        );
+    }
 
-  switch (field.type) {
-    case "SELECT":
-      return (
-        <SelectField
-          field={field}
-          value={(value as string) ?? ""}
-          onChange={onChangeStr}
-          error={error}
-        />
-      );
-    case "MULTI_SELECT":
-      return (
-        <MultiSelectField
-          field={field}
-          value={(value as string[]) ?? []}
-          onChange={onChangeArr}
-          error={error}
-        />
-      );
-    case "RADIO":
-      return (
-        <RadioField
-          field={field}
-          value={(value as string) ?? ""}
-          onChange={onChangeStr}
-          error={error}
-        />
-      );
-    case "CHECKBOX":
-    case "BOOLEAN":
-      return (
-        <CheckboxField
-          field={field}
-          value={(value as boolean) ?? false}
-          onChange={onChangeBool}
-          error={error}
-        />
-      );
-    default:
-      return null;
-  }
+    switch (field.type) {
+        case "SELECT":
+            return (
+                <SelectField
+                    field={field}
+                    value={(value as string) ?? ""}
+                    onChange={onChangeStr}
+                    error={error}
+                />
+            );
+        case "MULTI_SELECT":
+            return (
+                <MultiSelectField
+                    field={field}
+                    value={(value as string[]) ?? []}
+                    onChange={onChangeArr}
+                    error={error}
+                />
+            );
+        case "RADIO":
+            return (
+                <RadioField
+                    field={field}
+                    value={(value as string) ?? ""}
+                    onChange={onChangeStr}
+                    error={error}
+                />
+            );
+        case "CHECKBOX":
+        case "BOOLEAN":
+            return (
+                <CheckboxField
+                    field={field}
+                    value={(value as boolean) ?? false}
+                    onChange={onChangeBool}
+                    error={error}
+                />
+            );
+        default:
+            return null;
+    }
 }

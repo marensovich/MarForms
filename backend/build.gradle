@@ -43,19 +43,19 @@ dependencies {
 }
 
 tasks.javadoc {
-	source = sourceSets.main.allJava
-	options.encoding = 'UTF-8'
-	options.addBooleanOption('html5', true)
-	options.author = true
-	options.version = true
-	options.links("https://docs.oracle.com/en/java/javase/21/docs/api/") // ссылки на стандартную JavaDocs
-	options.addStringOption('Xdoclint:none', '-quiet') // отключить предупреждения
+    source = sourceSets.main.allJava
+    options.encoding = 'UTF-8'
+    options.addBooleanOption('html5', true)
+    options.author = true
+    options.version = true
+    options.links("https://docs.oracle.com/en/java/javase/21/docs/api/") // ссылки на стандартную JavaDocs
+    options.addStringOption('Xdoclint:none', '-quiet') // отключить предупреждения
 }
 
 tasks.named('jar') {
-	enabled = false
+    enabled = false
 }
 
 test {
-	enabled = false
+    enabled = false
 }

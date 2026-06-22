@@ -12,13 +12,13 @@ import java.util.stream.Collectors;
  * user listings and overview displays.
  * </p>
  *
- * @param id                 the internal database ID of the user
- * @param discordId          the Discord ID of the user
- * @param discordUsername    the Discord username of the user
- * @param roles              the set of role names assigned to the user
- * @param bannedPermanently  indicates whether the user is permanently banned
- * @param bannedUntil        the ISO string representation of the temporary ban expiration,
- *                           or {@code null} if no active temporary ban
+ * @param id                the internal database ID of the user
+ * @param discordId         the Discord ID of the user
+ * @param discordUsername   the Discord username of the user
+ * @param roles             the set of role names assigned to the user
+ * @param bannedPermanently indicates whether the user is permanently banned
+ * @param bannedUntil       the ISO string representation of the temporary ban expiration,
+ *                          or {@code null} if no active temporary ban
  * @author marensovich
  * @version v.0.1
  * @since v.0.1

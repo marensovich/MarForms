@@ -61,7 +61,7 @@ public class JwtUtil {
      * </p>
      *
      * @throws IllegalArgumentException if the secret key is null or blank
-     * @throws RuntimeException        if key initialization fails
+     * @throws RuntimeException         if key initialization fails
      * @since v.0.1
      */
     @PostConstruct

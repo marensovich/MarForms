@@ -25,8 +25,8 @@ import java.util.Optional;
  * </p>
  *
  * @author marensovich
- * @since v.0.1
  * @version v.0.1
+ * @since v.0.1
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {

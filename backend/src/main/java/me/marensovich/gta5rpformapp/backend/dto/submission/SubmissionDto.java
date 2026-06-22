@@ -13,11 +13,11 @@ import java.util.UUID;
  * and submission metadata.
  * </p>
  *
- * @param id          the unique identifier of the submission
- * @param formId      the ID of the form that was submitted
- * @param discordId   the Discord ID of the user who submitted the form
- * @param createdAt   the timestamp when the submission was created
- * @param answers     the submitted answers as a key-value map
+ * @param id        the unique identifier of the submission
+ * @param formId    the ID of the form that was submitted
+ * @param discordId the Discord ID of the user who submitted the form
+ * @param createdAt the timestamp when the submission was created
+ * @param answers   the submitted answers as a key-value map
  * @author marensovich
  * @version v.0.1
  * @since v.0.1

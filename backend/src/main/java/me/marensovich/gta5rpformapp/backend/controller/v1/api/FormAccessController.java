@@ -40,7 +40,7 @@ public class FormAccessController {
      * @param formId    the UUID of the form to check
      * @param principal the currently authenticated user details
      * @return a {@link Map} containing a boolean value under the key "hasAccess",
-     *         indicating whether the user has access to the form
+     * indicating whether the user has access to the form
      * @since v.0.1
      */
     @GetMapping
