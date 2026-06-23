@@ -1,5 +1,7 @@
 package me.marensovich.gta5rpformapp.backend.dto.user;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import me.marensovich.gta5rpformapp.backend.data.roles.Permission;
 
 import java.util.Set;
@@ -22,6 +24,7 @@ import java.util.Set;
  * @since v.0.1
  */
 public record MeResponse(
+        @JsonSerialize(using = ToStringSerializer.class)
         Long discordId,
         String discordUsername,
         Set<String> roles,

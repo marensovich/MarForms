@@ -30,7 +30,7 @@ export default function UsersTab() {
                 filterRoleId || undefined
             );
             setUsers(data.content);
-            setTotalElements(data.totalElements);
+            setTotalElements(data.page.totalElements);
         } finally {
             setLoading(false);
         }

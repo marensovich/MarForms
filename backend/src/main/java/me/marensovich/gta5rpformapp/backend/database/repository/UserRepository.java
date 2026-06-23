@@ -55,15 +55,30 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return a {@link Page} of {@link User} entities matching the filters
      * @since v.0.1
      */
-    @Query("""
-            SELECT u FROM User u
-            WHERE (:search IS NULL OR
-                   LOWER(u.discordUsername) LIKE LOWER(CONCAT('%', :search, '%')) OR
-                   CAST(u.discordId AS string) LIKE CONCAT('%', :search, '%'))
-            AND (:roleId IS NULL OR EXISTS (
-                SELECT r FROM u.roles r WHERE r.id = :roleId
-            ))
-            """)
+    @Query(
+            value = """
+                    SELECT u.* FROM users u
+                    WHERE (:search IS NULL OR
+                           LOWER(u.discord_username) LIKE LOWER(CONCAT('%', :search, '%'))
+                           OR u.discord_id::text LIKE CONCAT('%', :search, '%'))
+                    AND (:roleId IS NULL OR EXISTS (
+                        SELECT 1 FROM user_roles ur
+                        WHERE ur.user_id = u.id AND ur.role_id = CAST(:roleId AS uuid)
+                    ))
+                    ORDER BY u.id ASC
+                    """,
+            countQuery = """
+                    SELECT COUNT(*) FROM users u
+                    WHERE (:search IS NULL OR
+                           LOWER(u.discord_username) LIKE LOWER(CONCAT('%', :search, '%'))
+                           OR u.discord_id::text LIKE CONCAT('%', :search, '%'))
+                    AND (:roleId IS NULL OR EXISTS (
+                        SELECT 1 FROM user_roles ur
+                        WHERE ur.user_id = u.id AND ur.role_id = CAST(:roleId AS uuid)
+                    ))
+                    """,
+            nativeQuery = true
+    )
     Page<User> findAllWithFilters(
             @Param("search") String search,
             @Param("roleId") UUID roleId,

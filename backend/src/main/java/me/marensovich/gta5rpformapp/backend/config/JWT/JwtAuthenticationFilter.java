@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import me.marensovich.gta5rpformapp.backend.config.security.CustomUserDetails;
+import me.marensovich.gta5rpformapp.backend.data.settings.SystemSettings;
 import me.marensovich.gta5rpformapp.backend.database.entity.User;
 import me.marensovich.gta5rpformapp.backend.database.repository.UserRepository;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -33,6 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
+    private final me.marensovich.gta5rpformapp.backend.services.SettingsService settingsService;
 
     /**
      * Instantiates a new Jwt authentication filter.
@@ -41,9 +43,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * @param userRepository the repository for user data access
      * @since v.0.1
      */
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, UserRepository userRepository) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, UserRepository userRepository, me.marensovich.gta5rpformapp.backend.services.SettingsService settingsService) {
         this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
+        this.settingsService = settingsService;
     }
 
     /**
@@ -77,7 +80,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 CustomUserDetails userDetails = new CustomUserDetails(user);
 
                 if (!userDetails.isEnabled()) {
-                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Account is banned");
+                    SystemSettings settings = settingsService.getSettings();
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write(String.format(
+                            "{\"banned\":true,\"message\":\"%s\",\"contact\":\"%s\"}",
+                            settings.banMessage().replace("\"", "\\\""),
+                            settings.banAdminContact().replace("\"", "\\\"")
+                    ));
                     return;
                 }
 

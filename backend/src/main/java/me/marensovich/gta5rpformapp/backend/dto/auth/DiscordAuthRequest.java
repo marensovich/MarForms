@@ -1,5 +1,8 @@
 package me.marensovich.gta5rpformapp.backend.dto.auth;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+
 /**
  * Data Transfer Object representing a manual Discord authentication request.
  * <p>
@@ -14,7 +17,8 @@ package me.marensovich.gta5rpformapp.backend.dto.auth;
  * @since v.0.1
  */
 public record DiscordAuthRequest(
-        Long discordId,
+        @JsonSerialize(using = ToStringSerializer.class)
+        String discordId,
         String username
 ) {
 }

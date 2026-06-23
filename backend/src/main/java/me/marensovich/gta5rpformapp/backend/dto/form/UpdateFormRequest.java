@@ -20,7 +20,7 @@ import java.util.Set;
  * @since v.0.1
  */
 public record UpdateFormRequest(
-        Set<Long> channelsIds,
+        Set<String> channelsIds,
         @Valid FormSchema schema,
         Boolean active
 ) {

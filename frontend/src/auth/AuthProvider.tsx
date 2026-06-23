@@ -4,6 +4,7 @@ import type {AuthUser, JwtPayload} from "../types/auth";
 import {clearToken, decodeToken, getToken, isTokenExpired, setToken as persistToken,} from "./token";
 import {AuthContext} from "./AuthContextDefinition";
 import {fetchMe} from "../api/me";
+import {BanError, type BannedError} from "../api/client.ts";
 
 function isTokenValid(token: string): boolean {
     const payload = decodeToken<JwtPayload>(token);
@@ -28,6 +29,7 @@ function stubUserFromToken(token: string): AuthUser | null {
 export function AuthProvider({children}: { children: ReactNode }) {
     const [user, setUser] = useState<AuthUser | null>(null);
     const [loading, setLoading] = useState(true);
+    const [banData, setBanData] = useState<BannedError | null>(null);
 
     const loadMe = useCallback(async () => {
         try {
@@ -48,7 +50,13 @@ export function AuthProvider({children}: { children: ReactNode }) {
                     permissionsHash: me.permissionsHash,
                 };
             });
-        } catch {
+        } catch (err) {
+            if (err instanceof BanError) {
+                clearToken();
+                setUser(null);
+                setBanData(err.data);
+                return;
+            }
             clearToken();
             setUser(null);
         }
@@ -95,10 +103,9 @@ export function AuthProvider({children}: { children: ReactNode }) {
     }, []);
 
     const value = useMemo(
-        () => ({user, loading, login, logout}),
-        [user, loading, login, logout]
+        () => ({user, loading, login, logout, banData}),
+        [user, loading, login, logout, banData]
     );
-
     return (
         <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
     );

@@ -82,7 +82,7 @@ public class User {
      *
      * @since v.0.1
      */
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "user_guilds",
             joinColumns = @JoinColumn(name = "user_id")

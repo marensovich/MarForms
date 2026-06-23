@@ -1,5 +1,7 @@
 package me.marensovich.gta5rpformapp.backend.dto.form;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormSchema;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 
@@ -26,7 +28,9 @@ import java.util.UUID;
  */
 public record FormResponseDto(
         UUID id,
+        @JsonSerialize(using = ToStringSerializer.class)
         Long serverId,
+        @JsonSerialize(using = ToStringSerializer.class)
         Set<Long> channelsIds,
         FormSchema schema,
         boolean active,

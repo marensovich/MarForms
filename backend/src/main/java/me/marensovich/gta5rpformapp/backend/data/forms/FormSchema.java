@@ -45,5 +45,5 @@ public class FormSchema {
      *
      * @since v.0.1
      */
-    private List<List<FormField>> fields = new ArrayList<>();
+    private List<FormField> fields = new ArrayList<>();
 }

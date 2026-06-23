@@ -48,7 +48,7 @@ public class AuthController {
     public AuthResponse login(@RequestBody DiscordAuthRequest request) {
 
         String jwt = authService.loginWithDiscordManual(
-                request.discordId(),
+                Long.valueOf(request.discordId()),
                 request.username()
         );
 

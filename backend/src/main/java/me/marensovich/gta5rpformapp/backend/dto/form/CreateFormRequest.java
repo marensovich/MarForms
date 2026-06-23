@@ -1,6 +1,7 @@
 package me.marensovich.gta5rpformapp.backend.dto.form;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormSchema;
 
@@ -21,8 +22,8 @@ import java.util.Set;
  * @since v.0.1
  */
 public record CreateFormRequest(
-        @NotNull Long serverId,
-        Set<Long> channelsIds,
+        @NotBlank String serverId,
+        Set<String> channelsIds,
         @NotNull @Valid FormSchema schema
 ) {
 }

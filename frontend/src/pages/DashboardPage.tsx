@@ -1,47 +1,53 @@
-import {useState} from "react";
+import SettingsTab from "../components/dashboard/SettingsTab";
 import {useAuth} from "../hooks/useAuth";
+import {useState} from "react";
+import {BackgroundGlow} from "../components/LoadingScreen.tsx";
 import {Navigate} from "react-router-dom";
 import {AnimatePresence, motion} from "framer-motion";
-import FormsTab from "../components/dashboard/FormsTab";
-import UsersTab from "../components/dashboard/UsersTab";
-import RolesTab from "../components/dashboard/RolesTab";
-import {BackgroundGlow} from "../components/LoadingScreen";
+import FormsTab from "../components/dashboard/FormsTab.tsx";
+import UsersTab from "../components/dashboard/UsersTab.tsx";
+import RolesTab from "../components/dashboard/RolesTab.tsx";
 
-type Tab = "forms" | "users" | "roles";
+// Обновляем TABS — Settings только для SYSTEM_ADMIN
+const TABS = [
+    {id: "forms", label: "Forms", icon: "📋", permission: "FORMS_VIEW"},
+    {id: "users", label: "Users", icon: "👥", permission: "USERS_VIEW"},
+    {id: "roles", label: "Roles", icon: "🔑", permission: "ROLES_MANAGE"},
+    {id: "settings", label: "Settings", icon: "⚙️", permission: "SYSTEM_ADMIN"},
+] as const;
 
-const TABS: { id: Tab; label: string; icon: string }[] = [
-    {id: "forms", label: "Forms", icon: "📋"},
-    {id: "users", label: "Users", icon: "👥"},
-    {id: "roles", label: "Roles", icon: "🔑"},
-];
+type Tab = typeof TABS[number]["id"];
 
 export default function DashboardPage() {
     const {user} = useAuth();
     const [activeTab, setActiveTab] = useState<Tab>("forms");
 
-    const hasDashboardAccess = user?.permissions.includes("DASHBOARD_ACCESS") || user?.role === "ADMIN";
+    const hasDashboardAccess = user?.permissions.includes("DASHBOARD_ACCESS") ?? false;
+    if (!hasDashboardAccess) return <Navigate to="/" replace/>;
 
-    if (!hasDashboardAccess) {
-        return <Navigate to="/" replace/>;
-    }
+    const visibleTabs = TABS.filter(tab =>
+        user?.permissions.includes(tab.permission)
+    );
 
     return (
         <div className="relative min-h-screen w-full overflow-hidden bg-[#0a0a0f]">
             <BackgroundGlow/>
-
             <div className="relative z-10 flex min-h-screen">
-                {/* Sidebar */}
                 <aside className="flex w-56 flex-col border-r border-white/10 bg-white/[0.02] p-4">
                     <div className="mb-8 flex items-center gap-2.5 px-2 pt-2">
                         <div
                             className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-xs font-bold text-white">
                             MF
                         </div>
-                        <span className="font-semibold text-white">MarForms</span>
+                        <span className="font-semibold text-white">
+              {user?.permissions.includes("SYSTEM_ADMIN")
+                  ? "MarForms" // можно взять из настроек позже
+                  : "MarForms"}
+            </span>
                     </div>
 
                     <nav className="flex flex-col gap-1">
-                        {TABS.map((tab) => (
+                        {visibleTabs.map(tab => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
@@ -59,12 +65,11 @@ export default function DashboardPage() {
 
                     <div className="mt-auto border-t border-white/10 pt-4">
                         <p className="px-2 text-xs text-white/30">
-                            {user?.discordUsername ?? "Admin"}
+                            {user?.discordUsername ?? ""}
                         </p>
                     </div>
                 </aside>
 
-                {/* Main content */}
                 <main className="flex-1 overflow-auto p-8">
                     <AnimatePresence mode="wait">
                         <motion.div
@@ -77,6 +82,7 @@ export default function DashboardPage() {
                             {activeTab === "forms" && <FormsTab/>}
                             {activeTab === "users" && <UsersTab/>}
                             {activeTab === "roles" && <RolesTab/>}
+                            {activeTab === "settings" && <SettingsTab/>}
                         </motion.div>
                     </AnimatePresence>
                 </main>

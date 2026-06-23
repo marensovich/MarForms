@@ -25,9 +25,11 @@ export interface FormField {
     type: FieldType;
     label: string;
     required: boolean;
-    options?: string[]; // backend отдаёт string[], не {label,value}[]
+    options?: string[];
     max?: number;
     min?: number;
+    placeholder?: string;
+    description?: string;
 }
 
 export interface FormSchema {

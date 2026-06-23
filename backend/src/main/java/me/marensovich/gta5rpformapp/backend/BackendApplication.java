@@ -2,6 +2,9 @@ package me.marensovich.gta5rpformapp.backend;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
+
+import static org.springframework.data.web.config.EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO;
 
 /**
  * Main application class for the GTA5 RP Form App backend.
@@ -15,6 +18,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @since v.0.1
  */
 @SpringBootApplication
+@EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO)
 public class BackendApplication {
 
     /**

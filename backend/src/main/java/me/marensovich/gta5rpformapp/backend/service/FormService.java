@@ -41,6 +41,7 @@ public class FormService {
      * @throws NotFoundException if the form does not exist
      * @since v.0.1
      */
+    @Transactional(readOnly = true)
     public Form getById(UUID formId) {
         return formRepository.findById(formId)
                 .orElseThrow(() -> new NotFoundException("Form not found: " + formId));
@@ -56,9 +57,13 @@ public class FormService {
     @Transactional
     public Form create(CreateFormRequest request) {
         Form form = new Form();
-        form.setServerId(request.serverId());
+        form.setServerId(Long.parseUnsignedLong(request.serverId()));
         if (request.channelsIds() != null) {
-            form.setChannelsIds(request.channelsIds());
+            form.setChannelsIds(
+                request.channelsIds().stream()
+                    .map(Long::parseUnsignedLong)
+                    .collect(java.util.stream.Collectors.toSet())
+            );
         }
         form.setSchema(request.schema());
         return formRepository.save(form);
@@ -81,7 +86,11 @@ public class FormService {
         Form form = getById(formId);
 
         if (request.channelsIds() != null) {
-            form.setChannelsIds(request.channelsIds());
+            form.setChannelsIds(
+                request.channelsIds().stream()
+                    .map(Long::parseUnsignedLong)
+                    .collect(java.util.stream.Collectors.toSet())
+            );
         }
         if (request.schema() != null) {
             form.setSchema(request.schema());
@@ -118,6 +127,7 @@ public class FormService {
      * @return a {@link Page} of {@link FormSummaryDto} containing form summaries with submission counts
      * @since v.0.1
      */
+    @Transactional(readOnly = true)
     public Page<FormSummaryDto> listForDashboard(Pageable pageable) {
         return formRepository.findAll(pageable)
                 .map(form -> FormSummaryDto.from(form, submissionRepository.countByFormId(form.getId())));

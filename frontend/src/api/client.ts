@@ -10,6 +10,22 @@ export class ApiError extends Error {
     }
 }
 
+export interface BannedError {
+    banned: true;
+    message: string;
+    contact: string;
+}
+
+export class BanError extends Error {
+    public data: BannedError;
+
+    constructor(data: BannedError) {
+        super(data.message);
+        this.data = data;
+        this.name = "BanError";
+    }
+}
+
 interface RequestOptions {
     method?: "GET" | "POST" | "PUT" | "DELETE";
     body?: unknown;
@@ -32,6 +48,13 @@ export async function apiRequest<T>(
         body: options.body ? JSON.stringify(options.body) : undefined,
         signal: options.signal,
     });
+
+    if (response.status === 403) {
+        const data = await response.json().catch(() => null);
+        if (data?.banned) {
+            throw new BanError(data);
+        }
+    }
 
     if (!response.ok) {
         const message = await response.text().catch(() => response.statusText);

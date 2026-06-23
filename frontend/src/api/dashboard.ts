@@ -42,8 +42,8 @@ export function updateRole(
 }
 
 export interface CreateFormPayload {
-    serverId: number;
-    channelsIds?: number[];
+    serverId: string;
+    channelsIds?: string[];
     schema: {
         title: string;
         description: string;
@@ -128,7 +128,10 @@ export function deleteRole(roleId: string): Promise<void> {
 
 export interface PageResponse<T> {
     content: T[];
-    totalElements: number;
-    totalPages: number;
-    number: number;
+    page: {
+        totalElements: number;
+        totalPages: number;
+        number: number;
+        size: number;
+    };
 }

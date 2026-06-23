@@ -1,5 +1,7 @@
 package me.marensovich.gta5rpformapp.backend.dto.user;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import me.marensovich.gta5rpformapp.backend.database.entity.User;
 import me.marensovich.gta5rpformapp.backend.dto.role.RoleDto;
 
@@ -28,6 +30,7 @@ import java.util.stream.Collectors;
  */
 public record UserSummaryDto(
         Long id,
+        @JsonSerialize(using = ToStringSerializer.class)
         Long discordId,
         String discordUsername,
         Set<RoleDto> roles,
