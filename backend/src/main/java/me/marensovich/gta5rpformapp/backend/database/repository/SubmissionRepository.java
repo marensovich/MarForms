@@ -1,11 +1,15 @@
 package me.marensovich.gta5rpformapp.backend.database.repository;
 
 import me.marensovich.gta5rpformapp.backend.database.entity.Submission;
+import me.marensovich.gta5rpformapp.backend.dto.submission.UserSubmissionCountDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -45,4 +49,64 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
      * @since v.0.1
      */
     long countByFormId(UUID formId);
+
+    /**
+     * Retrieves a paginated list of submissions made by a specific user.
+     *
+     * @param discordId the Discord ID of the user
+     * @param pageable  pagination parameters (page, size, sort)
+     * @return a {@link Page} of {@link Submission} entities for the specified user
+     * @since v.0.1
+     */
+    Page<Submission> findAllByDiscordId(Long discordId, Pageable pageable);
+
+    /**
+     * Retrieves a paginated list of submissions for a specific form made by a specific user.
+     *
+     * @param formId    the UUID of the form
+     * @param discordId the Discord ID of the user
+     * @param pageable  pagination parameters (page, size, sort)
+     * @return a {@link Page} of {@link Submission} entities matching both filters
+     * @since v.0.1
+     */
+    Page<Submission> findAllByFormIdAndDiscordId(UUID formId, Long discordId, Pageable pageable);
+
+    /**
+     * Retrieves a paginated list of submissions made by any of the specified users.
+     *
+     * @param discordIds a collection of Discord IDs to filter by
+     * @param pageable   pagination parameters (page, size, sort)
+     * @return a {@link Page} of {@link Submission} entities for the specified users
+     * @since v.0.1
+     */
+    Page<Submission> findAllByDiscordIdIn(Collection<Long> discordIds, Pageable pageable);
+
+    /**
+     * Retrieves a paginated list of submissions for a specific form
+     * made by any of the specified users.
+     *
+     * @param formId     the UUID of the form
+     * @param discordIds a collection of Discord IDs to filter by
+     * @param pageable   pagination parameters (page, size, sort)
+     * @return a {@link Page} of {@link Submission} entities matching all filters
+     * @since v.0.1
+     */
+    Page<Submission> findAllByFormIdAndDiscordIdIn(UUID formId, Collection<Long> discordIds, Pageable pageable);
+
+    /**
+     * Retrieves a list of submission counts grouped by user.
+     * <p>
+     * Returns the total number of submissions each user has made across all forms.
+     * Results are ordered by count in descending order (highest first).
+     * </p>
+     * <p>
+     * Useful for leaderboards, activity tracking, and administrative dashboards.
+     * </p>
+     *
+     * @return a {@link List} of {@link UserSubmissionCountDto} containing user submission statistics
+     * @since v.0.1
+     */
+    @Query("SELECT new me.marensovich.gta5rpformapp.backend.dto.submission.UserSubmissionCountDto(s.discordId, COUNT(s)) " +
+            "FROM Submission s GROUP BY s.discordId ORDER BY COUNT(s) DESC")
+    List<UserSubmissionCountDto> findUserSubmissionCounts();
 }

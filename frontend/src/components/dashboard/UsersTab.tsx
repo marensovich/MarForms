@@ -1,14 +1,197 @@
 import {useCallback, useEffect, useState} from "react";
 import {
-  assignUserRoles,
-  banUser,
-  type DashboardRole,
-  type DashboardUser,
-  getRoles,
-  getUsers,
-  unbanUser,
+    assignUserRoles,
+    banUser,
+    type DashboardRole,
+    type DashboardUser,
+    getRoles,
+    getUsers,
+    unbanUser,
 } from "../../api/dashboard";
-import {Badge, EmptyState, TabSkeleton} from "./shared";
+import {ActionBtn, Badge, ConfirmModal, EmptyState, Modal, StatsCard, TabSkeleton} from "./shared";
+import {
+    FiCheckCircle,
+    FiClock,
+    FiFilter,
+    FiSearch,
+    FiShield,
+    FiSlash,
+    FiUserCheck,
+    FiUsers,
+    FiUserX,
+} from "react-icons/fi";
+
+function UserAvatar({name}: { name: string }) {
+    const clean = name.replace(/#\d+$/, "");
+    const parts = clean.split(/[\s_]+/);
+    const letters = parts.length >= 2 ? parts[0][0] + parts[1][0] : clean.slice(0, 2);
+    const hue = [...name].reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
+    return (
+        <div
+            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+            style={{background: `hsl(${hue}, 55%, 35%)`}}
+        >
+            {letters.toUpperCase()}
+        </div>
+    );
+}
+
+function RolesModal({
+                        user,
+                        roles,
+                        onClose,
+                        onSave,
+                    }: {
+    user: DashboardUser;
+    roles: DashboardRole[];
+    onClose: () => void;
+    onSave: (roleIds: string[]) => Promise<void>;
+}) {
+    const [selected, setSelected] = useState<string[]>(user.roles.map(r => r.id));
+    const [saving, setSaving] = useState(false);
+
+    const toggle = (id: string) =>
+        setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+    const handleSave = async () => {
+        setSaving(true);
+        try {
+            await onSave(selected);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <Modal
+            title="Assign Roles"
+            subtitle={user.discordUsername}
+            onClose={onClose}
+            width="max-w-sm"
+        >
+            {roles.length === 0 ? (
+                <p className="py-4 text-center text-sm text-white/65">No roles available.</p>
+            ) : (
+                <div className="mb-5 flex flex-col gap-1.5">
+                    {roles.map(role => {
+                        const active = selected.includes(role.id);
+                        return (
+                            <label
+                                key={role.id}
+                                className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition-all ${
+                                    active
+                                        ? "border-indigo-500/30 bg-indigo-500/10"
+                                        : "border-white/[0.07] hover:border-white/[0.12] hover:bg-white/[0.02]"
+                                }`}
+                            >
+                                <div
+                                    className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
+                                        active ? "border-indigo-500 bg-indigo-500" : "border-white/20"
+                                    }`}>
+                                    {active && <FiCheckCircle size={10} className="text-white"/>}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium text-white">{role.name}</p>
+                                    <p className="text-xs text-white/30">{role.permissions.length} permission{role.permissions.length !== 1 ? "s" : ""}</p>
+                                </div>
+                            </label>
+                        );
+                    })}
+                </div>
+            )}
+            <div className="flex gap-2">
+                <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-500 disabled:opacity-60"
+                >
+                    {saving ? "Saving…" : "Save roles"}
+                </button>
+                <button
+                    onClick={onClose}
+                    className="rounded-xl border border-white/[0.08] px-4 py-2.5 text-sm text-white/50 transition-colors hover:text-white"
+                >
+                    Cancel
+                </button>
+            </div>
+        </Modal>
+    );
+}
+
+function TimeoutModal({
+                          user,
+                          onClose,
+                          onConfirm,
+                      }: {
+    user: DashboardUser;
+    onClose: () => void;
+    onConfirm: (minutes: number) => Promise<void>;
+}) {
+    const [minutes, setMinutes] = useState("60");
+    const [saving, setSaving] = useState(false);
+    const presets = [15, 60, 360, 1440, 10080];
+
+    const handleConfirm = async () => {
+        const n = Number(minutes);
+        if (!n || n <= 0) return;
+        setSaving(true);
+        try {
+            await onConfirm(n);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <Modal
+            title="Timeout User"
+            subtitle={`Temporarily restrict ${user.discordUsername}`}
+            onClose={onClose}
+            width="max-w-sm"
+        >
+            <div className="mb-4">
+                <p className="mb-2 text-xs text-white/65">Duration (minutes)</p>
+                <input
+                    type="number"
+                    min="1"
+                    value={minutes}
+                    onChange={e => setMinutes(e.target.value)}
+                    className="w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500 transition-colors"
+                />
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                    {presets.map(p => (
+                        <button
+                            key={p}
+                            onClick={() => setMinutes(String(p))}
+                            className={`rounded-lg px-2.5 py-1 text-xs transition-colors ${
+                                minutes === String(p)
+                                    ? "bg-indigo-500/20 text-indigo-300"
+                                    : "bg-white/[0.04] text-white/65 hover:bg-white/[0.08] hover:text-white"
+                            }`}
+                        >
+                            {p < 60 ? `${p}m` : p < 1440 ? `${p / 60}h` : p < 10080 ? `${p / 1440}d` : `${p / 10080}w`}
+                        </button>
+                    ))}
+                </div>
+            </div>
+            <div className="flex gap-2">
+                <button
+                    onClick={handleConfirm}
+                    disabled={saving || !Number(minutes) || Number(minutes) <= 0}
+                    className="flex-1 rounded-xl bg-orange-600 py-2.5 text-sm font-medium text-white transition-colors hover:bg-orange-500 disabled:opacity-60"
+                >
+                    {saving ? "Applying…" : "Apply timeout"}
+                </button>
+                <button
+                    onClick={onClose}
+                    className="rounded-xl border border-white/[0.08] px-4 py-2.5 text-sm text-white/50 transition-colors hover:text-white"
+                >
+                    Cancel
+                </button>
+            </div>
+        </Modal>
+    );
+}
 
 export default function UsersTab() {
     const [users, setUsers] = useState<DashboardUser[]>([]);
@@ -19,16 +202,13 @@ export default function UsersTab() {
     const [totalElements, setTotalElements] = useState(0);
 
     const [assigningUser, setAssigningUser] = useState<DashboardUser | null>(null);
-    const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
+    const [timeoutUser, setTimeoutUser] = useState<DashboardUser | null>(null);
+    const [banTarget, setBanTarget] = useState<DashboardUser | null>(null);
 
     const loadUsers = useCallback(async () => {
         setLoading(true);
         try {
-            const data = await getUsers(
-                0, 20,
-                search || undefined,
-                filterRoleId || undefined
-            );
+            const data = await getUsers(0, 20, search || undefined, filterRoleId || undefined);
             setUsers(data.content);
             setTotalElements(data.page.totalElements);
         } finally {
@@ -41,47 +221,32 @@ export default function UsersTab() {
     }, []);
 
     useEffect(() => {
-        const timer = setTimeout(() => loadUsers(), 300);
-        return () => clearTimeout(timer);
+        const t = setTimeout(() => loadUsers(), 300);
+        return () => clearTimeout(t);
     }, [loadUsers]);
 
-    const handleBan = async (user: DashboardUser) => {
-        if (user.currentlyBanned) {
-            await unbanUser(user.discordId);
+    const handleBanConfirm = async () => {
+        if (!banTarget) return;
+        if (banTarget.currentlyBanned) {
+            await unbanUser(banTarget.discordId);
         } else {
-            await banUser(user.discordId, {permanent: true});
+            await banUser(banTarget.discordId, {permanent: true});
         }
+        setBanTarget(null);
         await loadUsers();
     };
 
-    const handleTimeout = async (user: DashboardUser) => {
-        const input = prompt("Timeout duration in minutes:");
-        if (!input || isNaN(Number(input)) || Number(input) <= 0) return;
-        await banUser(user.discordId, {
-            permanent: false,
-            timeoutMinutes: Number(input),
-        });
+    const handleTimeout = async (user: DashboardUser, minutes: number) => {
+        await banUser(user.discordId, {permanent: false, timeoutMinutes: minutes});
+        setTimeoutUser(null);
         await loadUsers();
     };
 
-    const openAssignRoles = (user: DashboardUser) => {
-        setAssigningUser(user);
-        setSelectedRoleIds(user.roles.map(r => r.id));
-    };
-
-    const handleAssignRoles = async () => {
+    const handleAssignRoles = async (roleIds: string[]) => {
         if (!assigningUser) return;
-        await assignUserRoles(assigningUser.discordId, selectedRoleIds);
+        await assignUserRoles(assigningUser.discordId, roleIds);
         setAssigningUser(null);
         await loadUsers();
-    };
-
-    const toggleRoleSelection = (roleId: string) => {
-        setSelectedRoleIds(prev =>
-            prev.includes(roleId)
-                ? prev.filter(id => id !== roleId)
-                : [...prev, roleId]
-        );
     };
 
     const getBanStatus = (user: DashboardUser) => {
@@ -92,113 +257,145 @@ export default function UsersTab() {
         return {label: "Active", color: "green" as const};
     };
 
+    const bannedCount = users.filter(u => u.currentlyBanned).length;
+    const activeCount = users.filter(u => !u.currentlyBanned).length;
+
     return (
         <div>
-            {/* Заголовок */}
-            <div className="mb-6 flex items-center justify-between">
+            {/* Header */}
+            <div className="mb-6 flex items-start justify-between">
                 <div>
                     <h1 className="text-xl font-semibold text-white">Users</h1>
-                    <p className="mt-0.5 text-sm text-white/40">
-                        {totalElements} registered user{totalElements !== 1 ? "s" : ""}
-                    </p>
+                    <p className="mt-0.5 text-sm text-white/65">Manage user access, roles, and restrictions</p>
                 </div>
             </div>
 
-            {/* Поиск и фильтр */}
+            {/* Stats */}
+            {!loading && (
+                <div className="mb-6 grid grid-cols-3 gap-4">
+                    <StatsCard
+                        label="Total Users"
+                        value={totalElements}
+                        sub="registered accounts"
+                        icon={<FiUsers size={16}/>}
+                        accentColor="#6366f1"
+                    />
+                    <StatsCard
+                        label="Active"
+                        value={activeCount}
+                        sub="on this page"
+                        icon={<FiUserCheck size={16}/>}
+                        accentColor="#34d399"
+                    />
+                    <StatsCard
+                        label="Restricted"
+                        value={bannedCount}
+                        sub="banned or in timeout"
+                        icon={<FiUserX size={16}/>}
+                        accentColor="#f87171"
+                    />
+                </div>
+            )}
+
+            {/* Filters */}
             <div className="mb-4 flex gap-3">
-                <input
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    placeholder="Search by username or Discord ID..."
-                    className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-indigo-500"
-                />
-                <select
-                    value={filterRoleId}
-                    onChange={e => setFilterRoleId(e.target.value)}
-                    className="rounded-xl border border-white/10 bg-[#0a0a0f] px-3 py-2 text-sm text-white outline-none focus:border-indigo-500"
-                >
-                    <option value="">All roles</option>
-                    {roles.map(role => (
-                        <option key={role.id} value={role.id}>
-                            {role.name}
-                        </option>
-                    ))}
-                </select>
+                <div className="relative flex-1">
+                    <FiSearch size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30"/>
+                    <input
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        placeholder="Search by username or Discord ID…"
+                        className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] py-2.5 pl-9 pr-4 text-sm text-white placeholder-white/25 outline-none transition-colors focus:border-indigo-500/60 focus:bg-white/[0.04]"
+                    />
+                </div>
+                <div className="relative">
+                    <FiFilter size={13}
+                              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/30"/>
+                    <select
+                        value={filterRoleId}
+                        onChange={e => setFilterRoleId(e.target.value)}
+                        className="appearance-none rounded-xl border border-white/[0.08] bg-[#0a0a0f] py-2.5 pl-9 pr-8 text-sm text-white outline-none focus:border-indigo-500/60 transition-colors"
+                    >
+                        <option value="">All roles</option>
+                        {roles.map(role => (
+                            <option key={role.id} value={role.id}>{role.name}</option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
-            {/* Таблица */}
+            {/* Table */}
             {loading ? (
                 <TabSkeleton/>
             ) : users.length === 0 ? (
-                <EmptyState message="No users found."/>
+                <EmptyState message="No users found." icon={<FiUsers/>}/>
             ) : (
-                <div className="overflow-hidden rounded-xl border border-white/10">
+                <div className="overflow-hidden rounded-xl border border-white/[0.07]">
                     <table className="w-full text-sm">
                         <thead>
-                        <tr className="border-b border-white/10 bg-white/[0.02]">
-                            <th className="px-4 py-3 text-left font-medium text-white/40">User</th>
-                            <th className="px-4 py-3 text-left font-medium text-white/40">Discord ID</th>
-                            <th className="px-4 py-3 text-left font-medium text-white/40">Roles</th>
-                            <th className="px-4 py-3 text-left font-medium text-white/40">Status</th>
-                            <th className="px-4 py-3 text-right font-medium text-white/40">Actions</th>
+                        <tr className="border-b border-white/[0.06] bg-white/[0.02]">
+                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">User</th>
+                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">Discord
+                                ID
+                            </th>
+                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">Roles</th>
+                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">Status</th>
+                            <th className="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-white/55">Actions</th>
                         </tr>
                         </thead>
-                        <tbody>
-                        {users.map((user, idx) => {
+                        <tbody className="divide-y divide-white/[0.04]">
+                        {users.map(user => {
                             const banStatus = getBanStatus(user);
                             return (
-                                <tr
-                                    key={user.id}
-                                    className={`border-b border-white/5 transition-colors hover:bg-white/[0.02] ${
-                                        idx === users.length - 1 ? "border-0" : ""
-                                    }`}
-                                >
-                                    <td className="px-4 py-3 font-medium text-white">
-                                        {user.discordUsername}
+                                <tr key={user.id} className="transition-colors hover:bg-white/[0.015]">
+                                    <td className="px-5 py-3.5">
+                                        <div className="flex items-center gap-3">
+                                            <UserAvatar name={user.discordUsername}/>
+                                            <div>
+                                                <p className="font-medium text-white">{user.discordUsername}</p>
+                                                {user.bannedUntil && !user.bannedPermanently && new Date(user.bannedUntil) > new Date() && (
+                                                    <p className="mt-0.5 text-xs text-orange-400/70">
+                                                        until {new Date(user.bannedUntil).toLocaleString()}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
                                     </td>
-                                    <td className="px-4 py-3 font-mono text-xs text-white/40">
-                                        {user.discordId}
+                                    <td className="px-5 py-3.5">
+                                        <span className="font-mono text-xs text-white/55">{user.discordId}</span>
                                     </td>
-                                    <td className="px-4 py-3">
+                                    <td className="px-5 py-3.5">
                                         <div className="flex flex-wrap gap-1">
                                             {user.roles.length === 0 ? (
-                                                <span className="text-white/30 text-xs">—</span>
+                                                <span className="text-xs text-white/40">No roles</span>
                                             ) : (
                                                 user.roles.map(role => (
-                                                    <Badge key={role.id} color="indigo">
-                                                        {role.name}
-                                                    </Badge>
+                                                    <Badge key={role.id} color="indigo">{role.name}</Badge>
                                                 ))
                                             )}
                                         </div>
                                     </td>
-                                    <td className="px-4 py-3">
-                                        <Badge color={banStatus.color}>{banStatus.label}</Badge>
+                                    <td className="px-5 py-3.5">
+                                        <Badge color={banStatus.color} dot>{banStatus.label}</Badge>
                                     </td>
-                                    <td className="px-4 py-3">
-                                        <div className="flex items-center justify-end gap-2">
-                                            <button
-                                                onClick={() => openAssignRoles(user)}
-                                                className="rounded-lg px-2.5 py-1 text-xs text-white/50 transition-colors hover:bg-white/5 hover:text-white"
+                                    <td className="px-5 py-3.5">
+                                        <div className="flex items-center justify-end gap-1">
+                                            <ActionBtn onClick={() => setAssigningUser(user)} variant="ghost">
+                                                <FiShield size={11} className="inline mr-1"/>Roles
+                                            </ActionBtn>
+                                            {!user.currentlyBanned && (
+                                                <ActionBtn onClick={() => setTimeoutUser(user)} variant="warning">
+                                                    <FiClock size={11} className="inline mr-1"/>Timeout
+                                                </ActionBtn>
+                                            )}
+                                            <ActionBtn
+                                                onClick={() => setBanTarget(user)}
+                                                variant={user.currentlyBanned ? "success" : "danger"}
                                             >
-                                                Roles
-                                            </button>
-                                            <button
-                                                onClick={() => handleTimeout(user)}
-                                                className="rounded-lg px-2.5 py-1 text-xs text-orange-400 transition-colors hover:bg-orange-500/10"
-                                            >
-                                                Timeout
-                                            </button>
-                                            <button
-                                                onClick={() => handleBan(user)}
-                                                className={`rounded-lg px-2.5 py-1 text-xs transition-colors ${
-                                                    user.currentlyBanned
-                                                        ? "text-emerald-400 hover:bg-emerald-500/10"
-                                                        : "text-red-400 hover:bg-red-500/10"
-                                                }`}
-                                            >
-                                                {user.currentlyBanned ? "Unban" : "Ban"}
-                                            </button>
+                                                {user.currentlyBanned
+                                                    ? <><FiCheckCircle size={11} className="inline mr-1"/>Unban</>
+                                                    : <><FiSlash size={11} className="inline mr-1"/>Ban</>}
+                                            </ActionBtn>
                                         </div>
                                     </td>
                                 </tr>
@@ -206,53 +403,44 @@ export default function UsersTab() {
                         })}
                         </tbody>
                     </table>
+                    {totalElements > users.length && (
+                        <div className="border-t border-white/[0.05] bg-white/[0.01] px-5 py-3">
+                            <p className="text-xs text-white/45">
+                                Showing {users.length} of {totalElements} users
+                            </p>
+                        </div>
+                    )}
                 </div>
             )}
 
-            {/* Модал назначения ролей */}
             {assigningUser && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-                    <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#0f0f17] p-6 shadow-2xl">
-                        <h2 className="mb-1 text-base font-semibold text-white">
-                            Assign roles
-                        </h2>
-                        <p className="mb-4 text-sm text-white/40">
-                            {assigningUser.discordUsername}
-                        </p>
-
-                        <div className="mb-5 flex flex-col gap-2">
-                            {roles.map(role => (
-                                <label
-                                    key={role.id}
-                                    className="flex cursor-pointer items-center gap-3 rounded-xl border border-white/10 px-4 py-2.5 transition-colors hover:border-white/20"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedRoleIds.includes(role.id)}
-                                        onChange={() => toggleRoleSelection(role.id)}
-                                        className="h-4 w-4 accent-indigo-500"
-                                    />
-                                    <span className="text-sm text-white">{role.name}</span>
-                                </label>
-                            ))}
-                        </div>
-
-                        <div className="flex gap-2">
-                            <button
-                                onClick={handleAssignRoles}
-                                className="flex-1 rounded-xl bg-indigo-600 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-500"
-                            >
-                                Save
-                            </button>
-                            <button
-                                onClick={() => setAssigningUser(null)}
-                                className="rounded-xl border border-white/10 px-4 py-2 text-sm text-white/50 transition-colors hover:text-white"
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <RolesModal
+                    user={assigningUser}
+                    roles={roles}
+                    onClose={() => setAssigningUser(null)}
+                    onSave={handleAssignRoles}
+                />
+            )}
+            {timeoutUser && (
+                <TimeoutModal
+                    user={timeoutUser}
+                    onClose={() => setTimeoutUser(null)}
+                    onConfirm={mins => handleTimeout(timeoutUser, mins)}
+                />
+            )}
+            {banTarget && (
+                <ConfirmModal
+                    title={banTarget.currentlyBanned ? "Unban user" : "Ban user"}
+                    message={
+                        banTarget.currentlyBanned
+                            ? `Remove the ban from ${banTarget.discordUsername}? They will regain access immediately.`
+                            : `Permanently ban ${banTarget.discordUsername}? They will be unable to access any forms.`
+                    }
+                    confirmLabel={banTarget.currentlyBanned ? "Unban" : "Ban permanently"}
+                    confirmColor={banTarget.currentlyBanned ? "indigo" : "red"}
+                    onConfirm={handleBanConfirm}
+                    onCancel={() => setBanTarget(null)}
+                />
             )}
         </div>
     );

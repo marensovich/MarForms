@@ -3,6 +3,7 @@ CREATE TABLE form
     id         UUID                        NOT NULL,
     server_id  BIGINT,
     schema     JSONB                       NOT NULL,
+    webhooks   JSONB,
     active     BOOLEAN                     NOT NULL,
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     CONSTRAINT pk_form PRIMARY KEY (id)
@@ -25,6 +26,13 @@ CREATE TABLE roles
     id   UUID NOT NULL,
     name VARCHAR(255),
     CONSTRAINT pk_roles PRIMARY KEY (id)
+);
+
+CREATE TABLE settings
+(
+    key   VARCHAR(255) NOT NULL,
+    value TEXT,
+    CONSTRAINT pk_settings PRIMARY KEY (key)
 );
 
 CREATE TABLE submission

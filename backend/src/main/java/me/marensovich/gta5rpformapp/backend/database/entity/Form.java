@@ -3,19 +3,18 @@ package me.marensovich.gta5rpformapp.backend.database.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormSchema;
+import me.marensovich.gta5rpformapp.backend.data.forms.WebhookConfig;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Entity representing a form configuration in the database.
  * <p>
  * Stores the structural definition of a form including its schema,
- * associated Discord server, and channel restrictions.
+ * associated Discord server, channel restrictions, and webhook configurations.
  * </p>
  *
  * @author marensovich
@@ -75,6 +74,25 @@ public class Form {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false)
     private FormSchema schema;
+
+    /**
+     * A list of Discord webhook configurations for this form.
+     * <p>
+     * Stored as JSON in the database using Hibernate's JSON mapping.
+     * Each webhook is triggered when a new submission is created,
+     * sending form data to the configured Discord channel.
+     * </p>
+     * <p>
+     * Supports multiple webhooks per form, allowing notifications
+     * to be sent to different channels or with different formats.
+     * </p>
+     *
+     * @see WebhookConfig
+     * @since v.0.1
+     */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column
+    private List<WebhookConfig> webhooks = new ArrayList<>();
 
     /**
      * Indicates whether the form is active and accepting submissions.

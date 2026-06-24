@@ -1,42 +1,117 @@
 import {motion} from "framer-motion";
 import {loginWithDiscord} from "../api/auth";
 import {saveRedirectPath} from "../auth/redirectStorage";
-import {BackgroundGlow} from "./LoadingScreen";
+import {SceneBackground} from "./LoadingScreen";
+import {FiAlertTriangle, FiArchive, FiArrowRight, FiLock, FiLogIn, FiRefreshCw, FiSearch,} from "react-icons/fi";
 import {BsDiscord} from "react-icons/bs";
 
 interface Props {
     formId?: string;
 }
 
-const cardClass =
-    "relative z-10 w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-8 text-center shadow-2xl backdrop-blur-xl sm:p-10";
+type AccentColor = "indigo" | "amber" | "slate" | "blue" | "red";
 
-const wrapperClass =
-    "relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[#0a0a0f] px-4";
+const ACCENT: Record<AccentColor, { iconBg: string; iconText: string; iconBorder: string; glow: string }> = {
+    indigo: {
+        iconBg: "bg-indigo-500/15",
+        iconText: "text-indigo-400",
+        iconBorder: "border-indigo-500/25",
+        glow: "bg-indigo-500/15",
+    },
+    amber: {
+        iconBg: "bg-amber-500/15",
+        iconText: "text-amber-400",
+        iconBorder: "border-amber-500/25",
+        glow: "bg-amber-500/12",
+    },
+    slate: {
+        iconBg: "bg-white/[0.08]",
+        iconText: "text-white/55",
+        iconBorder: "border-white/[0.12]",
+        glow: "bg-white/[0.05]",
+    },
+    blue: {
+        iconBg: "bg-blue-500/15",
+        iconText: "text-blue-400",
+        iconBorder: "border-blue-500/25",
+        glow: "bg-blue-500/12",
+    },
+    red: {
+        iconBg: "bg-red-500/15",
+        iconText: "text-red-400",
+        iconBorder: "border-red-500/25",
+        glow: "bg-red-500/12",
+    },
+};
 
-function StateCard({children}: { children: React.ReactNode }) {
+function StateLayout({
+                         icon,
+                         accent,
+                         title,
+                         description,
+                         children,
+                         badge,
+                         sceneVariant = "default",
+                     }: {
+    icon: React.ReactNode;
+    accent: AccentColor;
+    title: string;
+    description: string;
+    children?: React.ReactNode;
+    badge?: string;
+    sceneVariant?: "default" | "danger" | "warning";
+}) {
+    const a = ACCENT[accent];
+
     return (
-        <div className={wrapperClass}>
-            <BackgroundGlow/>
+        <div
+            className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-[#0f0f21] px-4">
+            <SceneBackground variant={sceneVariant}/>
+
             <motion.div
-                initial={{opacity: 0, y: 16}}
+                initial={{opacity: 0, y: 20}}
                 animate={{opacity: 1, y: 0}}
                 transition={{duration: 0.45, ease: "easeOut"}}
-                className={cardClass}
+                className="relative z-10 w-full max-w-[420px]"
             >
-                {children}
-            </motion.div>
-        </div>
-    );
-}
+                <div className="overflow-hidden rounded-2xl border border-white/[0.10] bg-[#141428] shadow-2xl">
+                    <div className="h-px w-full bg-gradient-to-r from-transparent via-white/[0.12] to-transparent"/>
 
-function Logo() {
-    return (
-        <div className="mb-5 flex justify-center">
-            <div
-                className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-lg font-bold text-white shadow-lg shadow-indigo-500/30">
-                MF
-            </div>
+                    <div className="px-8 py-9 text-center">
+                        {/* Icon */}
+                        <div className="mb-5 flex justify-center">
+                            <div className="relative">
+                                <div className={`absolute inset-0 scale-[2.2] rounded-full blur-2xl ${a.glow}`}/>
+                                <div
+                                    className={`relative flex h-16 w-16 items-center justify-center rounded-2xl border ${a.iconBorder} ${a.iconBg}`}>
+                                    <span className={a.iconText}>{icon}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Badge */}
+                        {badge && (
+                            <span
+                                className="mb-4 inline-flex items-center rounded-full border border-white/[0.12] bg-white/[0.06] px-3 py-1 text-xs font-medium text-white/55">
+                                {badge}
+                            </span>
+                        )}
+
+                        <h1 className="text-[1.4rem] font-bold tracking-tight text-white">
+                            {title}
+                        </h1>
+                        <p className="mt-2.5 text-sm leading-relaxed text-white/60">
+                            {description}
+                        </p>
+
+                        {children && <div className="mt-6">{children}</div>}
+                    </div>
+                </div>
+
+                <p className="mt-4 text-center text-xs text-white/30">
+                    MarForms · Discord Application Forms
+                </p>
+            </motion.div>
         </div>
     );
 }
@@ -48,79 +123,100 @@ export function NotAuthenticatedState({formId}: Props) {
     };
 
     return (
-        <StateCard>
-            <Logo/>
-            <h1 className="text-2xl font-semibold text-white">Sign in required</h1>
-            <p className="mt-2 text-sm text-white/50">
-                This form requires you to sign in with Discord before you can continue.
-            </p>
-            <motion.button
-                onClick={handleLogin}
-                whileHover={{scale: 1.02}}
-                whileTap={{scale: 0.98}}
-                className="mt-7 flex w-full items-center justify-center gap-3 rounded-xl bg-[#5865F2] px-6 py-3.5 font-medium text-white shadow-lg shadow-[#5865F2]/25 transition-colors hover:bg-[#4752C4] focus:outline-none focus:ring-2 focus:ring-[#5865F2] focus:ring-offset-2 focus:ring-offset-[#0a0a0f]"
-            >
-                <BsDiscord/>
-                Login with Discord
-            </motion.button>
-            <p className="mt-4 text-xs text-white/30">
-                You&apos;ll be redirected back to this form after signing in.
-            </p>
-        </StateCard>
+        <StateLayout
+            icon={<FiLogIn size={28}/>}
+            accent="indigo"
+            title="Sign in required"
+            description="This form requires you to sign in with Discord before you can continue. You'll be redirected back here after signing in."
+            badge="Authentication required"
+        >
+            <div className="flex flex-col gap-3">
+                <motion.button
+                    onClick={handleLogin}
+                    whileHover={{scale: 1.025}}
+                    whileTap={{scale: 0.97}}
+                    className="flex w-full items-center justify-center gap-3 rounded-xl bg-[#5865F2] px-6 py-3.5 font-semibold text-white shadow-lg shadow-[#5865F2]/25 transition-colors hover:bg-[#4752C4] focus:outline-none focus:ring-2 focus:ring-[#5865F2]/50 focus:ring-offset-2 focus:ring-offset-[#0f0f21]"
+                >
+                    <BsDiscord size={18}/>
+                    Sign in with Discord
+                </motion.button>
+                <div className="flex items-center justify-center gap-2 text-xs text-white/40">
+                    <FiArrowRight size={11}/>
+                    <span>You'll be redirected back to this form after signing in</span>
+                </div>
+            </div>
+        </StateLayout>
     );
 }
 
 export function NotInGuildState() {
     return (
-        <StateCard>
-            <Logo/>
-            <div className="mb-4 text-3xl">🔒</div>
-            <h1 className="text-2xl font-semibold text-white">Access denied</h1>
-            <p className="mt-2 text-sm text-white/50">
-                You are not a member of the Discord server this form is linked to. Join
-                the server and try again.
-            </p>
-        </StateCard>
+        <StateLayout
+            icon={<FiLock size={28}/>}
+            accent="amber"
+            title="Server membership required"
+            description="This form is linked to a Discord server that you are not a member of. Join the server first, then try opening the form link again."
+            badge="Access restricted"
+        >
+            <div
+                className="rounded-xl border border-amber-500/20 bg-amber-500/[0.08] px-4 py-3 text-sm text-amber-200/80">
+                Join the linked Discord server to gain access to this form.
+            </div>
+        </StateLayout>
     );
 }
 
 export function FormInactiveState() {
     return (
-        <StateCard>
-            <Logo/>
-            <div className="mb-4 text-3xl">📭</div>
-            <h1 className="text-2xl font-semibold text-white">
-                Form is no longer available
-            </h1>
-            <p className="mt-2 text-sm text-white/50">
-                This form has been closed and is not accepting new responses.
-            </p>
-        </StateCard>
+        <StateLayout
+            icon={<FiArchive size={28}/>}
+            accent="slate"
+            title="Form is closed"
+            description="This form is no longer accepting new responses. It may have been closed by the administrator or has reached its submission limit."
+            badge="Submissions closed"
+        >
+            <div className="rounded-xl border border-white/[0.10] bg-white/[0.05] px-4 py-3 text-sm text-white/55">
+                If you believe this is a mistake, contact the server staff.
+            </div>
+        </StateLayout>
     );
 }
 
 export function FormNotFoundState() {
     return (
-        <StateCard>
-            <Logo/>
-            <div className="mb-4 text-3xl">🔍</div>
-            <h1 className="text-2xl font-semibold text-white">Form not found</h1>
-            <p className="mt-2 text-sm text-white/50">
-                This link is invalid or the form has been deleted.
-            </p>
-        </StateCard>
+        <StateLayout
+            icon={<FiSearch size={28}/>}
+            accent="blue"
+            title="Form not found"
+            description="The form you're looking for doesn't exist or has been permanently deleted. Double-check the link you were given."
+            badge="404 · Not found"
+        >
+            <div className="rounded-xl border border-white/[0.10] bg-white/[0.05] px-4 py-3 text-sm text-white/55">
+                Make sure you're using the correct link from your Discord server.
+            </div>
+        </StateLayout>
     );
 }
 
 export function FormErrorState() {
     return (
-        <StateCard>
-            <Logo/>
-            <div className="mb-4 text-3xl">⚠️</div>
-            <h1 className="text-2xl font-semibold text-white">Something went wrong</h1>
-            <p className="mt-2 text-sm text-white/50">
-                Could not load the form. Please try again later.
-            </p>
-        </StateCard>
+        <StateLayout
+            icon={<FiAlertTriangle size={28}/>}
+            accent="red"
+            title="Something went wrong"
+            description="We couldn't load this form due to a server error. This is likely a temporary issue — please try again in a moment."
+            badge="Server error"
+            sceneVariant="warning"
+        >
+            <motion.button
+                onClick={() => window.location.reload()}
+                whileHover={{scale: 1.025}}
+                whileTap={{scale: 0.97}}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.06] px-6 py-3 text-sm font-medium text-white/75 transition-colors hover:bg-white/[0.09] hover:text-white"
+            >
+                <FiRefreshCw size={14}/>
+                Try again
+            </motion.button>
+        </StateLayout>
     );
 }

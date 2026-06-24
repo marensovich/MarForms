@@ -1,5 +1,6 @@
 import type {ReactNode} from "react";
 import {useCallback, useEffect, useMemo, useState} from "react";
+import {useLocation} from "react-router-dom";
 import type {AuthUser, JwtPayload} from "../types/auth";
 import {clearToken, decodeToken, getToken, isTokenExpired, setToken as persistToken,} from "./token";
 import {AuthContext} from "./AuthContextDefinition";
@@ -30,6 +31,7 @@ export function AuthProvider({children}: { children: ReactNode }) {
     const [user, setUser] = useState<AuthUser | null>(null);
     const [loading, setLoading] = useState(true);
     const [banData, setBanData] = useState<BannedError | null>(null);
+    const location = useLocation();
 
     const loadMe = useCallback(async () => {
         try {
@@ -79,13 +81,14 @@ export function AuthProvider({children}: { children: ReactNode }) {
 
     useEffect(() => {
         if (!user) return;
+        if (/^\/forms\//.test(location.pathname)) return;
 
         const interval = setInterval(() => {
             loadMe();
         }, 30_000);
 
         return () => clearInterval(interval);
-    }, [user, loadMe]);
+    }, [user, loadMe, location.pathname]);
 
     const login = useCallback(
         async (token: string) => {

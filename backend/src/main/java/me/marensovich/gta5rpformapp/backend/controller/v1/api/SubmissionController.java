@@ -69,7 +69,7 @@ public class SubmissionController {
      * @return a {@link Page} of {@link SubmissionDto} containing submission data
      * @since v.0.1
      */
-    @PreAuthorize("hasAuthority('RESPONSES_VIEW')")
+    @PreAuthorize("hasAuthority('RESPONSES_MANAGE')")
     @GetMapping
     public Page<SubmissionDto> list(@PathVariable UUID formId, Pageable pageable) {
         return submissionService.listByForm(formId, pageable).map(SubmissionDto::from);

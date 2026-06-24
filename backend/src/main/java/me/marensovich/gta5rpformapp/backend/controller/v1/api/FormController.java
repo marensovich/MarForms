@@ -62,7 +62,7 @@ public class FormController {
      * @return a {@link Page} of {@link FormSummaryDto} containing form summaries
      * @since v.0.1
      */
-    @PreAuthorize("hasAuthority('FORMS_VIEW')")
+    @PreAuthorize("hasAuthority('FORMS_MANAGE')")
     @GetMapping
     public Page<FormSummaryDto> list(Pageable pageable) {
         return formService.listForDashboard(pageable);

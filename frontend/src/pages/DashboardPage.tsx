@@ -8,16 +8,39 @@ import {AnimatePresence, motion} from "framer-motion";
 import FormsTab from "../components/dashboard/FormsTab.tsx";
 import UsersTab from "../components/dashboard/UsersTab.tsx";
 import RolesTab from "../components/dashboard/RolesTab.tsx";
+import ResponsesTab from "../components/dashboard/ResponsesTab.tsx";
+import {FiActivity, FiFileText, FiInbox, FiSettings, FiShield, FiUsers,} from "react-icons/fi";
 
 const TABS = [
-    {id: "forms", label: "Forms", icon: "📋", permission: "FORMS_VIEW"},
-    {id: "users", label: "Users", icon: "👥", permission: "USERS_VIEW"},
-    {id: "roles", label: "Roles", icon: "🔑", permission: "ROLES_MANAGE"},
-    {id: "system", label: "System", icon: "🖥️", permission: "SYSTEM_ADMIN"},
-    {id: "settings", label: "Settings", icon: "⚙️", permission: "SYSTEM_ADMIN"},
+    {id: "forms", label: "Forms", icon: FiFileText, permission: "FORMS_MANAGE"},
+    {id: "responses", label: "Responses", icon: FiInbox, permission: "RESPONSES_MANAGE"},
+    {id: "users", label: "Users", icon: FiUsers, permission: "USERS_MODERATE"},
+    {id: "roles", label: "Roles", icon: FiShield, permission: "ROLES_MANAGE"},
+    {id: "system", label: "System", icon: FiActivity, permission: "SYSTEM_ADMIN"},
+    {id: "settings", label: "Settings", icon: FiSettings, permission: "SYSTEM_ADMIN"},
 ] as const;
 
 type Tab = typeof TABS[number]["id"];
+
+function getAdminLevel(permissions: string[]): string {
+    if (permissions.includes("SYSTEM_ADMIN")) return "System Admin";
+    if (permissions.includes("ROLES_MANAGE")) return "Admin";
+    if (permissions.includes("USERS_MODERATE")) return "Moderator";
+    return "Staff";
+}
+
+function Initials({name}: { name: string }) {
+    const parts = name.replace(/#\d+$/, "").split(/[\s_]+/);
+    const letters = parts.length >= 2
+        ? parts[0][0] + parts[1][0]
+        : (name[0] ?? "?").toUpperCase();
+    return (
+        <div
+            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-xs font-bold text-white">
+            {letters.toUpperCase()}
+        </div>
+    );
+}
 
 export default function DashboardPage() {
     const {user} = useAuth();
@@ -26,67 +49,104 @@ export default function DashboardPage() {
     const hasDashboardAccess = user?.permissions.includes("DASHBOARD_ACCESS") ?? false;
     if (!hasDashboardAccess) return <Navigate to="/" replace/>;
 
-    const visibleTabs = TABS.filter(tab =>
-        user?.permissions.includes(tab.permission)
-    );
+    const visibleTabs = TABS.filter(tab => user?.permissions.includes(tab.permission));
+    const adminLevel = getAdminLevel(user?.permissions ?? []);
 
     return (
-        <div className="relative min-h-screen w-full overflow-hidden bg-[#0a0a0f]">
+        <div className="relative min-h-screen w-full overflow-hidden bg-[#0f0f1c]">
             <BackgroundGlow/>
             <div className="relative z-10 flex min-h-screen">
-                <aside className="flex w-56 flex-col border-r border-white/10 bg-white/[0.02] p-4">
-                    <div className="mb-8 flex items-center gap-2.5 px-2 pt-2">
-                        <div
-                            className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-xs font-bold text-white">
-                            MF
+
+                {/* Sidebar */}
+                <aside className="flex w-60 flex-col border-r border-white/[0.10] bg-[#0d0d1e]">
+                    {/* Logo */}
+                    <div className="flex items-center gap-3 border-b border-white/[0.06] px-5 py-4">
+                        <img src="/logo.png" alt="MarForms"
+                             className="h-8 w-8 flex-shrink-0 rounded-lg object-cover shadow-lg shadow-indigo-500/20"/>
+                        <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-white">MarForms</p>
+                            <p className="text-[10px] text-white/50">Dashboard</p>
                         </div>
-                        <span className="font-semibold text-white">
-              {user?.permissions.includes("SYSTEM_ADMIN")
-                  ? "MarForms" // можно взять из настроек позже
-                  : "MarForms"}
-            </span>
                     </div>
 
-                    <nav className="flex flex-col gap-1">
-                        {visibleTabs.map(tab => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
-                                    activeTab === tab.id
-                                        ? "bg-indigo-500/20 text-indigo-300"
-                                        : "text-white/50 hover:bg-white/5 hover:text-white"
-                                }`}
-                            >
-                                <span>{tab.icon}</span>
-                                {tab.label}
-                            </button>
-                        ))}
+                    {/* Nav */}
+                    <nav className="flex flex-col gap-0.5 p-3 pt-4">
+                        <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-widest text-white/40">
+                            Navigation
+                        </p>
+                        {visibleTabs.map(tab => {
+                            const active = activeTab === tab.id;
+                            const Icon = tab.icon;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all ${
+                                        active
+                                            ? "bg-indigo-500/15 text-indigo-300"
+                                            : "text-white/60 hover:bg-white/[0.06] hover:text-white"
+                                    }`}
+                                >
+                                    {active && (
+                                        <motion.div
+                                            layoutId="sidebar-indicator"
+                                            className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-indigo-400"
+                                        />
+                                    )}
+                                    <Icon size={15} className="flex-shrink-0"/>
+                                    <span className="font-medium">{tab.label}</span>
+                                </button>
+                            );
+                        })}
                     </nav>
 
-                    <div className="mt-auto border-t border-white/10 pt-4">
-                        <p className="px-2 text-xs text-white/30">
-                            {user?.discordUsername ?? ""}
-                        </p>
+                    {/* Bottom user section */}
+                    <div className="mt-auto border-t border-white/[0.06] p-4">
+                        <div className="flex items-center gap-3 rounded-lg px-2 py-2">
+                            <Initials name={user?.discordUsername ?? "?"}/>
+                            <div className="min-w-0 flex-1">
+                                <p className="truncate text-xs font-medium text-white/90">
+                                    {user?.discordUsername ?? "Unknown"}
+                                </p>
+                                <p className="text-[10px] text-white/50">{adminLevel}</p>
+                            </div>
+                            <div
+                                className="h-2 w-2 flex-shrink-0 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50"
+                                title="Online"/>
+                        </div>
                     </div>
                 </aside>
 
-                <main className="flex-1 overflow-auto p-8">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={activeTab}
-                            initial={{opacity: 0, y: 8}}
-                            animate={{opacity: 1, y: 0}}
-                            exit={{opacity: 0, y: -8}}
-                            transition={{duration: 0.2}}
-                        >
-                            {activeTab === "forms" && <FormsTab/>}
-                            {activeTab === "users" && <UsersTab/>}
-                            {activeTab === "roles" && <RolesTab/>}
-                            {activeTab === "system" && <SystemTab/>}
-                            {activeTab === "settings" && <SettingsTab/>}
-                        </motion.div>
-                    </AnimatePresence>
+                {/* Main content */}
+                <main className="flex-1 overflow-auto">
+                    {/* Top bar */}
+                    <div
+                        className="sticky top-0 z-20 flex h-14 items-center border-b border-white/[0.10] bg-[#0f0f1c]/90 px-8 backdrop-blur-md">
+                        <div className="flex items-center gap-2 text-sm">
+                            <span className="text-white/50">Dashboard</span>
+                            <span className="text-white/40">/</span>
+                            <span className="font-medium text-white/70 capitalize">{activeTab}</span>
+                        </div>
+                    </div>
+
+                    <div className="p-8">
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={activeTab}
+                                initial={{opacity: 0, y: 6}}
+                                animate={{opacity: 1, y: 0}}
+                                exit={{opacity: 0, y: -6}}
+                                transition={{duration: 0.18}}
+                            >
+                                {activeTab === "forms" && <FormsTab/>}
+                                {activeTab === "responses" && <ResponsesTab/>}
+                                {activeTab === "users" && <UsersTab/>}
+                                {activeTab === "roles" && <RolesTab/>}
+                                {activeTab === "system" && <SystemTab/>}
+                                {activeTab === "settings" && <SettingsTab/>}
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
                 </main>
             </div>
         </div>

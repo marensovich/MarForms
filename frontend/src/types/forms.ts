@@ -45,6 +45,18 @@ export interface FormDefinition {
     schema: FormSchema;
     active: boolean;
     createdAt: string;
+    createdByDiscordId?: string;
+    createdByDiscordUsername?: string;
 }
 
 export type FormAnswers = Record<string, string | boolean | number | string[]>;
+
+export interface WebhookConfig {
+    url: string;
+    botName?: string;
+    avatarUrl?: string;
+    content?: string;
+    color?: number;
+    embedTitle?: string;
+    embedDescription?: string;
+}

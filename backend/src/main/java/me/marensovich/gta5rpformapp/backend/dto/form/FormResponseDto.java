@@ -3,23 +3,26 @@ package me.marensovich.gta5rpformapp.backend.dto.form;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormSchema;
+import me.marensovich.gta5rpformapp.backend.data.forms.WebhookConfig;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 /**
  * Data Transfer Object representing a full form response.
  * <p>
- * Contains all form details including the complete schema, metadata,
- * and configuration. Used for retrieving and displaying forms.
+ * Contains all form details including the complete schema, webhook configurations,
+ * metadata, and configuration. Used for retrieving and displaying forms.
  * </p>
  *
  * @param id          the unique identifier of the form
- * @param serverId    the Discord server (guild) ID the form belongs to
- * @param channelsIds the set of Discord channel IDs where the form can be submitted
+ * @param serverId    the Discord server (guild) ID the form belongs to (serialized as string)
+ * @param channelsIds the set of Discord channel IDs where the form can be submitted (serialized as strings)
  * @param schema      the JSON schema defining the form structure
+ * @param webhooks    the list of Discord webhook configurations for form notifications
  * @param active      indicates whether the form is active and accepting submissions
  * @param createdAt   the timestamp when the form was created
  * @author marensovich
@@ -33,6 +36,7 @@ public record FormResponseDto(
         @JsonSerialize(using = ToStringSerializer.class)
         Set<Long> channelsIds,
         FormSchema schema,
+        List<WebhookConfig> webhooks,
         boolean active,
         LocalDateTime createdAt
 ) {
@@ -49,6 +53,7 @@ public record FormResponseDto(
                 form.getServerId(),
                 form.getChannelsIds(),
                 form.getSchema(),
+                form.getWebhooks(),
                 form.isActive(),
                 form.getCreatedAt()
         );

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -47,6 +48,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
      *     <li><b>Role ID</b> — filters users who have a specific role assigned</li>
      * </ul>
      * If a parameter is {@code null}, the filter is ignored.
+     * </p>
+     * <p>
+     * <b>Note:</b> This method uses native SQL for better performance with large datasets.
      * </p>
      *
      * @param search   optional search string for username or Discord ID (case-insensitive)
@@ -97,4 +101,17 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @since v.0.1
      */
     boolean existsByRoles_Id(UUID roleId);
+
+    /**
+     * Retrieves a list of users whose Discord username contains the specified string.
+     * <p>
+     * The search is case-insensitive and performs a partial match.
+     * Useful for autocomplete or quick user lookup by username.
+     * </p>
+     *
+     * @param username the username string to search for (case-insensitive)
+     * @return a {@link List} of {@link User} entities matching the search criteria
+     * @since v.0.1
+     */
+    List<User> findAllByDiscordUsernameContainingIgnoreCase(String username);
 }

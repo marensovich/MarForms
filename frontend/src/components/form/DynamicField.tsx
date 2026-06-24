@@ -9,6 +9,7 @@ interface Props {
     field: FormField;
     value: FormAnswers[string];
     onChange: (fieldId: string, value: FormAnswers[string]) => void;
+    onBlur: (fieldId: string) => void;
     error?: string;
 }
 
@@ -17,10 +18,11 @@ const TEXT_TYPES = new Set([
     "PASSWORD", "URL", "PHONE", "DATE", "TIME", "DATETIME",
 ] satisfies FormField["type"][]);
 
-export default function DynamicField({field, value, onChange, error}: Props) {
+export default function DynamicField({field, value, onChange, onBlur, error}: Props) {
     const onChangeStr = (v: string) => onChange(field.id, v);
     const onChangeBool = (v: boolean) => onChange(field.id, v);
     const onChangeArr = (v: string[]) => onChange(field.id, v);
+    const handleBlur = () => onBlur(field.id);
 
     if (TEXT_TYPES.has(field.type as never)) {
         return (
@@ -28,6 +30,7 @@ export default function DynamicField({field, value, onChange, error}: Props) {
                 field={field}
                 value={(value as string) ?? ""}
                 onChange={onChangeStr}
+                onBlur={handleBlur}
                 error={error}
             />
         );
@@ -40,6 +43,7 @@ export default function DynamicField({field, value, onChange, error}: Props) {
                     field={field}
                     value={(value as string) ?? ""}
                     onChange={onChangeStr}
+                    onBlur={handleBlur}
                     error={error}
                 />
             );
@@ -49,6 +53,7 @@ export default function DynamicField({field, value, onChange, error}: Props) {
                     field={field}
                     value={(value as string[]) ?? []}
                     onChange={onChangeArr}
+                    onBlur={handleBlur}
                     error={error}
                 />
             );
@@ -58,6 +63,7 @@ export default function DynamicField({field, value, onChange, error}: Props) {
                     field={field}
                     value={(value as string) ?? ""}
                     onChange={onChangeStr}
+                    onBlur={handleBlur}
                     error={error}
                 />
             );
@@ -68,6 +74,7 @@ export default function DynamicField({field, value, onChange, error}: Props) {
                     field={field}
                     value={(value as boolean) ?? false}
                     onChange={onChangeBool}
+                    onBlur={handleBlur}
                     error={error}
                 />
             );

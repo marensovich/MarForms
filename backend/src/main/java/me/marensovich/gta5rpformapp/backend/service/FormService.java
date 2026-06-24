@@ -60,10 +60,13 @@ public class FormService {
         form.setServerId(Long.parseUnsignedLong(request.serverId()));
         if (request.channelsIds() != null) {
             form.setChannelsIds(
-                request.channelsIds().stream()
-                    .map(Long::parseUnsignedLong)
-                    .collect(java.util.stream.Collectors.toSet())
+                    request.channelsIds().stream()
+                            .map(Long::parseUnsignedLong)
+                            .collect(java.util.stream.Collectors.toSet())
             );
+        }
+        if (request.webhooks() != null) {
+            form.setWebhooks(request.webhooks());
         }
         form.setSchema(request.schema());
         return formRepository.save(form);
@@ -87,10 +90,13 @@ public class FormService {
 
         if (request.channelsIds() != null) {
             form.setChannelsIds(
-                request.channelsIds().stream()
-                    .map(Long::parseUnsignedLong)
-                    .collect(java.util.stream.Collectors.toSet())
+                    request.channelsIds().stream()
+                            .map(Long::parseUnsignedLong)
+                            .collect(java.util.stream.Collectors.toSet())
             );
+        }
+        if (request.webhooks() != null) {
+            form.setWebhooks(request.webhooks());
         }
         if (request.schema() != null) {
             form.setSchema(request.schema());

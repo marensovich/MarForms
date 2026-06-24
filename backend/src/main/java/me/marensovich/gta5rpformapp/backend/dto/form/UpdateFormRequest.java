@@ -2,7 +2,9 @@ package me.marensovich.gta5rpformapp.backend.dto.form;
 
 import jakarta.validation.Valid;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormSchema;
+import me.marensovich.gta5rpformapp.backend.data.forms.WebhookConfig;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -13,6 +15,7 @@ import java.util.Set;
  * </p>
  *
  * @param channelsIds the updated set of Discord channel IDs where the form can be submitted (optional)
+ * @param webhooks    the updated list of Discord webhook configurations for notifications (optional)
  * @param schema      the updated JSON schema defining the form structure (optional, validated if provided)
  * @param active      the updated active status of the form (optional)
  * @author marensovich
@@ -21,6 +24,7 @@ import java.util.Set;
  */
 public record UpdateFormRequest(
         Set<String> channelsIds,
+        List<WebhookConfig> webhooks,
         @Valid FormSchema schema,
         Boolean active
 ) {

@@ -1,5 +1,7 @@
 package me.marensovich.gta5rpformapp.backend.dto.submission;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import me.marensovich.gta5rpformapp.backend.database.entity.Submission;
 
 import java.time.LocalDateTime;
@@ -15,7 +17,7 @@ import java.util.UUID;
  *
  * @param id        the unique identifier of the submission
  * @param formId    the ID of the form that was submitted
- * @param discordId the Discord ID of the user who submitted the form
+ * @param discordId the Discord ID of the user who submitted the form (serialized as string)
  * @param createdAt the timestamp when the submission was created
  * @param answers   the submitted answers as a key-value map
  * @author marensovich
@@ -25,6 +27,7 @@ import java.util.UUID;
 public record SubmissionDto(
         UUID id,
         UUID formId,
+        @JsonSerialize(using = ToStringSerializer.class)
         Long discordId,
         LocalDateTime createdAt,
         Map<String, Object> answers
