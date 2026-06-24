@@ -1,4 +1,5 @@
 import SettingsTab from "../components/dashboard/SettingsTab";
+import SystemTab from "../components/dashboard/SystemTab";
 import {useAuth} from "../hooks/useAuth";
 import {useState} from "react";
 import {BackgroundGlow} from "../components/LoadingScreen.tsx";
@@ -8,11 +9,11 @@ import FormsTab from "../components/dashboard/FormsTab.tsx";
 import UsersTab from "../components/dashboard/UsersTab.tsx";
 import RolesTab from "../components/dashboard/RolesTab.tsx";
 
-// Обновляем TABS — Settings только для SYSTEM_ADMIN
 const TABS = [
     {id: "forms", label: "Forms", icon: "📋", permission: "FORMS_VIEW"},
     {id: "users", label: "Users", icon: "👥", permission: "USERS_VIEW"},
     {id: "roles", label: "Roles", icon: "🔑", permission: "ROLES_MANAGE"},
+    {id: "system", label: "System", icon: "🖥️", permission: "SYSTEM_ADMIN"},
     {id: "settings", label: "Settings", icon: "⚙️", permission: "SYSTEM_ADMIN"},
 ] as const;
 
@@ -82,6 +83,7 @@ export default function DashboardPage() {
                             {activeTab === "forms" && <FormsTab/>}
                             {activeTab === "users" && <UsersTab/>}
                             {activeTab === "roles" && <RolesTab/>}
+                            {activeTab === "system" && <SystemTab/>}
                             {activeTab === "settings" && <SettingsTab/>}
                         </motion.div>
                     </AnimatePresence>
