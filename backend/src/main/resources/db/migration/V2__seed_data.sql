@@ -64,5 +64,6 @@ VALUES ('ban.message', 'You are banned. Please contact the administrator.'),
        ('global.embed.thumbnail', ''),
        ('global.embed.image', ''),
        ('global.embed.footer.text', ''),
-       ('global.embed.footer.icon', '')
+       ('global.embed.footer.icon', ''),
+       ('ui.language', 'en')
 ON CONFLICT (key) DO NOTHING;

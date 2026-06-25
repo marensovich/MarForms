@@ -1,0 +1,756 @@
+{
+  "common": {
+    "save": "Сохранить",
+    "saving": "Сохранение…",
+    "saved": "Сохранено",
+    "cancel": "Отмена",
+    "delete": "Удалить",
+    "edit": "Изменить",
+    "create": "Создать",
+    "loading": "Загрузка…",
+    "back": "Назад",
+    "next": "Далее",
+    "view": "Просмотр",
+    "search": "Поиск",
+    "active": "Активен",
+    "inactive": "Неактивен",
+    "unknown": "Неизвестно",
+    "confirm": "Подтвердить",
+    "clearFilters": "Сбросить фильтры"
+  },
+  "nav": {
+    "navigation": "Навигация",
+    "dashboard": "Панель",
+    "forms": "Формы",
+    "responses": "Ответы",
+    "users": "Пользователи",
+    "roles": "Роли",
+    "logs": "Логи",
+    "system": "Система",
+    "settings": "Настройки"
+  },
+  "adminLevel": {
+    "systemAdmin": "Системный Admin",
+    "admin": "Администратор",
+    "moderator": "Модератор",
+    "staff": "Сотрудник"
+  },
+  "auth": {
+    "signingIn": "Выполняется вход…",
+    "checkingSession": "Проверка сессии…"
+  },
+  "formGate": {
+    "checkingAccess": "Проверка доступа…",
+    "loadingForm": "Загрузка формы…"
+  },
+  "accessStates": {
+    "footer": "MarForms · Формы для Discord",
+    "notAuthenticated": {
+      "badge": "Требуется авторизация",
+      "title": "Необходимо войти",
+      "description": "Для доступа к этой форме необходимо войти через Discord. После входа вы будете перенаправлены обратно.",
+      "signIn": "Войти через Discord",
+      "redirectNote": "После входа вы будете перенаправлены обратно к этой форме"
+    },
+    "notInGuild": {
+      "badge": "Доступ ограничен",
+      "title": "Требуется членство в сервере",
+      "description": "Эта форма привязана к Discord-серверу, в котором вы не состоите. Сначала вступите в сервер, затем откройте ссылку снова.",
+      "hint": "Вступите в связанный Discord-сервер, чтобы получить доступ к этой форме."
+    },
+    "formInactive": {
+      "badge": "Приём ответов закрыт",
+      "title": "Форма закрыта",
+      "description": "Эта форма больше не принимает ответы. Возможно, она была закрыта администратором или достигла лимита ответов.",
+      "hint": "Если вы считаете, что это ошибка, свяжитесь с сотрудниками сервера."
+    },
+    "formNotFound": {
+      "badge": "404 · Не найдено",
+      "title": "Форма не найдена",
+      "description": "Форма по указанной ссылке не существует или была удалена. Проверьте правильность ссылки.",
+      "hint": "Убедитесь, что вы используете корректную ссылку из вашего Discord-сервера."
+    },
+    "formError": {
+      "badge": "Ошибка сервера",
+      "title": "Что-то пошло не так",
+      "description": "Не удалось загрузить форму из-за ошибки сервера. Скорее всего, это временная проблема — попробуйте ещё раз.",
+      "tryAgain": "Попробовать снова"
+    }
+  },
+  "landing": {
+    "subtitle": "Формы заявок для Discord-сообществ на основе Discord.",
+    "directLinkTitle": "Нужна прямая ссылка",
+    "directLinkDesc": "В MarForms нет публичного каталога форм. Вам нужна прямая ссылка на конкретную форму — попросите её у сотрудников вашего Discord-сервера.",
+    "staffTitle": "Вы сотрудник?",
+    "staffDesc": "Для доступа к панели управления необходима роль с соответствующими правами. Обратитесь к системному администратору.",
+    "openFormLabel": "Открыть форму по ссылке",
+    "openFormPlaceholder": "https://…/forms/abc123  или  abc123",
+    "openFormButton": "Открыть",
+    "openFormError": "Не удалось распознать ссылку на форму.",
+    "howItWorks": "Как это работает",
+    "step1Title": "Сотрудник создаёт форму",
+    "step1Desc": "Администраторы создают формы с кастомными полями через панель управления.",
+    "step2Title": "Ссылка публикуется",
+    "step2Desc": "Прямая ссылка публикуется в вашем Discord-сервере сотрудниками.",
+    "step3Title": "Участники подают заявки",
+    "step3Desc": "Участники сообщества заполняют форму после входа.",
+    "footer": "MarForms · Система заявок Discord · Только по ссылкам"
+  },
+  "form": {
+    "validation": {
+      "required": "Это поле обязательно",
+      "requiredBoolean": "Пожалуйста, подтвердите это поле",
+      "requiredSelect": "Выберите вариант",
+      "requiredMultiSelect": "Выберите хотя бы один вариант",
+      "requiredDate": "Выберите дату",
+      "requiredTime": "Выберите время",
+      "requiredDatetime": "Выберите дату и время",
+      "minChars": "Минимум {{min}} символов (введено {{entered}})",
+      "maxChars": "Максимум {{max}} символов (введено {{entered}})",
+      "invalidNumber": "Введите корректное число",
+      "minValue": "Минимальное значение: {{min}}",
+      "maxValue": "Максимальное значение: {{max}}",
+      "invalidEmail": "Введите корректный email",
+      "invalidUrl": "Введите корректный URL (например, https://example.com)",
+      "invalidPhone": "Введите корректный номер телефона",
+      "invalidOption": "Выберите корректный вариант",
+      "invalidDate": "Введите корректную дату",
+      "invalidTime": "Введите корректное время (ЧЧ:ММ)",
+      "invalidDatetime": "Введите корректные дату и время"
+    },
+    "sidebar": {
+      "fields": "Полей",
+      "required": "Обязательных",
+      "estTime": "Время",
+      "progress": "Прогресс",
+      "requiredProgress": "{{answered}} / {{total}} обязательных",
+      "allFilled": "Все обязательные поля заполнены — можно отправить",
+      "fieldTypes": "Типы полей",
+      "createdBy": "Создано",
+      "secure": "Ваш ответ зашифрован при передаче и хранится безопасно."
+    },
+    "topBar": {
+      "secure": "Защищённая форма"
+    },
+    "fieldCount_one": "{{count}} вопрос",
+    "fieldCount_other": "{{count}} вопросов",
+    "requiredCount": "· {{count}} обязательных",
+    "percentComplete": "{{pct}}% заполнено",
+    "readyToSubmit": "Готово к отправке",
+    "validationSummary_one": "{{count}} поле требует внимания",
+    "validationSummary_other": "{{count}} полей требуют внимания",
+    "submitting": "Отправка…",
+    "submit": "Отправить ответ",
+    "footer": "Работает на MarForms · Данные передаются безопасно",
+    "submissionError": "Что-то пошло не так. Попробуйте ещё раз.",
+    "success": {
+      "title": "Ответ отправлен!",
+      "description": "Ваш ответ на «{{formTitle}}» записан и отправлен на сервер.",
+      "closeNote": "Вы можете закрыть эту вкладку. Спасибо за ответ."
+    },
+    "estTime": {
+      "1min": "~1 мин",
+      "3min": "~3 мин",
+      "5min": "~5 мин",
+      "10min": "~10 мин"
+    }
+  },
+  "login": {
+    "welcome": "Добро пожаловать в",
+    "tagline": "Формы заявок для Discord-сообществ. Войдите чтобы управлять и подавать заявки.",
+    "signInLabel": "Войдите чтобы продолжить",
+    "continueDiscord": "Продолжить через Discord",
+    "terms": "Продолжая, вы соглашаетесь с Условиями использования и Политикой конфиденциальности MarForms.",
+    "footer": "MarForms · Формы для Discord",
+    "features": {
+      "formBuilder": "Конструктор форм",
+      "formBuilderDesc": "Многошаговый мастер с кастомными полями",
+      "roleControl": "Управление ролями",
+      "roleControlDesc": "Гранулярные права для вашей команды",
+      "instantDelivery": "Мгновенная доставка",
+      "instantDeliveryDesc": "Ответы отправляются в Discord-каналы"
+    }
+  },
+  "banned": {
+    "title": "Доступ ограничен",
+    "subtitle": "Ваш доступ к {{systemName}} был ограничен администратором.",
+    "restrictionReason": "Причина ограничения",
+    "contactAppeals": "Контакт для апелляции",
+    "footer": "{{systemName}} · Управление доступом"
+  },
+  "forms": {
+    "title": "Формы",
+    "subtitle": "Управление и публикация форм",
+    "newForm": "Новая форма",
+    "stats": {
+      "totalForms": "Всего форм",
+      "active": "Активные",
+      "ofTotal": "{{pct}}% от всех",
+      "totalResponses": "Всего ответов",
+      "acrossAllForms": "по всем формам",
+      "activeForms": "{{count}} активных"
+    },
+    "filter": {
+      "all": "все",
+      "active": "активные",
+      "inactive": "неактивные",
+      "shown": "показано {{count}}"
+    },
+    "table": {
+      "title": "Название",
+      "status": "Статус",
+      "responses": "Ответы",
+      "created": "Создана",
+      "actions": "Действия"
+    },
+    "row": {
+      "active": "Активна",
+      "inactive": "Неактивна",
+      "copyLink": "Копировать ссылку",
+      "copied": "Скопировано",
+      "activate": "Активировать",
+      "deactivate": "Деактивировать"
+    },
+    "empty": {
+      "noForms": "Форм пока нет. Создайте первую форму.",
+      "noFiltered": "Нет форм со статусом «{{status}}»."
+    },
+    "deleteConfirm": {
+      "title": "Удалить форму",
+      "message": "Удалить форму «{{title}}»? Это необратимо и удалит все {{count}} ответов.",
+      "confirm": "Удалить форму"
+    },
+    "responses": {
+      "modalTitle": "Ответы — {{formTitle}}",
+      "totalOne": "{{count}} ответ",
+      "totalMany": "{{count}} ответов",
+      "noSubmissions": "Ответов пока нет.",
+      "fieldsAnswered": "заполнено полей: {{count}}",
+      "detailsTitle": "Детали ответа",
+      "fromUser": "От {{id}}",
+      "backToList": "Назад к списку"
+    }
+  },
+  "responses": {
+    "title": "Ответы",
+    "subtitle": "Просмотр и модерация ответов на формы",
+    "allResponses": "Все ответы",
+    "byUser": "По пользователям",
+    "stats": {
+      "totalResponses": "Всего ответов",
+      "inForm": "в «{{formName}}»",
+      "acrossAllForms": "по всем формам",
+      "forms": "Формы",
+      "activeForms": "{{count}} активных",
+      "uniqueUsers": "Уникальных пользователей",
+      "withAtLeastOne": "хотя бы с одним ответом"
+    },
+    "filter": {
+      "allForms": "Все формы",
+      "searchPlaceholder": "Имя или Discord ID…",
+      "date": "Дата",
+      "user": "Пользователь"
+    },
+    "table": {
+      "user": "Пользователь",
+      "form": "Форма",
+      "date": "Дата",
+      "fields": "Поля",
+      "actions": "Действия",
+      "fieldsCount": "{{count}} полей"
+    },
+    "noResponses": "Ответов не найдено.",
+    "noSubmissions": "Ответов пока нет.",
+    "byUserHint": "Все пользователи, подавшие хотя бы один ответ. Нажмите для просмотра.",
+    "responseCount_one": "{{count}} ответ",
+    "responseCount_other": "{{count}} ответов",
+    "deleteConfirm": {
+      "title": "Удалить ответ",
+      "message": "Удалить ответ от {{username}}? Это действие необратимо.",
+      "confirm": "Удалить"
+    },
+    "submissionDetails": "Детали ответа",
+    "pagination": {
+      "info": "Страница {{page}} из {{total}} · всего {{elements}}",
+      "prev": "Назад",
+      "next": "Далее"
+    }
+  },
+  "users": {
+    "title": "Пользователи",
+    "subtitle": "Управление доступом, ролями и ограничениями",
+    "stats": {
+      "totalUsers": "Всего пользователей",
+      "registeredAccounts": "зарегистрированных аккаунтов",
+      "active": "Активные",
+      "onThisPage": "на этой странице",
+      "restricted": "Ограниченные",
+      "bannedOrTimeout": "в бане или таймауте"
+    },
+    "searchPlaceholder": "Поиск по имени или Discord ID…",
+    "allRoles": "Все роли",
+    "table": {
+      "user": "Пользователь",
+      "discordId": "Discord ID",
+      "roles": "Роли",
+      "status": "Статус",
+      "actions": "Действия"
+    },
+    "banStatus": {
+      "banned": "Забанен",
+      "timeout": "Таймаут",
+      "active": "Активен"
+    },
+    "until": "до {{date}}",
+    "noRoles": "Нет ролей",
+    "showing": "Показано {{count}} из {{total}} пользователей",
+    "noUsers": "Пользователи не найдены.",
+    "actions": {
+      "roles": "Роли",
+      "timeout": "Таймаут",
+      "ban": "Бан",
+      "unban": "Разбан"
+    },
+    "rolesModal": {
+      "title": "Назначить роли",
+      "noRoles": "Ролей нет.",
+      "permissionCount_one": "{{count}} право",
+      "permissionCount_other": "{{count}} прав",
+      "save": "Сохранить роли",
+      "saving": "Сохранение…"
+    },
+    "timeoutModal": {
+      "title": "Таймаут пользователя",
+      "subtitle": "Временно ограничить {{username}}",
+      "durationLabel": "Длительность (минуты)",
+      "apply": "Применить таймаут",
+      "applying": "Применение…"
+    },
+    "banModal": {
+      "banTitle": "Забанить пользователя",
+      "unbanTitle": "Разбанить пользователя",
+      "banMessage": "Перманентно забанить {{username}}? Они потеряют доступ ко всем формам.",
+      "unbanMessage": "Снять бан с {{username}}? Доступ будет восстановлен немедленно.",
+      "banConfirm": "Забанить навсегда",
+      "unbanConfirm": "Разбанить"
+    }
+  },
+  "roles": {
+    "title": "Роли",
+    "subtitle": "Наборы прав и их назначение пользователям",
+    "createRole": "Создать роль",
+    "stats": {
+      "totalRoles": "Всего ролей",
+      "definedGroups": "наборов прав",
+      "permissionsAssigned": "Назначено прав",
+      "avgPerRole": "в среднем {{avg}} на роль"
+    },
+    "permissionCount_one": "{{count}} право",
+    "permissionCount_other": "{{count}} прав",
+    "noRoles": "Ролей пока нет. Создайте первую роль.",
+    "editingRole": "Редактирование роли",
+    "saveChanges": "Сохранить",
+    "deleteConfirm": {
+      "title": "Удалить роль",
+      "message": "Удалить роль «{{name}}»? Пользователи потеряют её права немедленно.",
+      "confirm": "Удалить роль"
+    },
+    "createModal": {
+      "title": "Создать роль",
+      "subtitle": "Задайте название и права",
+      "namePlaceholder": "например: Модератор",
+      "nameLabel": "Название роли",
+      "nameRequired": "Название роли обязательно.",
+      "permissionsLabel": "Права",
+      "selected": "выбрано {{count}}",
+      "creating": "Создание…",
+      "failedToCreate": "Не удалось создать роль."
+    },
+    "permGroups": {
+      "Dashboard": "Панель",
+      "Forms": "Формы",
+      "Responses": "Ответы",
+      "Users": "Пользователи",
+      "Roles": "Роли",
+      "System": "Система"
+    },
+    "permissions": {
+      "DASHBOARD_ACCESS": "Доступ к панели",
+      "FORMS_MANAGE": "Управление формами",
+      "RESPONSES_MANAGE": "Управление ответами",
+      "USERS_MODERATE": "Модерация пользователей",
+      "ROLES_MANAGE": "Управление ролями",
+      "SYSTEM_ADMIN": "Системный администратор"
+    }
+  },
+  "logs": {
+    "title": "Журнал действий",
+    "subtitle": "Полная история всех системных действий",
+    "entries": "{{count}} записей",
+    "live": "Live",
+    "refresh": "Обновить",
+    "allActions": "Все события",
+    "discordIdFilter": "Discord ID…",
+    "clearFilters": "Сбросить фильтры",
+    "columns": {
+      "time": "Время",
+      "action": "Событие",
+      "actor": "Исполнитель",
+      "target": "Цель",
+      "details": "Детали"
+    },
+    "noLogs": "Записей не найдено",
+    "expandHint": "· Нажмите на строку с изменениями для просмотра diff",
+    "pagination": {
+      "page": "Страница {{page}} из {{total}}"
+    },
+    "actions": {
+      "USER_LOGIN": "Вход",
+      "USER_BANNED": "Бан пользователя",
+      "USER_UNBANNED": "Снятие бана",
+      "USER_ROLES_UPDATED": "Роли обновлены",
+      "FORM_CREATED": "Форма создана",
+      "FORM_UPDATED": "Форма обновлена",
+      "FORM_DELETED": "Форма удалена",
+      "SUBMISSION_CREATED": "Ответ создан",
+      "SUBMISSION_DELETED": "Ответ удалён",
+      "ROLE_CREATED": "Роль создана",
+      "ROLE_UPDATED": "Роль обновлена",
+      "ROLE_DELETED": "Роль удалена",
+      "SETTINGS_UPDATED": "Настройки обновлены"
+    }
+  },
+  "system": {
+    "title": "Обзор системы",
+    "subtitle": "Метрики сервера в реальном времени — обновляется каждые 3 секунды",
+    "failedFetch": "Не удалось получить данные системы. Проверьте подключение к бэкенду.",
+    "cpu": {
+      "title": "Нагрузка CPU",
+      "label": "Процессор"
+    },
+    "ram": {
+      "title": "Использование RAM",
+      "label": "Память"
+    },
+    "disk": {
+      "title": "Использование диска",
+      "label": "Хранилище"
+    },
+    "of": "из",
+    "info": {
+      "title": "Информация о системе",
+      "os": "Операционная система",
+      "jvm": "Версия JVM",
+      "appVersion": "Версия приложения",
+      "uptime": "Время работы"
+    },
+    "updates": {
+      "title": "Обновления",
+      "currentVersion": "Вы используете актуальную версию",
+      "checkUpdates": "Проверить обновления"
+    }
+  },
+  "settings": {
+    "title": "Настройки",
+    "subtitle": "Конфигурация системы",
+    "save": "Сохранить настройки",
+    "saving": "Сохранение…",
+    "saved": "Сохранено",
+    "saveError": "Не удалось сохранить настройки.",
+    "unsavedChanges": "Несохранённые изменения",
+    "saveSuccess": "Настройки успешно сохранены",
+    "noPendingChanges": "Нет изменений",
+    "activeLabel": "активен",
+    "notConfigured": "не настроен",
+    "discordLoggingActive": "Discord-логирование активно — включённые события будут пересылаться.",
+    "availableVars": "Доступные переменные",
+    "sections": {
+      "general": "Основное",
+      "generalDesc": "Основная идентичность системы, отображаемая пользователям при входе и в интерфейсе.",
+      "language": "Язык интерфейса",
+      "auditLog": "Вебхук журнала аудита",
+      "auditLogDesc": "Опционально пересылайте каждую запись журнала аудита в Discord в реальном времени.",
+      "logFilters": "Фильтры журнала",
+      "logFiltersDesc": "Выберите, какие типы действий записываются. Отключённые действия молча игнорируются — они не появятся ни в таблице журнала, ни в Discord.",
+      "globalEmbed": "Глобальный Embed",
+      "globalEmbedDesc": "Второй embed, добавляемый к каждому сообщению вебхука. Настраивает блок брендинга, видимый под ответами формы.",
+      "ban": "Настройки бана и ограничений",
+      "banDesc": "Настройте, что видят заблокированные пользователи при попытке входа."
+    },
+    "general": {
+      "systemName": "Название системы",
+      "systemNameDesc": "Отображается на публичных страницах и экране входа",
+      "systemContact": "Контакт системы",
+      "systemContactDesc": "Контактная информация в системных панелях",
+      "banMessage": "Сообщение о бане",
+      "banMessageDesc": "Показывается пользователям при бане",
+      "banContact": "Контакт для апелляции",
+      "banContactDesc": "Discord-ник, email или ссылка на экране бана"
+    },
+    "language": {
+      "label": "Язык интерфейса",
+      "desc": "Применяется для всех пользователей панели администратора",
+      "en": "English",
+      "ru": "Русский"
+    },
+    "auditLog": {
+      "webhookUrl": "Discord Webhook URL",
+      "webhookUrlDesc": "Сюда будут отправляться события аудита"
+    },
+    "logFilters": {
+      "subtitle": "Выберите какие события отправлять в Discord",
+      "selectAll": "Выбрать все",
+      "deselectAll": "Снять все",
+      "enabled": "включено",
+      "noneLabel": "ничего",
+      "allLabel": "все",
+      "actionsSuppressed_one": "{{count}} действие отключено",
+      "actionsSuppressed_few": "{{count}} действия отключено",
+      "actionsSuppressed_other": "{{count}} действий отключено",
+      "groups": {
+        "Authentication": "Аутентификация",
+        "Users": "Пользователи",
+        "Forms": "Формы",
+        "Submissions": "Ответы",
+        "Roles": "Роли",
+        "System": "Система"
+      },
+      "actions": {
+        "USER_LOGIN": "Вход",
+        "USER_BANNED": "Бан",
+        "USER_UNBANNED": "Разбан",
+        "USER_ROLES_UPDATED": "Роли обновлены",
+        "FORM_CREATED": "Форма создана",
+        "FORM_UPDATED": "Форма обновлена",
+        "FORM_DELETED": "Форма удалена",
+        "SUBMISSION_CREATED": "Ответ создан",
+        "SUBMISSION_DELETED": "Ответ удалён",
+        "ROLE_CREATED": "Роль создана",
+        "ROLE_UPDATED": "Роль обновлена",
+        "ROLE_DELETED": "Роль удалена",
+        "SETTINGS_UPDATED": "Настройки обновлены"
+      }
+    },
+    "globalEmbed": {
+      "varHint": "Работают во всех текстовых полях. {user_mention} отображается как пинг только в content и description — не в author/title/footer.",
+      "color": "Цвет Embed",
+      "authorGroup": "Автор",
+      "authorName": "Имя автора",
+      "authorNameDesc": "Отображается вверху embed. Поддерживает переменные.",
+      "authorIconUrl": "URL иконки автора",
+      "authorIconDesc": "Маленькое круглое изображение рядом с именем",
+      "authorUrl": "URL автора",
+      "authorUrlDesc": "Делает имя автора кликабельной ссылкой",
+      "contentGroup": "Контент",
+      "embedTitle": "Заголовок Embed",
+      "titleDesc": "Необязательный заголовок embed. Поддерживает переменные.",
+      "embedDesc": "Описание Embed",
+      "descDesc": "Текст под заголовком. Поддерживает markdown и переменные.",
+      "imagesGroup": "Изображения",
+      "thumbnailUrl": "URL миниатюры",
+      "thumbnailDesc": "Маленькое изображение в правом верхнем углу",
+      "imageUrl": "URL изображения",
+      "imageDesc": "Большой баннер под контентом",
+      "footerGroup": "Футер",
+      "footerText": "Текст футера",
+      "footerTextDesc": "Текст внизу embed. Поддерживает переменные.",
+      "footerIconUrl": "URL иконки футера",
+      "footerIconDesc": "Маленькое круглое изображение рядом с текстом футера"
+    }
+  },
+  "wizard": {
+    "steps": {
+      "basicInfo": "Основное",
+      "basicInfoDesc": "Название и описание",
+      "fields": "Поля",
+      "fieldsDesc": "Вопросы формы",
+      "discord": "Discord",
+      "discordDesc": "Сервер и каналы",
+      "webhooks": "Вебхуки",
+      "webhooksDesc": "Уведомления"
+    },
+    "next": "Далее",
+    "fields": {
+      "picker": {
+        "title": "Выберите тип поля"
+      },
+      "list": {
+        "fieldCount_one": "{{count}} поле",
+        "fieldCount_few": "{{count}} поля",
+        "fieldCount_other": "{{count}} полей",
+        "addField": "Добавить поле",
+        "untitled": "Без названия"
+      },
+      "empty": {
+        "selectField": "Выберите поле для редактирования",
+        "noFields": "Полей пока нет",
+        "clickToEdit": "Нажмите на любое поле слева для настройки",
+        "addFirst": "Добавьте первое поле чтобы начать создание формы",
+        "addFirstBtn": "Добавить первое поле"
+      },
+      "editor": {
+        "sectionContent": "Содержание",
+        "sectionType": "Тип поля",
+        "sectionParameters": "Параметры",
+        "sectionValidation": "Валидация",
+        "label": "Название",
+        "labelHint": "Вопрос или заголовок, который видит пользователь",
+        "labelPlaceholder": "например: Полное имя, Возраст, Причина заявки…",
+        "helperText": "Вспомогательный текст",
+        "helperTextHint": "Отображается под полем как дополнительная подсказка",
+        "helperTextPlaceholder": "например: Введите ваш игровой никнейм точно как в игре",
+        "placeholder": "Placeholder",
+        "placeholderHint": "Текст-подсказка внутри пустого поля",
+        "placeholderEmail": "например: user@example.com",
+        "placeholderUrl": "например: https://example.com",
+        "placeholderPhone": "например: +7 999 123-45-67",
+        "placeholderNumber": "например: 18",
+        "placeholderTextarea": "Начните вводить здесь…",
+        "placeholderDefault": "Текст подсказки…",
+        "minValue": "Мин. значение",
+        "maxValue": "Макс. значение",
+        "minLength": "Мин. длина",
+        "maxLength": "Макс. длина",
+        "minValueHint": "Наименьшее допустимое число",
+        "maxValueHint": "Наибольшее допустимое число",
+        "minLengthHint": "Минимум символов",
+        "maxLengthHint": "Максимум символов",
+        "booleanInfo": "Отображается как переключатель Да / Нет. Пользователь просто включает или выключает его — дополнительная настройка не требуется.",
+        "dateInfo": "Отображается как нативный выбор даты. Браузер автоматически использует формат локали пользователя.",
+        "timeInfo": "Отображается как нативный выбор времени. Браузер автоматически использует формат локали пользователя.",
+        "datetimeInfo": "Отображается как нативный выбор даты и времени. Браузер автоматически использует формат локали пользователя.",
+        "requiredField": "Обязательное поле",
+        "requiredFieldHint": "Форму нельзя отправить, если это поле не заполнено"
+      },
+      "options": {
+        "label": "Варианты ответа",
+        "addAtLeastOne": "⚠ Добавьте хотя бы один вариант перед сохранением",
+        "add": "Добавить вариант",
+        "addHint": "· или нажмите Enter в поле",
+        "optionPlaceholder": "Вариант {{n}}"
+      },
+      "types": {
+        "TEXT": {"label": "Короткий текст", "desc": "Однострочный, до 255 символов"},
+        "TEXTAREA": {"label": "Длинный текст", "desc": "Многострочный ответ"},
+        "NUMBER": {"label": "Число", "desc": "Целое или дробное с проверкой"},
+        "EMAIL": {"label": "Email", "desc": "Адрес эл. почты с проверкой формата"},
+        "URL": {"label": "URL", "desc": "Веб-адрес (https://...)"},
+        "PHONE": {"label": "Телефон", "desc": "Номер телефона"},
+        "SELECT": {"label": "Выпадающий список", "desc": "Выбор одного из списка"},
+        "MULTI_SELECT": {"label": "Мультивыбор", "desc": "Выбор нескольких из списка"},
+        "RADIO": {"label": "Радио", "desc": "Один вариант, все видны сразу"},
+        "CHECKBOX": {"label": "Чекбоксы", "desc": "Несколько вариантов, все видны сразу"},
+        "BOOLEAN": {"label": "Переключатель", "desc": "Простой Да / Нет"},
+        "DATE": {"label": "Дата", "desc": "Выбор даты"},
+        "TIME": {"label": "Время", "desc": "Выбор времени"},
+        "DATETIME": {"label": "Дата и время", "desc": "Совместный выбор даты и времени"}
+      },
+      "groups": {
+        "text": "Текстовые поля",
+        "choice": "Поля выбора",
+        "datetime": "Дата и время"
+      },
+      "choiceHints": {
+        "SELECT": "Пользователь выбирает один — выпадающий список",
+        "MULTI_SELECT": "Пользователь выбирает несколько — выпадающий список",
+        "RADIO": "Пользователь выбирает один — все варианты видны",
+        "CHECKBOX": "Пользователь выбирает несколько — все варианты видны"
+      }
+    },
+    "back": "Назад",
+    "create": "Создать форму",
+    "creating": "Создание…",
+    "cancel": "Отмена",
+    "basicInfo": {
+      "hint": "Дайте форме понятное название. Именно его увидят пользователи.",
+      "titleLabel": "Название формы",
+      "titlePlaceholder": "например: Анкета на вступление, Собеседование, Опрос",
+      "titleRequired": "Обязательно — не может быть пустым",
+      "descLabel": "Описание",
+      "descOptional": "необязательно",
+      "descPlaceholder": "Объясните цель формы, для чего она и что нужно сделать пользователю.",
+      "descHint": "Отображается вверху страницы формы — помогает понять, что заполняется.",
+      "preview": "Предпросмотр"
+    },
+    "server": {
+      "hint": "Настройте Discord-сервер и каналы, которые получат доступ к этой форме.",
+      "serverIdLabel": "ID Discord-сервера",
+      "serverIdPlaceholder": "например: 1234567890123456789",
+      "serverIdError": "Discord ID — это числа из 17–19 цифр",
+      "serverIdTip": "Только участники этого Discord-сервера смогут заполнять форму. Чтобы найти ID сервера: нажмите правой кнопкой на иконку сервера → Копировать ID сервера (необходимо включить режим разработчика в настройках Discord).",
+      "channelIdsLabel": "ID каналов",
+      "channelIdsOptional": "необязательно",
+      "channelIdsPlaceholder": "Вставьте ID канала и нажмите Enter",
+      "channelIdsAdd": "Добавить",
+      "channelIdsError": "Discord ID — это числа из 17–19 цифр",
+      "channelIdsDuplicate": "Этот ID канала уже добавлен",
+      "channelIdsTipEmpty": "Оставьте пустым, чтобы форма была доступна из любого канала.",
+      "channelIdsTipFilled": "Только участники этих {{count}} канал(ов) смогут заполнять форму.",
+      "channelIdsTipSuffix": " Чтобы найти ID канала: нажмите правой кнопкой на канал → Копировать ID канала.",
+      "summaryTitle": "Итог",
+      "summaryServer": "Сервер:",
+      "summaryChannels": "Каналы:",
+      "summaryAllChannels": "Все каналы разрешены",
+      "summaryRestricted_one": "{{count}} канал ограничен",
+      "summaryRestricted_other": "{{count}} каналов ограничено"
+    },
+    "webhooks": {
+      "title": "Discord Вебхуки",
+      "subtitle": "Когда пользователь отправит форму, настраиваемый Discord-embed с его ответами будет отправлен на каждый вебхук. Все поля embed необязательны — обязателен только URL.",
+      "noWebhooks": "Вебхуки не настроены",
+      "clickToAdd": "Нажмите ниже чтобы добавить",
+      "addWebhook": "Добавить вебхук",
+      "invalidUrl": "Некорректный URL Discord-вебхука",
+      "availableVars": "Доступные переменные",
+      "varHint": "Работают во всех текстовых полях. {user_mention} отображается как пинг только в content и description — не в author/title/footer.",
+      "groups": {
+        "message": "Сообщение",
+        "embedHeader": "Embed · Заголовок",
+        "embedAuthor": "Embed · Автор",
+        "embedImages": "Embed · Изображения",
+        "embedFields": "Embed · Поля ответов"
+      },
+      "fields": {
+        "botName": "Имя бота",
+        "avatarUrl": "URL аватара бота",
+        "content": "Контент",
+        "contentHint": "(текст над embed, поддерживает @упоминания)",
+        "embedTitle": "Заголовок",
+        "embedTitleHint": "(по умолчанию — название формы · поддерживает переменные)",
+        "embedDesc": "Описание",
+        "embedColor": "Цвет embed",
+        "authorName": "Имя автора",
+        "authorNameHint": "(поддерживает переменные)",
+        "authorIconUrl": "URL иконки автора",
+        "authorIconHint": "(маленький круг)",
+        "authorUrl": "URL автора",
+        "authorUrlHint": "(делает имя кликабельным)",
+        "thumbnailUrl": "URL миниатюры",
+        "thumbnailHint": "(маленькое изображение справа сверху)",
+        "imageUrl": "URL изображения",
+        "imageHint": "(большое изображение под полями)",
+        "inlineFields": "Поля в ряд",
+        "inlineFieldsHint": "— отображать ответы рядом, а не столбцом"
+      }
+    }
+  },
+  "formEdit": {
+    "title": "Редактировать форму",
+    "tabs": {
+      "basicInfo": "Основное",
+      "webhooks": "Вебхуки"
+    },
+    "formTitle": "Название формы",
+    "titlePlaceholder": "Введите название формы",
+    "titleRequired": "Название обязательно",
+    "description": "Описание",
+    "descPlaceholder": "Описание формы (необязательно)",
+    "fields": "Поля",
+    "fieldEditNote": "Редактирование полей пока недоступно — пересоздайте форму чтобы изменить структуру.",
+    "save": "Сохранить изменения",
+    "saving": "Сохранение…",
+    "saved": "Сохранено",
+    "loadError": "Не удалось загрузить данные формы.",
+    "saveError": "Ошибка сохранения."
+  }
+}

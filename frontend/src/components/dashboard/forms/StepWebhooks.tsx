@@ -1,4 +1,5 @@
 import {useState} from "react";
+import {useTranslation} from "react-i18next";
 import {
     FiAlertCircle,
     FiCheck,
@@ -97,6 +98,7 @@ function WebhookCard({wh, index, onUpdate, onDelete}: {
     onUpdate: (patch: Partial<WebhookConfig>) => void;
     onDelete: () => void;
 }) {
+    const {t} = useTranslation();
     const [expanded, setExpanded] = useState(false);
     const [hexInput, setHexInput] = useState(wh.color != null ? intToHex(wh.color) : "");
 
@@ -131,7 +133,7 @@ function WebhookCard({wh, index, onUpdate, onDelete}: {
                     />
                     {!urlValid && wh.url.length > 0 && (
                         <p className="mt-1 flex items-center gap-1 text-[11px] text-red-400">
-                            <FiAlertCircle size={10}/> Not a valid Discord webhook URL
+                            <FiAlertCircle size={10}/> {t("wizard.webhooks.invalidUrl")}
                         </p>
                     )}
                 </div>
@@ -160,7 +162,7 @@ function WebhookCard({wh, index, onUpdate, onDelete}: {
                     {/* ── Variables reference ────────────────────────── */}
                     <div className="rounded-lg border border-indigo-500/15 bg-indigo-500/5 px-3 py-2.5">
                         <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-indigo-300/70">
-                            Available variables
+                            {t("wizard.webhooks.availableVars")}
                         </p>
                         <div className="flex flex-wrap gap-1">
                             {([
@@ -182,25 +184,25 @@ function WebhookCard({wh, index, onUpdate, onDelete}: {
                             ))}
                         </div>
                         <p className="mt-1.5 text-[10px] text-white/25">
-                            Work in all text fields. <span className="text-yellow-400/50">{"{user_mention}"} renders as a ping only in <b>content</b> and <b>description</b> — not in author/title/footer.</span>
+                            {t("wizard.webhooks.varHint")}
                         </p>
                     </div>
 
                     {/* ── Message ─────────────────────────────────────── */}
-                    <Group label="Message" icon={<FiLink size={11}/>}>
+                    <Group label={t("wizard.webhooks.groups.message")} icon={<FiLink size={11}/>}>
                         <Row>
-                            <Field label="Bot name">
+                            <Field label={t("wizard.webhooks.fields.botName")}>
                                 <input type="text" value={str(wh.botName)}
                                        onChange={e => onUpdate({botName: e.target.value || undefined})}
                                        placeholder="MarForms" className={inputCls()}/>
                             </Field>
-                            <Field label="Bot avatar URL">
+                            <Field label={t("wizard.webhooks.fields.avatarUrl")}>
                                 <input type="url" value={str(wh.avatarUrl)}
                                        onChange={e => onUpdate({avatarUrl: e.target.value || undefined})}
                                        placeholder="https://…/avatar.png" className={inputCls()}/>
                             </Field>
                         </Row>
-                        <Field label="Content" hint="(text above embed, supports @mentions)">
+                        <Field label={t("wizard.webhooks.fields.content")} hint={t("wizard.webhooks.fields.contentHint")}>
                             <input type="text" value={str(wh.content)}
                                    onChange={e => onUpdate({content: e.target.value || undefined})}
                                    placeholder="New submission received" className={inputCls()}/>
@@ -208,13 +210,13 @@ function WebhookCard({wh, index, onUpdate, onDelete}: {
                     </Group>
 
                     {/* ── Embed: Header ──────────────────────────────── */}
-                    <Group label="Embed · Header" icon={<FiLink size={11}/>}>
-                        <Field label="Title" hint="(defaults to form title · supports variables)">
+                    <Group label={t("wizard.webhooks.groups.embedHeader")} icon={<FiLink size={11}/>}>
+                        <Field label={t("wizard.webhooks.fields.embedTitle")} hint={t("wizard.webhooks.fields.embedTitleHint")}>
                             <input type="text" value={str(wh.embedTitle)}
                                    onChange={e => onUpdate({embedTitle: e.target.value || undefined})}
                                    placeholder="Form submission" className={inputCls()}/>
                         </Field>
-                        <Field label="Description">
+                        <Field label={t("wizard.webhooks.fields.embedDesc")}>
                             <textarea value={str(wh.embedDescription)}
                                       onChange={e => onUpdate({embedDescription: e.target.value || undefined})}
                                       placeholder="Optional text below the title — supports **markdown**"
@@ -223,7 +225,7 @@ function WebhookCard({wh, index, onUpdate, onDelete}: {
 
                         {/* Color picker */}
                         <div>
-                            <span className="text-[11px] font-medium text-white/40">Embed color</span>
+                            <span className="text-[11px] font-medium text-white/40">{t("wizard.webhooks.fields.embedColor")}</span>
                             <div className="mt-2 flex flex-wrap items-center gap-2">
                                 {COLOR_PRESETS.map(p => {
                                     const active = wh.color === p.value;
@@ -254,19 +256,19 @@ function WebhookCard({wh, index, onUpdate, onDelete}: {
                     </Group>
 
                     {/* ── Embed: Author ──────────────────────────────── */}
-                    <Group label="Embed · Author" icon={<FiUser size={11}/>}>
-                        <Field label="Author name" hint="(supports variables)">
+                    <Group label={t("wizard.webhooks.groups.embedAuthor")} icon={<FiUser size={11}/>}>
+                        <Field label={t("wizard.webhooks.fields.authorName")} hint={t("wizard.webhooks.fields.authorNameHint")}>
                             <input type="text" value={str(wh.authorName)}
                                    onChange={e => onUpdate({authorName: e.target.value || undefined})}
                                    placeholder="Submitted by {username}" className={inputCls()}/>
                         </Field>
                         <Row>
-                            <Field label="Author icon URL" hint="(small circle)">
+                            <Field label={t("wizard.webhooks.fields.authorIconUrl")} hint={t("wizard.webhooks.fields.authorIconHint")}>
                                 <input type="url" value={str(wh.authorIconUrl)}
                                        onChange={e => onUpdate({authorIconUrl: e.target.value || undefined})}
                                        placeholder="https://…/icon.png" className={inputCls()}/>
                             </Field>
-                            <Field label="Author URL" hint="(makes name clickable)">
+                            <Field label={t("wizard.webhooks.fields.authorUrl")} hint={t("wizard.webhooks.fields.authorUrlHint")}>
                                 <input type="url" value={str(wh.authorUrl)}
                                        onChange={e => onUpdate({authorUrl: e.target.value || undefined})}
                                        placeholder="https://…" className={inputCls()}/>
@@ -275,14 +277,14 @@ function WebhookCard({wh, index, onUpdate, onDelete}: {
                     </Group>
 
                     {/* ── Embed: Images ──────────────────────────────── */}
-                    <Group label="Embed · Images" icon={<FiImage size={11}/>}>
+                    <Group label={t("wizard.webhooks.groups.embedImages")} icon={<FiImage size={11}/>}>
                         <Row>
-                            <Field label="Thumbnail URL" hint="(top-right small image)">
+                            <Field label={t("wizard.webhooks.fields.thumbnailUrl")} hint={t("wizard.webhooks.fields.thumbnailHint")}>
                                 <input type="url" value={str(wh.thumbnailUrl)}
                                        onChange={e => onUpdate({thumbnailUrl: e.target.value || undefined})}
                                        placeholder="https://…/thumb.png" className={inputCls()}/>
                             </Field>
-                            <Field label="Image URL" hint="(large image below fields)">
+                            <Field label={t("wizard.webhooks.fields.imageUrl")} hint={t("wizard.webhooks.fields.imageHint")}>
                                 <input type="url" value={str(wh.imageUrl)}
                                        onChange={e => onUpdate({imageUrl: e.target.value || undefined})}
                                        placeholder="https://…/banner.png" className={inputCls()}/>
@@ -291,7 +293,7 @@ function WebhookCard({wh, index, onUpdate, onDelete}: {
                     </Group>
 
                     {/* ── Embed: Fields display ──────────────────────── */}
-                    <Group label="Embed · Answer Fields" icon={<FiLink size={11}/>}>
+                    <Group label={t("wizard.webhooks.groups.embedFields")} icon={<FiLink size={11}/>}>
                         <label className="flex cursor-pointer items-center gap-2.5 select-none">
                             <div
                                 onClick={() => onUpdate({fieldsInline: !wh.fieldsInline})}
@@ -304,9 +306,8 @@ function WebhookCard({wh, index, onUpdate, onDelete}: {
                                 {wh.fieldsInline && <div className="h-2 w-2 rounded-sm bg-indigo-400"/>}
                             </div>
                             <span className="text-xs text-white/60">
-                                Inline fields
-                                <span
-                                    className="ml-1.5 text-white/25">— display answers side-by-side instead of stacked</span>
+                                {t("wizard.webhooks.fields.inlineFields")}
+                                <span className="ml-1.5 text-white/25">{t("wizard.webhooks.fields.inlineFieldsHint")}</span>
                             </span>
                         </label>
                     </Group>
@@ -319,6 +320,7 @@ function WebhookCard({wh, index, onUpdate, onDelete}: {
 // ── Step root ─────────────────────────────────────────────────────────────────
 
 export default function StepWebhooks({draft, onChange}: Props) {
+    const {t} = useTranslation();
     const webhooks = draft.webhooks;
 
     const update = (index: number, patch: Partial<WebhookConfig>) => {
@@ -337,10 +339,9 @@ export default function StepWebhooks({draft, onChange}: Props) {
     return (
         <div className="flex flex-col gap-4">
             <div>
-                <h3 className="text-sm font-semibold text-white">Discord Webhooks</h3>
+                <h3 className="text-sm font-semibold text-white">{t("wizard.webhooks.title")}</h3>
                 <p className="mt-1 text-sm text-white/50">
-                    When a user submits this form, a fully configurable Discord embed with their answers
-                    will be sent to each webhook. All embed fields are optional — only the URL is required.
+                    {t("wizard.webhooks.subtitle")}
                 </p>
             </div>
 
@@ -361,8 +362,8 @@ export default function StepWebhooks({draft, onChange}: Props) {
             {webhooks.length === 0 && (
                 <div className="rounded-xl border border-dashed border-white/[0.08] py-8 text-center">
                     <FiLink size={20} className="mx-auto mb-2 text-white/20"/>
-                    <p className="text-sm text-white/30">No webhooks configured</p>
-                    <p className="mt-0.5 text-xs text-white/20">Click below to add one</p>
+                    <p className="text-sm text-white/30">{t("wizard.webhooks.noWebhooks")}</p>
+                    <p className="mt-0.5 text-xs text-white/20">{t("wizard.webhooks.clickToAdd")}</p>
                 </div>
             )}
 
@@ -372,7 +373,7 @@ export default function StepWebhooks({draft, onChange}: Props) {
                 className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-indigo-500/30 py-2.5 text-sm text-indigo-400 transition-colors hover:border-indigo-500/50 hover:bg-indigo-500/[0.04] hover:text-indigo-300"
             >
                 <FiPlus size={14}/>
-                Add Webhook
+                {t("wizard.webhooks.addWebhook")}
             </button>
         </div>
     );

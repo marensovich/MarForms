@@ -1,5 +1,6 @@
 import {useEffect, useState} from "react";
 import {AnimatePresence} from "framer-motion";
+import {useTranslation} from "react-i18next";
 import {
     type DashboardForm,
     type DashboardSubmission,
@@ -29,6 +30,7 @@ import {
 type StatusFilter = "all" | "active" | "inactive";
 
 function CopyLinkButton({formId}: { formId: string }) {
+    const {t} = useTranslation();
     const [copied, setCopied] = useState(false);
 
     const handleCopy = () => {
@@ -39,9 +41,9 @@ function CopyLinkButton({formId}: { formId: string }) {
 
     return (
         <ActionBtn onClick={handleCopy} variant={copied ? "success" : "ghost"} title="Copy shareable link">
-            {copied ? <><FiCheck size={11} className="inline mr-1"/>Copied</> : <><FiLink size={11}
-                                                                                          className="inline mr-1"/>Copy
-                link</>}
+            {copied
+                ? <><FiCheck size={11} className="inline mr-1"/>{t("forms.row.copied")}</>
+                : <><FiLink size={11} className="inline mr-1"/>{t("forms.row.copyLink")}</>}
         </ActionBtn>
     );
 }
@@ -73,11 +75,13 @@ function ResponsesModal({
         return field?.label ?? fieldId;
     };
 
+    const {t} = useTranslation();
+
     if (selected) {
         return (
             <Modal
-                title="Submission Details"
-                subtitle={`From ${selected.discordId} · ${new Date(selected.createdAt).toLocaleString()}`}
+                title={t("forms.responses.detailsTitle")}
+                subtitle={`${t("forms.responses.fromUser", {id: selected.discordId})} · ${new Date(selected.createdAt).toLocaleString()}`}
                 onClose={() => setSelected(null)}
                 width="max-w-lg"
             >
@@ -96,7 +100,7 @@ function ResponsesModal({
                         onClick={() => setSelected(null)}
                         className="rounded-lg border border-white/[0.08] px-4 py-2 text-sm text-white/50 hover:text-white transition-colors"
                     >
-                        Back to list
+                        {t("forms.responses.backToList")}
                     </button>
                 </div>
             </Modal>
@@ -105,15 +109,17 @@ function ResponsesModal({
 
     return (
         <Modal
-            title={`Responses — ${form.title}`}
-            subtitle={`${form.submissionCount} total submission${form.submissionCount !== 1 ? "s" : ""}`}
+            title={t("forms.responses.modalTitle", {formTitle: form.title})}
+            subtitle={form.submissionCount === 1
+                ? t("forms.responses.totalOne", {count: form.submissionCount})
+                : t("forms.responses.totalMany", {count: form.submissionCount})}
             onClose={onClose}
             width="max-w-xl"
         >
             {loading ? (
                 <TabSkeleton rows={4}/>
             ) : submissions.length === 0 ? (
-                <EmptyState message="No submissions yet." icon={<FiInbox/>}/>
+                <EmptyState message={t("forms.responses.noSubmissions")} icon={<FiInbox/>}/>
             ) : (
                 <div className="flex flex-col gap-1.5 max-h-96 overflow-y-auto">
                     {submissions.map(sub => (
@@ -125,7 +131,7 @@ function ResponsesModal({
                             <div>
                                 <p className="text-sm font-medium text-white font-mono">{sub.discordId}</p>
                                 <p className="mt-0.5 text-xs text-white/35">
-                                    {Object.keys(sub.answers).length} fields answered
+                                    {t("forms.responses.fieldsAnswered", {count: Object.keys(sub.answers).length})}
                                 </p>
                             </div>
                             <div className="text-right">
@@ -142,6 +148,7 @@ function ResponsesModal({
 
 
 export default function FormsTab() {
+    const {t} = useTranslation();
     const [forms, setForms] = useState<DashboardForm[]>([]);
     const [loading, setLoading] = useState(true);
     const [showWizard, setShowWizard] = useState(false);
@@ -190,9 +197,9 @@ export default function FormsTab() {
             {/* Header */}
             <div className="mb-6 flex items-start justify-between">
                 <div>
-                    <h1 className="text-xl font-semibold text-white">Forms</h1>
+                    <h1 className="text-xl font-semibold text-white">{t("forms.title")}</h1>
                     <p className="mt-0.5 text-sm text-white/65">
-                        Manage and publish your Discord forms
+                        {t("forms.subtitle")}
                     </p>
                 </div>
                 <button
@@ -200,7 +207,7 @@ export default function FormsTab() {
                     className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/20 transition-colors hover:bg-indigo-500"
                 >
                     <FiFileText size={14}/>
-                    New form
+                    {t("forms.newForm")}
                 </button>
             </div>
 
@@ -208,23 +215,23 @@ export default function FormsTab() {
             {!loading && (
                 <div className="mb-6 grid grid-cols-3 gap-4">
                     <StatsCard
-                        label="Total Forms"
+                        label={t("forms.stats.totalForms")}
                         value={forms.length}
-                        sub={`${activeForms} active`}
+                        sub={t("forms.stats.activeForms", {count: activeForms})}
                         icon={<FiFileText size={16}/>}
                         accentColor="#6366f1"
                     />
                     <StatsCard
-                        label="Active"
+                        label={t("forms.stats.active")}
                         value={activeForms}
-                        sub={forms.length > 0 ? `${Math.round((activeForms / forms.length) * 100)}% of total` : "—"}
+                        sub={forms.length > 0 ? t("forms.stats.ofTotal", {pct: Math.round((activeForms / forms.length) * 100)}) : "—"}
                         icon={<FiCheckCircle size={16}/>}
                         accentColor="#34d399"
                     />
                     <StatsCard
-                        label="Total Responses"
+                        label={t("forms.stats.totalResponses")}
                         value={totalSubmissions}
-                        sub="across all forms"
+                        sub={t("forms.stats.acrossAllForms")}
                         icon={<FiInbox size={16}/>}
                         accentColor="#a78bfa"
                     />
@@ -237,13 +244,13 @@ export default function FormsTab() {
                     <button
                         key={f}
                         onClick={() => setStatusFilter(f)}
-                        className={`rounded-lg px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
+                        className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
                             statusFilter === f
                                 ? "bg-white/[0.08] text-white"
                                 : "text-white/35 hover:text-white/60"
                         }`}
                     >
-                        {f}
+                        {t(`forms.filter.${f}`)}
                         {f !== "all" && (
                             <span className="ml-1.5 text-white/45">
                                 {f === "active" ? activeForms : forms.length - activeForms}
@@ -251,7 +258,7 @@ export default function FormsTab() {
                         )}
                     </button>
                 ))}
-                <span className="ml-auto text-xs text-white/45">{filtered.length} shown</span>
+                <span className="ml-auto text-xs text-white/45">{t("forms.filter.shown", {count: filtered.length})}</span>
             </div>
 
             {/* Table */}
@@ -259,7 +266,9 @@ export default function FormsTab() {
                 <TabSkeleton/>
             ) : filtered.length === 0 ? (
                 <EmptyState
-                    message={statusFilter === "all" ? "No forms yet. Create your first form." : `No ${statusFilter} forms.`}
+                    message={statusFilter === "all"
+                        ? t("forms.empty.noForms")
+                        : t("forms.empty.noFiltered", {status: t(`forms.filter.${statusFilter}`)})}
                     icon={<FiFileText/>}
                 />
             ) : (
@@ -267,11 +276,11 @@ export default function FormsTab() {
                     <table className="w-full text-sm">
                         <thead>
                         <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">Title</th>
-                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">Status</th>
-                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">Responses</th>
-                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">Created</th>
-                            <th className="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-white/55">Actions</th>
+                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">{t("forms.table.title")}</th>
+                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">{t("forms.table.status")}</th>
+                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">{t("forms.table.responses")}</th>
+                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">{t("forms.table.created")}</th>
+                            <th className="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-white/55">{t("forms.table.actions")}</th>
                         </tr>
                         </thead>
                         <tbody className="divide-y divide-white/[0.04]">
@@ -298,7 +307,7 @@ export default function FormsTab() {
                                 </td>
                                 <td className="px-5 py-4">
                                     <Badge color={form.active ? "green" : "default"} dot>
-                                        {form.active ? "Active" : "Inactive"}
+                                        {form.active ? t("forms.row.active") : t("forms.row.inactive")}
                                     </Badge>
                                 </td>
                                 <td className="px-5 py-4">
@@ -310,7 +319,7 @@ export default function FormsTab() {
                                             title="View responses"
                                         >
                                             <FiList size={11}/>
-                                            View
+                                            {t("common.view")}
                                         </button>
                                     </div>
                                 </td>
@@ -329,17 +338,17 @@ export default function FormsTab() {
                                             title="Edit form (coming soon)"
                                         >
                                             <FiEdit3 size={11} className="inline mr-1"/>
-                                            Edit
+                                            {t("common.edit")}
                                         </ActionBtn>
                                         <CopyLinkButton formId={form.id}/>
                                         <ActionBtn
                                             onClick={() => handleToggle(form)}
                                             variant="primary"
-                                            title={form.active ? "Deactivate form" : "Activate form"}
+                                            title={form.active ? t("forms.row.deactivate") : t("forms.row.activate")}
                                         >
                                             {form.active
-                                                ? <><FiToggleLeft size={11} className="inline mr-1"/>Deactivate</>
-                                                : <><FiToggleRight size={11} className="inline mr-1"/>Activate</>}
+                                                ? <><FiToggleLeft size={11} className="inline mr-1"/>{t("forms.row.deactivate")}</>
+                                                : <><FiToggleRight size={11} className="inline mr-1"/>{t("forms.row.activate")}</>}
                                         </ActionBtn>
                                         <ActionBtn
                                             onClick={() => setDeleteTarget(form)}
@@ -347,7 +356,7 @@ export default function FormsTab() {
                                             title="Delete form"
                                         >
                                             <FiTrash2 size={11} className="inline mr-1"/>
-                                            Delete
+                                            {t("common.delete")}
                                         </ActionBtn>
                                     </div>
                                 </td>
@@ -383,9 +392,9 @@ export default function FormsTab() {
                 )}
                 {deleteTarget && (
                     <ConfirmModal
-                        title="Delete form"
-                        message={`Are you sure you want to delete "${deleteTarget.title}"? This action cannot be undone and will remove all ${deleteTarget.submissionCount} response${deleteTarget.submissionCount !== 1 ? "s" : ""}.`}
-                        confirmLabel="Delete form"
+                        title={t("forms.deleteConfirm.title")}
+                        message={t("forms.deleteConfirm.message", {title: deleteTarget.title, count: deleteTarget.submissionCount})}
+                        confirmLabel={t("forms.deleteConfirm.confirm")}
                         confirmColor="red"
                         onConfirm={handleDelete}
                         onCancel={() => setDeleteTarget(null)}

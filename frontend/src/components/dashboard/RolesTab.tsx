@@ -1,7 +1,8 @@
 import {useEffect, useState} from "react";
 import {createRole, type DashboardRole, deleteRole, getRoles, updateRole} from "../../api/dashboard";
 import {ActionBtn, Badge, ConfirmModal, EmptyState, Modal, StatsCard, TabSkeleton} from "./shared";
-import {FiCheck, FiEdit3, FiLock, FiPlus, FiShield, FiTrash2,} from "react-icons/fi";
+import {FiCheck, FiEdit3, FiPlus, FiShield, FiTrash2,} from "react-icons/fi";
+import {useTranslation} from "react-i18next";
 
 type PermColor = "indigo" | "blue" | "purple" | "orange" | "green" | "red";
 
@@ -39,12 +40,13 @@ function PermissionGrid({
     selected: string[];
     onToggle: (perm: string) => void;
 }) {
+    const {t} = useTranslation();
     return (
         <div className="flex flex-col gap-3">
             {PERMISSION_GROUPS.map(group => (
                 <div key={group.label}>
                     <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-white/50">
-                        {group.label}
+                        {t(`roles.permGroups.${group.label}`)}
                     </p>
                     <div className="flex flex-wrap gap-1.5">
                         {group.perms.map(perm => {
@@ -79,6 +81,7 @@ function CreateRoleModal({
     onClose: () => void;
     onCreated: () => void;
 }) {
+    const {t} = useTranslation();
     const [name, setName] = useState("");
     const [perms, setPerms] = useState<string[]>([]);
     const [saving, setSaving] = useState(false);
@@ -89,7 +92,7 @@ function CreateRoleModal({
 
     const handleCreate = async () => {
         if (!name.trim()) {
-            setError("Role name is required.");
+            setError(t("roles.createModal.nameRequired"));
             return;
         }
         setSaving(true);
@@ -98,24 +101,24 @@ function CreateRoleModal({
             await createRole({name: name.trim(), permissions: perms});
             onCreated();
         } catch (e) {
-            setError(e instanceof Error ? e.message : "Failed to create role.");
+            setError(e instanceof Error ? e.message : t("roles.createModal.failedToCreate"));
         } finally {
             setSaving(false);
         }
     };
 
     return (
-        <Modal title="Create Role" subtitle="Define name and permissions" onClose={onClose} width="max-w-lg">
+        <Modal title={t("roles.createModal.title")} subtitle={t("roles.createModal.subtitle")} onClose={onClose} width="max-w-lg">
             <div className="flex flex-col gap-4">
                 <div>
-                    <label className="mb-1.5 block text-xs font-medium text-white/60">Role name</label>
+                    <label className="mb-1.5 block text-xs font-medium text-white/60">{t("roles.createModal.nameLabel")}</label>
                     <input
                         value={name}
                         onChange={e => {
                             setName(e.target.value);
                             setError(null);
                         }}
-                        placeholder="e.g. Moderator"
+                        placeholder={t("roles.createModal.namePlaceholder")}
                         autoFocus
                         className="w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-2.5 text-sm text-white placeholder-white/25 outline-none transition-colors focus:border-indigo-500/60"
                     />
@@ -124,8 +127,8 @@ function CreateRoleModal({
 
                 <div>
                     <label className="mb-2 block text-xs font-medium text-white/60">
-                        Permissions
-                        <span className="ml-2 text-white/50">({perms.length} selected)</span>
+                        {t("roles.createModal.permissionsLabel")}
+                        <span className="ml-2 text-white/50">({t("roles.createModal.selected", {count: perms.length})})</span>
                     </label>
                     <div className="rounded-xl border border-white/[0.06] bg-white/[0.01] p-4">
                         <PermissionGrid selected={perms} onToggle={toggle}/>
@@ -138,13 +141,13 @@ function CreateRoleModal({
                         disabled={saving || !name.trim()}
                         className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-500 disabled:opacity-60"
                     >
-                        {saving ? "Creating…" : "Create role"}
+                        {saving ? t("roles.createModal.creating") : t("roles.createRole")}
                     </button>
                     <button
                         onClick={onClose}
                         className="rounded-xl border border-white/[0.08] px-5 py-2.5 text-sm text-white/50 transition-colors hover:text-white"
                     >
-                        Cancel
+                        {t("common.cancel")}
                     </button>
                 </div>
             </div>
@@ -161,6 +164,7 @@ function RoleCard({
     onEdit: () => void;
     onDelete: () => void;
 }) {
+    const {t} = useTranslation();
     const getGroupColor = (perm: string) => {
         const group = PERMISSION_GROUPS.find(g => g.perms.includes(perm));
         return group?.color ?? "default";
@@ -178,7 +182,7 @@ function RoleCard({
                     <div className="min-w-0">
                         <p className="font-semibold text-white">{role.name}</p>
                         <p className="text-xs text-white/55">
-                            {role.permissions.length} permission{role.permissions.length !== 1 ? "s" : ""}
+                            {t("roles.permissionCount", {count: role.permissions.length})}
                         </p>
                     </div>
                 </div>
@@ -209,6 +213,7 @@ function RoleCard({
 type EditingRole = { id: string; name: string; permissions: string[] };
 
 export default function RolesTab() {
+    const {t} = useTranslation();
     const [roles, setRoles] = useState<DashboardRole[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreate, setShowCreate] = useState(false);
@@ -249,8 +254,6 @@ export default function RolesTab() {
         }
     };
 
-    const totalPermissions = roles.reduce((sum, r) => sum + r.permissions.length, 0);
-
     if (loading) return <TabSkeleton/>;
 
     return (
@@ -258,33 +261,26 @@ export default function RolesTab() {
             {/* Header */}
             <div className="mb-6 flex items-start justify-between">
                 <div>
-                    <h1 className="text-xl font-semibold text-white">Roles</h1>
-                    <p className="mt-0.5 text-sm text-white/65">Define permission sets and assign them to users</p>
+                    <h1 className="text-xl font-semibold text-white">{t("roles.title")}</h1>
+                    <p className="mt-0.5 text-sm text-white/65">{t("roles.subtitle")}</p>
                 </div>
                 <button
                     onClick={() => setShowCreate(true)}
                     className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/20 transition-colors hover:bg-indigo-500"
                 >
                     <FiPlus size={15}/>
-                    Create role
+                    {t("roles.createRole")}
                 </button>
             </div>
 
             {/* Stats */}
-            <div className="mb-6 grid grid-cols-2 gap-4">
+            <div className="mb-6">
                 <StatsCard
-                    label="Total Roles"
+                    label={t("roles.stats.totalRoles")}
                     value={roles.length}
-                    sub="defined permission groups"
+                    sub={t("roles.stats.definedGroups")}
                     icon={<FiShield size={16}/>}
                     accentColor="#6366f1"
-                />
-                <StatsCard
-                    label="Permissions Assigned"
-                    value={totalPermissions}
-                    sub={`avg ${roles.length > 0 ? (totalPermissions / roles.length).toFixed(1) : 0} per role`}
-                    icon={<FiLock size={16}/>}
-                    accentColor="#a78bfa"
                 />
             </div>
 
@@ -296,15 +292,14 @@ export default function RolesTab() {
 
             {/* Roles list */}
             {roles.length === 0 ? (
-                <EmptyState message="No roles yet. Create your first role." icon={<FiShield/>}/>
+                <EmptyState message={t("roles.noRoles")} icon={<FiShield/>}/>
             ) : (
                 <div className="flex flex-col gap-3">
                     {roles.map(role => (
                         editing?.id === role.id ? (
                             <div key={role.id}
                                  className="rounded-xl border border-indigo-500/20 bg-indigo-500/[0.04] p-5">
-                                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-indigo-400/60">Editing
-                                    role</p>
+                                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-indigo-400/60">{t("roles.editingRole")}</p>
                                 <input
                                     value={editing.name}
                                     onChange={e => setEditing({...editing, name: e.target.value})}
@@ -328,13 +323,13 @@ export default function RolesTab() {
                                         onClick={handleUpdate}
                                         className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 transition-colors"
                                     >
-                                        Save changes
+                                        {t("roles.saveChanges")}
                                     </button>
                                     <button
                                         onClick={() => setEditing(null)}
                                         className="rounded-xl border border-white/[0.08] px-4 py-2 text-sm text-white/50 hover:text-white transition-colors"
                                     >
-                                        Cancel
+                                        {t("common.cancel")}
                                     </button>
                                 </div>
                             </div>
@@ -361,9 +356,9 @@ export default function RolesTab() {
             )}
             {deleteTarget && (
                 <ConfirmModal
-                    title="Delete role"
-                    message={`Are you sure you want to delete "${deleteTarget.name}"? Users with this role will lose its permissions immediately.`}
-                    confirmLabel="Delete role"
+                    title={t("roles.deleteConfirm.title")}
+                    message={t("roles.deleteConfirm.message", {name: deleteTarget.name})}
+                    confirmLabel={t("roles.deleteConfirm.confirm")}
                     confirmColor="red"
                     onConfirm={handleDelete}
                     onCancel={() => setDeleteTarget(null)}

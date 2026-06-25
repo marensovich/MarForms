@@ -3,6 +3,7 @@ import {motion} from "framer-motion";
 import {fetchPublicSettings, type PublicSettings} from "../api/settings";
 import {SceneBackground} from "./LoadingScreen";
 import {FiAlertOctagon, FiMessageCircle, FiSlash} from "react-icons/fi";
+import {useTranslation} from "react-i18next";
 
 interface Props {
     message?: string;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export default function BannedScreen({message, contact}: Props) {
+    const {t} = useTranslation();
     const [settings, setSettings] = useState<PublicSettings | null>(null);
 
     useEffect(() => {
@@ -19,7 +21,7 @@ export default function BannedScreen({message, contact}: Props) {
     }, [message, contact]);
 
     const displayMessage =
-        message ?? settings?.banMessage ?? "You have been restricted from accessing this system.";
+        message ?? settings?.banMessage ?? t("banned.title");
     const displayContact = contact ?? settings?.banAdminContact ?? null;
     const systemName = settings?.systemName ?? "MarForms";
 
@@ -49,10 +51,10 @@ export default function BannedScreen({message, contact}: Props) {
                                 </div>
                             </div>
                             <h1 className="text-2xl font-bold tracking-tight text-white">
-                                Account Restricted
+                                {t("banned.title")}
                             </h1>
                             <p className="mt-2 text-sm text-white/60">
-                                Your access to {systemName} has been restricted by an administrator.
+                                {t("banned.subtitle", {systemName})}
                             </p>
                         </div>
 
@@ -64,7 +66,7 @@ export default function BannedScreen({message, contact}: Props) {
                             <div className="mb-2 flex items-center gap-2">
                                 <FiAlertOctagon size={13} className="text-red-400/80"/>
                                 <span className="text-xs font-semibold uppercase tracking-wider text-red-400/70">
-                                    Restriction reason
+                                    {t("banned.restrictionReason")}
                                 </span>
                             </div>
                             <p className="text-sm leading-relaxed text-white/75">{displayMessage}</p>
@@ -79,7 +81,7 @@ export default function BannedScreen({message, contact}: Props) {
                                     <FiMessageCircle size={15} className="text-white/55"/>
                                 </div>
                                 <div>
-                                    <p className="text-xs text-white/45">Contact for appeals</p>
+                                    <p className="text-xs text-white/45">{t("banned.contactAppeals")}</p>
                                     <p className="mt-0.5 font-semibold text-white">{displayContact}</p>
                                 </div>
                             </div>
@@ -88,7 +90,7 @@ export default function BannedScreen({message, contact}: Props) {
                 </div>
 
                 <p className="mt-4 text-center text-xs text-white/25">
-                    {systemName} · Access Management
+                    {t("banned.footer", {systemName})}
                 </p>
             </motion.div>
         </div>

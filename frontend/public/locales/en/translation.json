@@ -1,0 +1,754 @@
+{
+  "common": {
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "loading": "Loading…",
+    "back": "Back",
+    "next": "Next",
+    "view": "View",
+    "search": "Search",
+    "active": "Active",
+    "inactive": "Inactive",
+    "unknown": "Unknown",
+    "confirm": "Confirm",
+    "clearFilters": "Clear filters"
+  },
+  "nav": {
+    "navigation": "Navigation",
+    "dashboard": "Dashboard",
+    "forms": "Forms",
+    "responses": "Responses",
+    "users": "Users",
+    "roles": "Roles",
+    "logs": "Logs",
+    "system": "System",
+    "settings": "Settings"
+  },
+  "adminLevel": {
+    "systemAdmin": "System Admin",
+    "admin": "Admin",
+    "moderator": "Moderator",
+    "staff": "Staff"
+  },
+  "auth": {
+    "signingIn": "Signing you in…",
+    "checkingSession": "Checking your session…"
+  },
+  "formGate": {
+    "checkingAccess": "Checking access…",
+    "loadingForm": "Loading form…"
+  },
+  "accessStates": {
+    "footer": "MarForms · Discord Application Forms",
+    "notAuthenticated": {
+      "badge": "Authentication required",
+      "title": "Sign in required",
+      "description": "This form requires you to sign in with Discord before you can continue. You'll be redirected back here after signing in.",
+      "signIn": "Sign in with Discord",
+      "redirectNote": "You'll be redirected back to this form after signing in"
+    },
+    "notInGuild": {
+      "badge": "Access restricted",
+      "title": "Server membership required",
+      "description": "This form is linked to a Discord server that you are not a member of. Join the server first, then try opening the form link again.",
+      "hint": "Join the linked Discord server to gain access to this form."
+    },
+    "formInactive": {
+      "badge": "Submissions closed",
+      "title": "Form is closed",
+      "description": "This form is no longer accepting new responses. It may have been closed by the administrator or has reached its submission limit.",
+      "hint": "If you believe this is a mistake, contact the server staff."
+    },
+    "formNotFound": {
+      "badge": "404 · Not found",
+      "title": "Form not found",
+      "description": "The form you're looking for doesn't exist or has been permanently deleted. Double-check the link you were given.",
+      "hint": "Make sure you're using the correct link from your Discord server."
+    },
+    "formError": {
+      "badge": "Server error",
+      "title": "Something went wrong",
+      "description": "We couldn't load this form due to a server error. This is likely a temporary issue — please try again in a moment.",
+      "tryAgain": "Try again"
+    }
+  },
+  "landing": {
+    "subtitle": "Discord-powered application forms for gaming communities.",
+    "directLinkTitle": "You need a direct link",
+    "directLinkDesc": "MarForms doesn't have a public form directory. You need a direct link to access a specific form — ask staff in your Discord server.",
+    "staffTitle": "Are you staff?",
+    "staffDesc": "Dashboard access requires a role with the correct permissions. Contact your system administrator to get access.",
+    "openFormLabel": "Open a form by link",
+    "openFormPlaceholder": "https://…/forms/abc123  or  abc123",
+    "openFormButton": "Open",
+    "openFormError": "Could not recognise the form link.",
+    "howItWorks": "How it works",
+    "step1Title": "Staff creates a form",
+    "step1Desc": "Admins build forms with custom fields using the dashboard.",
+    "step2Title": "Link is shared",
+    "step2Desc": "A direct link is posted in your Discord server by staff.",
+    "step3Title": "Members apply",
+    "step3Desc": "Community members fill out the form after signing in.",
+    "footer": "MarForms · Discord Application System · Form links only"
+  },
+  "form": {
+    "validation": {
+      "required": "This field is required",
+      "requiredBoolean": "Please confirm this field",
+      "requiredSelect": "Please select an option",
+      "requiredMultiSelect": "Please select at least one option",
+      "requiredDate": "Please select a date",
+      "requiredTime": "Please select a time",
+      "requiredDatetime": "Please select a date and time",
+      "minChars": "Minimum {{min}} characters required ({{entered}} entered)",
+      "maxChars": "Maximum {{max}} characters allowed ({{entered}} entered)",
+      "invalidNumber": "Please enter a valid number",
+      "minValue": "Minimum value is {{min}}",
+      "maxValue": "Maximum value is {{max}}",
+      "invalidEmail": "Please enter a valid email address",
+      "invalidUrl": "Please enter a valid URL (e.g. https://example.com)",
+      "invalidPhone": "Please enter a valid phone number",
+      "invalidOption": "Please select a valid option",
+      "invalidDate": "Please enter a valid date",
+      "invalidTime": "Please enter a valid time (HH:MM)",
+      "invalidDatetime": "Please enter a valid date and time"
+    },
+    "sidebar": {
+      "fields": "Fields",
+      "required": "Required",
+      "estTime": "Est. time",
+      "progress": "Progress",
+      "requiredProgress": "{{answered}} / {{total}} required",
+      "allFilled": "All required fields filled — ready to submit",
+      "fieldTypes": "Field types",
+      "createdBy": "Created by",
+      "secure": "Your response is encrypted in transit and stored securely."
+    },
+    "topBar": {
+      "secure": "Secure form"
+    },
+    "fieldCount_one": "{{count}} question",
+    "fieldCount_other": "{{count}} questions",
+    "requiredCount": "· {{count}} required",
+    "percentComplete": "{{pct}}% complete",
+    "readyToSubmit": "Ready to submit",
+    "validationSummary_one": "{{count}} field needs your attention",
+    "validationSummary_other": "{{count}} fields need your attention",
+    "submitting": "Submitting…",
+    "submit": "Submit response",
+    "footer": "Powered by MarForms · Your data is transmitted securely",
+    "submissionError": "Something went wrong. Please try again.",
+    "success": {
+      "title": "Response submitted!",
+      "description": "Your response to \"{{formTitle}}\" has been recorded and sent to the server.",
+      "closeNote": "You can now close this tab. Thank you for your submission."
+    },
+    "estTime": {
+      "1min": "~1 min",
+      "3min": "~3 min",
+      "5min": "~5 min",
+      "10min": "~10 min"
+    }
+  },
+  "login": {
+    "welcome": "Welcome to",
+    "tagline": "Discord-powered application forms for your community. Sign in to manage and submit forms.",
+    "signInLabel": "Sign in to continue",
+    "continueDiscord": "Continue with Discord",
+    "terms": "By continuing, you agree to MarForms' Terms of Service and Privacy Policy.",
+    "footer": "MarForms · Discord Application Forms",
+    "features": {
+      "formBuilder": "Form Builder",
+      "formBuilderDesc": "Multi-step wizard with custom fields",
+      "roleControl": "Role Control",
+      "roleControlDesc": "Granular permissions for your team",
+      "instantDelivery": "Instant Delivery",
+      "instantDeliveryDesc": "Responses sent to Discord channels"
+    }
+  },
+  "banned": {
+    "title": "Account Restricted",
+    "subtitle": "Your access to {{systemName}} has been restricted by an administrator.",
+    "restrictionReason": "Restriction reason",
+    "contactAppeals": "Contact for appeals",
+    "footer": "{{systemName}} · Access Management"
+  },
+  "forms": {
+    "title": "Forms",
+    "subtitle": "Manage and publish your Discord forms",
+    "newForm": "New form",
+    "stats": {
+      "totalForms": "Total Forms",
+      "active": "Active",
+      "ofTotal": "{{pct}}% of total",
+      "totalResponses": "Total Responses",
+      "acrossAllForms": "across all forms",
+      "activeForms": "{{count}} active"
+    },
+    "filter": {
+      "all": "all",
+      "active": "active",
+      "inactive": "inactive",
+      "shown": "{{count}} shown"
+    },
+    "table": {
+      "title": "Title",
+      "status": "Status",
+      "responses": "Responses",
+      "created": "Created",
+      "actions": "Actions"
+    },
+    "row": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "copyLink": "Copy link",
+      "copied": "Copied",
+      "activate": "Activate",
+      "deactivate": "Deactivate"
+    },
+    "empty": {
+      "noForms": "No forms yet. Create your first form.",
+      "noFiltered": "No {{status}} forms."
+    },
+    "deleteConfirm": {
+      "title": "Delete form",
+      "message": "Are you sure you want to delete \"{{title}}\"? This action cannot be undone and will remove all {{count}} responses.",
+      "confirm": "Delete form"
+    },
+    "responses": {
+      "modalTitle": "Responses — {{formTitle}}",
+      "totalOne": "{{count}} total submission",
+      "totalMany": "{{count}} total submissions",
+      "noSubmissions": "No submissions yet.",
+      "fieldsAnswered": "{{count}} fields answered",
+      "detailsTitle": "Submission Details",
+      "fromUser": "From {{id}}",
+      "backToList": "Back to list"
+    }
+  },
+  "responses": {
+    "title": "Responses",
+    "subtitle": "View and manage all form submissions",
+    "allResponses": "All Responses",
+    "byUser": "By User",
+    "stats": {
+      "totalResponses": "Total Responses",
+      "inForm": "in \"{{formName}}\"",
+      "acrossAllForms": "across all forms",
+      "forms": "Forms",
+      "activeForms": "{{count}} active",
+      "uniqueUsers": "Unique Users",
+      "withAtLeastOne": "with at least one response"
+    },
+    "filter": {
+      "allForms": "All forms",
+      "searchPlaceholder": "Username or Discord ID…",
+      "date": "Date",
+      "user": "User"
+    },
+    "table": {
+      "user": "User",
+      "form": "Form",
+      "date": "Date",
+      "fields": "Fields",
+      "actions": "Actions",
+      "fieldsCount": "{{count}} fields"
+    },
+    "noResponses": "No responses found.",
+    "noSubmissions": "No submissions yet.",
+    "byUserHint": "All users who have submitted at least one response. Click to view their submissions.",
+    "responseCount_one": "{{count}} response",
+    "responseCount_other": "{{count}} responses",
+    "deleteConfirm": {
+      "title": "Delete submission",
+      "message": "Delete this submission from {{username}}? This cannot be undone.",
+      "confirm": "Delete"
+    },
+    "submissionDetails": "Submission Details",
+    "pagination": {
+      "info": "Page {{page}} of {{total}} · {{elements}} total",
+      "prev": "Prev",
+      "next": "Next"
+    }
+  },
+  "users": {
+    "title": "Users",
+    "subtitle": "Manage user access, roles, and restrictions",
+    "stats": {
+      "totalUsers": "Total Users",
+      "registeredAccounts": "registered accounts",
+      "active": "Active",
+      "onThisPage": "on this page",
+      "restricted": "Restricted",
+      "bannedOrTimeout": "banned or in timeout"
+    },
+    "searchPlaceholder": "Search by username or Discord ID…",
+    "allRoles": "All roles",
+    "table": {
+      "user": "User",
+      "discordId": "Discord ID",
+      "roles": "Roles",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "banStatus": {
+      "banned": "Banned",
+      "timeout": "Timeout",
+      "active": "Active"
+    },
+    "until": "until {{date}}",
+    "noRoles": "No roles",
+    "showing": "Showing {{count}} of {{total}} users",
+    "noUsers": "No users found.",
+    "actions": {
+      "roles": "Roles",
+      "timeout": "Timeout",
+      "ban": "Ban",
+      "unban": "Unban"
+    },
+    "rolesModal": {
+      "title": "Assign Roles",
+      "noRoles": "No roles available.",
+      "permissionCount_one": "{{count}} permission",
+      "permissionCount_other": "{{count}} permissions",
+      "save": "Save roles",
+      "saving": "Saving…"
+    },
+    "timeoutModal": {
+      "title": "Timeout User",
+      "subtitle": "Temporarily restrict {{username}}",
+      "durationLabel": "Duration (minutes)",
+      "apply": "Apply timeout",
+      "applying": "Applying…"
+    },
+    "banModal": {
+      "banTitle": "Ban user",
+      "unbanTitle": "Unban user",
+      "banMessage": "Permanently ban {{username}}? They will be unable to access any forms.",
+      "unbanMessage": "Remove the ban from {{username}}? They will regain access immediately.",
+      "banConfirm": "Ban permanently",
+      "unbanConfirm": "Unban"
+    }
+  },
+  "roles": {
+    "title": "Roles",
+    "subtitle": "Define permission sets and assign them to users",
+    "createRole": "Create role",
+    "stats": {
+      "totalRoles": "Total Roles",
+      "definedGroups": "defined permission groups",
+      "permissionsAssigned": "Permissions Assigned",
+      "avgPerRole": "avg {{avg}} per role"
+    },
+    "permissionCount_one": "{{count}} permission",
+    "permissionCount_other": "{{count}} permissions",
+    "noRoles": "No roles yet. Create your first role.",
+    "editingRole": "Editing role",
+    "saveChanges": "Save changes",
+    "deleteConfirm": {
+      "title": "Delete role",
+      "message": "Are you sure you want to delete \"{{name}}\"? Users with this role will lose its permissions immediately.",
+      "confirm": "Delete role"
+    },
+    "createModal": {
+      "title": "Create Role",
+      "subtitle": "Define name and permissions",
+      "namePlaceholder": "e.g. Moderator",
+      "nameLabel": "Role name",
+      "nameRequired": "Role name is required.",
+      "permissionsLabel": "Permissions",
+      "selected": "{{count}} selected",
+      "creating": "Creating…",
+      "failedToCreate": "Failed to create role."
+    },
+    "permGroups": {
+      "Dashboard": "Dashboard",
+      "Forms": "Forms",
+      "Responses": "Responses",
+      "Users": "Users",
+      "Roles": "Roles",
+      "System": "System"
+    },
+    "permissions": {
+      "DASHBOARD_ACCESS": "Dashboard Access",
+      "FORMS_MANAGE": "Forms Manage",
+      "RESPONSES_MANAGE": "Responses Manage",
+      "USERS_MODERATE": "Users Moderate",
+      "ROLES_MANAGE": "Roles Manage",
+      "SYSTEM_ADMIN": "System Admin"
+    }
+  },
+  "logs": {
+    "title": "Audit Logs",
+    "subtitle": "Complete history of all system actions",
+    "entries": "{{count}} entries",
+    "live": "Live",
+    "refresh": "Refresh",
+    "allActions": "All actions",
+    "discordIdFilter": "Discord ID…",
+    "clearFilters": "Clear filters",
+    "columns": {
+      "time": "Time",
+      "action": "Action",
+      "actor": "Actor",
+      "target": "Target",
+      "details": "Details"
+    },
+    "noLogs": "No log entries found",
+    "expandHint": "· Click any row with changes to expand diff",
+    "pagination": {
+      "page": "Page {{page}} of {{total}}"
+    },
+    "actions": {
+      "USER_LOGIN": "Login",
+      "USER_BANNED": "User Banned",
+      "USER_UNBANNED": "User Unbanned",
+      "USER_ROLES_UPDATED": "Roles Updated",
+      "FORM_CREATED": "Form Created",
+      "FORM_UPDATED": "Form Updated",
+      "FORM_DELETED": "Form Deleted",
+      "SUBMISSION_CREATED": "Submission Created",
+      "SUBMISSION_DELETED": "Submission Deleted",
+      "ROLE_CREATED": "Role Created",
+      "ROLE_UPDATED": "Role Updated",
+      "ROLE_DELETED": "Role Deleted",
+      "SETTINGS_UPDATED": "Settings Updated"
+    }
+  },
+  "system": {
+    "title": "System Overview",
+    "subtitle": "Real-time server metrics — updates every 3 seconds",
+    "failedFetch": "Failed to fetch system info. Check backend connection.",
+    "cpu": {
+      "title": "CPU Usage",
+      "label": "Processor"
+    },
+    "ram": {
+      "title": "RAM Usage",
+      "label": "Memory"
+    },
+    "disk": {
+      "title": "Disk Usage",
+      "label": "Storage"
+    },
+    "of": "of",
+    "info": {
+      "title": "System Information",
+      "os": "Operating System",
+      "jvm": "JVM Version",
+      "appVersion": "App Version",
+      "uptime": "App Uptime"
+    },
+    "updates": {
+      "title": "Updates",
+      "currentVersion": "You are on the current version",
+      "checkUpdates": "Check for updates"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Configure system-wide behaviour",
+    "save": "Save settings",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "saveError": "Failed to save settings.",
+    "unsavedChanges": "Unsaved changes",
+    "saveSuccess": "Settings saved successfully",
+    "noPendingChanges": "No pending changes",
+    "activeLabel": "active",
+    "notConfigured": "not configured",
+    "discordLoggingActive": "Discord logging is active — enabled events will be forwarded.",
+    "availableVars": "Available variables",
+    "sections": {
+      "general": "General",
+      "generalDesc": "Basic system identity shown to users on login and throughout the interface.",
+      "language": "Interface Language",
+      "auditLog": "Audit Log Webhook",
+      "auditLogDesc": "Optionally forward every audit log entry to a Discord channel in real time.",
+      "logFilters": "Log Filters",
+      "logFiltersDesc": "Choose which action types are recorded. Disabled actions are silently dropped — they won't appear in the log table or Discord.",
+      "globalEmbed": "Global Embed",
+      "globalEmbedDesc": "Second embed appended to every webhook submission message. Configures the branding block visible below the form answers.",
+      "ban": "Ban & Restriction Settings",
+      "banDesc": "Customize what restricted users see when they try to access the system."
+    },
+    "general": {
+      "systemName": "System name",
+      "systemNameDesc": "Displayed on public pages and login screen",
+      "systemContact": "System contact",
+      "systemContactDesc": "Contact info shown in system panels",
+      "banMessage": "Ban message",
+      "banMessageDesc": "Shown to users when they are banned",
+      "banContact": "Admin contact for appeals",
+      "banContactDesc": "Discord handle, email, or link shown on ban screen"
+    },
+    "language": {
+      "label": "Interface Language",
+      "desc": "Applies to all admin panel users",
+      "en": "English",
+      "ru": "Русский"
+    },
+    "auditLog": {
+      "webhookUrl": "Discord Webhook URL",
+      "webhookUrlDesc": "Audit events will be posted here"
+    },
+    "logFilters": {
+      "subtitle": "Choose which events trigger a Discord notification",
+      "selectAll": "Select All",
+      "deselectAll": "Deselect All",
+      "enabled": "enabled",
+      "noneLabel": "none",
+      "allLabel": "all",
+      "actionsSuppressed_one": "{{count}} action suppressed",
+      "actionsSuppressed_other": "{{count}} actions suppressed",
+      "groups": {
+        "Authentication": "Authentication",
+        "Users": "Users",
+        "Forms": "Forms",
+        "Submissions": "Submissions",
+        "Roles": "Roles",
+        "System": "System"
+      },
+      "actions": {
+        "USER_LOGIN": "Login",
+        "USER_BANNED": "User Banned",
+        "USER_UNBANNED": "User Unbanned",
+        "USER_ROLES_UPDATED": "Roles Updated",
+        "FORM_CREATED": "Form Created",
+        "FORM_UPDATED": "Form Updated",
+        "FORM_DELETED": "Form Deleted",
+        "SUBMISSION_CREATED": "Submission Created",
+        "SUBMISSION_DELETED": "Submission Deleted",
+        "ROLE_CREATED": "Role Created",
+        "ROLE_UPDATED": "Role Updated",
+        "ROLE_DELETED": "Role Deleted",
+        "SETTINGS_UPDATED": "Settings Updated"
+      }
+    },
+    "globalEmbed": {
+      "varHint": "Work in all text fields. {user_mention} renders as a ping only in content and description — not in author/title/footer.",
+      "color": "Embed Color",
+      "authorGroup": "Author",
+      "authorName": "Author Name",
+      "authorNameDesc": "Shown at the top of the embed. Supports variables.",
+      "authorIconUrl": "Author Icon URL",
+      "authorIconDesc": "Small circle image next to the name",
+      "authorUrl": "Author URL",
+      "authorUrlDesc": "Makes the author name a clickable link",
+      "contentGroup": "Content",
+      "embedTitle": "Embed Title",
+      "titleDesc": "Optional embed title. Supports variables.",
+      "embedDesc": "Embed Description",
+      "descDesc": "Text below the title. Supports markdown and variables.",
+      "imagesGroup": "Images",
+      "thumbnailUrl": "Thumbnail URL",
+      "thumbnailDesc": "Small image, top-right corner",
+      "imageUrl": "Image URL",
+      "imageDesc": "Large banner below content",
+      "footerGroup": "Footer",
+      "footerText": "Footer Text",
+      "footerTextDesc": "Text at the bottom of the embed. Supports variables.",
+      "footerIconUrl": "Footer Icon URL",
+      "footerIconDesc": "Small circle image next to the footer text"
+    }
+  },
+  "wizard": {
+    "steps": {
+      "basicInfo": "Basic Info",
+      "basicInfoDesc": "Title & description",
+      "fields": "Fields",
+      "fieldsDesc": "Form questions",
+      "discord": "Discord",
+      "discordDesc": "Server & channels",
+      "webhooks": "Webhooks",
+      "webhooksDesc": "Notifications"
+    },
+    "next": "Next",
+    "fields": {
+      "picker": {
+        "title": "Choose field type"
+      },
+      "list": {
+        "fieldCount_one": "{{count}} field",
+        "fieldCount_other": "{{count}} fields",
+        "addField": "Add field",
+        "untitled": "Untitled"
+      },
+      "empty": {
+        "selectField": "Select a field to edit",
+        "noFields": "No fields yet",
+        "clickToEdit": "Click any field on the left to configure it",
+        "addFirst": "Add your first field to start building the form",
+        "addFirstBtn": "Add first field"
+      },
+      "editor": {
+        "sectionContent": "Content",
+        "sectionType": "Field Type",
+        "sectionParameters": "Parameters",
+        "sectionValidation": "Validation",
+        "label": "Label",
+        "labelHint": "The question or title shown to the user",
+        "labelPlaceholder": "e.g. Full Name, Age, Reason for applying…",
+        "helperText": "Helper text",
+        "helperTextHint": "Shown below the field as additional guidance",
+        "helperTextPlaceholder": "e.g. Enter your in-game nickname exactly as shown",
+        "placeholder": "Placeholder",
+        "placeholderHint": "Hint text shown inside the empty input",
+        "placeholderEmail": "e.g. user@example.com",
+        "placeholderUrl": "e.g. https://example.com",
+        "placeholderPhone": "e.g. +7 999 123-45-67",
+        "placeholderNumber": "e.g. 18",
+        "placeholderTextarea": "Start typing here…",
+        "placeholderDefault": "Hint text…",
+        "minValue": "Min value",
+        "maxValue": "Max value",
+        "minLength": "Min length",
+        "maxLength": "Max length",
+        "minValueHint": "Smallest allowed number",
+        "maxValueHint": "Largest allowed number",
+        "minLengthHint": "Min characters",
+        "maxLengthHint": "Max characters",
+        "booleanInfo": "Renders as a Yes / No toggle switch. The user simply flips it on or off — no extra configuration needed.",
+        "dateInfo": "Renders as a native date picker. The browser uses the user's locale format automatically.",
+        "timeInfo": "Renders as a native time picker. The browser uses the user's locale format automatically.",
+        "datetimeInfo": "Renders as a native date & time picker. The browser uses the user's locale format automatically.",
+        "requiredField": "Required field",
+        "requiredFieldHint": "The form cannot be submitted if this field is left empty"
+      },
+      "options": {
+        "label": "Options",
+        "addAtLeastOne": "⚠ Add at least one option before saving",
+        "add": "Add option",
+        "addHint": "· or press Enter in a field",
+        "optionPlaceholder": "Option {{n}}"
+      },
+      "types": {
+        "TEXT": {"label": "Short Text", "desc": "Single-line, up to 255 chars"},
+        "TEXTAREA": {"label": "Long Text", "desc": "Multi-line paragraph answer"},
+        "NUMBER": {"label": "Number", "desc": "Integer or decimal with validation"},
+        "EMAIL": {"label": "Email", "desc": "Email address with format check"},
+        "URL": {"label": "URL", "desc": "Web address (https://...)"},
+        "PHONE": {"label": "Phone", "desc": "Phone number"},
+        "SELECT": {"label": "Dropdown", "desc": "Pick one from a dropdown list"},
+        "MULTI_SELECT": {"label": "Multi-select", "desc": "Pick multiple from a dropdown"},
+        "RADIO": {"label": "Radio", "desc": "Single choice, all options visible"},
+        "CHECKBOX": {"label": "Checkboxes", "desc": "Multiple choices, all visible"},
+        "BOOLEAN": {"label": "Toggle", "desc": "Simple Yes / No switch"},
+        "DATE": {"label": "Date", "desc": "Date picker"},
+        "TIME": {"label": "Time", "desc": "Time picker"},
+        "DATETIME": {"label": "Date & Time", "desc": "Combined date and time picker"}
+      },
+      "groups": {
+        "text": "Text Fields",
+        "choice": "Choice Fields",
+        "datetime": "Date & Time"
+      },
+      "choiceHints": {
+        "SELECT": "User picks exactly one — dropdown",
+        "MULTI_SELECT": "User picks multiple — dropdown",
+        "RADIO": "User picks one — all options visible",
+        "CHECKBOX": "User picks multiple — all options visible"
+      }
+    },
+    "back": "Back",
+    "create": "Create Form",
+    "creating": "Creating…",
+    "cancel": "Cancel",
+    "basicInfo": {
+      "hint": "Give your form a clear, recognizable name. This is what users will see.",
+      "titleLabel": "Form Title",
+      "titlePlaceholder": "e.g. Application Form, Staff Interview, Community Survey",
+      "titleRequired": "Required — cannot be empty",
+      "descLabel": "Description",
+      "descOptional": "optional",
+      "descPlaceholder": "Explain the purpose of this form, what it's for, or any instructions for the user filling it out.",
+      "descHint": "Shown at the top of the form page — helps users understand what they're filling out.",
+      "preview": "Preview"
+    },
+    "server": {
+      "hint": "Configure which Discord server and channels will have access to this form.",
+      "serverIdLabel": "Discord Server ID",
+      "serverIdPlaceholder": "e.g. 1234567890123456789",
+      "serverIdError": "Discord Server IDs are 17–19 digit numbers",
+      "serverIdTip": "Only members of this Discord server can fill the form. To find your Server ID: right-click the server icon → Copy Server ID (Developer Mode must be enabled in Discord settings).",
+      "channelIdsLabel": "Channel IDs",
+      "channelIdsOptional": "optional",
+      "channelIdsPlaceholder": "Paste a channel ID and press Enter",
+      "channelIdsAdd": "Add",
+      "channelIdsError": "Discord IDs are 17–19 digit numbers",
+      "channelIdsDuplicate": "This channel ID is already added",
+      "channelIdsTipEmpty": "Leave empty to allow form access from any channel in the server.",
+      "channelIdsTipFilled": "Only users in these {{count}} channel(s) can fill the form.",
+      "channelIdsTipSuffix": " To find a Channel ID: right-click the channel → Copy Channel ID.",
+      "summaryTitle": "Summary",
+      "summaryServer": "Server:",
+      "summaryChannels": "Channels:",
+      "summaryAllChannels": "All channels allowed",
+      "summaryRestricted_one": "{{count}} channel restricted",
+      "summaryRestricted_other": "{{count}} channels restricted"
+    },
+    "webhooks": {
+      "title": "Discord Webhooks",
+      "subtitle": "When a user submits this form, a fully configurable Discord embed with their answers will be sent to each webhook. All embed fields are optional — only the URL is required.",
+      "noWebhooks": "No webhooks configured",
+      "clickToAdd": "Click below to add one",
+      "addWebhook": "Add Webhook",
+      "invalidUrl": "Not a valid Discord webhook URL",
+      "availableVars": "Available variables",
+      "varHint": "Work in all text fields. {user_mention} renders as a ping only in content and description — not in author/title/footer.",
+      "groups": {
+        "message": "Message",
+        "embedHeader": "Embed · Header",
+        "embedAuthor": "Embed · Author",
+        "embedImages": "Embed · Images",
+        "embedFields": "Embed · Answer Fields"
+      },
+      "fields": {
+        "botName": "Bot name",
+        "avatarUrl": "Bot avatar URL",
+        "content": "Content",
+        "contentHint": "(text above embed, supports @mentions)",
+        "embedTitle": "Title",
+        "embedTitleHint": "(defaults to form title · supports variables)",
+        "embedDesc": "Description",
+        "embedColor": "Embed color",
+        "authorName": "Author name",
+        "authorNameHint": "(supports variables)",
+        "authorIconUrl": "Author icon URL",
+        "authorIconHint": "(small circle)",
+        "authorUrl": "Author URL",
+        "authorUrlHint": "(makes name clickable)",
+        "thumbnailUrl": "Thumbnail URL",
+        "thumbnailHint": "(top-right small image)",
+        "imageUrl": "Image URL",
+        "imageHint": "(large image below fields)",
+        "inlineFields": "Inline fields",
+        "inlineFieldsHint": "— display answers side-by-side instead of stacked"
+      }
+    }
+  },
+  "formEdit": {
+    "title": "Edit Form",
+    "tabs": {
+      "basicInfo": "Basic Info",
+      "webhooks": "Webhooks"
+    },
+    "formTitle": "Form title",
+    "titlePlaceholder": "Enter form title",
+    "titleRequired": "Title is required",
+    "description": "Description",
+    "descPlaceholder": "Optional form description",
+    "fields": "Fields",
+    "fieldEditNote": "Field editing is not yet supported — recreate the form to change field structure.",
+    "save": "Save changes",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "loadError": "Failed to load form data.",
+    "saveError": "Save failed."
+  }
+}

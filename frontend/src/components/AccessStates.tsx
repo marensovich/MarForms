@@ -1,4 +1,5 @@
 import {motion} from "framer-motion";
+import {useTranslation} from "react-i18next";
 import {loginWithDiscord} from "../api/auth";
 import {saveRedirectPath} from "../auth/redirectStorage";
 import {SceneBackground} from "./LoadingScreen";
@@ -61,6 +62,7 @@ function StateLayout({
     badge?: string;
     sceneVariant?: "default" | "danger" | "warning";
 }) {
+    const {t} = useTranslation();
     const a = ACCENT[accent];
 
     return (
@@ -109,7 +111,7 @@ function StateLayout({
                 </div>
 
                 <p className="mt-4 text-center text-xs text-white/30">
-                    MarForms · Discord Application Forms
+                    {t("accessStates.footer")}
                 </p>
             </motion.div>
         </div>
@@ -117,6 +119,7 @@ function StateLayout({
 }
 
 export function NotAuthenticatedState({formId}: Props) {
+    const {t} = useTranslation();
     const handleLogin = () => {
         if (formId) saveRedirectPath(`/forms/${formId}`);
         loginWithDiscord();
@@ -126,9 +129,9 @@ export function NotAuthenticatedState({formId}: Props) {
         <StateLayout
             icon={<FiLogIn size={28}/>}
             accent="indigo"
-            title="Sign in required"
-            description="This form requires you to sign in with Discord before you can continue. You'll be redirected back here after signing in."
-            badge="Authentication required"
+            title={t("accessStates.notAuthenticated.title")}
+            description={t("accessStates.notAuthenticated.description")}
+            badge={t("accessStates.notAuthenticated.badge")}
         >
             <div className="flex flex-col gap-3">
                 <motion.button
@@ -138,11 +141,11 @@ export function NotAuthenticatedState({formId}: Props) {
                     className="flex w-full items-center justify-center gap-3 rounded-xl bg-[#5865F2] px-6 py-3.5 font-semibold text-white shadow-lg shadow-[#5865F2]/25 transition-colors hover:bg-[#4752C4] focus:outline-none focus:ring-2 focus:ring-[#5865F2]/50 focus:ring-offset-2 focus:ring-offset-[#0f0f21]"
                 >
                     <BsDiscord size={18}/>
-                    Sign in with Discord
+                    {t("accessStates.notAuthenticated.signIn")}
                 </motion.button>
                 <div className="flex items-center justify-center gap-2 text-xs text-white/40">
                     <FiArrowRight size={11}/>
-                    <span>You'll be redirected back to this form after signing in</span>
+                    <span>{t("accessStates.notAuthenticated.redirectNote")}</span>
                 </div>
             </div>
         </StateLayout>
@@ -150,62 +153,66 @@ export function NotAuthenticatedState({formId}: Props) {
 }
 
 export function NotInGuildState() {
+    const {t} = useTranslation();
     return (
         <StateLayout
             icon={<FiLock size={28}/>}
             accent="amber"
-            title="Server membership required"
-            description="This form is linked to a Discord server that you are not a member of. Join the server first, then try opening the form link again."
-            badge="Access restricted"
+            title={t("accessStates.notInGuild.title")}
+            description={t("accessStates.notInGuild.description")}
+            badge={t("accessStates.notInGuild.badge")}
         >
             <div
                 className="rounded-xl border border-amber-500/20 bg-amber-500/[0.08] px-4 py-3 text-sm text-amber-200/80">
-                Join the linked Discord server to gain access to this form.
+                {t("accessStates.notInGuild.hint")}
             </div>
         </StateLayout>
     );
 }
 
 export function FormInactiveState() {
+    const {t} = useTranslation();
     return (
         <StateLayout
             icon={<FiArchive size={28}/>}
             accent="slate"
-            title="Form is closed"
-            description="This form is no longer accepting new responses. It may have been closed by the administrator or has reached its submission limit."
-            badge="Submissions closed"
+            title={t("accessStates.formInactive.title")}
+            description={t("accessStates.formInactive.description")}
+            badge={t("accessStates.formInactive.badge")}
         >
             <div className="rounded-xl border border-white/[0.10] bg-white/[0.05] px-4 py-3 text-sm text-white/55">
-                If you believe this is a mistake, contact the server staff.
+                {t("accessStates.formInactive.hint")}
             </div>
         </StateLayout>
     );
 }
 
 export function FormNotFoundState() {
+    const {t} = useTranslation();
     return (
         <StateLayout
             icon={<FiSearch size={28}/>}
             accent="blue"
-            title="Form not found"
-            description="The form you're looking for doesn't exist or has been permanently deleted. Double-check the link you were given."
-            badge="404 · Not found"
+            title={t("accessStates.formNotFound.title")}
+            description={t("accessStates.formNotFound.description")}
+            badge={t("accessStates.formNotFound.badge")}
         >
             <div className="rounded-xl border border-white/[0.10] bg-white/[0.05] px-4 py-3 text-sm text-white/55">
-                Make sure you're using the correct link from your Discord server.
+                {t("accessStates.formNotFound.hint")}
             </div>
         </StateLayout>
     );
 }
 
 export function FormErrorState() {
+    const {t} = useTranslation();
     return (
         <StateLayout
             icon={<FiAlertTriangle size={28}/>}
             accent="red"
-            title="Something went wrong"
-            description="We couldn't load this form due to a server error. This is likely a temporary issue — please try again in a moment."
-            badge="Server error"
+            title={t("accessStates.formError.title")}
+            description={t("accessStates.formError.description")}
+            badge={t("accessStates.formError.badge")}
             sceneVariant="warning"
         >
             <motion.button
@@ -215,7 +222,7 @@ export function FormErrorState() {
                 className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.06] px-6 py-3 text-sm font-medium text-white/75 transition-colors hover:bg-white/[0.09] hover:text-white"
             >
                 <FiRefreshCw size={14}/>
-                Try again
+                {t("accessStates.formError.tryAgain")}
             </motion.button>
         </StateLayout>
     );

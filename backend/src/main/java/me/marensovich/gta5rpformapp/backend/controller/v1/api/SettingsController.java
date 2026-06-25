@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
 import me.marensovich.gta5rpformapp.backend.data.settings.SystemSettings;
 import me.marensovich.gta5rpformapp.backend.service.AuditLogService;
-import me.marensovich.gta5rpformapp.backend.services.SettingsService;
+import me.marensovich.gta5rpformapp.backend.service.SettingsService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,11 +51,12 @@ public class SettingsController {
     @GetMapping("/public")
     public Map<String, String> getPublicSettings() {
         SystemSettings s = settingsService.getSettings();
-        return Map.of(
-                "banMessage", s.banMessage(),
-                "banAdminContact", s.banAdminContact(),
-                "systemName", s.systemName()
-        );
+        Map<String, String> pub = new LinkedHashMap<>();
+        pub.put("banMessage", s.banMessage());
+        pub.put("banAdminContact", s.banAdminContact());
+        pub.put("systemName", s.systemName());
+        pub.put("uiLanguage", s.uiLanguage());
+        return pub;
     }
 
     /**
@@ -106,6 +107,7 @@ public class SettingsController {
         allowed.put(KEY_G_IMAGE, updates.getOrDefault(KEY_G_IMAGE, ""));
         allowed.put(KEY_G_FOOTER_TEXT, updates.getOrDefault(KEY_G_FOOTER_TEXT, ""));
         allowed.put(KEY_G_FOOTER_ICON, updates.getOrDefault(KEY_G_FOOTER_ICON, ""));
+        allowed.put(KEY_UI_LANGUAGE, updates.getOrDefault(KEY_UI_LANGUAGE, "en"));
 
         SystemSettings after = settingsService.updateSettings(allowed);
         auditLogService.logByCurrentUser(AuditAction.SETTINGS_UPDATED,

@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState} from "react";
 import {fetchSystemInfo, type SystemInfo} from "../../api/system";
 import {FiAlertTriangle, FiCheckCircle, FiCpu, FiHardDrive, FiRefreshCw, FiServer} from "react-icons/fi";
+import {useTranslation} from "react-i18next";
 
 const MAX_HISTORY = 40;
 
@@ -162,6 +163,7 @@ function LiveUptime({baseSeconds, isRunning}: { baseSeconds: number; isRunning: 
 }
 
 export default function SystemTab() {
+    const {t} = useTranslation();
     const [info, setInfo] = useState<SystemInfo | null>(null);
     const [cpuHistory, setCpuHistory] = useState<number[]>([]);
     const [ramHistory, setRamHistory] = useState<number[]>([]);
@@ -200,9 +202,9 @@ export default function SystemTab() {
             {/* Header */}
             <div className="mb-6 flex items-start justify-between">
                 <div>
-                    <h1 className="text-xl font-semibold text-white">System Overview</h1>
+                    <h1 className="text-xl font-semibold text-white">{t("system.title")}</h1>
                     <p className="mt-0.5 text-sm text-white/65">
-                        Real-time server metrics — updates every 3 seconds
+                        {t("system.subtitle")}
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -225,15 +227,15 @@ export default function SystemTab() {
                 <div
                     className="mb-6 flex items-center gap-2 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
                     <FiAlertTriangle size={15}/>
-                    Failed to fetch system info. Check backend connection.
+                    {t("system.failedFetch")}
                 </div>
             )}
 
             {/* Metric cards */}
             <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <MetricCard
-                    title="CPU Usage"
-                    label="processor"
+                    title={t("system.cpu.title")}
+                    label={t("system.cpu.label")}
                     value={info ? `${info.cpuUsage.toFixed(1)}%` : "—"}
                     pct={info?.cpuUsage ?? 0}
                     color="#818cf8"
@@ -241,8 +243,8 @@ export default function SystemTab() {
                     gradientId="grad-cpu"
                 />
                 <MetricCard
-                    title="RAM Usage"
-                    label="memory"
+                    title={t("system.ram.title")}
+                    label={t("system.ram.label")}
                     value={info ? `${formatBytes(info.ramUsed)}` : "—"}
                     pct={ramPct}
                     color="#34d399"
@@ -256,11 +258,11 @@ export default function SystemTab() {
                          style={{background: "linear-gradient(to right, #fbbf2460, transparent 70%)"}}
                     />
                     <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-white/75">Disk Usage</span>
+                        <span className="text-sm font-medium text-white/75">{t("system.disk.title")}</span>
                         <span
                             className="flex items-center gap-1.5 rounded-md border border-white/[0.06] bg-white/[0.04] px-2 py-0.5 text-xs text-white/55">
                             <FiHardDrive size={11}/>
-                            storage
+                            {t("system.disk.label")}
                         </span>
                     </div>
                     <div className="flex items-center justify-center py-2">
@@ -272,7 +274,7 @@ export default function SystemTab() {
                                 {info ? formatBytes(info.diskUsed) : "—"}
                             </span>
                             <span className="text-sm font-medium text-amber-400">
-                                of {info ? formatBytes(info.diskTotal) : "—"}
+                                {t("system.of")} {info ? formatBytes(info.diskTotal) : "—"}
                             </span>
                         </div>
                         <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
@@ -291,17 +293,17 @@ export default function SystemTab() {
                     <div className="mb-4 flex items-center gap-2">
                         <FiServer size={14} className="text-white/65"/>
                         <h2 className="text-xs font-semibold uppercase tracking-wider text-white/65">
-                            System Information
+                            {t("system.info.title")}
                         </h2>
                     </div>
                     {info ? (
                         <>
-                            <InfoRow label="Operating System" value={`${info.osName} ${info.osVersion}`}/>
-                            <InfoRow label="JVM Version" value={info.jvmVersion}/>
-                            <InfoRow label="App Version" value={`v${info.appVersion}`}/>
+                            <InfoRow label={t("system.info.os")} value={`${info.osName} ${info.osVersion}`}/>
+                            <InfoRow label={t("system.info.jvm")} value={info.jvmVersion}/>
+                            <InfoRow label={t("system.info.appVersion")} value={`v${info.appVersion}`}/>
                             <div
                                 className="flex items-center justify-between border-b border-white/[0.04] py-3 last:border-0">
-                                <span className="text-sm text-white/65">App Uptime</span>
+                                <span className="text-sm text-white/65">{t("system.info.uptime")}</span>
                                 <span className="font-mono text-sm text-white">
                                     <LiveUptime baseSeconds={info.uptimeSeconds} isRunning={!error}/>
                                 </span>
@@ -320,7 +322,7 @@ export default function SystemTab() {
                     <div className="mb-4 flex items-center gap-2">
                         <FiCpu size={14} className="text-white/65"/>
                         <h2 className="text-xs font-semibold uppercase tracking-wider text-white/65">
-                            Updates
+                            {t("system.updates.title")}
                         </h2>
                     </div>
                     <div className="flex flex-1 flex-col items-center justify-center gap-4 py-4">
@@ -333,7 +335,7 @@ export default function SystemTab() {
                                 {info ? `v${info.appVersion}` : "—"}
                             </p>
                             <p className="mt-1 text-xs text-white/55">
-                                You are on the current version
+                                {t("system.updates.currentVersion")}
                             </p>
                         </div>
                         <button
@@ -341,7 +343,7 @@ export default function SystemTab() {
                             className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-5 py-2 text-sm font-medium text-white/25 cursor-not-allowed"
                             title="Auto-update coming soon"
                         >
-                            Check for updates
+                            {t("system.updates.checkUpdates")}
                         </button>
                     </div>
                 </div>

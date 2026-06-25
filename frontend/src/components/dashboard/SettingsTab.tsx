@@ -1,6 +1,8 @@
 import {useEffect, useMemo, useState} from "react";
+import {useTranslation} from "react-i18next";
 import {fetchSettings, type SystemSettings, updateSettings} from "../../api/settings";
 import {TabSkeleton} from "./shared";
+import i18n from "../../i18n";
 import type {AuditAction} from "../../types/logs";
 import {
     FiAlertOctagon,
@@ -14,29 +16,25 @@ import {
     FiMinus,
     FiSave,
     FiUser,
+    FiMonitor,
 } from "react-icons/fi";
 
 // ── Action groups for the log-filter section ──────────────────────────────────
 
-interface ActionMeta {
-    label: string;
-    dot: string
-}
-
-const ACTION_META: Record<AuditAction, ActionMeta> = {
-    USER_LOGIN: {label: "Login", dot: "bg-indigo-400"},
-    USER_BANNED: {label: "User Banned", dot: "bg-red-400"},
-    USER_UNBANNED: {label: "User Unbanned", dot: "bg-emerald-400"},
-    USER_ROLES_UPDATED: {label: "Roles Updated", dot: "bg-yellow-400"},
-    FORM_CREATED: {label: "Form Created", dot: "bg-emerald-400"},
-    FORM_UPDATED: {label: "Form Updated", dot: "bg-indigo-400"},
-    FORM_DELETED: {label: "Form Deleted", dot: "bg-red-400"},
-    SUBMISSION_CREATED: {label: "Submission Created", dot: "bg-emerald-400"},
-    SUBMISSION_DELETED: {label: "Submission Deleted", dot: "bg-red-400"},
-    ROLE_CREATED: {label: "Role Created", dot: "bg-emerald-400"},
-    ROLE_UPDATED: {label: "Role Updated", dot: "bg-indigo-400"},
-    ROLE_DELETED: {label: "Role Deleted", dot: "bg-red-400"},
-    SETTINGS_UPDATED: {label: "Settings Updated", dot: "bg-yellow-400"},
+const ACTION_META: Record<AuditAction, { dot: string }> = {
+    USER_LOGIN: {dot: "bg-indigo-400"},
+    USER_BANNED: {dot: "bg-red-400"},
+    USER_UNBANNED: {dot: "bg-emerald-400"},
+    USER_ROLES_UPDATED: {dot: "bg-yellow-400"},
+    FORM_CREATED: {dot: "bg-emerald-400"},
+    FORM_UPDATED: {dot: "bg-indigo-400"},
+    FORM_DELETED: {dot: "bg-red-400"},
+    SUBMISSION_CREATED: {dot: "bg-emerald-400"},
+    SUBMISSION_DELETED: {dot: "bg-red-400"},
+    ROLE_CREATED: {dot: "bg-emerald-400"},
+    ROLE_UPDATED: {dot: "bg-indigo-400"},
+    ROLE_DELETED: {dot: "bg-red-400"},
+    SETTINGS_UPDATED: {dot: "bg-yellow-400"},
 };
 
 const ACTION_GROUPS: { label: string; actions: AuditAction[] }[] = [
@@ -125,7 +123,8 @@ function ActionCheckbox({action, checked, onChange}: {
     checked: boolean;
     onChange: (v: boolean) => void;
 }) {
-    const {label, dot} = ACTION_META[action];
+    const {t} = useTranslation();
+    const {dot} = ACTION_META[action];
     return (
         <label className="flex cursor-pointer items-center gap-2.5 select-none group">
             <div
@@ -140,7 +139,7 @@ function ActionCheckbox({action, checked, onChange}: {
             </div>
             <span className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${dot}`}/>
             <span className={`text-xs transition-colors ${checked ? "text-white/80" : "text-white/35"}`}>
-                {label}
+                {t(`settings.logFilters.actions.${action}`)}
             </span>
         </label>
     );
@@ -149,6 +148,7 @@ function ActionCheckbox({action, checked, onChange}: {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function SettingsTab() {
+    const {t} = useTranslation();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
@@ -171,6 +171,7 @@ export default function SettingsTab() {
         globalEmbedImage: "",
         globalEmbedFooterText: "",
         globalEmbedFooterIcon: "",
+        uiLanguage: "en",
     });
 
     useEffect(() => {
@@ -201,6 +202,9 @@ export default function SettingsTab() {
             setHasChanges(false);
             setSaved(true);
             setTimeout(() => setSaved(false), 3000);
+            if (updated.uiLanguage && i18n.language !== updated.uiLanguage) {
+                i18n.changeLanguage(updated.uiLanguage);
+            }
         } finally {
             setSaving(false);
         }
@@ -208,7 +212,6 @@ export default function SettingsTab() {
 
     // ── Log filter state ──────────────────────────────────────────────────────
 
-    /** Set of currently-enabled action names. Empty raw value = all enabled. */
     const enabledSet = useMemo<Set<string>>(() => {
         const raw = form.logEnabledActions?.trim();
         if (!raw) return new Set(ALL_ACTIONS);
@@ -221,7 +224,6 @@ export default function SettingsTab() {
     const toggleAction = (action: AuditAction, checked: boolean) => {
         const next = new Set(enabledSet);
         if (checked) next.add(action); else next.delete(action);
-        // Store empty string when all are enabled (canonical default)
         const value = next.size === ALL_ACTIONS.length ? "" : [...next].join(",");
         handleChange("logEnabledActions", value);
     };
@@ -229,7 +231,6 @@ export default function SettingsTab() {
     const selectAll = () => handleChange("logEnabledActions", "");
     const deselectAll = () => handleChange("logEnabledActions", "__none__");
 
-    // "__none__" is a sentinel that won't match any real action name
     const isEnabled = (a: AuditAction) =>
         form.logEnabledActions?.trim() === "__none__" ? false : enabledSet.has(a);
 
@@ -242,16 +243,14 @@ export default function SettingsTab() {
             {/* Header */}
             <div className="mb-6 flex items-start justify-between">
                 <div>
-                    <h1 className="text-xl font-semibold text-white">System Settings</h1>
-                    <p className="mt-0.5 text-sm text-white/65">
-                        Configure system-wide messages and contact information
-                    </p>
+                    <h1 className="text-xl font-semibold text-white">{t("settings.title")}</h1>
+                    <p className="mt-0.5 text-sm text-white/65">{t("settings.subtitle")}</p>
                 </div>
                 {hasChanges && (
                     <span
                         className="flex items-center gap-1.5 rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-xs text-orange-400">
                         <span className="h-1.5 w-1.5 rounded-full bg-orange-400"/>
-                        Unsaved changes
+                        {t("settings.unsavedChanges")}
                     </span>
                 )}
             </div>
@@ -259,21 +258,21 @@ export default function SettingsTab() {
             <div className="flex flex-col gap-4">
                 {/* General */}
                 <Section
-                    title="General"
-                    description="Basic system identity shown to users on login and throughout the interface."
+                    title={t("settings.sections.general")}
+                    description={t("settings.sections.generalDesc")}
                     icon={<FiGlobe size={16}/>}
                 >
                     <SettingField
-                        label="System Name"
-                        description="Displayed on the login page and throughout the interface."
+                        label={t("settings.general.systemName")}
+                        description={t("settings.general.systemNameDesc")}
                         value={form.systemName}
                         onChange={v => handleChange("systemName", v)}
                         placeholder="e.g. MarForms"
                         icon={<FiInfo size={13}/>}
                     />
                     <SettingField
-                        label="Contact Information"
-                        description="General contact shown to users — such as a Discord server invite link."
+                        label={t("settings.general.systemContact")}
+                        description={t("settings.general.systemContactDesc")}
                         value={form.systemContact}
                         onChange={v => handleChange("systemContact", v)}
                         placeholder="e.g. discord.gg/yourserver"
@@ -281,15 +280,43 @@ export default function SettingsTab() {
                     />
                 </Section>
 
+                {/* Interface Language */}
+                <Section
+                    title={t("settings.sections.language")}
+                    description={t("settings.language.desc")}
+                    icon={<FiMonitor size={16}/>}
+                >
+                    <div className="flex gap-3">
+                        {(["en", "ru"] as const).map(lang => {
+                            const active = form.uiLanguage === lang;
+                            return (
+                                <button
+                                    key={lang}
+                                    type="button"
+                                    onClick={() => handleChange("uiLanguage", lang)}
+                                    className={`flex items-center gap-2 rounded-xl border px-5 py-3 text-sm font-medium transition-colors ${
+                                        active
+                                            ? "border-indigo-500/60 bg-indigo-500/15 text-indigo-300"
+                                            : "border-white/[0.08] bg-white/[0.03] text-white/55 hover:border-white/20 hover:text-white"
+                                    }`}
+                                >
+                                    {active && <div className="h-2 w-2 rounded-full bg-indigo-400"/>}
+                                    {t(`settings.language.${lang}`)}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </Section>
+
                 {/* Audit Log Webhook */}
                 <Section
-                    title="Audit Log Webhook"
-                    description="Optionally forward every audit log entry to a Discord channel in real time."
+                    title={t("settings.sections.auditLog")}
+                    description={t("settings.sections.auditLogDesc")}
                     icon={<FiLink size={16}/>}
                 >
                     <SettingField
-                        label="Discord Webhook URL"
-                        description="Paste a Discord webhook URL to receive log notifications. Leave blank to disable Discord forwarding."
+                        label={t("settings.auditLog.webhookUrl")}
+                        description={t("settings.auditLog.webhookUrlDesc")}
                         value={form.logWebhookUrl}
                         onChange={v => handleChange("logWebhookUrl", v)}
                         placeholder="https://discord.com/api/webhooks/…"
@@ -299,15 +326,15 @@ export default function SettingsTab() {
                         <div
                             className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-xs text-emerald-400">
                             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400"/>
-                            Discord logging is active — enabled events will be forwarded.
+                            {t("settings.discordLoggingActive")}
                         </div>
                     )}
                 </Section>
 
                 {/* Log Filters */}
                 <Section
-                    title="Log Filters"
-                    description="Choose which action types are recorded. Disabled actions are silently dropped — they won't appear in the log table or Discord."
+                    title={t("settings.sections.logFilters")}
+                    description={t("settings.sections.logFiltersDesc")}
                     icon={<FiList size={16}/>}
                     badge={
                         <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${
@@ -318,9 +345,9 @@ export default function SettingsTab() {
                                     : "border-yellow-500/25 bg-yellow-500/10 text-yellow-400"
                         }`}>
                             {form.logEnabledActions?.trim() === "__none__"
-                                ? "none"
+                                ? t("settings.logFilters.noneLabel")
                                 : allEnabled
-                                    ? "all"
+                                    ? t("settings.logFilters.allLabel")
                                     : `${enabledCount} / ${ALL_ACTIONS.length}`}
                         </span>
                     }
@@ -331,18 +358,18 @@ export default function SettingsTab() {
                             onClick={selectAll}
                             className="rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-xs text-white/60 transition-colors hover:border-emerald-500/30 hover:bg-emerald-500/5 hover:text-emerald-300"
                         >
-                            Select all
+                            {t("settings.logFilters.selectAll")}
                         </button>
                         <button
                             onClick={deselectAll}
                             className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-xs text-white/60 transition-colors hover:border-red-500/30 hover:bg-red-500/5 hover:text-red-300"
                         >
                             <FiMinus size={11}/>
-                            Deselect all
+                            {t("settings.logFilters.deselectAll")}
                         </button>
                         {disabledCount > 0 && (
                             <span className="text-xs text-white/30">
-                                {disabledCount} action{disabledCount !== 1 ? "s" : ""} suppressed
+                                {t("settings.logFilters.actionsSuppressed", {count: disabledCount})}
                             </span>
                         )}
                     </div>
@@ -352,7 +379,7 @@ export default function SettingsTab() {
                         {ACTION_GROUPS.map(group => (
                             <div key={group.label}>
                                 <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-wider text-white/30">
-                                    {group.label}
+                                    {t(`settings.logFilters.groups.${group.label}`)}
                                 </p>
                                 <div className="flex flex-wrap gap-x-6 gap-y-2.5">
                                     {group.actions.map(action => (
@@ -371,20 +398,20 @@ export default function SettingsTab() {
 
                 {/* Global Embed */}
                 <Section
-                    title="Global Embed"
-                    description="Second embed appended to every webhook submission message. Configures the branding block visible below the form answers."
+                    title={t("settings.sections.globalEmbed")}
+                    description={t("settings.sections.globalEmbedDesc")}
                     icon={<FiImage size={16}/>}
                     badge={
                         (form.globalEmbedAuthorName?.trim() || form.globalEmbedFooterText?.trim() || form.globalEmbedTitle?.trim())
                             ? <span
-                                className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400">active</span>
+                                className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400">{t("settings.activeLabel")}</span>
                             : <span
-                                className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-white/30">not configured</span>
+                                className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-white/30">{t("settings.notConfigured")}</span>
                     }
                 >
                     {/* Variables reference */}
                     <div className="rounded-lg border border-indigo-500/15 bg-indigo-500/5 px-4 py-3">
-                        <p className="mb-2 text-[11px] font-semibold text-indigo-300/80">Available variables</p>
+                        <p className="mb-2 text-[11px] font-semibold text-indigo-300/80">{t("settings.availableVars")}</p>
                         <div className="flex flex-wrap gap-1.5">
                             {[
                                 ["{username}", "Discord username"],
@@ -404,14 +431,12 @@ export default function SettingsTab() {
                                 </span>
                             ))}
                         </div>
-                        <p className="mt-2 text-[10px] text-white/25">Work in all text fields. <span
-                            className="text-yellow-400/60">{"{user_mention}"} renders as a ping only in content and description — not in author/title/footer.</span>
-                        </p>
+                        <p className="mt-2 text-[10px] text-white/25">{t("settings.globalEmbed.varHint")}</p>
                     </div>
 
                     {/* Color */}
                     <div>
-                        <span className="text-xs font-medium text-white/50">Embed color</span>
+                        <span className="text-xs font-medium text-white/50">{t("settings.globalEmbed.color")}</span>
                         <div className="mt-2 flex flex-wrap gap-2 items-center">
                             {[
                                 {label: "Blurple", hex: "#5865F2", val: "5793266"},
@@ -445,11 +470,11 @@ export default function SettingsTab() {
 
                     {/* Author */}
                     <div>
-                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/30">Author</p>
+                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/30">{t("settings.globalEmbed.authorGroup")}</p>
                         <div className="flex flex-col gap-2.5">
                             <SettingField
-                                label="Author name"
-                                description='Shown at the top of the embed. Supports variables. E.g. "MarForms v1.0 by marensovich"'
+                                label={t("settings.globalEmbed.authorName")}
+                                description={t("settings.globalEmbed.authorNameDesc")}
                                 value={form.globalEmbedAuthorName}
                                 onChange={v => handleChange("globalEmbedAuthorName", v)}
                                 placeholder="MarForms v1.0 by marensovich"
@@ -457,16 +482,16 @@ export default function SettingsTab() {
                             />
                             <div className="grid grid-cols-2 gap-3">
                                 <SettingField
-                                    label="Author icon URL"
-                                    description="Small circle image next to the name"
+                                    label={t("settings.globalEmbed.authorIconUrl")}
+                                    description={t("settings.globalEmbed.authorIconDesc")}
                                     value={form.globalEmbedAuthorIcon}
                                     onChange={v => handleChange("globalEmbedAuthorIcon", v)}
                                     placeholder="https://…/logo.png"
                                     icon={<FiLink size={13}/>}
                                 />
                                 <SettingField
-                                    label="Author URL"
-                                    description="Makes the author name a clickable link"
+                                    label={t("settings.globalEmbed.authorUrl")}
+                                    description={t("settings.globalEmbed.authorUrlDesc")}
                                     value={form.globalEmbedAuthorUrl}
                                     onChange={v => handleChange("globalEmbedAuthorUrl", v)}
                                     placeholder="https://…"
@@ -478,19 +503,19 @@ export default function SettingsTab() {
 
                     {/* Title + Description */}
                     <div>
-                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/30">Content</p>
+                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/30">{t("settings.globalEmbed.contentGroup")}</p>
                         <div className="flex flex-col gap-2.5">
                             <SettingField
-                                label="Title"
-                                description="Optional embed title. Supports variables."
+                                label={t("settings.globalEmbed.embedTitle")}
+                                description={t("settings.globalEmbed.titleDesc")}
                                 value={form.globalEmbedTitle}
                                 onChange={v => handleChange("globalEmbedTitle", v)}
                                 placeholder="Submission received · {form_title}"
                                 icon={<FiInfo size={13}/>}
                             />
                             <SettingField
-                                label="Description"
-                                description="Text below the title. Supports markdown and variables."
+                                label={t("settings.globalEmbed.embedDesc")}
+                                description={t("settings.globalEmbed.descDesc")}
                                 value={form.globalEmbedDescription}
                                 onChange={v => handleChange("globalEmbedDescription", v)}
                                 placeholder="Submitted by {user_mention} at {timestamp}"
@@ -502,19 +527,19 @@ export default function SettingsTab() {
 
                     {/* Images */}
                     <div>
-                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/30">Images</p>
+                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/30">{t("settings.globalEmbed.imagesGroup")}</p>
                         <div className="grid grid-cols-2 gap-3">
                             <SettingField
-                                label="Thumbnail URL"
-                                description="Small image, top-right corner"
+                                label={t("settings.globalEmbed.thumbnailUrl")}
+                                description={t("settings.globalEmbed.thumbnailDesc")}
                                 value={form.globalEmbedThumbnail}
                                 onChange={v => handleChange("globalEmbedThumbnail", v)}
                                 placeholder="https://…/thumb.png"
                                 icon={<FiImage size={13}/>}
                             />
                             <SettingField
-                                label="Image URL"
-                                description="Large banner below content"
+                                label={t("settings.globalEmbed.imageUrl")}
+                                description={t("settings.globalEmbed.imageDesc")}
                                 value={form.globalEmbedImage}
                                 onChange={v => handleChange("globalEmbedImage", v)}
                                 placeholder="https://…/banner.png"
@@ -525,19 +550,19 @@ export default function SettingsTab() {
 
                     {/* Footer */}
                     <div>
-                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/30">Footer</p>
+                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/30">{t("settings.globalEmbed.footerGroup")}</p>
                         <div className="flex flex-col gap-2.5">
                             <SettingField
-                                label="Footer text"
-                                description='Text at the bottom of the embed. Supports variables. E.g. "MarForms v1.0.0 by marensovich"'
+                                label={t("settings.globalEmbed.footerText")}
+                                description={t("settings.globalEmbed.footerTextDesc")}
                                 value={form.globalEmbedFooterText}
                                 onChange={v => handleChange("globalEmbedFooterText", v)}
                                 placeholder="MarForms v1.0.0 by marensovich"
                                 icon={<FiInfo size={13}/>}
                             />
                             <SettingField
-                                label="Footer icon URL"
-                                description="Small circle image next to the footer text"
+                                label={t("settings.globalEmbed.footerIconUrl")}
+                                description={t("settings.globalEmbed.footerIconDesc")}
                                 value={form.globalEmbedFooterIcon}
                                 onChange={v => handleChange("globalEmbedFooterIcon", v)}
                                 placeholder="https://…/icon.png"
@@ -549,13 +574,13 @@ export default function SettingsTab() {
 
                 {/* Ban Settings */}
                 <Section
-                    title="Ban & Restriction Settings"
-                    description="Customize what restricted users see when they try to access the system."
+                    title={t("settings.sections.ban")}
+                    description={t("settings.sections.banDesc")}
                     icon={<FiAlertOctagon size={16}/>}
                 >
                     <SettingField
-                        label="Ban Message"
-                        description="The message displayed to users who have been banned from the system."
+                        label={t("settings.general.banMessage")}
+                        description={t("settings.general.banMessageDesc")}
                         value={form.banMessage}
                         onChange={v => handleChange("banMessage", v)}
                         placeholder="You have been restricted from accessing this system."
@@ -563,8 +588,8 @@ export default function SettingsTab() {
                         icon={<FiAlertOctagon size={13}/>}
                     />
                     <SettingField
-                        label="Administrator Contact"
-                        description="Username or contact information shown on the ban screen for appeals."
+                        label={t("settings.general.banContact")}
+                        description={t("settings.general.banContactDesc")}
                         value={form.banAdminContact}
                         onChange={v => handleChange("banAdminContact", v)}
                         placeholder="e.g. @admin"
@@ -582,16 +607,16 @@ export default function SettingsTab() {
                     className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-500/20 transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     <FiSave size={14}/>
-                    {saving ? "Saving…" : "Save changes"}
+                    {saving ? t("settings.saving") : t("settings.save")}
                 </button>
                 {saved && (
                     <div className="flex items-center gap-2 text-sm text-emerald-400">
                         <FiCheckCircle size={15}/>
-                        Settings saved successfully
+                        {t("settings.saveSuccess")}
                     </div>
                 )}
                 {!hasChanges && !saved && (
-                    <p className="text-xs text-white/25">No pending changes</p>
+                    <p className="text-xs text-white/25">{t("settings.noPendingChanges")}</p>
                 )}
             </div>
         </div>

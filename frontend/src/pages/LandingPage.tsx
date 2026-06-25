@@ -1,29 +1,9 @@
 import {useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {motion} from "framer-motion";
+import {useTranslation} from "react-i18next";
 import {SceneBackground} from "../components/LoadingScreen";
 import {FiArrowRight, FiFileText, FiLink2, FiShield, FiUsers} from "react-icons/fi";
-
-const HOW_IT_WORKS = [
-    {
-        icon: FiFileText,
-        title: "Staff creates a form",
-        desc: "Admins build forms with custom fields using the dashboard.",
-        color: "indigo",
-    },
-    {
-        icon: FiLink2,
-        title: "Link is shared",
-        desc: "A direct link is posted in your Discord server by staff.",
-        color: "purple",
-    },
-    {
-        icon: FiUsers,
-        title: "Members apply",
-        desc: "Community members fill out the form after signing in.",
-        color: "cyan",
-    },
-];
 
 const COLOR_MAP: Record<string, { bg: string; text: string; border: string }> = {
     indigo: {bg: "bg-indigo-500/15", text: "text-indigo-400", border: "border-indigo-500/20"},
@@ -33,7 +13,6 @@ const COLOR_MAP: Record<string, { bg: string; text: string; border: string }> = 
 
 function extractFormId(input: string): string | null {
     const trimmed = input.trim();
-    // Full URL like https://example.com/forms/abc123
     try {
         const url = new URL(trimmed);
         const match = url.pathname.match(/\/forms\/([^/?#]+)/);
@@ -41,20 +20,26 @@ function extractFormId(input: string): string | null {
     } catch {
         // not a URL — treat as raw ID or path segment
     }
-    // Plain ID or /forms/abc123
     const pathMatch = trimmed.match(/(?:\/forms\/)?([^/?#\s]+)/);
     return pathMatch ? pathMatch[1] : null;
 }
 
 export default function LandingPage() {
+    const {t} = useTranslation();
     const navigate = useNavigate();
     const [link, setLink] = useState("");
     const [error, setError] = useState("");
 
+    const HOW_IT_WORKS = [
+        {icon: FiFileText, titleKey: "landing.step1Title", descKey: "landing.step1Desc", color: "indigo"},
+        {icon: FiLink2, titleKey: "landing.step2Title", descKey: "landing.step2Desc", color: "purple"},
+        {icon: FiUsers, titleKey: "landing.step3Title", descKey: "landing.step3Desc", color: "cyan"},
+    ];
+
     const handleOpen = () => {
         const id = extractFormId(link);
         if (!id) {
-            setError("Не удалось распознать ссылку на форму.");
+            setError(t("landing.openFormError"));
             return;
         }
         navigate(`/forms/${id}`);
@@ -86,7 +71,7 @@ export default function LandingPage() {
                     MarForms
                 </h1>
                 <p className="mt-3 text-center text-base text-white/60">
-                    Discord-powered application forms for gaming communities.
+                    {t("landing.subtitle")}
                 </p>
 
                 {/* Info card */}
@@ -98,10 +83,9 @@ export default function LandingPage() {
                                 <FiLink2 size={15} className="text-amber-400"/>
                             </div>
                             <div>
-                                <p className="font-semibold text-white">You need a direct link</p>
+                                <p className="font-semibold text-white">{t("landing.directLinkTitle")}</p>
                                 <p className="mt-1.5 text-sm leading-relaxed text-white/60">
-                                    MarForms doesn't have a public form directory. You need a direct link
-                                    to access a specific form — ask staff in your Discord server.
+                                    {t("landing.directLinkDesc")}
                                 </p>
                             </div>
                         </div>
@@ -113,10 +97,9 @@ export default function LandingPage() {
                                 <FiShield size={15} className="text-indigo-400"/>
                             </div>
                             <div>
-                                <p className="font-semibold text-white">Are you staff?</p>
+                                <p className="font-semibold text-white">{t("landing.staffTitle")}</p>
                                 <p className="mt-1.5 text-sm leading-relaxed text-white/60">
-                                    Dashboard access requires a role with the correct permissions.
-                                    Contact your system administrator to get access.
+                                    {t("landing.staffDesc")}
                                 </p>
                             </div>
                         </div>
@@ -125,7 +108,7 @@ export default function LandingPage() {
 
                 {/* Quick-open by link */}
                 <div className="mt-4 w-full rounded-2xl border border-white/[0.11] bg-white/[0.05] px-5 py-4">
-                    <p className="mb-3 text-xs font-semibold text-white/50">Открыть форму по ссылке</p>
+                    <p className="mb-3 text-xs font-semibold text-white/50">{t("landing.openFormLabel")}</p>
                     <div className="flex gap-2">
                         <input
                             type="text"
@@ -135,7 +118,7 @@ export default function LandingPage() {
                                 setError("");
                             }}
                             onKeyDown={handleKeyDown}
-                            placeholder="https://…/forms/abc123  или  abc123"
+                            placeholder={t("landing.openFormPlaceholder")}
                             className="min-w-0 flex-1 rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-2.5 text-sm text-white placeholder-white/20 outline-none transition-colors focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30"
                         />
                         <button
@@ -143,7 +126,7 @@ export default function LandingPage() {
                             className="flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-500 active:bg-indigo-700"
                         >
                             <FiArrowRight size={14}/>
-                            Открыть
+                            {t("landing.openFormButton")}
                         </button>
                     </div>
                     {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
@@ -152,14 +135,14 @@ export default function LandingPage() {
                 {/* How it works */}
                 <div className="mt-8 w-full">
                     <p className="mb-4 text-center text-xs font-semibold uppercase tracking-widest text-white/35">
-                        How it works
+                        {t("landing.howItWorks")}
                     </p>
                     <div className="grid grid-cols-3 gap-3">
-                        {HOW_IT_WORKS.map(({icon: Icon, title, desc, color}, i) => {
+                        {HOW_IT_WORKS.map(({icon: Icon, titleKey, descKey, color}, i) => {
                             const cls = COLOR_MAP[color];
                             return (
                                 <div
-                                    key={title}
+                                    key={titleKey}
                                     className={`relative flex flex-col gap-2 rounded-xl border ${cls.border} bg-white/[0.03] p-4`}
                                 >
                                     <span className="absolute right-3 top-3 text-xs font-bold text-white/15">
@@ -168,8 +151,8 @@ export default function LandingPage() {
                                     <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${cls.bg}`}>
                                         <Icon size={15} className={cls.text}/>
                                     </div>
-                                    <p className="text-xs font-semibold text-white/80">{title}</p>
-                                    <p className="text-[11px] leading-snug text-white/45">{desc}</p>
+                                    <p className="text-xs font-semibold text-white/80">{t(titleKey)}</p>
+                                    <p className="text-[11px] leading-snug text-white/45">{t(descKey)}</p>
                                 </div>
                             );
                         })}
@@ -177,12 +160,7 @@ export default function LandingPage() {
                 </div>
 
                 <div className="mt-10 flex items-center gap-3 text-xs text-white/30">
-                    <span>MarForms</span>
-                    <span>·</span>
-                    <span>Discord Application System</span>
-                    <span>·</span>
-                    <FiArrowRight size={11}/>
-                    <span>Form links only</span>
+                    {t("landing.footer")}
                 </div>
             </motion.div>
         </div>

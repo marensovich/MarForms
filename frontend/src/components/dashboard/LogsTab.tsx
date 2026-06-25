@@ -2,6 +2,7 @@ import {useEffect, useRef, useState} from "react";
 import {getAuditLogs} from "../../api/logs";
 import type {AuditAction, AuditLogEntry} from "../../types/logs";
 import {TabSkeleton} from "./shared";
+import {useTranslation} from "react-i18next";
 import {
     FiAlertOctagon,
     FiChevronDown,
@@ -158,12 +159,13 @@ function DiffBlock({details}: { details: string }) {
 // ── Action badge ──────────────────────────────────────────────────────────────
 
 function ActionBadge({action}: { action: AuditAction }) {
+    const {t} = useTranslation();
     const m = ACTION_META[action];
     return (
         <span
             className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium whitespace-nowrap ${m.bg} ${m.text} ${m.border}`}>
             <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${m.dot}`}/>
-            {m.label}
+            {t(`logs.actions.${action}`)}
         </span>
     );
 }
@@ -255,6 +257,7 @@ function LogRow({entry}: { entry: AuditLogEntry }) {
 // ── Main tab ──────────────────────────────────────────────────────────────────
 
 export default function LogsTab() {
+    const {t} = useTranslation();
     const [entries, setEntries] = useState<AuditLogEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(0);
@@ -308,11 +311,11 @@ export default function LogsTab() {
             {/* Header */}
             <div className="flex items-start justify-between">
                 <div>
-                    <h1 className="text-xl font-semibold text-white">Audit Logs</h1>
+                    <h1 className="text-xl font-semibold text-white">{t("logs.title")}</h1>
                     <p className="mt-0.5 text-sm text-white/55">
-                        Complete history of all system actions
+                        {t("logs.subtitle")}
                         {totalElements > 0 && (
-                            <span className="ml-2 text-white/30">· {totalElements.toLocaleString()} entries</span>
+                            <span className="ml-2 text-white/30">· {t("logs.entries", {count: totalElements.toLocaleString()})}</span>
                         )}
                     </p>
                 </div>
@@ -328,14 +331,14 @@ export default function LogsTab() {
                         }`}
                     >
                         <FiRefreshCw size={12} className={autoRefresh ? "animate-spin" : ""}/>
-                        Live
+                        {t("logs.live")}
                     </button>
                     <button
                         onClick={() => load(page, filterAction, filterActor)}
                         className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs font-medium text-white/45 transition-colors hover:text-white"
                     >
                         <FiRefreshCw size={12}/>
-                        Refresh
+                        {t("logs.refresh")}
                     </button>
                 </div>
             </div>
@@ -353,9 +356,9 @@ export default function LogsTab() {
                         }}
                         className="bg-transparent text-sm text-white/80 outline-none"
                     >
-                        <option value="">All actions</option>
+                        <option value="">{t("logs.allActions")}</option>
                         {ALL_ACTIONS.map(a => (
-                            <option key={a} value={a}>{ACTION_META[a].label}</option>
+                            <option key={a} value={a}>{t(`logs.actions.${a}`)}</option>
                         ))}
                     </select>
                 </div>
@@ -365,7 +368,7 @@ export default function LogsTab() {
                     <FiUser size={12} className="text-white/35 shrink-0"/>
                     <input
                         type="text"
-                        placeholder="Discord ID…"
+                        placeholder={t("logs.discordIdFilter")}
                         value={filterActor}
                         onChange={e => setFilterActor(e.target.value)}
                         onKeyDown={e => e.key === "Enter" && applyActorFilter()}
@@ -383,7 +386,7 @@ export default function LogsTab() {
 
                 {hasFilters && (
                     <button onClick={clearFilters} className="text-xs text-white/35 underline hover:text-white/70">
-                        Clear filters
+                        {t("logs.clearFilters")}
                     </button>
                 )}
             </div>
@@ -393,7 +396,7 @@ export default function LogsTab() {
                 {/* Column headers */}
                 <div
                     className="grid grid-cols-[110px_148px_180px_180px_1fr_28px] gap-3 border-b border-white/[0.07] bg-white/[0.025] px-4 py-2.5">
-                    {["Time", "Action", "Actor", "Target", "Details", ""].map((h, i) => (
+                    {[t("logs.columns.time"), t("logs.columns.action"), t("logs.columns.actor"), t("logs.columns.target"), t("logs.columns.details"), ""].map((h, i) => (
                         <span key={i} className="text-[10px] font-semibold uppercase tracking-wider text-white/30">
                             {h}
                         </span>
@@ -405,10 +408,10 @@ export default function LogsTab() {
                 ) : entries.length === 0 ? (
                     <div className="flex flex-col items-center justify-center gap-3 py-20 text-white/25">
                         <FiAlertOctagon size={30}/>
-                        <p className="text-sm">No log entries found</p>
+                        <p className="text-sm">{t("logs.noLogs")}</p>
                         {hasFilters && (
                             <button onClick={clearFilters} className="text-xs text-indigo-400 hover:text-indigo-300">
-                                Clear filters
+                                {t("logs.clearFilters")}
                             </button>
                         )}
                     </div>
@@ -426,18 +429,18 @@ export default function LogsTab() {
                     return (
                         <div key={a} className="flex items-center gap-1.5 text-[10px] text-white/30">
                             <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`}/>
-                            {m.label}
+                            {t(`logs.actions.${a}`)}
                         </div>
                     );
                 })}
-                <span className="text-[10px] text-white/20">· Click any row with changes to expand diff</span>
+                <span className="text-[10px] text-white/20">{t("logs.expandHint")}</span>
             </div>
 
             {/* Pagination */}
             {totalPages > 1 && (
                 <div className="flex items-center justify-between">
                     <span className="text-xs text-white/35">
-                        Page {page + 1} of {totalPages}
+                        {t("logs.pagination.page", {page: page + 1, total: totalPages})}
                     </span>
                     <div className="flex items-center gap-1">
                         <button

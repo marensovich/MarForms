@@ -1,10 +1,12 @@
 import {useEffect, useRef} from "react";
 import {useNavigate, useSearchParams} from "react-router-dom";
+import {useTranslation} from "react-i18next";
 import {useAuth} from "../hooks/useAuth";
 import {consumeRedirectPath} from "../auth/redirectStorage";
 import LoadingScreen from "../components/LoadingScreen";
 
 export default function AuthCallback() {
+    const {t} = useTranslation();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const {login} = useAuth();
@@ -28,5 +30,5 @@ export default function AuthCallback() {
         });
     }, [searchParams, login, navigate]);
 
-    return <LoadingScreen label="Signing you in..."/>;
+    return <LoadingScreen label={t("auth.signingIn")}/>;
 }

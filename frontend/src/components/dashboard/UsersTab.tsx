@@ -20,6 +20,7 @@ import {
     FiUsers,
     FiUserX,
 } from "react-icons/fi";
+import {useTranslation} from "react-i18next";
 
 function UserAvatar({name}: { name: string }) {
     const clean = name.replace(/#\d+$/, "");
@@ -62,15 +63,17 @@ function RolesModal({
         }
     };
 
+    const {t} = useTranslation();
+
     return (
         <Modal
-            title="Assign Roles"
+            title={t("users.rolesModal.title")}
             subtitle={user.discordUsername}
             onClose={onClose}
             width="max-w-sm"
         >
             {roles.length === 0 ? (
-                <p className="py-4 text-center text-sm text-white/65">No roles available.</p>
+                <p className="py-4 text-center text-sm text-white/65">{t("users.rolesModal.noRoles")}</p>
             ) : (
                 <div className="mb-5 flex flex-col gap-1.5">
                     {roles.map(role => {
@@ -92,7 +95,7 @@ function RolesModal({
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-white">{role.name}</p>
-                                    <p className="text-xs text-white/30">{role.permissions.length} permission{role.permissions.length !== 1 ? "s" : ""}</p>
+                                    <p className="text-xs text-white/30">{t("users.rolesModal.permissionCount", {count: role.permissions.length})}</p>
                                 </div>
                             </label>
                         );
@@ -105,13 +108,13 @@ function RolesModal({
                     disabled={saving}
                     className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-sm font-medium text-white transition-colors hover:bg-indigo-500 disabled:opacity-60"
                 >
-                    {saving ? "Saving…" : "Save roles"}
+                    {saving ? t("users.rolesModal.saving") : t("users.rolesModal.save")}
                 </button>
                 <button
                     onClick={onClose}
                     className="rounded-xl border border-white/[0.08] px-4 py-2.5 text-sm text-white/50 transition-colors hover:text-white"
                 >
-                    Cancel
+                    {t("common.cancel")}
                 </button>
             </div>
         </Modal>
@@ -142,15 +145,17 @@ function TimeoutModal({
         }
     };
 
+    const {t} = useTranslation();
+
     return (
         <Modal
-            title="Timeout User"
-            subtitle={`Temporarily restrict ${user.discordUsername}`}
+            title={t("users.timeoutModal.title")}
+            subtitle={t("users.timeoutModal.subtitle", {username: user.discordUsername})}
             onClose={onClose}
             width="max-w-sm"
         >
             <div className="mb-4">
-                <p className="mb-2 text-xs text-white/65">Duration (minutes)</p>
+                <p className="mb-2 text-xs text-white/65">{t("users.timeoutModal.durationLabel")}</p>
                 <input
                     type="number"
                     min="1"
@@ -180,13 +185,13 @@ function TimeoutModal({
                     disabled={saving || !Number(minutes) || Number(minutes) <= 0}
                     className="flex-1 rounded-xl bg-orange-600 py-2.5 text-sm font-medium text-white transition-colors hover:bg-orange-500 disabled:opacity-60"
                 >
-                    {saving ? "Applying…" : "Apply timeout"}
+                    {saving ? t("users.timeoutModal.applying") : t("users.timeoutModal.apply")}
                 </button>
                 <button
                     onClick={onClose}
                     className="rounded-xl border border-white/[0.08] px-4 py-2.5 text-sm text-white/50 transition-colors hover:text-white"
                 >
-                    Cancel
+                    {t("common.cancel")}
                 </button>
             </div>
         </Modal>
@@ -194,6 +199,7 @@ function TimeoutModal({
 }
 
 export default function UsersTab() {
+    const {t} = useTranslation();
     const [users, setUsers] = useState<DashboardUser[]>([]);
     const [roles, setRoles] = useState<DashboardRole[]>([]);
     const [loading, setLoading] = useState(true);
@@ -250,11 +256,11 @@ export default function UsersTab() {
     };
 
     const getBanStatus = (user: DashboardUser) => {
-        if (user.bannedPermanently) return {label: "Banned", color: "red" as const};
+        if (user.bannedPermanently) return {label: t("users.banStatus.banned"), color: "red" as const};
         if (user.bannedUntil && new Date(user.bannedUntil) > new Date()) {
-            return {label: "Timeout", color: "orange" as const};
+            return {label: t("users.banStatus.timeout"), color: "orange" as const};
         }
-        return {label: "Active", color: "green" as const};
+        return {label: t("users.banStatus.active"), color: "green" as const};
     };
 
     const bannedCount = users.filter(u => u.currentlyBanned).length;
@@ -265,8 +271,8 @@ export default function UsersTab() {
             {/* Header */}
             <div className="mb-6 flex items-start justify-between">
                 <div>
-                    <h1 className="text-xl font-semibold text-white">Users</h1>
-                    <p className="mt-0.5 text-sm text-white/65">Manage user access, roles, and restrictions</p>
+                    <h1 className="text-xl font-semibold text-white">{t("users.title")}</h1>
+                    <p className="mt-0.5 text-sm text-white/65">{t("users.subtitle")}</p>
                 </div>
             </div>
 
@@ -274,23 +280,23 @@ export default function UsersTab() {
             {!loading && (
                 <div className="mb-6 grid grid-cols-3 gap-4">
                     <StatsCard
-                        label="Total Users"
+                        label={t("users.stats.totalUsers")}
                         value={totalElements}
-                        sub="registered accounts"
+                        sub={t("users.stats.registeredAccounts")}
                         icon={<FiUsers size={16}/>}
                         accentColor="#6366f1"
                     />
                     <StatsCard
-                        label="Active"
+                        label={t("users.stats.active")}
                         value={activeCount}
-                        sub="on this page"
+                        sub={t("users.stats.onThisPage")}
                         icon={<FiUserCheck size={16}/>}
                         accentColor="#34d399"
                     />
                     <StatsCard
-                        label="Restricted"
+                        label={t("users.stats.restricted")}
                         value={bannedCount}
-                        sub="banned or in timeout"
+                        sub={t("users.stats.bannedOrTimeout")}
                         icon={<FiUserX size={16}/>}
                         accentColor="#f87171"
                     />
@@ -304,7 +310,7 @@ export default function UsersTab() {
                     <input
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        placeholder="Search by username or Discord ID…"
+                        placeholder={t("users.searchPlaceholder")}
                         className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] py-2.5 pl-9 pr-4 text-sm text-white placeholder-white/25 outline-none transition-colors focus:border-indigo-500/60 focus:bg-white/[0.04]"
                     />
                 </div>
@@ -316,7 +322,7 @@ export default function UsersTab() {
                         onChange={e => setFilterRoleId(e.target.value)}
                         className="appearance-none rounded-xl border border-white/[0.08] bg-[#0a0a0f] py-2.5 pl-9 pr-8 text-sm text-white outline-none focus:border-indigo-500/60 transition-colors"
                     >
-                        <option value="">All roles</option>
+                        <option value="">{t("users.allRoles")}</option>
                         {roles.map(role => (
                             <option key={role.id} value={role.id}>{role.name}</option>
                         ))}
@@ -328,19 +334,17 @@ export default function UsersTab() {
             {loading ? (
                 <TabSkeleton/>
             ) : users.length === 0 ? (
-                <EmptyState message="No users found." icon={<FiUsers/>}/>
+                <EmptyState message={t("users.noUsers")} icon={<FiUsers/>}/>
             ) : (
                 <div className="overflow-hidden rounded-xl border border-white/[0.07]">
                     <table className="w-full text-sm">
                         <thead>
                         <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">User</th>
-                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">Discord
-                                ID
-                            </th>
-                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">Roles</th>
-                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">Status</th>
-                            <th className="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-white/55">Actions</th>
+                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">{t("users.table.user")}</th>
+                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">{t("users.table.discordId")}</th>
+                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">{t("users.table.roles")}</th>
+                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">{t("users.table.status")}</th>
+                            <th className="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-white/55">{t("users.table.actions")}</th>
                         </tr>
                         </thead>
                         <tbody className="divide-y divide-white/[0.04]">
@@ -355,7 +359,7 @@ export default function UsersTab() {
                                                 <p className="font-medium text-white">{user.discordUsername}</p>
                                                 {user.bannedUntil && !user.bannedPermanently && new Date(user.bannedUntil) > new Date() && (
                                                     <p className="mt-0.5 text-xs text-orange-400/70">
-                                                        until {new Date(user.bannedUntil).toLocaleString()}
+                                                        {t("users.until", {date: new Date(user.bannedUntil).toLocaleString()})}
                                                     </p>
                                                 )}
                                             </div>
@@ -367,7 +371,7 @@ export default function UsersTab() {
                                     <td className="px-5 py-3.5">
                                         <div className="flex flex-wrap gap-1">
                                             {user.roles.length === 0 ? (
-                                                <span className="text-xs text-white/40">No roles</span>
+                                                <span className="text-xs text-white/40">{t("users.noRoles")}</span>
                                             ) : (
                                                 user.roles.map(role => (
                                                     <Badge key={role.id} color="indigo">{role.name}</Badge>
@@ -381,11 +385,11 @@ export default function UsersTab() {
                                     <td className="px-5 py-3.5">
                                         <div className="flex items-center justify-end gap-1">
                                             <ActionBtn onClick={() => setAssigningUser(user)} variant="ghost">
-                                                <FiShield size={11} className="inline mr-1"/>Roles
+                                                <FiShield size={11} className="inline mr-1"/>{t("users.actions.roles")}
                                             </ActionBtn>
                                             {!user.currentlyBanned && (
                                                 <ActionBtn onClick={() => setTimeoutUser(user)} variant="warning">
-                                                    <FiClock size={11} className="inline mr-1"/>Timeout
+                                                    <FiClock size={11} className="inline mr-1"/>{t("users.actions.timeout")}
                                                 </ActionBtn>
                                             )}
                                             <ActionBtn
@@ -393,8 +397,8 @@ export default function UsersTab() {
                                                 variant={user.currentlyBanned ? "success" : "danger"}
                                             >
                                                 {user.currentlyBanned
-                                                    ? <><FiCheckCircle size={11} className="inline mr-1"/>Unban</>
-                                                    : <><FiSlash size={11} className="inline mr-1"/>Ban</>}
+                                                    ? <><FiCheckCircle size={11} className="inline mr-1"/>{t("users.actions.unban")}</>
+                                                    : <><FiSlash size={11} className="inline mr-1"/>{t("users.actions.ban")}</>}
                                             </ActionBtn>
                                         </div>
                                     </td>
@@ -406,7 +410,7 @@ export default function UsersTab() {
                     {totalElements > users.length && (
                         <div className="border-t border-white/[0.05] bg-white/[0.01] px-5 py-3">
                             <p className="text-xs text-white/45">
-                                Showing {users.length} of {totalElements} users
+                                {t("users.showing", {count: users.length, total: totalElements})}
                             </p>
                         </div>
                     )}
@@ -430,13 +434,11 @@ export default function UsersTab() {
             )}
             {banTarget && (
                 <ConfirmModal
-                    title={banTarget.currentlyBanned ? "Unban user" : "Ban user"}
-                    message={
-                        banTarget.currentlyBanned
-                            ? `Remove the ban from ${banTarget.discordUsername}? They will regain access immediately.`
-                            : `Permanently ban ${banTarget.discordUsername}? They will be unable to access any forms.`
-                    }
-                    confirmLabel={banTarget.currentlyBanned ? "Unban" : "Ban permanently"}
+                    title={banTarget.currentlyBanned ? t("users.banModal.unbanTitle") : t("users.banModal.banTitle")}
+                    message={banTarget.currentlyBanned
+                        ? t("users.banModal.unbanMessage", {username: banTarget.discordUsername})
+                        : t("users.banModal.banMessage", {username: banTarget.discordUsername})}
+                    confirmLabel={banTarget.currentlyBanned ? t("users.banModal.unbanConfirm") : t("users.banModal.banConfirm")}
                     confirmColor={banTarget.currentlyBanned ? "indigo" : "red"}
                     onConfirm={handleBanConfirm}
                     onCancel={() => setBanTarget(null)}

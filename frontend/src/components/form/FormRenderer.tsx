@@ -1,5 +1,7 @@
 import {useMemo, useState} from "react";
 import {AnimatePresence, motion} from "framer-motion";
+import {useTranslation} from "react-i18next";
+import i18n from "../../i18n";
 import type {FieldType, FormAnswers, FormDefinition, FormField} from "../../types/forms";
 import {submitForm} from "../../api/forms";
 import {ApiError} from "../../api/client";
@@ -58,23 +60,24 @@ function validate(form: FormDefinition, answers: FormAnswers): Record<string, st
 }
 
 function requiredMessage(type: FieldType): string {
+    const t = i18n.t.bind(i18n);
     switch (type) {
         case "BOOLEAN":
-            return "Please confirm this field";
+            return t("form.validation.requiredBoolean");
         case "SELECT":
         case "RADIO":
-            return "Please select an option";
+            return t("form.validation.requiredSelect");
         case "MULTI_SELECT":
         case "CHECKBOX":
-            return "Please select at least one option";
+            return t("form.validation.requiredMultiSelect");
         case "DATE":
-            return "Please select a date";
+            return t("form.validation.requiredDate");
         case "TIME":
-            return "Please select a time";
+            return t("form.validation.requiredTime");
         case "DATETIME":
-            return "Please select a date and time";
+            return t("form.validation.requiredDatetime");
         default:
-            return "This field is required";
+            return t("form.validation.required");
     }
 }
 
@@ -91,31 +94,32 @@ const FIELD_DEFAULT_MIN: Partial<Record<FieldType, number>> = {
 };
 
 function validateByType(field: FormField, str: string, raw: FormAnswers[string]): string | null {
+    const t = i18n.t.bind(i18n);
     switch (field.type) {
         case "TEXT":
         case "TEXTAREA": {
             const min = field.min ?? FIELD_DEFAULT_MIN[field.type] ?? 0;
             const max = field.max ?? FIELD_DEFAULT_MAX[field.type] ?? Infinity;
             if (str.length < min)
-                return `Minimum ${min} characters required (${str.length} entered)`;
+                return t("form.validation.minChars", {min, entered: str.length});
             if (str.length > max)
-                return `Maximum ${max.toLocaleString()} characters allowed (${str.length} entered)`;
+                return t("form.validation.maxChars", {max: max.toLocaleString(), entered: str.length});
             return null;
         }
 
         case "NUMBER": {
             const num = Number(str);
-            if (str === "" || isNaN(num)) return "Please enter a valid number";
+            if (str === "" || isNaN(num)) return t("form.validation.invalidNumber");
             const min = field.min ?? FIELD_DEFAULT_MIN.NUMBER!;
             const max = field.max ?? FIELD_DEFAULT_MAX.NUMBER!;
-            if (num < min) return `Minimum value is ${min}`;
-            if (num > max) return `Maximum value is ${max}`;
+            if (num < min) return t("form.validation.minValue", {min});
+            if (num > max) return t("form.validation.maxValue", {max});
             return null;
         }
 
         case "EMAIL":
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str))
-                return "Please enter a valid email address";
+                return t("form.validation.invalidEmail");
             return null;
 
         case "URL":
@@ -123,33 +127,33 @@ function validateByType(field: FormField, str: string, raw: FormAnswers[string])
                 new URL(str);
                 return null;
             } catch {
-                return "Please enter a valid URL (e.g. https://example.com)";
+                return t("form.validation.invalidUrl");
             }
 
         case "PHONE":
             if (!/^[+\d][\d\s\-().]{5,18}$/.test(str))
-                return "Please enter a valid phone number";
+                return t("form.validation.invalidPhone");
             return null;
 
         case "SELECT":
         case "RADIO":
             if (field.options?.length && !field.options.includes(str))
-                return "Please select a valid option";
+                return t("form.validation.invalidOption");
             return null;
 
         case "DATE":
             if (!/^\d{4}-\d{2}-\d{2}$/.test(str) || isNaN(Date.parse(str)))
-                return "Please enter a valid date";
+                return t("form.validation.invalidDate");
             return null;
 
         case "TIME":
             if (!/^\d{2}:\d{2}(:\d{2})?$/.test(str))
-                return "Please enter a valid time (HH:MM)";
+                return t("form.validation.invalidTime");
             return null;
 
         case "DATETIME":
             if (!str || isNaN(Date.parse(str)))
-                return "Please enter a valid date and time";
+                return t("form.validation.invalidDatetime");
             return null;
 
         default:
@@ -179,10 +183,11 @@ const TYPE_ICON: Partial<Record<FieldType, React.ElementType>> = {
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function estimateMinutes(count: number): string {
-    if (count <= 3) return "~1 min";
-    if (count <= 7) return "~3 min";
-    if (count <= 15) return "~5 min";
-    return "~10 min";
+    const t = i18n.t.bind(i18n);
+    if (count <= 3) return t("form.estTime.1min");
+    if (count <= 7) return t("form.estTime.3min");
+    if (count <= 15) return t("form.estTime.5min");
+    return t("form.estTime.10min");
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────
@@ -213,6 +218,7 @@ function ProgressBar({pct}: { pct: number }) {
 // ── Success screen ─────────────────────────────────────────────────────────
 
 function SuccessScreen({title}: { title: string }) {
+    const {t} = useTranslation();
     return (
         <div
             className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[#0f0f21] px-4">
@@ -236,15 +242,13 @@ function SuccessScreen({title}: { title: string }) {
                             <FiCheckCircle size={30} className="text-emerald-400"/>
                         </motion.div>
                     </div>
-                    <h1 className="text-2xl font-bold tracking-tight text-white">Response submitted!</h1>
+                    <h1 className="text-2xl font-bold tracking-tight text-white">{t("form.success.title")}</h1>
                     <p className="mt-2.5 text-sm leading-relaxed text-white/60">
-                        Your response to{" "}
-                        <span className="font-medium text-white/80">"{title}"</span>{" "}
-                        has been recorded and sent to the server.
+                        {t("form.success.description", {formTitle: title})}
                     </p>
                     <div className="mt-6 w-full rounded-xl border border-white/[0.10] bg-white/[0.04] px-4 py-3">
                         <p className="text-xs text-white/50">
-                            You can now close this tab. Thank you for your submission.
+                            {t("form.success.closeNote")}
                         </p>
                     </div>
                 </div>
@@ -263,6 +267,7 @@ interface SidebarProps {
 }
 
 function FormSidebar({form, progress, answeredRequired, totalRequired}: SidebarProps) {
+    const {t} = useTranslation();
     const totalFields = form.schema.fields.length;
     const typeGroups = useMemo(() => {
         const counts: Partial<Record<FieldType, number>> = {};
@@ -296,30 +301,30 @@ function FormSidebar({form, progress, answeredRequired, totalRequired}: SidebarP
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-2">
-                <StatCard icon={FiList} label="Fields" value={String(totalFields)}/>
+                <StatCard icon={FiList} label={t("form.sidebar.fields")} value={String(totalFields)}/>
                 <StatCard
                     icon={FiAlertCircle}
-                    label="Required"
+                    label={t("form.sidebar.required")}
                     value={String(totalRequired)}
                     accent={totalRequired > 0}
                 />
-                <StatCard icon={FiClock} label="Est. time" value={estimateMinutes(totalFields)}/>
+                <StatCard icon={FiClock} label={t("form.sidebar.estTime")} value={estimateMinutes(totalFields)}/>
             </div>
 
             {/* Progress (only when filling) */}
             {totalRequired > 0 && (
                 <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-3.5">
                     <div className="mb-2 flex items-center justify-between text-xs">
-                        <span className="text-white/40">Progress</span>
+                        <span className="text-white/40">{t("form.sidebar.progress")}</span>
                         <span
                             className={`font-medium tabular-nums ${progress === 100 ? "text-emerald-400" : "text-white/60"}`}>
-                            {answeredRequired} / {totalRequired} required
+                            {t("form.sidebar.requiredProgress", {answered: answeredRequired, total: totalRequired})}
                         </span>
                     </div>
                     <ProgressBar pct={progress}/>
                     {progress === 100 && (
                         <p className="mt-2 text-[11px] text-emerald-400">
-                            All required fields filled — ready to submit
+                            {t("form.sidebar.allFilled")}
                         </p>
                     )}
                 </div>
@@ -328,8 +333,7 @@ function FormSidebar({form, progress, answeredRequired, totalRequired}: SidebarP
             {/* Field type breakdown */}
             {typeGroups.length > 0 && (
                 <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-3.5">
-                    <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-wider text-white/25">Field
-                        types</p>
+                    <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-wider text-white/25">{t("form.sidebar.fieldTypes")}</p>
                     <div className="flex flex-col gap-1.5">
                         {typeGroups.map(([type, count]) => {
                             const Icon = TYPE_ICON[type] ?? FiFileText;
@@ -357,7 +361,7 @@ function FormSidebar({form, progress, answeredRequired, totalRequired}: SidebarP
                         <FiUser size={12} className="text-indigo-400"/>
                     </div>
                     <div className="min-w-0">
-                        <p className="text-[10px] text-white/25 leading-none mb-0.5">Created by</p>
+                        <p className="text-[10px] text-white/25 leading-none mb-0.5">{t("form.sidebar.createdBy")}</p>
                         <p className="truncate text-xs font-medium text-white/60">
                             {form.createdByDiscordUsername
                                 ? `@${form.createdByDiscordUsername}`
@@ -372,7 +376,7 @@ function FormSidebar({form, progress, answeredRequired, totalRequired}: SidebarP
                 className="flex items-center gap-2 rounded-xl border border-emerald-500/15 bg-emerald-500/[0.05] px-3.5 py-3">
                 <FiShield size={13} className="flex-shrink-0 text-emerald-400/60"/>
                 <p className="text-[11px] text-emerald-400/60 leading-snug">
-                    Your response is encrypted in transit and stored securely.
+                    {t("form.sidebar.secure")}
                 </p>
             </div>
         </aside>
@@ -405,6 +409,7 @@ interface Props {
 type SubmitStatus = "idle" | "submitting" | "success" | "error";
 
 export default function FormRenderer({form}: Props) {
+    const {t} = useTranslation();
     const [answers, setAnswers] = useState<FormAnswers>({});
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [touched, setTouched] = useState<Set<string>>(new Set());
@@ -480,7 +485,7 @@ export default function FormRenderer({form}: Props) {
             await submitForm(form.id, answers);
             setSubmitStatus("success");
         } catch (err) {
-            const message = err instanceof ApiError ? err.message : "Something went wrong. Please try again.";
+            const message = err instanceof ApiError ? err.message : t("form.submissionError");
             setSubmitError(message);
             setSubmitStatus("error");
         }
@@ -508,7 +513,7 @@ export default function FormRenderer({form}: Props) {
                 </div>
                 <div className="flex items-center gap-1.5 text-[11px] text-white/25">
                     <div className="h-1.5 w-1.5 rounded-full bg-emerald-400/60"/>
-                    Secure form
+                    {t("form.topBar.secure")}
                 </div>
             </header>
 
@@ -541,16 +546,16 @@ export default function FormRenderer({form}: Props) {
                             {/* Field count header */}
                             <div className="mb-6 flex items-center justify-between">
                                 <p className="text-xs text-white/30">
-                                    {form.schema.fields.length} question{form.schema.fields.length !== 1 ? "s" : ""}
+                                    {t("form.fieldCount", {count: form.schema.fields.length})}
                                     {requiredFields.length > 0 && (
-                                        <span className="text-white/20"> · {requiredFields.length} required</span>
+                                        <span className="text-white/20"> {t("form.requiredCount", {count: requiredFields.length})}</span>
                                     )}
                                 </p>
                                 {progress > 0 && progress < 100 && (
-                                    <p className="text-xs text-white/30 tabular-nums">{progress}% complete</p>
+                                    <p className="text-xs text-white/30 tabular-nums">{t("form.percentComplete", {pct: progress})}</p>
                                 )}
                                 {progress === 100 && (
-                                    <p className="text-xs text-emerald-400">Ready to submit</p>
+                                    <p className="text-xs text-emerald-400">{t("form.readyToSubmit")}</p>
                                 )}
                             </div>
 
@@ -591,9 +596,7 @@ export default function FormRenderer({form}: Props) {
                                     className="mt-5 flex items-center gap-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.08] px-4 py-3 text-sm text-amber-300"
                                 >
                                     <FiAlertCircle size={15} className="flex-shrink-0"/>
-                                    {errorCount === 1
-                                        ? "1 field needs your attention"
-                                        : `${errorCount} fields need your attention`}
+                                    {t("form.validationSummary", {count: errorCount})}
                                 </motion.div>
                             )}
 
@@ -619,9 +622,9 @@ export default function FormRenderer({form}: Props) {
                                     className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-indigo-600 px-6 py-3.5 font-semibold text-white shadow-xl shadow-indigo-500/20 transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:ring-offset-2 focus:ring-offset-[#0c0c1a]"
                                 >
                                     {submitStatus === "submitting" ? (
-                                        <><Spinner/>Submitting…</>
+                                        <><Spinner/>{t("form.submitting")}</>
                                     ) : (
-                                        <><FiSend size={15}/>Submit response</>
+                                        <><FiSend size={15}/>{t("form.submit")}</>
                                     )}
                                 </motion.button>
                             </div>
@@ -630,7 +633,7 @@ export default function FormRenderer({form}: Props) {
 
                     {/* Footer note */}
                     <p className="mt-4 text-center text-[11px] text-white/20">
-                        Powered by MarForms · Your data is transmitted securely
+                        {t("form.footer")}
                     </p>
                 </div>
             </motion.div>

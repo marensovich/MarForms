@@ -1,4 +1,5 @@
 import {useParams} from "react-router-dom";
+import {useTranslation} from "react-i18next";
 import {useFormAccess} from "../hooks/useFormAccess";
 import LoadingScreen from "../components/LoadingScreen";
 import {
@@ -11,12 +12,13 @@ import {
 import FormRenderer from "../components/form/FormRenderer";
 
 export default function FormGatePage() {
+    const {t} = useTranslation();
     const {formId} = useParams<{ formId: string }>();
     const {status, form} = useFormAccess(formId ?? "");
 
     switch (status) {
         case "loading":
-            return <LoadingScreen label="Checking access..."/>;
+            return <LoadingScreen label={t("formGate.checkingAccess")}/>;
         case "not_authenticated":
             return <NotAuthenticatedState formId={formId}/>;
         case "not_in_guild":
@@ -31,7 +33,7 @@ export default function FormGatePage() {
             return form ? (
                 <FormRenderer form={form}/>
             ) : (
-                <LoadingScreen label="Loading form..."/>
+                <LoadingScreen label={t("formGate.loadingForm")}/>
             );
     }
 }

@@ -70,7 +70,8 @@ public class SettingsService {
                 cache.getOrDefault(KEY_G_THUMBNAIL, ""),
                 cache.getOrDefault(KEY_G_IMAGE, ""),
                 cache.getOrDefault(KEY_G_FOOTER_TEXT, ""),
-                cache.getOrDefault(KEY_G_FOOTER_ICON, "")
+                cache.getOrDefault(KEY_G_FOOTER_ICON, ""),
+                cache.getOrDefault(KEY_UI_LANGUAGE, "en")
         );
     }
 

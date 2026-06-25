@@ -1,4 +1,5 @@
 import {motion} from "framer-motion";
+import {useTranslation} from "react-i18next";
 
 type SceneVariant = "default" | "danger" | "warning" | "success";
 
@@ -55,7 +56,9 @@ export function BackgroundGlow() {
     return <SceneBackground variant="default"/>;
 }
 
-export default function LoadingScreen({label = "Loading..."}: { label?: string }) {
+export default function LoadingScreen({label}: { label?: string }) {
+    const {t} = useTranslation();
+    const displayLabel = label ?? t("common.loading");
     return (
         <div className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-[#0f0f21]">
             <SceneBackground/>
@@ -79,7 +82,7 @@ export default function LoadingScreen({label = "Loading..."}: { label?: string }
                     animate={{opacity: 1}}
                     transition={{delay: 0.25}}
                 >
-                    {label}
+                    {displayLabel}
                 </motion.p>
             </div>
         </div>

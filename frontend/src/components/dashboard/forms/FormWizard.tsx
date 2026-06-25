@@ -1,6 +1,7 @@
 import {useState} from "react";
 import {AnimatePresence, motion} from "framer-motion";
 import {FiAlertCircle, FiCheck, FiChevronRight, FiX} from "react-icons/fi";
+import {useTranslation} from "react-i18next";
 import type {FormField, WebhookConfig} from "../../../types/forms";
 import StepBasicInfo from "./StepBasicInfo";
 import StepFields from "./StepFields";
@@ -23,10 +24,10 @@ export interface FormDraft {
 }
 
 const STEPS = [
-    {id: 1, label: "Basic Info", desc: "Title & description"},
-    {id: 2, label: "Fields", desc: "Form questions"},
-    {id: 3, label: "Discord", desc: "Server & channels"},
-    {id: 4, label: "Webhooks", desc: "Notifications"},
+    {id: 1, labelKey: "wizard.steps.basicInfo", descKey: "wizard.steps.basicInfoDesc"},
+    {id: 2, labelKey: "wizard.steps.fields", descKey: "wizard.steps.fieldsDesc"},
+    {id: 3, labelKey: "wizard.steps.discord", descKey: "wizard.steps.discordDesc"},
+    {id: 4, labelKey: "wizard.steps.webhooks", descKey: "wizard.steps.webhooksDesc"},
 ] as const;
 
 const EMPTY_DRAFT: FormDraft = {
@@ -46,6 +47,7 @@ function canProceed(step: number, draft: FormDraft): boolean {
 }
 
 export default function FormWizard({onClose, onCreated}: Props) {
+    const {t} = useTranslation();
     const [step, setStep] = useState(1);
     const [draft, setDraft] = useState<FormDraft>(EMPTY_DRAFT);
     const [submitting, setSubmitting] = useState(false);
@@ -102,7 +104,7 @@ export default function FormWizard({onClose, onCreated}: Props) {
                 {/* ── Header ─────────────────────────────────────────── */}
                 <div className="flex-shrink-0 border-b border-white/[0.08] px-6 py-4">
                     <div className="mb-4 flex items-center justify-between">
-                        <h2 className="text-sm font-semibold text-white">Create Form</h2>
+                        <h2 className="text-sm font-semibold text-white">{t("wizard.create")}</h2>
                         <button
                             onClick={onClose}
                             className="flex h-7 w-7 items-center justify-center rounded-lg text-white/30 transition-colors hover:bg-white/[0.08] hover:text-white"
@@ -129,9 +131,9 @@ export default function FormWizard({onClose, onCreated}: Props) {
                                         </div>
                                         <div>
                                             <p className={`text-[11px] font-medium transition-colors leading-tight ${current ? "text-white" : "text-white/30"}`}>
-                                                {s.label}
+                                                {t(s.labelKey)}
                                             </p>
-                                            <p className="text-[10px] text-white/20 leading-tight">{s.desc}</p>
+                                            <p className="text-[10px] text-white/20 leading-tight">{t(s.descKey)}</p>
                                         </div>
                                     </div>
                                     {idx < STEPS.length - 1 && (
@@ -182,7 +184,7 @@ export default function FormWizard({onClose, onCreated}: Props) {
                         onClick={step === 1 ? onClose : handleBack}
                         className="rounded-xl border border-white/[0.09] px-4 py-2 text-sm text-white/40 transition-colors hover:border-white/20 hover:text-white"
                     >
-                        {step === 1 ? "Cancel" : "Back"}
+                        {step === 1 ? t("wizard.cancel") : t("wizard.back")}
                     </button>
 
                     <div className="flex items-center gap-3">
@@ -198,7 +200,7 @@ export default function FormWizard({onClose, onCreated}: Props) {
                                 disabled={!canProceed(step, draft)}
                                 className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-40"
                             >
-                                Continue
+                                {t("wizard.next")}
                             </button>
                         ) : (
                             <button
@@ -206,7 +208,7 @@ export default function FormWizard({onClose, onCreated}: Props) {
                                 disabled={submitting || !canProceed(3, draft)}
                                 className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-40"
                             >
-                                {submitting ? "Creating..." : "Create Form"}
+                                {submitting ? t("wizard.creating") : t("wizard.create")}
                             </button>
                         )}
                     </div>

@@ -32,6 +32,7 @@ package me.marensovich.gta5rpformapp.backend.data.settings;
  * @param globalEmbedImage       the default large image URL
  * @param globalEmbedFooterText  the default footer text
  * @param globalEmbedFooterIcon  the default footer icon URL
+ * @param uiLanguage             the admin panel UI language ("en" or "ru")
  * @author marensovich
  * @version v.0.1
  * @since v.0.1
@@ -52,7 +53,8 @@ public record SystemSettings(
         String globalEmbedThumbnail,
         String globalEmbedImage,
         String globalEmbedFooterText,
-        String globalEmbedFooterIcon
+        String globalEmbedFooterIcon,
+        String uiLanguage
 ) {
 
     /**
@@ -166,4 +168,11 @@ public record SystemSettings(
      * @since v.0.1
      */
     public static final String KEY_G_FOOTER_ICON = "global.embed.footer.icon";
+
+    /**
+     * Configuration key for the admin panel UI language.
+     *
+     * @since v.0.1
+     */
+    public static final String KEY_UI_LANGUAGE = "ui.language";
 }

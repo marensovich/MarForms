@@ -1,5 +1,6 @@
 import {useEffect, useState} from "react";
 import {useAuth} from "../../hooks/useAuth";
+import {useTranslation} from "react-i18next";
 import {
     type DashboardForm,
     type DashboardSubmission,
@@ -55,9 +56,10 @@ function SubmissionDetailModal({
         return field?.label ?? fieldId;
     };
 
+    const {t} = useTranslation();
     return (
         <Modal
-            title="Submission Details"
+            title={t("responses.submissionDetails")}
             subtitle={`${submission.discordId} · ${new Date(submission.createdAt).toLocaleString()}`}
             onClose={onClose}
             width="max-w-lg"
@@ -80,6 +82,7 @@ function SubmissionDetailModal({
 }
 
 export default function ResponsesTab() {
+    const {t} = useTranslation();
     const {user} = useAuth();
     const canManage = user?.permissions.includes("RESPONSES_MANAGE") ?? false;
 
@@ -212,8 +215,8 @@ export default function ResponsesTab() {
             {/* Header */}
             <div className="mb-6 flex items-start justify-between">
                 <div>
-                    <h1 className="text-xl font-semibold text-white">Responses</h1>
-                    <p className="mt-0.5 text-sm text-white/65">View and manage all form submissions</p>
+                    <h1 className="text-xl font-semibold text-white">{t("responses.title")}</h1>
+                    <p className="mt-0.5 text-sm text-white/65">{t("responses.subtitle")}</p>
                 </div>
                 <div className="flex rounded-lg border border-white/[0.08] bg-white/[0.02] p-0.5">
                     {(["all", "by-user"] as const).map(v => (
@@ -227,7 +230,7 @@ export default function ResponsesTab() {
                             }`}
                         >
                             {v === "all" ? <FiInbox size={12}/> : <FiUsers size={12}/>}
-                            {v === "all" ? "All Responses" : "By User"}
+                            {v === "all" ? t("responses.allResponses") : t("responses.byUser")}
                         </button>
                     ))}
                 </div>
@@ -236,23 +239,25 @@ export default function ResponsesTab() {
             {/* Stats row (always visible) */}
             <div className="mb-5 grid grid-cols-3 gap-4">
                 <StatsCard
-                    label="Total Responses"
+                    label={t("responses.stats.totalResponses")}
                     value={totalElements}
-                    sub={filters.formId ? `in "${formName(filters.formId)}"` : "across all forms"}
+                    sub={filters.formId
+                        ? t("responses.stats.inForm", {formName: formName(filters.formId)})
+                        : t("responses.stats.acrossAllForms")}
                     icon={<FiInbox size={16}/>}
                     accentColor="#6366f1"
                 />
                 <StatsCard
-                    label="Forms"
+                    label={t("responses.stats.forms")}
                     value={forms.length}
-                    sub={`${forms.filter(f => f.active).length} active`}
+                    sub={t("responses.stats.activeForms", {count: forms.filter(f => f.active).length})}
                     icon={<FiFileText size={16}/>}
                     accentColor="#34d399"
                 />
                 <StatsCard
-                    label="Unique Users"
+                    label={t("responses.stats.uniqueUsers")}
                     value={userCounts.length}
-                    sub="with at least one response"
+                    sub={t("responses.stats.withAtLeastOne")}
                     icon={<FiUsers size={16}/>}
                     accentColor="#a78bfa"
                 />
@@ -270,7 +275,7 @@ export default function ResponsesTab() {
                             }}
                             className="rounded-lg border border-white/[0.08] bg-[#0d0d1e] px-3 py-2 text-xs text-white/80 outline-none focus:border-indigo-500/50"
                         >
-                            <option value="">All forms</option>
+                            <option value="">{t("responses.filter.allForms")}</option>
                             {forms.map(f => (
                                 <option key={f.id} value={f.id}>{f.title}</option>
                             ))}
@@ -283,7 +288,7 @@ export default function ResponsesTab() {
                                 value={searchInput}
                                 onChange={e => setSearchInput(e.target.value)}
                                 onKeyDown={e => e.key === "Enter" && applySearch()}
-                                placeholder="Username or Discord ID…"
+                                placeholder={t("responses.filter.searchPlaceholder")}
                                 className="w-36 bg-transparent text-xs text-white placeholder-white/30 outline-none"
                             />
                             {searchInput && (
@@ -297,7 +302,7 @@ export default function ResponsesTab() {
                             onClick={applySearch}
                             className="rounded-lg bg-indigo-600/80 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-indigo-500"
                         >
-                            Search
+                            {t("common.search")}
                         </button>
 
                         <div className="ml-auto flex items-center gap-1.5">
@@ -312,7 +317,7 @@ export default function ResponsesTab() {
                                             : "border-white/[0.07] bg-white/[0.02] text-white/55 hover:text-white"
                                     }`}
                                 >
-                                    {field === "createdAt" ? "Date" : "User"}
+                                    {field === "createdAt" ? t("responses.filter.date") : t("responses.filter.user")}
                                     <SortArrow field={field}/>
                                 </button>
                             ))}
@@ -355,17 +360,17 @@ export default function ResponsesTab() {
                     {loading ? (
                         <TabSkeleton/>
                     ) : submissions.length === 0 ? (
-                        <EmptyState message="No responses found." icon={<FiInbox/>}/>
+                        <EmptyState message={t("responses.noResponses")} icon={<FiInbox/>}/>
                     ) : (
                         <div className="overflow-hidden rounded-xl border border-white/[0.07]">
                             <table className="w-full text-sm">
                                 <thead>
                                 <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">User</th>
-                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">Form</th>
-                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">Date</th>
-                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">Fields</th>
-                                    <th className="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-white/55">Actions</th>
+                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">{t("responses.table.user")}</th>
+                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">{t("responses.table.form")}</th>
+                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">{t("responses.table.date")}</th>
+                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">{t("responses.table.fields")}</th>
+                                    <th className="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-white/55">{t("responses.table.actions")}</th>
                                 </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/[0.04]">
@@ -389,13 +394,13 @@ export default function ResponsesTab() {
                                         <td className="px-5 py-4">
                                                 <span
                                                     className="rounded-md border border-white/[0.06] bg-white/[0.03] px-2 py-0.5 text-xs text-white/55">
-                                                    {Object.keys(sub.answers).length} fields
+                                                    {t("responses.table.fieldsCount", {count: Object.keys(sub.answers).length})}
                                                 </span>
                                         </td>
                                         <td className="px-5 py-4">
                                             <div className="flex items-center justify-end gap-1">
                                                 <ActionBtn onClick={() => setSelected(sub)} variant="ghost">
-                                                    <FiEye size={11} className="mr-1 inline"/> View
+                                                    <FiEye size={11} className="mr-1 inline"/> {t("common.view")}
                                                 </ActionBtn>
                                                 {canManage && (
                                                     <ActionBtn onClick={() => setDeleteTarget(sub)} variant="danger">
@@ -415,7 +420,7 @@ export default function ResponsesTab() {
                     {totalPages > 1 && (
                         <div className="mt-4 flex items-center justify-between">
                             <span className="text-xs text-white/40">
-                                Page {page + 1} of {totalPages} · {totalElements} total
+                                {t("responses.pagination.info", {page: page + 1, total: totalPages, elements: totalElements})}
                             </span>
                             <div className="flex items-center gap-1.5">
                                 <button
@@ -423,14 +428,14 @@ export default function ResponsesTab() {
                                     disabled={page === 0}
                                     className="flex items-center gap-1 rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-white/60 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
                                 >
-                                    <FiChevronLeft size={13}/> Prev
+                                    <FiChevronLeft size={13}/> {t("responses.pagination.prev")}
                                 </button>
                                 <button
                                     onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                                     disabled={page >= totalPages - 1}
                                     className="flex items-center gap-1 rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-white/60 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
                                 >
-                                    Next <FiChevronRight size={13}/>
+                                    {t("responses.pagination.next")} <FiChevronRight size={13}/>
                                 </button>
                             </div>
                         </div>
@@ -440,12 +445,12 @@ export default function ResponsesTab() {
                 /* By User view */
                 <>
                     <p className="mb-4 text-xs text-white/45">
-                        All users who have submitted at least one response. Click to view their submissions.
+                        {t("responses.byUserHint")}
                     </p>
                     {loading ? (
                         <TabSkeleton/>
                     ) : userCounts.length === 0 ? (
-                        <EmptyState message="No submissions yet." icon={<FiUsers/>}/>
+                        <EmptyState message={t("responses.noSubmissions")} icon={<FiUsers/>}/>
                     ) : (
                         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                             {userCounts.map(({discordId, count}) => (
@@ -464,7 +469,7 @@ export default function ResponsesTab() {
                                         </p>
                                         <p className="mt-0.5 font-mono text-[11px] text-white/35">{discordId}</p>
                                         <p className="mt-0.5 text-xs text-white/50">
-                                            {count} response{count !== 1 ? "s" : ""}
+                                            {t("responses.responseCount", {count})}
                                         </p>
                                     </div>
                                     <FiChevronRight size={14} className="flex-shrink-0 text-white/30"/>
@@ -484,17 +489,9 @@ export default function ResponsesTab() {
             )}
             {deleteTarget && (
                 <ConfirmModal
-                    title="Delete submission"
-                    message={`Delete
-                    this submission from
-                    ${username(deleteTarget.discordId)}
-                    ?
-                    This
-                    cannot
-                    be
-                    undone
-                    .`}
-                    confirmLabel="Delete"
+                    title={t("responses.deleteConfirm.title")}
+                    message={t("responses.deleteConfirm.message", {username: username(deleteTarget.discordId)})}
+                    confirmLabel={t("responses.deleteConfirm.confirm")}
                     confirmColor="red"
                     onConfirm={handleDelete}
                     onCancel={() => setDeleteTarget(null)}

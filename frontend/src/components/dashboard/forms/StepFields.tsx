@@ -1,5 +1,6 @@
 import {useRef, useState} from "react";
 import {AnimatePresence, motion} from "framer-motion";
+import {useTranslation} from "react-i18next";
 import {
     FiAlignLeft,
     FiArrowLeft,
@@ -29,8 +30,8 @@ type TypeGroup = "text" | "choice" | "datetime";
 
 interface TypeMeta {
     icon: React.ElementType;
-    label: string;
-    desc: string;
+    labelKey: string;
+    descKey: string;
     group: TypeGroup;
     iconCls: string;
 }
@@ -38,108 +39,108 @@ interface TypeMeta {
 const TYPE_META: Record<FieldType, TypeMeta> = {
     TEXT: {
         icon: FiType,
-        label: "Short Text",
-        desc: "Single-line, up to 255 chars",
+        labelKey: "wizard.fields.types.TEXT.label",
+        descKey: "wizard.fields.types.TEXT.desc",
         group: "text",
         iconCls: "text-blue-300 bg-blue-500/10"
     },
     TEXTAREA: {
         icon: FiAlignLeft,
-        label: "Long Text",
-        desc: "Multi-line paragraph answer",
+        labelKey: "wizard.fields.types.TEXTAREA.label",
+        descKey: "wizard.fields.types.TEXTAREA.desc",
         group: "text",
         iconCls: "text-blue-300 bg-blue-500/10"
     },
     NUMBER: {
         icon: FiHash,
-        label: "Number",
-        desc: "Integer or decimal with validation",
+        labelKey: "wizard.fields.types.NUMBER.label",
+        descKey: "wizard.fields.types.NUMBER.desc",
         group: "text",
         iconCls: "text-blue-300 bg-blue-500/10"
     },
     EMAIL: {
         icon: FiMail,
-        label: "Email",
-        desc: "Email address with format check",
+        labelKey: "wizard.fields.types.EMAIL.label",
+        descKey: "wizard.fields.types.EMAIL.desc",
         group: "text",
         iconCls: "text-blue-300 bg-blue-500/10"
     },
     URL: {
         icon: FiLink,
-        label: "URL",
-        desc: "Web address (https://...)",
+        labelKey: "wizard.fields.types.URL.label",
+        descKey: "wizard.fields.types.URL.desc",
         group: "text",
         iconCls: "text-blue-300 bg-blue-500/10"
     },
     PHONE: {
         icon: FiPhone,
-        label: "Phone",
-        desc: "Phone number",
+        labelKey: "wizard.fields.types.PHONE.label",
+        descKey: "wizard.fields.types.PHONE.desc",
         group: "text",
         iconCls: "text-blue-300 bg-blue-500/10"
     },
     SELECT: {
         icon: FiChevronDown,
-        label: "Dropdown",
-        desc: "Pick one from a dropdown list",
+        labelKey: "wizard.fields.types.SELECT.label",
+        descKey: "wizard.fields.types.SELECT.desc",
         group: "choice",
         iconCls: "text-purple-300 bg-purple-500/10"
     },
     MULTI_SELECT: {
         icon: FiLayers,
-        label: "Multi-select",
-        desc: "Pick multiple from a dropdown",
+        labelKey: "wizard.fields.types.MULTI_SELECT.label",
+        descKey: "wizard.fields.types.MULTI_SELECT.desc",
         group: "choice",
         iconCls: "text-purple-300 bg-purple-500/10"
     },
     RADIO: {
         icon: FiCircle,
-        label: "Radio",
-        desc: "Single choice, all options visible",
+        labelKey: "wizard.fields.types.RADIO.label",
+        descKey: "wizard.fields.types.RADIO.desc",
         group: "choice",
         iconCls: "text-purple-300 bg-purple-500/10"
     },
     CHECKBOX: {
         icon: FiCheckSquare,
-        label: "Checkboxes",
-        desc: "Multiple choices, all visible",
+        labelKey: "wizard.fields.types.CHECKBOX.label",
+        descKey: "wizard.fields.types.CHECKBOX.desc",
         group: "choice",
         iconCls: "text-purple-300 bg-purple-500/10"
     },
     BOOLEAN: {
         icon: FiToggleLeft,
-        label: "Toggle",
-        desc: "Simple Yes / No switch",
+        labelKey: "wizard.fields.types.BOOLEAN.label",
+        descKey: "wizard.fields.types.BOOLEAN.desc",
         group: "choice",
         iconCls: "text-purple-300 bg-purple-500/10"
     },
     DATE: {
         icon: FiCalendar,
-        label: "Date",
-        desc: "Date picker",
+        labelKey: "wizard.fields.types.DATE.label",
+        descKey: "wizard.fields.types.DATE.desc",
         group: "datetime",
         iconCls: "text-emerald-300 bg-emerald-500/10"
     },
     TIME: {
         icon: FiClock,
-        label: "Time",
-        desc: "Time picker",
+        labelKey: "wizard.fields.types.TIME.label",
+        descKey: "wizard.fields.types.TIME.desc",
         group: "datetime",
         iconCls: "text-emerald-300 bg-emerald-500/10"
     },
     DATETIME: {
         icon: FiCalendar,
-        label: "Date & Time",
-        desc: "Combined date and time picker",
+        labelKey: "wizard.fields.types.DATETIME.label",
+        descKey: "wizard.fields.types.DATETIME.desc",
         group: "datetime",
         iconCls: "text-emerald-300 bg-emerald-500/10"
     },
 };
 
-const TYPE_GROUPS: { id: TypeGroup; label: string; types: FieldType[] }[] = [
-    {id: "text", label: "Text Fields", types: ["TEXT", "TEXTAREA", "NUMBER", "EMAIL", "URL", "PHONE"]},
-    {id: "choice", label: "Choice Fields", types: ["SELECT", "MULTI_SELECT", "RADIO", "CHECKBOX", "BOOLEAN"]},
-    {id: "datetime", label: "Date & Time", types: ["DATE", "TIME", "DATETIME"]},
+const TYPE_GROUPS: { id: TypeGroup; labelKey: string; types: FieldType[] }[] = [
+    {id: "text", labelKey: "wizard.fields.groups.text", types: ["TEXT", "TEXTAREA", "NUMBER", "EMAIL", "URL", "PHONE"]},
+    {id: "choice", labelKey: "wizard.fields.groups.choice", types: ["SELECT", "MULTI_SELECT", "RADIO", "CHECKBOX", "BOOLEAN"]},
+    {id: "datetime", labelKey: "wizard.fields.groups.datetime", types: ["DATE", "TIME", "DATETIME"]},
 ];
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -147,6 +148,7 @@ const TYPE_GROUPS: { id: TypeGroup; label: string; types: FieldType[] }[] = [
 const HAS_OPTIONS: FieldType[] = ["SELECT", "MULTI_SELECT", "RADIO", "CHECKBOX"];
 const HAS_PLACEHOLDER: FieldType[] = ["TEXT", "TEXTAREA", "NUMBER", "EMAIL", "URL", "PHONE"];
 const HAS_MIN_MAX: FieldType[] = ["TEXT", "TEXTAREA", "NUMBER"];
+const HAS_CHOICE_HINT: FieldType[] = ["SELECT", "MULTI_SELECT", "RADIO", "CHECKBOX"];
 
 function makeField(type: FieldType): FormField {
     return {id: crypto.randomUUID(), type, label: "", required: false};
@@ -259,8 +261,9 @@ function TypePicker({
                     }: {
     showBack: boolean;
     onBack: () => void;
-    onSelect: (t: FieldType) => void;
+    onSelect: (fieldType: FieldType) => void;
 }) {
+    const {t} = useTranslation();
     return (
         <motion.div
             initial={{opacity: 0, x: -8}}
@@ -278,14 +281,14 @@ function TypePicker({
                         <FiArrowLeft size={13}/>
                     </button>
                 )}
-                <p className="text-xs font-medium text-white/70">Choose field type</p>
+                <p className="text-xs font-medium text-white/70">{t("wizard.fields.picker.title")}</p>
             </div>
 
             <div className="flex-1 overflow-y-auto p-3 space-y-4">
                 {TYPE_GROUPS.map(group => (
                     <div key={group.id}>
                         <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-wider text-white/25">
-                            {group.label}
+                            {t(group.labelKey)}
                         </p>
                         <div className="grid grid-cols-2 gap-1.5">
                             {group.types.map(type => {
@@ -301,8 +304,8 @@ function TypePicker({
                                             className={`flex h-7 w-7 items-center justify-center rounded-lg ${meta.iconCls}`}>
                                             <Icon size={14}/>
                                         </div>
-                                        <p className="text-xs font-medium text-white leading-tight">{meta.label}</p>
-                                        <p className="text-[10px] text-white/30 leading-snug">{meta.desc}</p>
+                                        <p className="text-xs font-medium text-white leading-tight">{t(meta.labelKey)}</p>
+                                        <p className="text-[10px] text-white/30 leading-snug">{t(meta.descKey)}</p>
                                     </button>
                                 );
                             })}
@@ -333,6 +336,7 @@ function FieldList({
     onDuplicate: (id: string) => void;
     onMove: (idx: number, dir: -1 | 1) => void;
 }) {
+    const {t} = useTranslation();
     return (
         <motion.div
             initial={{opacity: 0, x: 8}}
@@ -343,14 +347,14 @@ function FieldList({
         >
             <div className="flex flex-shrink-0 items-center justify-between border-b border-white/[0.07] px-4 py-3">
                 <p className="text-xs text-white/40">
-                    {fields.length} field{fields.length !== 1 ? "s" : ""}
+                    {t("wizard.fields.list.fieldCount", {count: fields.length})}
                 </p>
                 <button
                     onClick={onAdd}
                     className="flex items-center gap-1 rounded-lg bg-indigo-600/20 px-2.5 py-1 text-[11px] font-medium text-indigo-400 transition-colors hover:bg-indigo-600/30 hover:text-indigo-300"
                 >
                     <FiPlus size={11}/>
-                    Add field
+                    {t("wizard.fields.list.addField")}
                 </button>
             </div>
 
@@ -400,9 +404,9 @@ function FieldList({
                             {/* Label */}
                             <div className="flex-1 min-w-0">
                                 <p className="truncate text-xs font-medium text-white leading-tight">
-                                    {field.label || <span className="italic text-white/25">Untitled</span>}
+                                    {field.label || <span className="italic text-white/25">{t("wizard.fields.list.untitled")}</span>}
                                 </p>
-                                <p className="text-[10px] text-white/30 leading-tight">{meta.label}</p>
+                                <p className="text-[10px] text-white/30 leading-tight">{t(meta.labelKey)}</p>
                             </div>
 
                             {/* Required dot */}
@@ -441,6 +445,7 @@ function FieldList({
 // ── Empty editor state ─────────────────────────────────────────────────────
 
 function EmptyEditor({onAddClick, hasFields}: { onAddClick: () => void; hasFields: boolean }) {
+    const {t} = useTranslation();
     return (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
             <div
@@ -449,12 +454,12 @@ function EmptyEditor({onAddClick, hasFields}: { onAddClick: () => void; hasField
             </div>
             <div>
                 <p className="text-sm font-medium text-white/35">
-                    {hasFields ? "Select a field to edit" : "No fields yet"}
+                    {hasFields ? t("wizard.fields.empty.selectField") : t("wizard.fields.empty.noFields")}
                 </p>
                 <p className="mt-1 text-xs text-white/20">
                     {hasFields
-                        ? "Click any field on the left to configure it"
-                        : "Add your first field to start building the form"}
+                        ? t("wizard.fields.empty.clickToEdit")
+                        : t("wizard.fields.empty.addFirst")}
                 </p>
             </div>
             {!hasFields && (
@@ -463,7 +468,7 @@ function EmptyEditor({onAddClick, hasFields}: { onAddClick: () => void; hasField
                     className="mt-1 flex items-center gap-1.5 rounded-xl bg-indigo-600/20 px-4 py-2 text-sm text-indigo-400 transition-colors hover:bg-indigo-600/30 hover:text-indigo-300"
                 >
                     <FiPlus size={13}/>
-                    Add first field
+                    {t("wizard.fields.empty.addFirstBtn")}
                 </button>
             )}
         </div>
@@ -480,6 +485,7 @@ interface FieldEditorProps {
 }
 
 function FieldEditor({field, onUpdate, onDelete, onDuplicate}: FieldEditorProps) {
+    const {t} = useTranslation();
     const [typePickerOpen, setTypePickerOpen] = useState(false);
 
     const meta = TYPE_META[field.type];
@@ -494,6 +500,25 @@ function FieldEditor({field, onUpdate, onDelete, onDuplicate}: FieldEditorProps)
     const inputCls =
         "w-full rounded-xl border border-white/[0.09] bg-white/[0.05] px-3 py-2.5 text-sm text-white placeholder-white/25 outline-none transition-colors focus:border-indigo-500/60 focus:bg-white/[0.07]";
 
+    const placeholderForType = () => {
+        switch (field.type) {
+            case "EMAIL": return t("wizard.fields.editor.placeholderEmail");
+            case "URL": return t("wizard.fields.editor.placeholderUrl");
+            case "PHONE": return t("wizard.fields.editor.placeholderPhone");
+            case "NUMBER": return t("wizard.fields.editor.placeholderNumber");
+            case "TEXTAREA": return t("wizard.fields.editor.placeholderTextarea");
+            default: return t("wizard.fields.editor.placeholderDefault");
+        }
+    };
+
+    const dateTimeInfo = () => {
+        switch (field.type) {
+            case "DATE": return t("wizard.fields.editor.dateInfo");
+            case "TIME": return t("wizard.fields.editor.timeInfo");
+            default: return t("wizard.fields.editor.datetimeInfo");
+        }
+    };
+
     return (
         <div className="flex h-full flex-col">
             {/* Editor header */}
@@ -502,7 +527,7 @@ function FieldEditor({field, onUpdate, onDelete, onDuplicate}: FieldEditorProps)
                     <div className={`flex h-6 w-6 items-center justify-center rounded-md ${meta.iconCls}`}>
                         <Icon size={12}/>
                     </div>
-                    <p className="text-xs font-medium text-white/60">{meta.label}</p>
+                    <p className="text-xs font-medium text-white/60">{t(meta.labelKey)}</p>
                 </div>
                 <div className="flex items-center gap-1">
                     <button
@@ -526,38 +551,38 @@ function FieldEditor({field, onUpdate, onDelete, onDuplicate}: FieldEditorProps)
             <div className="flex-1 overflow-y-auto p-5 space-y-6">
 
                 {/* ─ Section: Content ─────────────────────────────── */}
-                <EditorSection label="Content">
+                <EditorSection label={t("wizard.fields.editor.sectionContent")}>
                     <EditorField
-                        label="Label"
+                        label={t("wizard.fields.editor.label")}
                         required
-                        hint="The question or title shown to the user"
+                        hint={t("wizard.fields.editor.labelHint")}
                     >
                         <input
                             type="text"
                             value={field.label}
                             onChange={e => onUpdate({label: e.target.value})}
-                            placeholder="e.g. Full Name, Age, Reason for applying…"
+                            placeholder={t("wizard.fields.editor.labelPlaceholder")}
                             className={inputCls}
                             autoFocus
                         />
                     </EditorField>
 
                     <EditorField
-                        label="Helper text"
-                        hint="Shown below the field as additional guidance"
+                        label={t("wizard.fields.editor.helperText")}
+                        hint={t("wizard.fields.editor.helperTextHint")}
                     >
                         <input
                             type="text"
                             value={field.description ?? ""}
                             onChange={e => onUpdate({description: e.target.value || undefined})}
-                            placeholder="e.g. Enter your in-game nickname exactly as shown"
+                            placeholder={t("wizard.fields.editor.helperTextPlaceholder")}
                             className={inputCls}
                         />
                     </EditorField>
                 </EditorSection>
 
                 {/* ─ Section: Type ────────────────────────────────── */}
-                <EditorSection label="Field Type">
+                <EditorSection label={t("wizard.fields.editor.sectionType")}>
                     <div>
                         {/* Type toggle button */}
                         <button
@@ -569,8 +594,8 @@ function FieldEditor({field, onUpdate, onDelete, onDuplicate}: FieldEditorProps)
                                 <Icon size={14}/>
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-white">{meta.label}</p>
-                                <p className="text-[11px] text-white/30">{meta.desc}</p>
+                                <p className="text-sm font-medium text-white">{t(meta.labelKey)}</p>
+                                <p className="text-[11px] text-white/30">{t(meta.descKey)}</p>
                             </div>
                             <FiChevronDown
                                 size={13}
@@ -593,7 +618,7 @@ function FieldEditor({field, onUpdate, onDelete, onDuplicate}: FieldEditorProps)
                                         {TYPE_GROUPS.map(group => (
                                             <div key={group.id}>
                                                 <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-white/25">
-                                                    {group.label}
+                                                    {t(group.labelKey)}
                                                 </p>
                                                 <div className="grid grid-cols-3 gap-1">
                                                     {group.types.map(type => {
@@ -623,7 +648,7 @@ function FieldEditor({field, onUpdate, onDelete, onDuplicate}: FieldEditorProps)
                                                                     className={`flex h-5 w-5 items-center justify-center rounded-md ${m.iconCls}`}>
                                                                     <TIcon size={10}/>
                                                                 </div>
-                                                                <p className="text-[10px] font-medium text-white leading-tight">{m.label}</p>
+                                                                <p className="text-[10px] font-medium text-white leading-tight">{t(m.labelKey)}</p>
                                                             </button>
                                                         );
                                                     })}
@@ -639,26 +664,19 @@ function FieldEditor({field, onUpdate, onDelete, onDuplicate}: FieldEditorProps)
 
                 {/* ─ Section: Parameters (type-specific) ──────────── */}
                 {(hasPlaceholder || hasMinMax || hasOptions || isBoolean || isDateTime) && (
-                    <EditorSection label="Parameters">
+                    <EditorSection label={t("wizard.fields.editor.sectionParameters")}>
 
                         {/* Placeholder */}
                         {hasPlaceholder && (
                             <EditorField
-                                label="Placeholder"
-                                hint="Hint text shown inside the empty input"
+                                label={t("wizard.fields.editor.placeholder")}
+                                hint={t("wizard.fields.editor.placeholderHint")}
                             >
                                 <input
                                     type="text"
                                     value={field.placeholder ?? ""}
                                     onChange={e => onUpdate({placeholder: e.target.value || undefined})}
-                                    placeholder={
-                                        field.type === "EMAIL" ? "e.g. user@example.com" :
-                                            field.type === "URL" ? "e.g. https://example.com" :
-                                                field.type === "PHONE" ? "e.g. +7 999 123-45-67" :
-                                                    field.type === "NUMBER" ? "e.g. 18" :
-                                                        field.type === "TEXTAREA" ? "Start typing here…" :
-                                                            "Hint text…"
-                                    }
+                                    placeholder={placeholderForType()}
                                     className={inputCls}
                                 />
                             </EditorField>
@@ -668,8 +686,8 @@ function FieldEditor({field, onUpdate, onDelete, onDuplicate}: FieldEditorProps)
                         {hasMinMax && (
                             <div className="grid grid-cols-2 gap-3">
                                 <EditorField
-                                    label={isNumber ? "Min value" : "Min length"}
-                                    hint={isNumber ? "Smallest allowed number" : "Min characters"}
+                                    label={isNumber ? t("wizard.fields.editor.minValue") : t("wizard.fields.editor.minLength")}
+                                    hint={isNumber ? t("wizard.fields.editor.minValueHint") : t("wizard.fields.editor.minLengthHint")}
                                 >
                                     <input
                                         type="number"
@@ -680,8 +698,8 @@ function FieldEditor({field, onUpdate, onDelete, onDuplicate}: FieldEditorProps)
                                     />
                                 </EditorField>
                                 <EditorField
-                                    label={isNumber ? "Max value" : "Max length"}
-                                    hint={isNumber ? "Largest allowed number" : "Max characters"}
+                                    label={isNumber ? t("wizard.fields.editor.maxValue") : t("wizard.fields.editor.maxLength")}
+                                    hint={isNumber ? t("wizard.fields.editor.maxValueHint") : t("wizard.fields.editor.maxLengthHint")}
                                 >
                                     <input
                                         type="number"
@@ -707,9 +725,7 @@ function FieldEditor({field, onUpdate, onDelete, onDuplicate}: FieldEditorProps)
                         {isBoolean && (
                             <div className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
                                 <p className="text-xs text-white/40 leading-relaxed">
-                                    Renders as a <span className="font-medium text-white/60">Yes / No</span> toggle
-                                    switch.
-                                    The user simply flips it on or off — no extra configuration needed.
+                                    {t("wizard.fields.editor.booleanInfo")}
                                 </p>
                             </div>
                         )}
@@ -718,11 +734,7 @@ function FieldEditor({field, onUpdate, onDelete, onDuplicate}: FieldEditorProps)
                         {isDateTime && (
                             <div className="rounded-xl border border-white/[0.07] bg-white/[0.02] p-4">
                                 <p className="text-xs text-white/40 leading-relaxed">
-                                    Renders as a native <span className="font-medium text-white/60">
-                                        {field.type === "DATE" ? "date picker" :
-                                            field.type === "TIME" ? "time picker" :
-                                                "date & time picker"}
-                                    </span>. The browser uses the user's locale format automatically.
+                                    {dateTimeInfo()}
                                 </p>
                             </div>
                         )}
@@ -730,7 +742,7 @@ function FieldEditor({field, onUpdate, onDelete, onDuplicate}: FieldEditorProps)
                 )}
 
                 {/* ─ Section: Validation ──────────────────────────── */}
-                <EditorSection label="Validation">
+                <EditorSection label={t("wizard.fields.editor.sectionValidation")}>
                     <label
                         className="flex cursor-pointer items-start gap-3 rounded-xl border border-white/[0.07] bg-white/[0.02] p-4 transition-colors hover:border-white/[0.14] hover:bg-white/[0.04]">
                         <div className="mt-0.5 flex-shrink-0">
@@ -746,9 +758,9 @@ function FieldEditor({field, onUpdate, onDelete, onDuplicate}: FieldEditorProps)
                             </div>
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-white">Required field</p>
+                            <p className="text-sm font-medium text-white">{t("wizard.fields.editor.requiredField")}</p>
                             <p className="mt-0.5 text-xs text-white/35">
-                                The form cannot be submitted if this field is left empty
+                                {t("wizard.fields.editor.requiredFieldHint")}
                             </p>
                         </div>
                     </label>
@@ -792,13 +804,6 @@ function EditorField({
 
 // ── Options Editor ─────────────────────────────────────────────────────────
 
-const CHOICE_HINTS: Partial<Record<FieldType, string>> = {
-    SELECT: "User picks exactly one — dropdown",
-    MULTI_SELECT: "User picks multiple — dropdown",
-    RADIO: "User picks one — all options visible",
-    CHECKBOX: "User picks multiple — all options visible",
-};
-
 function OptionsEditor({
                            options,
                            onChange,
@@ -808,6 +813,7 @@ function OptionsEditor({
     onChange: (opts: string[]) => void;
     fieldType: FieldType;
 }) {
+    const {t} = useTranslation();
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     const addOption = (afterIdx?: number) => {
@@ -828,27 +834,27 @@ function OptionsEditor({
 
     const moveOption = (i: number, dir: -1 | 1) => {
         const next = [...options];
-        const t = i + dir;
-        if (t < 0 || t >= next.length) return;
-        [next[i], next[t]] = [next[t], next[i]];
+        const swapIdx = i + dir;
+        if (swapIdx < 0 || swapIdx >= next.length) return;
+        [next[i], next[swapIdx]] = [next[swapIdx], next[i]];
         onChange(next);
-        setTimeout(() => inputRefs.current[t]?.focus(), 0);
+        setTimeout(() => inputRefs.current[swapIdx]?.focus(), 0);
     };
 
     return (
         <div>
             <div className="mb-2 flex items-center justify-between gap-2">
                 <p className="text-xs font-medium text-white/55">
-                    Options <span className="text-red-400">*</span>
+                    {t("wizard.fields.options.label")} <span className="text-red-400">*</span>
                 </p>
-                {CHOICE_HINTS[fieldType] && (
-                    <p className="text-[10px] text-white/25">{CHOICE_HINTS[fieldType]}</p>
+                {HAS_CHOICE_HINT.includes(fieldType) && (
+                    <p className="text-[10px] text-white/25">{t(`wizard.fields.choiceHints.${fieldType}`)}</p>
                 )}
             </div>
 
             {options.length === 0 && (
                 <p className="mb-2 text-[11px] text-amber-400/70">
-                    ⚠ Add at least one option before saving
+                    {t("wizard.fields.options.addAtLeastOne")}
                 </p>
             )}
 
@@ -884,7 +890,7 @@ function OptionsEditor({
                                     removeOption(i);
                                 }
                             }}
-                            placeholder={`Option ${i + 1}`}
+                            placeholder={t("wizard.fields.options.optionPlaceholder", {n: i + 1})}
                             className="flex-1 rounded-lg border border-white/[0.09] bg-white/[0.05] px-3 py-1.5 text-sm text-white placeholder-white/20 outline-none transition-colors focus:border-indigo-500/60"
                         />
 
@@ -902,8 +908,8 @@ function OptionsEditor({
                 className="flex items-center gap-1 text-xs text-indigo-400 transition-colors hover:text-indigo-300"
             >
                 <FiPlus size={11}/>
-                Add option
-                <span className="ml-1 text-[10px] text-white/20">· or press Enter in a field</span>
+                {t("wizard.fields.options.add")}
+                <span className="ml-1 text-[10px] text-white/20">{t("wizard.fields.options.addHint")}</span>
             </button>
         </div>
     );

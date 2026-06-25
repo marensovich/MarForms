@@ -1,6 +1,7 @@
 import {type ReactNode} from "react";
 import {motion} from "framer-motion";
 import {FiX} from "react-icons/fi";
+import {useTranslation} from "react-i18next";
 
 export function TabSkeleton({rows = 5}: { rows?: number }) {
     return (
@@ -187,6 +188,7 @@ export function ConfirmModal({
     onConfirm: () => void;
     onCancel: () => void;
 }) {
+    const {t} = useTranslation();
     const btnCls =
         confirmColor === "red"
             ? "bg-red-600 hover:bg-red-500 text-white"
@@ -200,7 +202,7 @@ export function ConfirmModal({
                     onClick={onCancel}
                     className="rounded-lg border border-white/[0.12] px-4 py-2 text-sm text-white/60 transition-colors hover:text-white"
                 >
-                    Cancel
+                    {t("common.cancel")}
                 </button>
                 <button
                     onClick={onConfirm}

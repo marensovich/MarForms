@@ -11,24 +11,25 @@ import UsersTab from "../components/dashboard/UsersTab.tsx";
 import RolesTab from "../components/dashboard/RolesTab.tsx";
 import ResponsesTab from "../components/dashboard/ResponsesTab.tsx";
 import {FiActivity, FiFileText, FiInbox, FiList, FiSettings, FiShield, FiUsers,} from "react-icons/fi";
+import {useTranslation} from "react-i18next";
 
 const TABS = [
-    {id: "forms", label: "Forms", icon: FiFileText, permission: "FORMS_MANAGE"},
-    {id: "responses", label: "Responses", icon: FiInbox, permission: "RESPONSES_MANAGE"},
-    {id: "users", label: "Users", icon: FiUsers, permission: "USERS_MODERATE"},
-    {id: "roles", label: "Roles", icon: FiShield, permission: "ROLES_MANAGE"},
-    {id: "logs", label: "Logs", icon: FiList, permission: "SYSTEM_ADMIN"},
-    {id: "system", label: "System", icon: FiActivity, permission: "SYSTEM_ADMIN"},
-    {id: "settings", label: "Settings", icon: FiSettings, permission: "SYSTEM_ADMIN"},
+    {id: "forms", labelKey: "nav.forms", icon: FiFileText, permission: "FORMS_MANAGE"},
+    {id: "responses", labelKey: "nav.responses", icon: FiInbox, permission: "RESPONSES_MANAGE"},
+    {id: "users", labelKey: "nav.users", icon: FiUsers, permission: "USERS_MODERATE"},
+    {id: "roles", labelKey: "nav.roles", icon: FiShield, permission: "ROLES_MANAGE"},
+    {id: "logs", labelKey: "nav.logs", icon: FiList, permission: "SYSTEM_ADMIN"},
+    {id: "system", labelKey: "nav.system", icon: FiActivity, permission: "SYSTEM_ADMIN"},
+    {id: "settings", labelKey: "nav.settings", icon: FiSettings, permission: "SYSTEM_ADMIN"},
 ] as const;
 
 type Tab = typeof TABS[number]["id"];
 
-function getAdminLevel(permissions: string[]): string {
-    if (permissions.includes("SYSTEM_ADMIN")) return "System Admin";
-    if (permissions.includes("ROLES_MANAGE")) return "Admin";
-    if (permissions.includes("USERS_MODERATE")) return "Moderator";
-    return "Staff";
+function getAdminLevelKey(permissions: string[]): string {
+    if (permissions.includes("SYSTEM_ADMIN")) return "adminLevel.systemAdmin";
+    if (permissions.includes("ROLES_MANAGE")) return "adminLevel.admin";
+    if (permissions.includes("USERS_MODERATE")) return "adminLevel.moderator";
+    return "adminLevel.staff";
 }
 
 function Initials({name}: { name: string }) {
@@ -46,13 +47,14 @@ function Initials({name}: { name: string }) {
 
 export default function DashboardPage() {
     const {user} = useAuth();
+    const {t} = useTranslation();
     const [activeTab, setActiveTab] = useState<Tab>("forms");
 
     const hasDashboardAccess = user?.permissions.includes("DASHBOARD_ACCESS") ?? false;
     if (!hasDashboardAccess) return <Navigate to="/" replace/>;
 
     const visibleTabs = TABS.filter(tab => user?.permissions.includes(tab.permission));
-    const adminLevel = getAdminLevel(user?.permissions ?? []);
+    const adminLevelKey = getAdminLevelKey(user?.permissions ?? []);
 
     return (
         <div className="relative min-h-screen w-full overflow-hidden bg-[#0f0f1c]">
@@ -67,14 +69,14 @@ export default function DashboardPage() {
                              className="h-8 w-8 flex-shrink-0 rounded-lg object-cover shadow-lg shadow-indigo-500/20"/>
                         <div className="min-w-0">
                             <p className="truncate text-sm font-semibold text-white">MarForms</p>
-                            <p className="text-[10px] text-white/50">Dashboard</p>
+                            <p className="text-[10px] text-white/50">{t("nav.dashboard")}</p>
                         </div>
                     </div>
 
                     {/* Nav */}
                     <nav className="flex flex-col gap-0.5 p-3 pt-4">
                         <p className="mb-2 px-2 text-[10px] font-semibold uppercase tracking-widest text-white/40">
-                            Navigation
+                            {t("nav.navigation")}
                         </p>
                         {visibleTabs.map(tab => {
                             const active = activeTab === tab.id;
@@ -96,7 +98,7 @@ export default function DashboardPage() {
                                         />
                                     )}
                                     <Icon size={15} className="flex-shrink-0"/>
-                                    <span className="font-medium">{tab.label}</span>
+                                    <span className="font-medium">{t(tab.labelKey)}</span>
                                 </button>
                             );
                         })}
@@ -108,9 +110,9 @@ export default function DashboardPage() {
                             <Initials name={user?.discordUsername ?? "?"}/>
                             <div className="min-w-0 flex-1">
                                 <p className="truncate text-xs font-medium text-white/90">
-                                    {user?.discordUsername ?? "Unknown"}
+                                    {user?.discordUsername ?? t("common.unknown")}
                                 </p>
-                                <p className="text-[10px] text-white/50">{adminLevel}</p>
+                                <p className="text-[10px] text-white/50">{t(adminLevelKey)}</p>
                             </div>
                             <div
                                 className="h-2 w-2 flex-shrink-0 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50"
@@ -125,9 +127,9 @@ export default function DashboardPage() {
                     <div
                         className="sticky top-0 z-20 flex h-14 items-center border-b border-white/[0.10] bg-[#0f0f1c]/90 px-8 backdrop-blur-md">
                         <div className="flex items-center gap-2 text-sm">
-                            <span className="text-white/50">Dashboard</span>
+                            <span className="text-white/50">{t("nav.dashboard")}</span>
                             <span className="text-white/40">/</span>
-                            <span className="font-medium text-white/70 capitalize">{activeTab}</span>
+                            <span className="font-medium text-white/70">{t(visibleTabs.find(t => t.id === activeTab)?.labelKey ?? "nav.forms")}</span>
                         </div>
                     </div>
 

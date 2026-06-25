@@ -1,5 +1,6 @@
 import {useEffect, useState} from "react";
 import {motion} from "framer-motion";
+import {useTranslation} from "react-i18next";
 import {FiAlertCircle, FiCheckCircle, FiEdit3, FiFileText, FiLink, FiLoader, FiSave, FiX,} from "react-icons/fi";
 import type {DashboardForm, UpdateFormPayload} from "../../../api/dashboard";
 import {getForm, updateForm} from "../../../api/dashboard";
@@ -23,6 +24,7 @@ function inputCls(error?: boolean) {
 }
 
 export default function FormEditModal({form, onClose, onUpdated}: Props) {
+    const {t} = useTranslation();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
@@ -42,7 +44,7 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
                 setDescription(def.schema.description ?? "");
                 setWebhooks(def.webhooks ?? []);
             })
-            .catch(() => setError("Failed to load form data."))
+            .catch(() => setError(t("formEdit.loadError")))
             .finally(() => setLoading(false));
     }, [form.id]);
 
@@ -65,17 +67,17 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
             setTimeout(() => setSaved(false), 3000);
             onUpdated();
         } catch (e) {
-            setError(e instanceof Error ? e.message : "Save failed.");
+            setError(e instanceof Error ? e.message : t("formEdit.saveError"));
         } finally {
             setSaving(false);
         }
     };
 
     const tabs: { id: Tab; label: string; icon: React.ReactNode; count?: number }[] = [
-        {id: "basic", label: "Basic Info", icon: <FiFileText size={13}/>},
+        {id: "basic", label: t("formEdit.tabs.basicInfo"), icon: <FiFileText size={13}/>},
         {
             id: "webhooks",
-            label: "Webhooks",
+            label: t("formEdit.tabs.webhooks"),
             icon: <FiLink size={13}/>,
             count: webhooks.filter(w => w.url.trim()).length
         },
@@ -100,7 +102,7 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
                                 <FiEdit3 size={14} className="text-indigo-400"/>
                             </div>
                             <div>
-                                <p className="text-sm font-semibold text-white">Edit Form</p>
+                                <p className="text-sm font-semibold text-white">{t("formEdit.title")}</p>
                                 <p className="text-xs text-white/35 font-mono">{form.id.slice(0, 8)}…</p>
                             </div>
                         </div>
@@ -114,22 +116,22 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
 
                     {/* Tabs */}
                     <div className="mt-4 flex gap-1">
-                        {tabs.map(t => (
+                        {tabs.map(tabItem => (
                             <button
-                                key={t.id}
-                                onClick={() => setTab(t.id)}
+                                key={tabItem.id}
+                                onClick={() => setTab(tabItem.id)}
                                 className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                                    tab === t.id
+                                    tab === tabItem.id
                                         ? "bg-white/[0.08] text-white"
                                         : "text-white/35 hover:text-white/60"
                                 }`}
                             >
-                                {t.icon}
-                                {t.label}
-                                {t.count !== undefined && t.count > 0 && (
+                                {tabItem.icon}
+                                {tabItem.label}
+                                {tabItem.count !== undefined && tabItem.count > 0 && (
                                     <span
                                         className="rounded-full bg-indigo-500/20 px-1.5 py-0.5 text-[10px] text-indigo-300">
-                                        {t.count}
+                                        {tabItem.count}
                                     </span>
                                 )}
                             </button>
@@ -153,27 +155,27 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
                             {tab === "basic" && (
                                 <div className="flex flex-col gap-4">
                                     <label className="flex flex-col gap-1.5">
-                                        <span className="text-xs font-medium text-white/50">Form title</span>
+                                        <span className="text-xs font-medium text-white/50">{t("formEdit.formTitle")}</span>
                                         <input
                                             type="text"
                                             value={title}
                                             onChange={e => setTitle(e.target.value)}
-                                            placeholder="Enter form title"
+                                            placeholder={t("formEdit.titlePlaceholder")}
                                             className={inputCls(!title.trim())}
                                         />
                                         {!title.trim() && (
                                             <p className="flex items-center gap-1 text-[11px] text-red-400">
-                                                <FiAlertCircle size={10}/> Title is required
+                                                <FiAlertCircle size={10}/> {t("formEdit.titleRequired")}
                                             </p>
                                         )}
                                     </label>
 
                                     <label className="flex flex-col gap-1.5">
-                                        <span className="text-xs font-medium text-white/50">Description</span>
+                                        <span className="text-xs font-medium text-white/50">{t("formEdit.description")}</span>
                                         <textarea
                                             value={description}
                                             onChange={e => setDescription(e.target.value)}
-                                            placeholder="Optional form description"
+                                            placeholder={t("formEdit.descPlaceholder")}
                                             rows={4}
                                             className={`${inputCls()} resize-none`}
                                         />
@@ -182,7 +184,7 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
                                     {definition && (
                                         <div
                                             className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3">
-                                            <p className="text-xs font-medium text-white/35 mb-2">Fields</p>
+                                            <p className="text-xs font-medium text-white/35 mb-2">{t("formEdit.fields")}</p>
                                             <div className="flex flex-col gap-1.5">
                                                 {definition.schema.fields.map(f => (
                                                     <div key={f.id}
@@ -197,8 +199,7 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
                                                 ))}
                                             </div>
                                             <p className="mt-2.5 text-[11px] text-white/20">
-                                                Field editing is not yet supported — recreate the form to change field
-                                                structure.
+                                                {t("formEdit.fieldEditNote")}
                                             </p>
                                         </div>
                                     )}
@@ -230,7 +231,7 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
                         onClick={onClose}
                         className="rounded-xl border border-white/[0.09] px-4 py-2 text-sm text-white/40 transition-colors hover:border-white/20 hover:text-white"
                     >
-                        Cancel
+                        {t("common.cancel")}
                     </button>
 
                     <div className="flex items-center gap-3">
@@ -241,7 +242,7 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
                         )}
                         {saved && (
                             <div className="flex items-center gap-1.5 text-xs text-emerald-400">
-                                <FiCheckCircle size={12}/>Saved
+                                <FiCheckCircle size={12}/>{t("formEdit.saved")}
                             </div>
                         )}
                         <button
@@ -250,8 +251,8 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
                             className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/20 transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                             {saving
-                                ? <><FiLoader size={13} className="animate-spin"/>Saving…</>
-                                : <><FiSave size={13}/>Save changes</>
+                                ? <><FiLoader size={13} className="animate-spin"/>{t("formEdit.saving")}</>
+                                : <><FiSave size={13}/>{t("formEdit.save")}</>
                             }
                         </button>
                     </div>

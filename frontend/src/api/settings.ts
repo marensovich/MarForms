@@ -4,6 +4,7 @@ export interface PublicSettings {
     banMessage: string;
     banAdminContact: string;
     systemName: string;
+    uiLanguage: string;
 }
 
 export interface SystemSettings extends PublicSettings {
@@ -20,6 +21,7 @@ export interface SystemSettings extends PublicSettings {
     globalEmbedImage: string;
     globalEmbedFooterText: string;
     globalEmbedFooterIcon: string;
+    uiLanguage: string;
 }
 
 export function fetchPublicSettings(): Promise<PublicSettings> {
@@ -51,6 +53,7 @@ export function updateSettings(payload: Partial<SystemSettings>): Promise<System
             "global.embed.image": payload.globalEmbedImage,
             "global.embed.footer.text": payload.globalEmbedFooterText,
             "global.embed.footer.icon": payload.globalEmbedFooterIcon,
+            "ui.language": payload.uiLanguage,
         },
     });
 }
