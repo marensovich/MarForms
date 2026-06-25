@@ -9,6 +9,9 @@ import lombok.NoArgsConstructor;
  * Contains settings for sending form submission notifications to Discord
  * via webhooks. Supports custom bot names, avatars, embeds, and message content.
  * </p>
+ * <p>
+ * All text fields support variable substitution for dynamic content.
+ * </p>
  *
  * @author marensovich
  * @version v.0.1
@@ -19,10 +22,10 @@ import lombok.NoArgsConstructor;
 public class WebhookConfig {
 
     /**
-     * The Discord webhook URL.
+     * Discord webhook URL.
      * <p>
-     * This is the endpoint where the webhook message will be sent.
-     * Format: {@code https://discord.com/api/webhooks/{webhookId}/{webhookToken}}
+     * Required field. Format:
+     * {@code https://discord.com/api/webhooks/{webhookId}/{webhookToken}}
      * </p>
      *
      * @since v.0.1
@@ -30,10 +33,10 @@ public class WebhookConfig {
     private String url;
 
     /**
-     * The display name of the bot that sends the webhook message.
+     * Bot display name override.
      * <p>
-     * Overrides the default webhook name. If not set, the webhook's
-     * default name from Discord will be used.
+     * If not set, the webhook's default name from Discord will be used.
+     * Supports variable substitution.
      * </p>
      *
      * @since v.0.1
@@ -41,9 +44,10 @@ public class WebhookConfig {
     private String botName;
 
     /**
-     * The URL of the avatar image for the bot.
+     * Bot avatar URL override.
      * <p>
-     * Overrides the default webhook avatar. Must be a valid image URL.
+     * If not set, the webhook's default avatar from Discord will be used.
+     * Must be a valid image URL.
      * </p>
      *
      * @since v.0.1
@@ -51,9 +55,10 @@ public class WebhookConfig {
     private String avatarUrl;
 
     /**
-     * The plain text content of the webhook message.
+     * Plain-text content above the embed.
      * <p>
-     * Supports Discord markdown formatting and mention syntax.
+     * Supports Discord markdown formatting and @mentions.
+     * Supports variable substitution.
      * </p>
      *
      * @since v.0.1
@@ -61,9 +66,14 @@ public class WebhookConfig {
     private String content;
 
     /**
-     * The color of the embed sidebar in hexadecimal format (without #).
+     * Embed sidebar color as a decimal integer.
      * <p>
-     * Example: {@code 0x00FF00} for green, {@code 0xFF0000} for red.
+     * Examples:
+     * <ul>
+     *     <li>5793266 — blurple (Discord default)</li>
+     *     <li>65280 — green</li>
+     *     <li>16711680 — red</li>
+     * </ul>
      * </p>
      *
      * @since v.0.1
@@ -71,7 +81,11 @@ public class WebhookConfig {
     private Integer color;
 
     /**
-     * The title displayed at the top of the embed.
+     * Embed title override.
+     * <p>
+     * Defaults to the form title if not specified.
+     * Supports variable substitution.
+     * </p>
      *
      * @since v.0.1
      */
@@ -81,9 +95,68 @@ public class WebhookConfig {
      * The main description text of the embed.
      * <p>
      * Supports Discord markdown formatting and line breaks.
+     * Supports variable substitution.
      * </p>
      *
      * @since v.0.1
      */
     private String embedDescription;
+
+    /**
+     * Author name override.
+     * <p>
+     * Defaults to "Submitted by {username}" if not specified.
+     * Supports variable substitution.
+     * </p>
+     *
+     * @since v.0.1
+     */
+    private String authorName;
+
+    /**
+     * Icon URL shown next to the author name (small circle).
+     * <p>
+     * Must be a valid image URL.
+     * </p>
+     *
+     * @since v.0.1
+     */
+    private String authorIconUrl;
+
+    /**
+     * URL that makes the author name a clickable link.
+     *
+     * @since v.0.1
+     */
+    private String authorUrl;
+
+    /**
+     * Small thumbnail image in the top-right corner.
+     * <p>
+     * Must be a valid image URL.
+     * </p>
+     *
+     * @since v.0.1
+     */
+    private String thumbnailUrl;
+
+    /**
+     * Large image shown below the answer fields.
+     * <p>
+     * Must be a valid image URL.
+     * </p>
+     *
+     * @since v.0.1
+     */
+    private String imageUrl;
+
+    /**
+     * When {@code true}, answer fields are rendered side-by-side (inline).
+     * <p>
+     * When {@code false} or {@code null}, fields are rendered in full width.
+     * </p>
+     *
+     * @since v.0.1
+     */
+    private Boolean fieldsInline;
 }

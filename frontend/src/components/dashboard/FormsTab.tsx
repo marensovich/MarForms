@@ -12,10 +12,10 @@ import {
 import {type FormDefinition} from "../../types/forms";
 import {ActionBtn, Badge, ConfirmModal, EmptyState, Modal, StatsCard, TabSkeleton} from "./shared";
 import FormWizard from "./forms/FormWizard";
+import FormEditModal from "./forms/FormEditModal";
 import {
     FiCheck,
     FiCheckCircle,
-    FiClock,
     FiEdit3,
     FiFileText,
     FiInbox,
@@ -140,30 +140,6 @@ function ResponsesModal({
     );
 }
 
-function EditPlaceholderModal({form, onClose}: { form: DashboardForm; onClose: () => void }) {
-    return (
-        <Modal title="Edit Form" subtitle={form.title} onClose={onClose} width="max-w-sm">
-            <div className="flex flex-col items-center gap-4 py-4 text-center">
-                <div
-                    className="flex h-14 w-14 items-center justify-center rounded-2xl border border-indigo-500/20 bg-indigo-500/10">
-                    <FiEdit3 size={24} className="text-indigo-400"/>
-                </div>
-                <div>
-                    <p className="font-medium text-white">Form Editor</p>
-                    <p className="mt-1.5 text-sm leading-relaxed text-white/65">
-                        Full form editing is coming soon. You'll be able to modify fields,
-                        descriptions, and server settings without recreating the form.
-                    </p>
-                </div>
-                <div
-                    className="flex items-center gap-2 rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1.5">
-                    <FiClock size={12} className="text-orange-400"/>
-                    <span className="text-xs text-orange-400">In development</span>
-                </div>
-            </div>
-        </Modal>
-    );
-}
 
 export default function FormsTab() {
     const [forms, setForms] = useState<DashboardForm[]>([]);
@@ -396,7 +372,14 @@ export default function FormsTab() {
                     <ResponsesModal form={responsesForm} onClose={() => setResponsesForm(null)}/>
                 )}
                 {editForm && (
-                    <EditPlaceholderModal form={editForm} onClose={() => setEditForm(null)}/>
+                    <FormEditModal
+                        form={editForm}
+                        onClose={() => setEditForm(null)}
+                        onUpdated={() => {
+                            setEditForm(null);
+                            loadForms();
+                        }}
+                    />
                 )}
                 {deleteTarget && (
                     <ConfirmModal

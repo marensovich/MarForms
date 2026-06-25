@@ -1,5 +1,6 @@
 import SettingsTab from "../components/dashboard/SettingsTab";
 import SystemTab from "../components/dashboard/SystemTab";
+import LogsTab from "../components/dashboard/LogsTab";
 import {useAuth} from "../hooks/useAuth";
 import {useState} from "react";
 import {BackgroundGlow} from "../components/LoadingScreen.tsx";
@@ -9,13 +10,14 @@ import FormsTab from "../components/dashboard/FormsTab.tsx";
 import UsersTab from "../components/dashboard/UsersTab.tsx";
 import RolesTab from "../components/dashboard/RolesTab.tsx";
 import ResponsesTab from "../components/dashboard/ResponsesTab.tsx";
-import {FiActivity, FiFileText, FiInbox, FiSettings, FiShield, FiUsers,} from "react-icons/fi";
+import {FiActivity, FiFileText, FiInbox, FiList, FiSettings, FiShield, FiUsers,} from "react-icons/fi";
 
 const TABS = [
     {id: "forms", label: "Forms", icon: FiFileText, permission: "FORMS_MANAGE"},
     {id: "responses", label: "Responses", icon: FiInbox, permission: "RESPONSES_MANAGE"},
     {id: "users", label: "Users", icon: FiUsers, permission: "USERS_MODERATE"},
     {id: "roles", label: "Roles", icon: FiShield, permission: "ROLES_MANAGE"},
+    {id: "logs", label: "Logs", icon: FiList, permission: "SYSTEM_ADMIN"},
     {id: "system", label: "System", icon: FiActivity, permission: "SYSTEM_ADMIN"},
     {id: "settings", label: "Settings", icon: FiSettings, permission: "SYSTEM_ADMIN"},
 ] as const;
@@ -142,6 +144,7 @@ export default function DashboardPage() {
                                 {activeTab === "responses" && <ResponsesTab/>}
                                 {activeTab === "users" && <UsersTab/>}
                                 {activeTab === "roles" && <RolesTab/>}
+                                {activeTab === "logs" && <LogsTab/>}
                                 {activeTab === "system" && <SystemTab/>}
                                 {activeTab === "settings" && <SettingsTab/>}
                             </motion.div>

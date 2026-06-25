@@ -43,6 +43,7 @@ export interface FormDefinition {
     serverId: number;
     channelsIds: number[];
     schema: FormSchema;
+    webhooks: WebhookConfig[];
     active: boolean;
     createdAt: string;
     createdByDiscordId?: string;
@@ -53,10 +54,21 @@ export type FormAnswers = Record<string, string | boolean | number | string[]>;
 
 export interface WebhookConfig {
     url: string;
+    // Message-level
     botName?: string;
     avatarUrl?: string;
     content?: string;
+    // Embed: header
     color?: number;
     embedTitle?: string;
     embedDescription?: string;
+    // Embed: author
+    authorName?: string;
+    authorIconUrl?: string;
+    authorUrl?: string;
+    // Embed: images
+    thumbnailUrl?: string;
+    imageUrl?: string;
+    // Embed: fields display
+    fieldsInline?: boolean;
 }

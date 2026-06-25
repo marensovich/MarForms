@@ -144,7 +144,7 @@ export default function FormWizard({onClose, onCreated}: Props) {
                 </div>
 
                 {/* ── Step content ────────────────────────────────────── */}
-                <div className="flex-1 min-h-0 overflow-hidden">
+                <div className="flex-1 min-h-0 overflow-x-hidden">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={step}
@@ -152,10 +152,10 @@ export default function FormWizard({onClose, onCreated}: Props) {
                             animate={{opacity: 1, x: 0}}
                             exit={{opacity: 0, x: -12}}
                             transition={{duration: 0.16}}
-                            className="h-full"
+                            className="h-full flex flex-col"
                         >
                             {step === 1 && (
-                                <div className="h-full overflow-y-auto p-6">
+                                <div className="flex-1 min-h-0 overflow-y-auto p-6">
                                     <StepBasicInfo draft={draft} onChange={updateDraft}/>
                                 </div>
                             )}
@@ -163,12 +163,12 @@ export default function FormWizard({onClose, onCreated}: Props) {
                                 <StepFields draft={draft} onChange={updateDraft}/>
                             )}
                             {step === 3 && (
-                                <div className="h-full overflow-y-auto p-6">
+                                <div className="flex-1 min-h-0 overflow-y-auto p-6">
                                     <StepServerSettings draft={draft} onChange={updateDraft}/>
                                 </div>
                             )}
                             {step === 4 && (
-                                <div className="h-full overflow-y-auto p-6">
+                                <div className="flex-1 min-h-0 overflow-y-auto p-6">
                                     <StepWebhooks draft={draft} onChange={updateDraft}/>
                                 </div>
                             )}

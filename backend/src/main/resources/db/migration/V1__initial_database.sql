@@ -37,11 +37,11 @@ CREATE TABLE settings
 
 CREATE TABLE submission
 (
-    id         UUID                        NOT NULL,
-    form_id    UUID                        NOT NULL,
-    discord_id BIGINT                      NOT NULL,
-    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    answers    JSONB                       NOT NULL,
+    id                  UUID                        NOT NULL,
+    form_id             UUID                        NOT NULL,
+    discord_id          BIGINT                      NOT NULL,
+    created_at          TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    answers             JSONB                       NOT NULL,
     webhook_message_ids JSONB,
     CONSTRAINT pk_submission PRIMARY KEY (id)
 );
@@ -69,6 +69,25 @@ CREATE TABLE users
     banned_until       TIMESTAMP WITHOUT TIME ZONE,
     CONSTRAINT pk_users PRIMARY KEY (id)
 );
+
+CREATE TABLE audit_log
+(
+    id               UUID                        NOT NULL,
+    action           VARCHAR(50)                 NOT NULL,
+    actor_discord_id BIGINT,
+    actor_username   VARCHAR(255),
+    target_id        VARCHAR(255),
+    target_name      VARCHAR(255),
+    details          TEXT,
+    created_at       TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    CONSTRAINT pk_audit_log PRIMARY KEY (id)
+);
+
+CREATE INDEX idx_audit_log_action ON audit_log (action);
+
+CREATE INDEX idx_audit_log_created_at ON audit_log (created_at DESC);
+
+CREATE INDEX idx_audit_log_actor ON audit_log (actor_discord_id);
 
 ALTER TABLE roles
     ADD CONSTRAINT uc_roles_name UNIQUE (name);

@@ -1,7 +1,9 @@
 package me.marensovich.gta5rpformapp.backend.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.marensovich.gta5rpformapp.backend.data.forms.WebhookConfig;
+import me.marensovich.gta5rpformapp.backend.data.settings.SystemSettings;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -10,18 +12,25 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Service for sending Discord webhook notifications for form submissions
- * and deleting those messages when a submission is removed.
+ * Sends Discord webhook notifications for form submissions and deletes them on removal.
+ * <p>
+ * Each submission produces a message with <b>two embeds</b>:
+ * <ol>
+ *   <li>The form-answers embed — configured per-webhook on the form.</li>
+ *   <li>The global branding embed — configured in the admin panel settings
+ *       ({@code global.embed.*} keys). Omitted when no branding fields are set.</li>
+ * </ol>
+ * Both embeds support template variables (see {@link #buildVars}).
+ * </p>
  *
  * @author marensovich
  * @version v.0.1
@@ -29,41 +38,48 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class WebhookService {
 
     private static final int DEFAULT_COLOR = 5793266;
 
-    /** Matches {@code https://discord.com/api/webhooks/{id}/{token}} */
+    /**
+     * Matches {@code https://discord.com/api/webhooks/{id}/{token}}
+     */
     private static final Pattern WEBHOOK_URL_PATTERN =
             Pattern.compile("https://discord\\.com/api/webhooks/(\\d+)/([^/?]+)");
 
+    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
+
+    private final SettingsService settingsService;
     private final RestTemplate restTemplate = new RestTemplate();
 
     /**
-     * Sends a notification to every configured webhook for a form submission.
-     * <p>
-     * Posts with {@code ?wait=true} so Discord returns the created message object,
-     * allowing the returned message IDs to be stored for later deletion.
-     * </p>
+     * Sends form-submission notifications to all configured webhooks.
+     * Posts with {@code ?wait=true} to capture Discord message IDs for later deletion.
      *
-     * @param form            the form that was submitted
-     * @param answers         the submitted answers
-     * @param discordUsername the Discord username of the submitter (may be null)
-     * @return map of webhook URL → Discord message ID for every successfully delivered webhook
+     * @param form            the submitted form
+     * @param answers         raw answer map
+     * @param discordUsername username of the submitter (may be null)
+     * @param discordId       Discord snowflake of the submitter (may be null)
+     * @param submissionId    UUID of the newly created submission
+     * @return map of webhook-URL → Discord message ID for every successfully delivered message
      * @since v.0.1
      */
     public Map<String, String> sendSubmissionNotifications(Form form, Map<String, Object> answers,
-                                                           String discordUsername) {
+                                                           String discordUsername, Long discordId,
+                                                           UUID submissionId) {
         Map<String, String> messageIds = new LinkedHashMap<>();
         if (form.getWebhooks() == null || form.getWebhooks().isEmpty()) return messageIds;
+
+        Map<String, String> vars = buildVars(form, discordId, discordUsername, submissionId);
 
         for (WebhookConfig webhook : form.getWebhooks()) {
             if (webhook.getUrl() == null || webhook.getUrl().isBlank()) continue;
             try {
-                String messageId = dispatch(form, answers, discordUsername, webhook);
-                if (messageId != null) {
-                    messageIds.put(webhook.getUrl(), messageId);
-                }
+                String messageId = dispatch(form, answers, discordUsername, webhook, vars);
+                if (messageId != null) messageIds.put(webhook.getUrl(), messageId);
             } catch (Exception e) {
                 log.warn("Webhook delivery failed [{}]: {}", webhook.getUrl(), e.getMessage());
             }
@@ -73,11 +89,7 @@ public class WebhookService {
 
     /**
      * Deletes Discord messages that were created by previous webhook deliveries.
-     * <p>
-     * Calls {@code DELETE /webhooks/{id}/{token}/messages/{message_id}} for each entry.
-     * Failures are logged but do not propagate — a missing Discord message must not
-     * block the submission from being deleted in the database.
-     * </p>
+     * Failures are logged but do not propagate.
      *
      * @param webhookMessageIds map of webhook URL → Discord message ID (stored on the submission)
      * @since v.0.1
@@ -107,25 +119,24 @@ public class WebhookService {
         }
     }
 
-    /**
-     * POSTs a single webhook payload to Discord with {@code ?wait=true} and returns
-     * the Discord message ID from the response body.
-     *
-     * @return the Discord message ID, or {@code null} if the response contained no id
-     */
     @SuppressWarnings("unchecked")
     private String dispatch(Form form, Map<String, Object> answers,
-                            String discordUsername, WebhookConfig cfg) {
+                            String discordUsername, WebhookConfig cfg,
+                            Map<String, String> vars) {
         Map<String, Object> payload = new LinkedHashMap<>();
-        if (hasText(cfg.getContent())) payload.put("content", cfg.getContent());
+        if (hasText(cfg.getContent())) payload.put("content", sub(cfg.getContent(), vars));
         if (hasText(cfg.getBotName())) payload.put("username", cfg.getBotName());
         if (hasText(cfg.getAvatarUrl())) payload.put("avatar_url", cfg.getAvatarUrl());
-        payload.put("embeds", List.of(buildEmbed(form, answers, discordUsername, cfg)));
+
+        List<Map<String, Object>> embeds = new ArrayList<>();
+        embeds.add(buildFormEmbed(form, answers, discordUsername, cfg, vars));
+        Map<String, Object> globalEmbed = buildGlobalEmbed(vars);
+        if (globalEmbed != null) embeds.add(globalEmbed);
+        payload.put("embeds", embeds);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // ?wait=true makes Discord return the full message object with id field
         String url = cfg.getUrl() + (cfg.getUrl().contains("?") ? "&wait=true" : "?wait=true");
         ResponseEntity<Map> response = restTemplate.postForEntity(
                 url, new HttpEntity<>(payload, headers), Map.class);
@@ -137,39 +148,41 @@ public class WebhookService {
     }
 
     /**
-     * Builds a Discord embed from the form submission data.
-     * <p>
-     * Creates an embed with:
-     * <ul>
-     *     <li>Title from the form schema or webhook config</li>
-     *     <li>Description from webhook config</li>
-     *     <li>Color from webhook config or default</li>
-     *     <li>Author with submitter's username</li>
-     *     <li>Fields for each form question/answer</li>
-     *     <li>Timestamp of the submission</li>
-     *     <li>Footer with "MarForms" branding</li>
-     * </ul>
-     * </p>
+     * Builds the per-webhook form-answers embed (first embed).
      *
-     * @param form            the form that was submitted
-     * @param answers         the submitted answers
-     * @param discordUsername the Discord username of the submitter
-     * @param cfg             the webhook configuration
+     * @param form            the submitted form
+     * @param answers         raw answer map
+     * @param discordUsername username of the submitter
+     * @param cfg             webhook configuration
+     * @param vars            variable substitution map
      * @return a {@link Map} representing the Discord embed
      * @since v.0.1
      */
-    private Map<String, Object> buildEmbed(Form form, Map<String, Object> answers,
-                                           String discordUsername, WebhookConfig cfg) {
+    private Map<String, Object> buildFormEmbed(Form form, Map<String, Object> answers,
+                                               String discordUsername, WebhookConfig cfg,
+                                               Map<String, String> vars) {
         Map<String, Object> embed = new LinkedHashMap<>();
-        embed.put("title", hasText(cfg.getEmbedTitle()) ? cfg.getEmbedTitle() : form.getSchema().getTitle());
-        if (hasText(cfg.getEmbedDescription())) embed.put("description", cfg.getEmbedDescription());
+
+        embed.put("title", hasText(cfg.getEmbedTitle())
+                ? sub(cfg.getEmbedTitle(), vars) : form.getSchema().getTitle());
+
+        if (hasText(cfg.getEmbedDescription()))
+            embed.put("description", sub(cfg.getEmbedDescription(), vars));
+
         embed.put("color", cfg.getColor() != null ? cfg.getColor() : DEFAULT_COLOR);
-        embed.put("timestamp", OffsetDateTime.now().toString());
 
         Map<String, String> author = new LinkedHashMap<>();
-        author.put("name", "Submitted by " + (discordUsername != null ? discordUsername : "Unknown"));
+        author.put("name", hasText(cfg.getAuthorName())
+                ? sub(cfg.getAuthorName(), vars)
+                : "Submitted by " + (discordUsername != null ? discordUsername : "Unknown"));
+        if (hasText(cfg.getAuthorIconUrl())) author.put("icon_url", cfg.getAuthorIconUrl());
+        if (hasText(cfg.getAuthorUrl())) author.put("url", cfg.getAuthorUrl());
         embed.put("author", author);
 
+        if (hasText(cfg.getThumbnailUrl()))
+            embed.put("thumbnail", Map.of("url", cfg.getThumbnailUrl()));
+
+        boolean inline = Boolean.TRUE.equals(cfg.getFieldsInline());
         List<Map<String, Object>> fields = new ArrayList<>();
         for (var field : form.getSchema().getFields()) {
             Object raw = answers.get(field.getId());
@@ -180,28 +193,157 @@ public class WebhookService {
             Map<String, Object> f = new LinkedHashMap<>();
             f.put("name", field.getLabel());
             f.put("value", value.length() > 1024 ? value.substring(0, 1021) + "…" : value);
-            f.put("inline", false);
+            f.put("inline", inline);
             fields.add(f);
         }
         embed.put("fields", fields);
 
-        Map<String, String> footer = new LinkedHashMap<>();
-        footer.put("text", "MarForms");
-        embed.put("footer", footer);
+        if (hasText(cfg.getImageUrl()))
+            embed.put("image", Map.of("url", cfg.getImageUrl()));
+
+        embed.put("timestamp", java.time.OffsetDateTime.now().toString());
 
         return embed;
     }
 
     /**
-     * Formats a field value for display in a Discord embed.
-     * <p>
-     * Supports:
+     * Builds the global branding embed (second embed) from panel settings.
+     * Returns {@code null} when no branding fields are configured — in that case the
+     * second embed is omitted entirely from the Discord message.
+     *
+     * @param vars variable substitution map
+     * @return a {@link Map} representing the global embed, or {@code null} if no fields are set
+     * @since v.0.1
+     */
+    private Map<String, Object> buildGlobalEmbed(Map<String, String> vars) {
+        String title = sub(settingsService.get(SystemSettings.KEY_G_TITLE, null), vars);
+        String desc = sub(settingsService.get(SystemSettings.KEY_G_DESC, null), vars);
+        String authorName = sub(settingsService.get(SystemSettings.KEY_G_AUTHOR_NAME, null), vars);
+        String authorIcon = settingsService.get(SystemSettings.KEY_G_AUTHOR_ICON, null);
+        String authorUrl = settingsService.get(SystemSettings.KEY_G_AUTHOR_URL, null);
+        String thumbnail = settingsService.get(SystemSettings.KEY_G_THUMBNAIL, null);
+        String image = settingsService.get(SystemSettings.KEY_G_IMAGE, null);
+        String footerText = sub(settingsService.get(SystemSettings.KEY_G_FOOTER_TEXT, null), vars);
+        String footerIcon = settingsService.get(SystemSettings.KEY_G_FOOTER_ICON, null);
+        String colorStr = settingsService.get(SystemSettings.KEY_G_COLOR, null);
+
+        if (!hasText(title) && !hasText(desc) && !hasText(authorName)
+                && !hasText(footerText) && !hasText(thumbnail) && !hasText(image)) {
+            return null;
+        }
+
+        Map<String, Object> embed = new LinkedHashMap<>();
+        if (hasText(title)) embed.put("title", title);
+        if (hasText(desc)) embed.put("description", desc);
+
+        if (hasText(colorStr)) {
+            try {
+                int color = colorStr.startsWith("#")
+                        ? Integer.parseInt(colorStr.substring(1), 16)
+                        : Integer.parseInt(colorStr);
+                embed.put("color", color);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        if (hasText(authorName)) {
+            Map<String, String> author = new LinkedHashMap<>();
+            author.put("name", authorName);
+            if (hasText(authorIcon)) author.put("icon_url", authorIcon);
+            if (hasText(authorUrl)) author.put("url", authorUrl);
+            embed.put("author", author);
+        }
+
+        if (hasText(thumbnail)) embed.put("thumbnail", Map.of("url", thumbnail));
+
+        if (hasText(footerText)) {
+            Map<String, String> footer = new LinkedHashMap<>();
+            footer.put("text", footerText);
+            if (hasText(footerIcon)) footer.put("icon_url", footerIcon);
+            embed.put("footer", footer);
+        }
+
+        if (hasText(image)) embed.put("image", Map.of("url", image));
+
+        embed.put("timestamp", java.time.OffsetDateTime.now().toString());
+
+        return embed;
+    }
+
+    /**
+     * Builds the variable substitution map for a single submission.
+     * Available variables:
      * <ul>
-     *     <li><b>List</b> — values are joined with commas</li>
-     *     <li><b>Boolean</b> — displayed as "✅ Yes" or "❌ No"</li>
-     *     <li><b>Other</b> — converted to string</li>
+     *   <li>{username} — Discord username of the submitter</li>
+     *   <li>{user_id} — Discord snowflake ID</li>
+     *   <li>{user_mention} — {@code <@ID>} mention tag</li>
+     *   <li>{form_title} — title of the form</li>
+     *   <li>{form_id} — UUID of the form</li>
+     *   <li>{submission_id} — UUID of the submission</li>
+     *   <li>{timestamp} — Discord timestamp ({@code <t:unix:f>})</li>
+     *   <li>{date} — server date (yyyy-MM-dd)</li>
+     *   <li>{time} — server time (HH:mm:ss)</li>
+     *   <li>{server_id} — Discord guild / server ID</li>
      * </ul>
-     * </p>
+     *
+     * @param form            the submitted form
+     * @param discordId       Discord ID of the submitter
+     * @param discordUsername username of the submitter
+     * @param submissionId    UUID of the submission
+     * @return a {@link Map} of variable names to their values
+     * @since v.0.1
+     */
+    private Map<String, String> buildVars(Form form, Long discordId, String discordUsername,
+                                          UUID submissionId) {
+        LocalDateTime now = LocalDateTime.now();
+        long epoch = now.toEpochSecond(ZoneOffset.UTC);
+        String uid = discordId != null ? discordId.toString() : "unknown";
+
+        return Map.of(
+                "username", discordUsername != null ? discordUsername : "Unknown",
+                "user_id", uid,
+                "user_mention", discordId != null ? "<@" + discordId + ">" : "Unknown",
+                "form_title", form.getSchema().getTitle(),
+                "form_id", form.getId().toString(),
+                "submission_id", submissionId != null ? submissionId.toString() : "",
+                "timestamp", "<t:" + epoch + ":f>",
+                "date", now.format(DATE_FMT),
+                "time", now.format(TIME_FMT),
+                "server_id", form.getServerId() != null ? form.getServerId().toString() : ""
+        );
+    }
+
+    /**
+     * Replaces all {@code {var}} placeholders in {@code template} using the vars map.
+     *
+     * @param template the template string containing placeholders
+     * @param vars     the variable substitution map
+     * @return the substituted string
+     * @since v.0.1
+     */
+    private String substitute(String template, Map<String, String> vars) {
+        String result = template;
+        for (Map.Entry<String, String> e : vars.entrySet()) {
+            result = result.replace("{" + e.getKey() + "}", e.getValue());
+        }
+        return result;
+    }
+
+    /**
+     * Null-safe substitute: returns null if template is null/blank, otherwise substitutes.
+     *
+     * @param template the template string
+     * @param vars     the variable substitution map
+     * @return the substituted string, or {@code null} if template is blank
+     * @since v.0.1
+     */
+    private String sub(String template, Map<String, String> vars) {
+        if (template == null || template.isBlank()) return null;
+        return substitute(template, vars);
+    }
+
+    /**
+     * Formats a field value for display in a Discord embed.
      *
      * @param value the raw value to format
      * @return a formatted string representation

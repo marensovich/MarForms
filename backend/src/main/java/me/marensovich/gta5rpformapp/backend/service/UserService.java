@@ -1,6 +1,7 @@
 package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.RequiredArgsConstructor;
+import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
 import me.marensovich.gta5rpformapp.backend.database.entity.Role;
 import me.marensovich.gta5rpformapp.backend.database.entity.User;
 import me.marensovich.gta5rpformapp.backend.database.repository.UserRepository;
@@ -36,6 +37,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleService roleService;
     private final DiscordApiClient discordApiClient;
+    private final AuditLogService auditLogService;
 
     /**
      * Finds an existing user by Discord ID or creates a new one if not found.
@@ -134,8 +136,21 @@ public class UserService {
             roles.add(roleService.getById(roleId));
         }
 
+        String oldRoleNames = user.getRoles().stream()
+                .map(Role::getName)
+                .sorted()
+                .collect(java.util.stream.Collectors.joining(", "));
         user.setRoles(roles);
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        String newRoleNames = roles.stream()
+                .map(Role::getName)
+                .sorted()
+                .collect(java.util.stream.Collectors.joining(", "));
+        String details = "Roles: [" + (oldRoleNames.isBlank() ? "none" : oldRoleNames)
+                + "] → [" + (newRoleNames.isBlank() ? "none" : newRoleNames) + "]";
+        auditLogService.logByCurrentUser(AuditAction.USER_ROLES_UPDATED,
+                String.valueOf(discordId), saved.getDiscordUsername(), details);
+        return saved;
     }
 
     /**
@@ -166,7 +181,13 @@ public class UserService {
             user.setBannedUntil(LocalDateTime.now().plusMinutes(request.timeoutMinutes()));
         }
 
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        String details = request.permanent()
+                ? "Banned permanently"
+                : "Banned for " + request.timeoutMinutes() + " minutes";
+        auditLogService.logByCurrentUser(AuditAction.USER_BANNED,
+                String.valueOf(discordId), saved.getDiscordUsername(), details);
+        return saved;
     }
 
     /**
@@ -183,8 +204,16 @@ public class UserService {
     @Transactional
     public User unban(Long discordId) {
         User user = getByDiscordId(discordId);
+        String prevBan = user.isBannedPermanently()
+                ? "was permanently banned"
+                : user.getBannedUntil() != null
+                  ? "was temporarily banned until " + user.getBannedUntil()
+                  : "was banned";
         user.setBannedPermanently(false);
         user.setBannedUntil(null);
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        auditLogService.logByCurrentUser(AuditAction.USER_UNBANNED,
+                String.valueOf(discordId), saved.getDiscordUsername(), prevBan);
+        return saved;
     }
 }

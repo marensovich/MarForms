@@ -2,6 +2,7 @@ package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.config.JWT.JwtUtil;
+import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
 import me.marensovich.gta5rpformapp.backend.database.entity.User;
 import me.marensovich.gta5rpformapp.backend.service.discord.DiscordApiClient;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -25,6 +26,7 @@ public class AuthService {
     private final UserService userService;
     private final JwtUtil jwtUtil;
     private final DiscordApiClient discordApiClient;
+    private final AuditLogService auditLogService;
 
     /**
      * Authenticates a user using Discord OAuth2 data.
@@ -50,6 +52,9 @@ public class AuthService {
             userService.syncGuilds(user, discordAccessToken);
         }
 
+        auditLogService.log(AuditAction.USER_LOGIN, user.getDiscordId(), user.getDiscordUsername(),
+                null, null, "via Discord OAuth");
+
         return jwtUtil.generateToken(user.getDiscordId());
     }
 
@@ -68,6 +73,8 @@ public class AuthService {
      */
     public String loginWithDiscordManual(Long discordId, String username) {
         User user = userService.findOrCreateDiscordUser(discordId, username);
+        auditLogService.log(AuditAction.USER_LOGIN, user.getDiscordId(), user.getDiscordUsername(),
+                null, null, "via manual auth");
         return jwtUtil.generateToken(user.getDiscordId());
     }
 }

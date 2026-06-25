@@ -1,6 +1,7 @@
 package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.RequiredArgsConstructor;
+import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
 import me.marensovich.gta5rpformapp.backend.database.entity.Role;
 import me.marensovich.gta5rpformapp.backend.database.repository.RoleRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.UserRepository;
@@ -10,8 +11,10 @@ import me.marensovich.gta5rpformapp.backend.exception.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Service for managing roles.
@@ -30,6 +33,7 @@ public class RoleService {
 
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
+    private final AuditLogService auditLogService;
 
     /**
      * Retrieves all roles.
@@ -71,7 +75,10 @@ public class RoleService {
         Role role = new Role();
         role.setName(request.name());
         role.setPermissions(request.permissions());
-        return roleRepository.save(role);
+        Role saved = roleRepository.save(role);
+        auditLogService.logByCurrentUser(AuditAction.ROLE_CREATED,
+                saved.getId().toString(), saved.getName(), null);
+        return saved;
     }
 
     /**
@@ -90,6 +97,10 @@ public class RoleService {
     public Role update(UUID roleId, UpdateRoleRequest request) {
         Role role = getById(roleId);
 
+        String oldName = role.getName();
+        String oldPerms = role.getPermissions() == null ? "" :
+                role.getPermissions().stream().map(Enum::name).sorted().collect(Collectors.joining(", "));
+
         if (request.name() != null) {
             role.setName(request.name());
         }
@@ -97,7 +108,19 @@ public class RoleService {
             role.setPermissions(request.permissions());
         }
 
-        return roleRepository.save(role);
+        Role saved = roleRepository.save(role);
+
+        List<String> changes = new ArrayList<>();
+        if (!oldName.equals(saved.getName()))
+            changes.add("Name: \"" + oldName + "\" → \"" + saved.getName() + "\"");
+        String newPerms = saved.getPermissions() == null ? "" :
+                saved.getPermissions().stream().map(Enum::name).sorted().collect(Collectors.joining(", "));
+        if (!oldPerms.equals(newPerms))
+            changes.add("Permissions: [" + oldPerms + "] → [" + newPerms + "]");
+
+        auditLogService.logByCurrentUser(AuditAction.ROLE_UPDATED, saved.getId().toString(), saved.getName(),
+                changes.isEmpty() ? null : String.join("\n", changes));
+        return saved;
     }
 
     /**
@@ -123,6 +146,8 @@ public class RoleService {
                             "Remove the role from all users first."
             );
         }
+        String roleName = getById(roleId).getName();
         roleRepository.deleteById(roleId);
+        auditLogService.logByCurrentUser(AuditAction.ROLE_DELETED, roleId.toString(), roleName, null);
     }
 }

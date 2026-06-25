@@ -52,5 +52,17 @@ INSERT INTO settings (key, value)
 VALUES ('ban.message', 'You are banned. Please contact the administrator.'),
        ('ban.admin.contact', 'Administrator'),
        ('system.name', 'MarForms'),
-       ('system.contact', '')
+       ('system.contact', ''),
+       ('log.webhook.url', ''),
+       ('log.enabled.actions', ''),
+       ('global.embed.color', ''),
+       ('global.embed.title', ''),
+       ('global.embed.description', ''),
+       ('global.embed.author.name', ''),
+       ('global.embed.author.icon', ''),
+       ('global.embed.author.url', ''),
+       ('global.embed.thumbnail', ''),
+       ('global.embed.image', ''),
+       ('global.embed.footer.text', ''),
+       ('global.embed.footer.icon', '')
 ON CONFLICT (key) DO NOTHING;

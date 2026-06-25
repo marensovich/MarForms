@@ -485,7 +485,15 @@ export default function ResponsesTab() {
             {deleteTarget && (
                 <ConfirmModal
                     title="Delete submission"
-                    message={`Delete this submission from ${username(deleteTarget.discordId)}? This cannot be undone.`}
+                    message={`Delete
+                    this submission from
+                    ${username(deleteTarget.discordId)}
+                    ?
+                    This
+                    cannot
+                    be
+                    undone
+                    .`}
                     confirmLabel="Delete"
                     confirmColor="red"
                     onConfirm={handleDelete}

@@ -1,6 +1,7 @@
 package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.RequiredArgsConstructor;
+import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import me.marensovich.gta5rpformapp.backend.database.repository.FormRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionRepository;
@@ -13,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -32,6 +35,7 @@ public class FormService {
 
     private final FormRepository formRepository;
     private final SubmissionRepository submissionRepository;
+    private final AuditLogService auditLogService;
 
     /**
      * Retrieves a form by its ID.
@@ -69,7 +73,11 @@ public class FormService {
             form.setWebhooks(request.webhooks());
         }
         form.setSchema(request.schema());
-        return formRepository.save(form);
+        Form saved = formRepository.save(form);
+        auditLogService.logByCurrentUser(AuditAction.FORM_CREATED,
+                saved.getId().toString(), saved.getSchema().getTitle(),
+                "Form ID: " + saved.getId());
+        return saved;
     }
 
     /**
@@ -88,6 +96,11 @@ public class FormService {
     public Form update(UUID formId, UpdateFormRequest request) {
         Form form = getById(formId);
 
+        String oldTitle = form.getSchema().getTitle();
+        boolean oldActive = form.isActive();
+        int oldFieldCount = form.getSchema().getFields() != null ? form.getSchema().getFields().size() : 0;
+        int oldWebhookCount = form.getWebhooks() != null ? form.getWebhooks().size() : 0;
+
         if (request.channelsIds() != null) {
             form.setChannelsIds(
                     request.channelsIds().stream()
@@ -105,7 +118,24 @@ public class FormService {
             form.setActive(request.active());
         }
 
-        return formRepository.save(form);
+        Form saved = formRepository.save(form);
+
+        List<String> changes = new ArrayList<>();
+        String newTitle = saved.getSchema().getTitle();
+        if (!oldTitle.equals(newTitle))
+            changes.add("Title: \"" + oldTitle + "\" → \"" + newTitle + "\"");
+        if (oldActive != saved.isActive())
+            changes.add("Active: " + oldActive + " → " + saved.isActive());
+        int newFieldCount = saved.getSchema().getFields() != null ? saved.getSchema().getFields().size() : 0;
+        if (oldFieldCount != newFieldCount)
+            changes.add("Fields: " + oldFieldCount + " → " + newFieldCount);
+        int newWebhookCount = saved.getWebhooks() != null ? saved.getWebhooks().size() : 0;
+        if (oldWebhookCount != newWebhookCount)
+            changes.add("Webhooks: " + oldWebhookCount + " → " + newWebhookCount);
+
+        auditLogService.logByCurrentUser(AuditAction.FORM_UPDATED, saved.getId().toString(), saved.getSchema().getTitle(),
+                changes.isEmpty() ? null : String.join("\n", changes));
+        return saved;
     }
 
     /**
@@ -117,10 +147,11 @@ public class FormService {
      */
     @Transactional
     public void delete(UUID formId) {
-        if (!formRepository.existsById(formId)) {
-            throw new NotFoundException("Form not found: " + formId);
-        }
-        formRepository.deleteById(formId);
+        Form form = formRepository.findById(formId)
+                .orElseThrow(() -> new NotFoundException("Form not found: " + formId));
+        String title = form.getSchema().getTitle();
+        formRepository.delete(form);
+        auditLogService.logByCurrentUser(AuditAction.FORM_DELETED, formId.toString(), title, null);
     }
 
     /**

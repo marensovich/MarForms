@@ -64,6 +64,20 @@ export function toggleFormActive(formId: string, active: boolean): Promise<Dashb
     return apiRequest(`/forms/${formId}`, {method: "PUT", body: {active}});
 }
 
+export interface UpdateFormPayload {
+    schema?: { title: string; description: string; fields: unknown[] };
+    webhooks?: WebhookConfig[];
+    channelsIds?: string[];
+    active?: boolean;
+}
+
+export function updateForm(
+    formId: string,
+    payload: UpdateFormPayload
+): Promise<import("../types/forms").FormDefinition> {
+    return apiRequest(`/forms/${formId}`, {method: "PUT", body: payload});
+}
+
 export function deleteForm(formId: string): Promise<void> {
     return apiRequest(`/forms/${formId}`, {method: "DELETE"});
 }

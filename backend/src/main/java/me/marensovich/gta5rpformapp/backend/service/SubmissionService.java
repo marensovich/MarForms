@@ -1,6 +1,7 @@
 package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.RequiredArgsConstructor;
+import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import me.marensovich.gta5rpformapp.backend.database.entity.Submission;
 import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionRepository;
@@ -38,6 +39,7 @@ public class SubmissionService {
     private final UserRepository userRepository;
     private final FormService formService;
     private final WebhookService webhookService;
+    private final AuditLogService auditLogService;
 
     /**
      * Submits a response to a form.
@@ -69,11 +71,16 @@ public class SubmissionService {
                 .map(me.marensovich.gta5rpformapp.backend.database.entity.User::getDiscordUsername)
                 .orElse(null);
         Map<String, String> messageIds = webhookService.sendSubmissionNotifications(
-                form, request.answers(), discordUsername);
+                form, request.answers(), discordUsername, discordId, saved.getId());
         if (!messageIds.isEmpty()) {
             saved.setWebhookMessageIds(messageIds);
             submissionRepository.save(saved);
         }
+
+        auditLogService.log(AuditAction.SUBMISSION_CREATED,
+                discordId, discordUsername,
+                saved.getId().toString(), form.getSchema().getTitle(),
+                "Form: " + form.getSchema().getTitle() + " (" + formId + ")\nSubmission ID: " + saved.getId());
 
         return saved;
     }
@@ -174,5 +181,7 @@ public class SubmissionService {
                 .orElseThrow(() -> new NotFoundException("Submission not found: " + id));
         webhookService.deleteMessages(submission.getWebhookMessageIds());
         submissionRepository.delete(submission);
+        auditLogService.logByCurrentUser(AuditAction.SUBMISSION_DELETED,
+                id.toString(), "Submission by discordId=" + submission.getDiscordId(), null);
     }
 }
