@@ -6,6 +6,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -79,4 +80,17 @@ public class Submission {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false)
     private Map<String, Object> answers;
+
+    /**
+     * Maps each webhook URL to the Discord message ID returned after delivery.
+     * <p>
+     * Stored as JSON. Used to delete the corresponding Discord messages
+     * when this submission is deleted by a moderator.
+     * </p>
+     *
+     * @since v.0.1
+     */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "webhook_message_ids")
+    private Map<String, String> webhookMessageIds = new HashMap<>();
 }

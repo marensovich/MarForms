@@ -6,7 +6,7 @@ import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -15,14 +15,13 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Service for sending Discord webhook notifications for form submissions.
- * <p>
- * Handles the asynchronous delivery of submission data to configured Discord
- * webhooks. Supports custom embeds, bot names, avatars, and field formatting.
- * </p>
+ * Service for sending Discord webhook notifications for form submissions
+ * and deleting those messages when a submission is removed.
  *
  * @author marensovich
  * @version v.0.1
@@ -32,66 +31,109 @@ import java.util.stream.Collectors;
 @Service
 public class WebhookService {
 
-    /**
-     * Default color for Discord embeds (blue-green).
-     * Used when no color is specified in the webhook configuration.
-     */
     private static final int DEFAULT_COLOR = 5793266;
+
+    /** Matches {@code https://discord.com/api/webhooks/{id}/{token}} */
+    private static final Pattern WEBHOOK_URL_PATTERN =
+            Pattern.compile("https://discord\\.com/api/webhooks/(\\d+)/([^/?]+)");
 
     private final RestTemplate restTemplate = new RestTemplate();
 
     /**
-     * Sends notifications to all configured webhooks for a form submission.
+     * Sends a notification to every configured webhook for a form submission.
      * <p>
-     * Executed asynchronously to avoid blocking the main submission flow.
-     * Each webhook is dispatched independently; failures in one webhook
-     * do not affect others.
+     * Posts with {@code ?wait=true} so Discord returns the created message object,
+     * allowing the returned message IDs to be stored for later deletion.
      * </p>
      *
      * @param form            the form that was submitted
      * @param answers         the submitted answers
      * @param discordUsername the Discord username of the submitter (may be null)
+     * @return map of webhook URL → Discord message ID for every successfully delivered webhook
      * @since v.0.1
      */
-    @Async
-    public void sendSubmissionNotifications(Form form, Map<String, Object> answers, String discordUsername) {
-        if (form.getWebhooks() == null || form.getWebhooks().isEmpty()) return;
+    public Map<String, String> sendSubmissionNotifications(Form form, Map<String, Object> answers,
+                                                           String discordUsername) {
+        Map<String, String> messageIds = new LinkedHashMap<>();
+        if (form.getWebhooks() == null || form.getWebhooks().isEmpty()) return messageIds;
 
         for (WebhookConfig webhook : form.getWebhooks()) {
             if (webhook.getUrl() == null || webhook.getUrl().isBlank()) continue;
             try {
-                dispatch(form, answers, discordUsername, webhook);
+                String messageId = dispatch(form, answers, discordUsername, webhook);
+                if (messageId != null) {
+                    messageIds.put(webhook.getUrl(), messageId);
+                }
             } catch (Exception e) {
                 log.warn("Webhook delivery failed [{}]: {}", webhook.getUrl(), e.getMessage());
+            }
+        }
+        return messageIds;
+    }
+
+    /**
+     * Deletes Discord messages that were created by previous webhook deliveries.
+     * <p>
+     * Calls {@code DELETE /webhooks/{id}/{token}/messages/{message_id}} for each entry.
+     * Failures are logged but do not propagate — a missing Discord message must not
+     * block the submission from being deleted in the database.
+     * </p>
+     *
+     * @param webhookMessageIds map of webhook URL → Discord message ID (stored on the submission)
+     * @since v.0.1
+     */
+    public void deleteMessages(Map<String, String> webhookMessageIds) {
+        if (webhookMessageIds == null || webhookMessageIds.isEmpty()) return;
+
+        for (Map.Entry<String, String> entry : webhookMessageIds.entrySet()) {
+            String webhookUrl = entry.getKey();
+            String messageId = entry.getValue();
+
+            Matcher matcher = WEBHOOK_URL_PATTERN.matcher(webhookUrl);
+            if (!matcher.find()) {
+                log.warn("Cannot parse webhook URL for deletion: {}", webhookUrl);
+                continue;
+            }
+
+            String deleteUrl = "https://discord.com/api/webhooks/"
+                    + matcher.group(1) + "/" + matcher.group(2)
+                    + "/messages/" + messageId;
+            try {
+                restTemplate.delete(deleteUrl);
+                log.debug("Deleted Discord message {} from webhook {}", messageId, webhookUrl);
+            } catch (Exception e) {
+                log.warn("Failed to delete Discord message {} [{}]: {}", messageId, webhookUrl, e.getMessage());
             }
         }
     }
 
     /**
-     * Dispatches a single webhook payload to Discord.
-     * <p>
-     * Builds the full Discord webhook payload including the embed,
-     * and sends it as a JSON POST request.
-     * </p>
+     * POSTs a single webhook payload to Discord with {@code ?wait=true} and returns
+     * the Discord message ID from the response body.
      *
-     * @param form            the form that was submitted
-     * @param answers         the submitted answers
-     * @param discordUsername the Discord username of the submitter
-     * @param cfg             the webhook configuration
-     * @since v.0.1
+     * @return the Discord message ID, or {@code null} if the response contained no id
      */
-    private void dispatch(Form form, Map<String, Object> answers, String discordUsername, WebhookConfig cfg) {
+    @SuppressWarnings("unchecked")
+    private String dispatch(Form form, Map<String, Object> answers,
+                            String discordUsername, WebhookConfig cfg) {
         Map<String, Object> payload = new LinkedHashMap<>();
-
         if (hasText(cfg.getContent())) payload.put("content", cfg.getContent());
         if (hasText(cfg.getBotName())) payload.put("username", cfg.getBotName());
         if (hasText(cfg.getAvatarUrl())) payload.put("avatar_url", cfg.getAvatarUrl());
-
         payload.put("embeds", List.of(buildEmbed(form, answers, discordUsername, cfg)));
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        restTemplate.postForEntity(cfg.getUrl(), new HttpEntity<>(payload, headers), String.class);
+
+        // ?wait=true makes Discord return the full message object with id field
+        String url = cfg.getUrl() + (cfg.getUrl().contains("?") ? "&wait=true" : "?wait=true");
+        ResponseEntity<Map> response = restTemplate.postForEntity(
+                url, new HttpEntity<>(payload, headers), Map.class);
+
+        if (response.getBody() != null && response.getBody().get("id") != null) {
+            return String.valueOf(response.getBody().get("id"));
+        }
+        return null;
     }
 
     /**
@@ -119,18 +161,15 @@ public class WebhookService {
     private Map<String, Object> buildEmbed(Form form, Map<String, Object> answers,
                                            String discordUsername, WebhookConfig cfg) {
         Map<String, Object> embed = new LinkedHashMap<>();
-
         embed.put("title", hasText(cfg.getEmbedTitle()) ? cfg.getEmbedTitle() : form.getSchema().getTitle());
         if (hasText(cfg.getEmbedDescription())) embed.put("description", cfg.getEmbedDescription());
         embed.put("color", cfg.getColor() != null ? cfg.getColor() : DEFAULT_COLOR);
         embed.put("timestamp", OffsetDateTime.now().toString());
 
-        // Author — who submitted
         Map<String, String> author = new LinkedHashMap<>();
         author.put("name", "Submitted by " + (discordUsername != null ? discordUsername : "Unknown"));
         embed.put("author", author);
 
-        // Fields — one per form question
         List<Map<String, Object>> fields = new ArrayList<>();
         for (var field : form.getSchema().getFields()) {
             Object raw = answers.get(field.getId());
@@ -146,7 +185,6 @@ public class WebhookService {
         }
         embed.put("fields", fields);
 
-        // Footer
         Map<String, String> footer = new LinkedHashMap<>();
         footer.put("text", "MarForms");
         embed.put("footer", footer);

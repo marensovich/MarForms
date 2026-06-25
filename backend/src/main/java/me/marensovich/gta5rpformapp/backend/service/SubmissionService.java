@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -67,7 +68,12 @@ public class SubmissionService {
         String discordUsername = userRepository.findByDiscordId(discordId)
                 .map(me.marensovich.gta5rpformapp.backend.database.entity.User::getDiscordUsername)
                 .orElse(null);
-        webhookService.sendSubmissionNotifications(form, request.answers(), discordUsername);
+        Map<String, String> messageIds = webhookService.sendSubmissionNotifications(
+                form, request.answers(), discordUsername);
+        if (!messageIds.isEmpty()) {
+            saved.setWebhookMessageIds(messageIds);
+            submissionRepository.save(saved);
+        }
 
         return saved;
     }
@@ -153,6 +159,10 @@ public class SubmissionService {
 
     /**
      * Deletes a submission by its ID.
+     * <p>
+     * Also deletes the corresponding Discord messages that were posted via webhooks
+     * when this submission was created.
+     * </p>
      *
      * @param id the UUID of the submission to delete
      * @throws NotFoundException if the submission does not exist
@@ -160,9 +170,9 @@ public class SubmissionService {
      */
     @Transactional
     public void delete(UUID id) {
-        if (!submissionRepository.existsById(id)) {
-            throw new NotFoundException("Submission not found: " + id);
-        }
-        submissionRepository.deleteById(id);
+        Submission submission = submissionRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Submission not found: " + id));
+        webhookService.deleteMessages(submission.getWebhookMessageIds());
+        submissionRepository.delete(submission);
     }
 }

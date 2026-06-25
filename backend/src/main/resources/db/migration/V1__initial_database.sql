@@ -42,6 +42,7 @@ CREATE TABLE submission
     discord_id BIGINT                      NOT NULL,
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     answers    JSONB                       NOT NULL,
+    webhook_message_ids JSONB,
     CONSTRAINT pk_submission PRIMARY KEY (id)
 );
 
