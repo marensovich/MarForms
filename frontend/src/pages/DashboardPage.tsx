@@ -65,7 +65,7 @@ export default function DashboardPage() {
                 <aside className="flex w-60 flex-col border-r border-white/[0.10] bg-[#0d0d1e]">
                     {/* Logo */}
                     <div className="flex items-center gap-3 border-b border-white/[0.06] px-5 py-4">
-                        <img src="/logo.png" alt="MarForms"
+                        <img src="/logo.svg" alt="MarForms"
                              className="h-8 w-8 flex-shrink-0 rounded-lg object-cover shadow-lg shadow-indigo-500/20"/>
                         <div className="min-w-0">
                             <p className="truncate text-sm font-semibold text-white">MarForms</p>

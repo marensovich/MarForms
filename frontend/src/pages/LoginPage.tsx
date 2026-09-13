@@ -36,7 +36,7 @@ export default function LoginPage() {
                     <div className="absolute inset-0 scale-[2] rounded-full bg-indigo-500/20 blur-3xl"/>
                     <div className="relative overflow-hidden rounded-2xl shadow-2xl shadow-indigo-500/25">
                         <img
-                            src="/logo.png"
+                            src="/logo.svg"
                             alt={systemName}
                             className="h-[90px] w-[90px] object-cover"
                         />

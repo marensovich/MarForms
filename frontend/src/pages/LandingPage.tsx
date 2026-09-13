@@ -63,7 +63,7 @@ export default function LandingPage() {
                 {/* Brand */}
                 <div className="relative mb-6">
                     <div className="absolute inset-0 scale-[2.5] rounded-full bg-indigo-500/15 blur-3xl"/>
-                    <img src="/logo.png" alt="MarForms"
+                    <img src="/logo.svg" alt="MarForms"
                          className="relative h-16 w-16 rounded-2xl object-cover shadow-2xl shadow-indigo-500/30"/>
                 </div>
 
