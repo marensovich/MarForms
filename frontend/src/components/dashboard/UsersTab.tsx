@@ -81,6 +81,7 @@ function RolesModal({
                         return (
                             <label
                                 key={role.id}
+                                onClick={() => toggle(role.id)}
                                 className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition-all ${
                                     active
                                         ? "border-indigo-500/30 bg-indigo-500/10"

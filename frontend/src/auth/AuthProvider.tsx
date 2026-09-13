@@ -23,7 +23,7 @@ function stubUserFromToken(token: string): AuthUser | null {
         role: payload.role ?? "VIEWER",
         guildIds: payload.guildIds ?? [],
         permissions: [],
-        permissionsHash: 0,
+        permissionsHash: "",
     };
 }
 
@@ -40,7 +40,7 @@ export function AuthProvider({children}: { children: ReactNode }) {
             setUser(prev => {
                 if (!prev) return null;
 
-                if (prev.permissionsHash !== 0 && prev.permissionsHash !== me.permissionsHash) {
+                if (prev.permissionsHash !== "" && prev.permissionsHash !== me.permissionsHash) {
                     clearToken();
                     return null;
                 }

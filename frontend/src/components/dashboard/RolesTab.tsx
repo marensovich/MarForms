@@ -24,8 +24,6 @@ const PERMISSION_GROUPS: { label: string; color: PermColor; perms: string[] }[] 
     {label: "System", color: "red", perms: ["SYSTEM_ADMIN"]},
 ];
 
-const ALL_PERMISSIONS = PERMISSION_GROUPS.flatMap(g => g.perms);
-
 function permLabel(perm: string): string {
     return perm
         .replace(/_/g, " ")

@@ -141,6 +141,14 @@ function validateByType(field: FormField, str: string, raw: FormAnswers[string])
                 return t("form.validation.invalidOption");
             return null;
 
+        case "MULTI_SELECT":
+        case "CHECKBOX": {
+            const values = Array.isArray(raw) ? raw : [str];
+            if (field.options?.length && values.some(v => !field.options!.includes(v)))
+                return t("form.validation.invalidOption");
+            return null;
+        }
+
         case "DATE":
             if (!/^\d{4}-\d{2}-\d{2}$/.test(str) || isNaN(Date.parse(str)))
                 return t("form.validation.invalidDate");

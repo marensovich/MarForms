@@ -92,9 +92,8 @@ function Field({label, hint, children}: { label: string; hint?: string; children
 
 // ── Webhook card ───────────────────────────────────────────────────────────────
 
-function WebhookCard({wh, index, onUpdate, onDelete}: {
+function WebhookCard({wh, onUpdate, onDelete}: {
     wh: WebhookConfig;
-    index: number;
     onUpdate: (patch: Partial<WebhookConfig>) => void;
     onDelete: () => void;
 }) {
@@ -351,7 +350,6 @@ export default function StepWebhooks({draft, onChange}: Props) {
                         <WebhookCard
                             key={i}
                             wh={wh}
-                            index={i}
                             onUpdate={patch => update(i, patch)}
                             onDelete={() => remove(i)}
                         />

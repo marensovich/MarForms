@@ -632,6 +632,7 @@
         "TEXTAREA": {"label": "Long Text", "desc": "Multi-line paragraph answer"},
         "NUMBER": {"label": "Number", "desc": "Integer or decimal with validation"},
         "EMAIL": {"label": "Email", "desc": "Email address with format check"},
+        "PASSWORD": {"label": "Password", "desc": "Masked single-line input"},
         "URL": {"label": "URL", "desc": "Web address (https://...)"},
         "PHONE": {"label": "Phone", "desc": "Phone number"},
         "SELECT": {"label": "Dropdown", "desc": "Pick one from a dropdown list"},

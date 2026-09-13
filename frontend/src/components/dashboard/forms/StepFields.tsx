@@ -14,6 +14,7 @@ import {
     FiLayers,
     FiLink,
     FiList,
+    FiLock,
     FiMail,
     FiPhone,
     FiPlus,
@@ -62,6 +63,13 @@ const TYPE_META: Record<FieldType, TypeMeta> = {
         icon: FiMail,
         labelKey: "wizard.fields.types.EMAIL.label",
         descKey: "wizard.fields.types.EMAIL.desc",
+        group: "text",
+        iconCls: "text-blue-300 bg-blue-500/10"
+    },
+    PASSWORD: {
+        icon: FiLock,
+        labelKey: "wizard.fields.types.PASSWORD.label",
+        descKey: "wizard.fields.types.PASSWORD.desc",
         group: "text",
         iconCls: "text-blue-300 bg-blue-500/10"
     },
