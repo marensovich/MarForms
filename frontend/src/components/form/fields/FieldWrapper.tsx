@@ -15,20 +15,20 @@ export default function FieldWrapper({label, required, error, description, count
         <div className="flex flex-col gap-1.5">
             {/* Label row */}
             <div className="flex items-baseline justify-between gap-2">
-                <label className="text-sm font-semibold text-white/80">
+                <label className="text-sm font-semibold text-[#1E1E24]">
                     {label}
                     {required && (
-                        <span className="ml-1.5 text-red-400/80" title="Required">*</span>
+                        <span className="ml-1.5 text-[#B56A65]" title="Required">*</span>
                     )}
                 </label>
                 {!required && (
-                    <span className="text-xs text-white/20">Optional</span>
+                    <span className="text-xs text-[#C7C7CE]">Optional</span>
                 )}
             </div>
 
             {/* Helper text */}
             {description && (
-                <p className="text-xs leading-relaxed text-white/35">{description}</p>
+                <p className="text-xs leading-relaxed text-[#8B8B96]">{description}</p>
             )}
 
             {/* Input slot */}
@@ -39,7 +39,7 @@ export default function FieldWrapper({label, required, error, description, count
                 <div className="flex items-start justify-between gap-2 min-h-[16px]">
                     <div className="flex-1">
                         {error && (
-                            <p className="flex items-center gap-1.5 text-xs text-red-400">
+                            <p className="flex items-center gap-1.5 text-xs text-[#B56A65]">
                                 <FiAlertCircle size={11} className="flex-shrink-0"/>
                                 {error}
                             </p>

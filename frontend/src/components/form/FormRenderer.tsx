@@ -5,7 +5,6 @@ import i18n from "../../i18n";
 import type {FieldType, FormAnswers, FormDefinition, FormField} from "../../types/forms";
 import {submitForm} from "../../api/forms";
 import {ApiError} from "../../api/client";
-import {SceneBackground} from "../LoadingScreen";
 import DynamicField from "./DynamicField";
 import {
     FiAlertCircle,
@@ -201,6 +200,7 @@ function estimateMinutes(count: number): string {
 // ── Sub-components ─────────────────────────────────────────────────────────
 
 function Spinner() {
+    // Used only inside the solid-indigo submit button — white is correct here.
     return (
         <motion.div
             className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white"
@@ -212,9 +212,9 @@ function Spinner() {
 
 function ProgressBar({pct}: { pct: number }) {
     return (
-        <div className="relative h-1 w-full overflow-hidden rounded-full bg-white/[0.08]">
+        <div className="relative h-1 w-full overflow-hidden rounded-full bg-[#F0F0F2]">
             <motion.div
-                className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500"
+                className="absolute left-0 top-0 h-full rounded-full bg-[#3730A3]"
                 initial={{width: 0}}
                 animate={{width: `${pct}%`}}
                 transition={{duration: 0.4, ease: "easeOut"}}
@@ -229,33 +229,29 @@ function SuccessScreen({title}: { title: string }) {
     const {t} = useTranslation();
     return (
         <div
-            className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[#0f0f21] px-4">
-            <SceneBackground variant="success"/>
+            className="relative flex min-h-screen w-full items-center justify-center bg-[#F7F7F8] px-4">
             <motion.div
                 initial={{opacity: 0, scale: 0.93}}
                 animate={{opacity: 1, scale: 1}}
                 transition={{duration: 0.45, ease: "easeOut"}}
-                className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-emerald-500/25 bg-[#0d1a12] shadow-2xl shadow-emerald-900/30"
+                className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-[#D7E8D9] bg-white"
             >
-                <div className="h-1 w-full bg-gradient-to-r from-emerald-600 via-emerald-400 to-transparent"/>
+                <div className="h-1 w-full bg-[#5C8F6A]"/>
                 <div className="flex flex-col items-center px-8 py-10 text-center">
-                    <div className="relative mb-5">
-                        <div className="absolute inset-0 scale-[2.5] rounded-full bg-emerald-500/15 blur-2xl"/>
-                        <motion.div
-                            initial={{scale: 0.5, opacity: 0}}
-                            animate={{scale: 1, opacity: 1}}
-                            transition={{delay: 0.15, type: "spring", stiffness: 200}}
-                            className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-emerald-500/30 bg-emerald-500/15"
-                        >
-                            <FiCheckCircle size={30} className="text-emerald-400"/>
-                        </motion.div>
-                    </div>
-                    <h1 className="text-2xl font-bold tracking-tight text-white">{t("form.success.title")}</h1>
-                    <p className="mt-2.5 text-sm leading-relaxed text-white/60">
+                    <motion.div
+                        initial={{scale: 0.5, opacity: 0}}
+                        animate={{scale: 1, opacity: 1}}
+                        transition={{delay: 0.15, type: "spring", stiffness: 200}}
+                        className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#D7E8D9] bg-[#EEF4EE]"
+                    >
+                        <FiCheckCircle size={30} className="text-[#3F6B4A]"/>
+                    </motion.div>
+                    <h1 className="text-2xl font-bold tracking-tight text-[#1E1E24]">{t("form.success.title")}</h1>
+                    <p className="mt-2.5 text-sm leading-relaxed text-[#6B6B76]">
                         {t("form.success.description", {formTitle: title})}
                     </p>
-                    <div className="mt-6 w-full rounded-xl border border-white/[0.10] bg-white/[0.04] px-4 py-3">
-                        <p className="text-xs text-white/50">
+                    <div className="mt-6 w-full rounded-xl border border-[#E4E4E7] bg-[#FAFAFB] px-4 py-3">
+                        <p className="text-xs text-[#8B8B96]">
                             {t("form.success.closeNote")}
                         </p>
                     </div>
@@ -290,22 +286,22 @@ function FormSidebar({form, progress, answeredRequired, totalRequired}: SidebarP
             {/* Branding */}
             <div className="flex items-center gap-2">
                 <div
-                    className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600/30 border border-indigo-500/30">
-                    <FiFileText size={13} className="text-indigo-400"/>
+                    className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#EEF0FB] border border-[#D8DCF5]">
+                    <FiFileText size={13} className="text-[#3730A3]"/>
                 </div>
-                <span className="text-xs font-semibold tracking-wide text-white/40 uppercase">MarForms</span>
+                <span className="text-xs font-semibold tracking-wide text-[#8B8B96] uppercase">MarForms</span>
             </div>
 
             {/* Form title + description */}
             <div>
-                <h1 className="text-xl font-bold leading-snug text-white">{form.schema.title}</h1>
+                <h1 className="text-xl font-bold leading-snug text-[#1E1E24]">{form.schema.title}</h1>
                 {form.schema.description && (
-                    <p className="mt-2 text-sm leading-relaxed text-white/50">{form.schema.description}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-[#6B6B76]">{form.schema.description}</p>
                 )}
             </div>
 
             {/* Divider */}
-            <div className="h-px bg-white/[0.07]"/>
+            <div className="h-px bg-[#E4E4E7]"/>
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-2">
@@ -321,17 +317,17 @@ function FormSidebar({form, progress, answeredRequired, totalRequired}: SidebarP
 
             {/* Progress (only when filling) */}
             {totalRequired > 0 && (
-                <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-3.5">
+                <div className="rounded-xl border border-[#E4E4E7] bg-white p-3.5">
                     <div className="mb-2 flex items-center justify-between text-xs">
-                        <span className="text-white/40">{t("form.sidebar.progress")}</span>
+                        <span className="text-[#8B8B96]">{t("form.sidebar.progress")}</span>
                         <span
-                            className={`font-medium tabular-nums ${progress === 100 ? "text-emerald-400" : "text-white/60"}`}>
+                            className={`font-medium tabular-nums ${progress === 100 ? "text-[#3F6B4A]" : "text-[#6B6B76]"}`}>
                             {t("form.sidebar.requiredProgress", {answered: answeredRequired, total: totalRequired})}
                         </span>
                     </div>
                     <ProgressBar pct={progress}/>
                     {progress === 100 && (
-                        <p className="mt-2 text-[11px] text-emerald-400">
+                        <p className="mt-2 text-[11px] text-[#3F6B4A]">
                             {t("form.sidebar.allFilled")}
                         </p>
                     )}
@@ -340,8 +336,8 @@ function FormSidebar({form, progress, answeredRequired, totalRequired}: SidebarP
 
             {/* Field type breakdown */}
             {typeGroups.length > 0 && (
-                <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-3.5">
-                    <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-wider text-white/25">{t("form.sidebar.fieldTypes")}</p>
+                <div className="rounded-xl border border-[#E4E4E7] bg-white p-3.5">
+                    <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-wider text-[#8B8B96]">{t("form.sidebar.fieldTypes")}</p>
                     <div className="flex flex-col gap-1.5">
                         {typeGroups.map(([type, count]) => {
                             const Icon = TYPE_ICON[type] ?? FiFileText;
@@ -349,10 +345,10 @@ function FormSidebar({form, progress, answeredRequired, totalRequired}: SidebarP
                             return (
                                 <div key={type} className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <Icon size={11} className="text-white/30"/>
-                                        <span className="text-xs text-white/40">{label}</span>
+                                        <Icon size={11} className="text-[#B5B5BC]"/>
+                                        <span className="text-xs text-[#8B8B96]">{label}</span>
                                     </div>
-                                    <span className="text-xs font-medium text-white/30">{count}</span>
+                                    <span className="text-xs font-medium text-[#B5B5BC]">{count}</span>
                                 </div>
                             );
                         })}
@@ -363,14 +359,14 @@ function FormSidebar({form, progress, answeredRequired, totalRequired}: SidebarP
             {/* Creator */}
             {(form.createdByDiscordUsername || form.createdByDiscordId) && (
                 <div
-                    className="flex items-center gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.03] px-3.5 py-3">
+                    className="flex items-center gap-2.5 rounded-xl border border-[#E4E4E7] bg-white px-3.5 py-3">
                     <div
-                        className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-indigo-600/30 border border-indigo-500/20">
-                        <FiUser size={12} className="text-indigo-400"/>
+                        className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[#EEF0FB] border border-[#D8DCF5]">
+                        <FiUser size={12} className="text-[#3730A3]"/>
                     </div>
                     <div className="min-w-0">
-                        <p className="text-[10px] text-white/25 leading-none mb-0.5">{t("form.sidebar.createdBy")}</p>
-                        <p className="truncate text-xs font-medium text-white/60">
+                        <p className="text-[10px] text-[#C7C7CE] leading-none mb-0.5">{t("form.sidebar.createdBy")}</p>
+                        <p className="truncate text-xs font-medium text-[#6B6B76]">
                             {form.createdByDiscordUsername
                                 ? `@${form.createdByDiscordUsername}`
                                 : form.createdByDiscordId}
@@ -381,9 +377,9 @@ function FormSidebar({form, progress, answeredRequired, totalRequired}: SidebarP
 
             {/* Security badge */}
             <div
-                className="flex items-center gap-2 rounded-xl border border-emerald-500/15 bg-emerald-500/[0.05] px-3.5 py-3">
-                <FiShield size={13} className="flex-shrink-0 text-emerald-400/60"/>
-                <p className="text-[11px] text-emerald-400/60 leading-snug">
+                className="flex items-center gap-2 rounded-xl border border-[#D7E8D9] bg-[#EEF4EE] px-3.5 py-3">
+                <FiShield size={13} className="flex-shrink-0 text-[#5C8F6A]"/>
+                <p className="text-[11px] text-[#3F6B4A] leading-snug">
                     {t("form.sidebar.secure")}
                 </p>
             </div>
@@ -398,12 +394,12 @@ function StatCard({icon: Icon, label, value, accent = false}: {
     accent?: boolean;
 }) {
     return (
-        <div className="flex flex-col gap-1 rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 py-2.5">
-            <Icon size={12} className={accent ? "text-red-400/70" : "text-white/25"}/>
-            <p className={`text-sm font-semibold ${accent && value !== "0" ? "text-red-400" : "text-white"}`}>
+        <div className="flex flex-col gap-1 rounded-xl border border-[#E4E4E7] bg-white px-3 py-2.5">
+            <Icon size={12} className={accent ? "text-[#B56A65]" : "text-[#C7C7CE]"}/>
+            <p className={`text-sm font-semibold ${accent && value !== "0" ? "text-[#B56A65]" : "text-[#1E1E24]"}`}>
                 {value}
             </p>
-            <p className="text-[10px] text-white/25 leading-none">{label}</p>
+            <p className="text-[10px] text-[#C7C7CE] leading-none">{label}</p>
         </div>
     );
 }
@@ -506,21 +502,19 @@ export default function FormRenderer({form}: Props) {
     const errorCount = Object.keys(errors).length;
 
     return (
-        <div className="relative min-h-screen w-full overflow-hidden bg-[#0c0c1a]">
-            <SceneBackground/>
-
+        <div className="relative min-h-screen w-full bg-[#F7F7F8]">
             {/* Top bar */}
             <header
-                className="relative z-20 flex h-12 items-center justify-between border-b border-white/[0.06] bg-[#0c0c1a]/80 px-6 backdrop-blur-md">
+                className="relative z-20 flex h-12 items-center justify-between border-b border-[#E4E4E7] bg-white/90 px-6 backdrop-blur-md">
                 <div className="flex items-center gap-2">
                     <div
-                        className="flex h-5 w-5 items-center justify-center rounded-md bg-indigo-600/40 border border-indigo-500/30">
-                        <FiFileText size={10} className="text-indigo-400"/>
+                        className="flex h-5 w-5 items-center justify-center rounded-md bg-[#EEF0FB] border border-[#D8DCF5]">
+                        <FiFileText size={10} className="text-[#3730A3]"/>
                     </div>
-                    <span className="text-xs font-semibold text-white/40">MarForms</span>
+                    <span className="text-xs font-semibold text-[#6B6B76]">MarForms</span>
                 </div>
-                <div className="flex items-center gap-1.5 text-[11px] text-white/25">
-                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-400/60"/>
+                <div className="flex items-center gap-1.5 text-[11px] text-[#8B8B96]">
+                    <div className="h-1.5 w-1.5 rounded-full bg-[#5C8F6A]"/>
                     {t("form.topBar.secure")}
                 </div>
             </header>
@@ -545,25 +539,24 @@ export default function FormRenderer({form}: Props) {
                 {/* ── Right: Form card ───────────────────────────────── */}
                 <div>
                     <div
-                        className="overflow-hidden rounded-2xl border border-white/[0.09] bg-white/[0.03] shadow-2xl backdrop-blur-xl">
+                        className="overflow-hidden rounded-2xl border border-[#E4E4E7] bg-white">
                         {/* Top accent line */}
-                        <div
-                            className="h-px w-full bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent"/>
+                        <div className="h-1 w-full bg-[#3730A3]"/>
 
                         <div className="p-6 sm:p-8">
                             {/* Field count header */}
                             <div className="mb-6 flex items-center justify-between">
-                                <p className="text-xs text-white/30">
+                                <p className="text-xs text-[#8B8B96]">
                                     {t("form.fieldCount", {count: form.schema.fields.length})}
                                     {requiredFields.length > 0 && (
-                                        <span className="text-white/20"> {t("form.requiredCount", {count: requiredFields.length})}</span>
+                                        <span className="text-[#C7C7CE]"> {t("form.requiredCount", {count: requiredFields.length})}</span>
                                     )}
                                 </p>
                                 {progress > 0 && progress < 100 && (
-                                    <p className="text-xs text-white/30 tabular-nums">{t("form.percentComplete", {pct: progress})}</p>
+                                    <p className="text-xs text-[#8B8B96] tabular-nums">{t("form.percentComplete", {pct: progress})}</p>
                                 )}
                                 {progress === 100 && (
-                                    <p className="text-xs text-emerald-400">{t("form.readyToSubmit")}</p>
+                                    <p className="text-xs text-[#3F6B4A]">{t("form.readyToSubmit")}</p>
                                 )}
                             </div>
 
@@ -581,7 +574,7 @@ export default function FormRenderer({form}: Props) {
                                         >
                                             {/* Field ordinal */}
                                             <div
-                                                className="absolute -left-5 top-0.5 hidden h-4 w-4 items-center justify-center rounded text-[9px] font-bold text-white/20 sm:flex">
+                                                className="absolute -left-5 top-0.5 hidden h-4 w-4 items-center justify-center rounded text-[9px] font-bold text-[#C7C7CE] sm:flex">
                                                 {idx + 1}
                                             </div>
                                             <DynamicField
@@ -601,7 +594,7 @@ export default function FormRenderer({form}: Props) {
                                 <motion.div
                                     initial={{opacity: 0, y: -6}}
                                     animate={{opacity: 1, y: 0}}
-                                    className="mt-5 flex items-center gap-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.08] px-4 py-3 text-sm text-amber-300"
+                                    className="mt-5 flex items-center gap-3 rounded-xl border border-[#EFDFC0] bg-[#FBF3E4] px-4 py-3 text-sm text-[#92702A]"
                                 >
                                     <FiAlertCircle size={15} className="flex-shrink-0"/>
                                     {t("form.validationSummary", {count: errorCount})}
@@ -613,7 +606,7 @@ export default function FormRenderer({form}: Props) {
                                 <motion.div
                                     initial={{opacity: 0, y: -6}}
                                     animate={{opacity: 1, y: 0}}
-                                    className="mt-5 flex items-center gap-3 rounded-xl border border-red-500/25 bg-red-500/[0.08] px-4 py-3 text-sm text-red-300"
+                                    className="mt-5 flex items-center gap-3 rounded-xl border border-[#EAD4D3] bg-[#F7EEEE] px-4 py-3 text-sm text-[#8B4A46]"
                                 >
                                     <FiAlertCircle size={15} className="flex-shrink-0"/>
                                     {submitError}
@@ -621,13 +614,13 @@ export default function FormRenderer({form}: Props) {
                             )}
 
                             {/* Submit button */}
-                            <div className="mt-7 border-t border-white/[0.06] pt-6">
+                            <div className="mt-7 border-t border-[#E4E4E7] pt-6">
                                 <motion.button
                                     onClick={handleSubmit}
                                     disabled={submitStatus === "submitting"}
                                     whileHover={{scale: submitStatus === "submitting" ? 1 : 1.015}}
                                     whileTap={{scale: submitStatus === "submitting" ? 1 : 0.985}}
-                                    className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-indigo-600 px-6 py-3.5 font-semibold text-white shadow-xl shadow-indigo-500/20 transition-colors hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:ring-offset-2 focus:ring-offset-[#0c0c1a]"
+                                    className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-[#3730A3] px-6 py-3.5 font-semibold text-white transition-colors hover:bg-[#2D2682] disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[#3730A3]/40 focus:ring-offset-2 focus:ring-offset-white"
                                 >
                                     {submitStatus === "submitting" ? (
                                         <><Spinner/>{t("form.submitting")}</>
@@ -640,7 +633,7 @@ export default function FormRenderer({form}: Props) {
                     </div>
 
                     {/* Footer note */}
-                    <p className="mt-4 text-center text-[11px] text-white/20">
+                    <p className="mt-4 text-center text-[11px] text-[#C7C7CE]">
                         {t("form.footer")}
                     </p>
                 </div>

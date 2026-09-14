@@ -16,10 +16,10 @@ export default function SelectField({field, value, onChange, onBlur, error}: Pro
                 value={value}
                 onChange={e => onChange(e.target.value)}
                 onBlur={onBlur}
-                className={`w-full rounded-xl border px-4 py-3 text-sm text-white outline-none transition-colors focus:ring-1 ${
+                className={`w-full rounded-xl border px-4 py-3 text-sm text-[#1E1E24] outline-none transition-colors focus:ring-1 ${
                     error
-                        ? "border-red-500/50 bg-red-500/[0.04] focus:border-red-500/60 focus:ring-red-500/20"
-                        : "border-white/[0.08] bg-[#05050c] focus:border-indigo-500/60 focus:ring-indigo-500/30"
+                        ? "border-[#EAD4D3] bg-[#F7EEEE] focus:border-[#B56A65] focus:ring-[#B56A65]/20"
+                        : "border-[#E4E4E7] bg-[#FAFAFB] focus:border-[#3730A3] focus:ring-[#3730A3]/20"
                 }`}
             >
                 <option value="" disabled>Select an option…</option>

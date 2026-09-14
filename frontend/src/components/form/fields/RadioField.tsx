@@ -13,16 +13,16 @@ export default function RadioField({field, value, onChange, onBlur, error}: Prop
     return (
         <FieldWrapper label={field.label} required={field.required} description={field.description} error={error}>
             <div
-                className={`flex flex-col gap-2 rounded-xl transition-colors ${error ? "ring-1 ring-red-500/30" : ""}`}>
+                className={`flex flex-col gap-2 rounded-xl transition-colors ${error ? "ring-1 ring-[#B56A65]/30" : ""}`}>
                 {(field.options ?? []).map(opt => (
                     <label
                         key={opt}
                         className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition-all ${
                             value === opt
-                                ? "border-indigo-500/40 bg-indigo-500/[0.08]"
+                                ? "border-[#D8DCF5] bg-[#EEF0FB]"
                                 : error
-                                    ? "border-red-500/20 bg-red-500/[0.02] hover:border-red-500/30"
-                                    : "border-white/[0.08] bg-white/[0.03] hover:border-white/[0.14] hover:bg-white/[0.05]"
+                                    ? "border-[#EAD4D3] bg-[#F7EEEE] hover:border-[#E0B8B6]"
+                                    : "border-[#E4E4E7] bg-white hover:border-[#D4D4D9] hover:bg-[#FAFAFB]"
                         }`}
                     >
                         <input
@@ -34,9 +34,9 @@ export default function RadioField({field, value, onChange, onBlur, error}: Prop
                                 onChange(opt);
                                 onBlur?.();
                             }}
-                            className="accent-indigo-500"
+                            className="accent-[#3730A3]"
                         />
-                        <span className="text-sm text-white/80">{opt}</span>
+                        <span className="text-sm text-[#55555F]">{opt}</span>
                     </label>
                 ))}
             </div>

@@ -1,21 +1,6 @@
 import {motion} from "framer-motion";
 import {useTranslation} from "react-i18next";
 
-type SceneVariant = "default" | "danger" | "warning" | "success";
-
-/**
- * Kept as a component (with its old variant prop) so call sites don't need
- * to change, but the brand is flat — no ambient glow/vignette/noise.
- */
-export function SceneBackground(_props: { variant?: SceneVariant }) {
-    return null;
-}
-
-/** Kept for backward-compat — used by DashboardPage */
-export function BackgroundGlow() {
-    return null;
-}
-
 export default function LoadingScreen({label}: { label?: string }) {
     const {t} = useTranslation();
     const displayLabel = label ?? t("common.loading");

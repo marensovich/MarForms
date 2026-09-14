@@ -13,10 +13,10 @@ export default function CheckboxField({field, value, onChange, onBlur, error}: P
     return (
         <FieldWrapper label={field.label} required={field.required} description={field.description} error={error}>
             <label
-                className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-2.5 transition-colors hover:border-white/20 ${
+                className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-2.5 transition-colors hover:border-[#D4D4D9] ${
                     error
-                        ? "border-red-500/40 bg-red-500/[0.04]"
-                        : "border-white/10 bg-white/5"
+                        ? "border-[#EAD4D3] bg-[#F7EEEE]"
+                        : "border-[#E4E4E7] bg-white"
                 }`}>
                 <input
                     type="checkbox"
@@ -25,9 +25,9 @@ export default function CheckboxField({field, value, onChange, onBlur, error}: P
                         onChange(e.target.checked);
                         onBlur?.();
                     }}
-                    className="h-4 w-4 accent-indigo-500"
+                    className="h-4 w-4 accent-[#3730A3]"
                 />
-                <span className="text-sm text-white/60">{field.label}</span>
+                <span className="text-sm text-[#6B6B76]">{field.label}</span>
             </label>
         </FieldWrapper>
     );

@@ -75,9 +75,9 @@ export default function TextField({field, value, onChange, onBlur, error}: Props
 
     const placeholder = field.placeholder ?? DEFAULT_PLACEHOLDER[field.type] ?? "";
 
-    const baseCls = "w-full rounded-xl border px-4 py-3 text-sm text-white placeholder-white/20 outline-none transition-colors focus:ring-1";
-    const normalCls = "border-white/[0.08] bg-white/[0.04] focus:border-indigo-500/60 focus:bg-white/[0.06] focus:ring-indigo-500/30";
-    const errorCls = "border-red-500/50 bg-red-500/[0.04] focus:border-red-500/60 focus:ring-red-500/20";
+    const baseCls = "w-full rounded-xl border px-4 py-3 text-sm text-[#1E1E24] placeholder-[#C7C7CE] outline-none transition-colors focus:ring-1";
+    const normalCls = "border-[#E4E4E7] bg-[#FAFAFB] focus:border-[#3730A3] focus:bg-white focus:ring-[#3730A3]/20";
+    const errorCls = "border-[#EAD4D3] bg-[#F7EEEE] focus:border-[#B56A65] focus:ring-[#B56A65]/20";
     const inputCls = `${baseCls} ${error ? errorCls : normalCls}`;
 
     const handleChange = (raw: string) => {
@@ -103,14 +103,14 @@ export default function TextField({field, value, onChange, onBlur, error}: Props
             const over = len > field.max;
             counter = (
                 <span className={`text-[10px] tabular-nums transition-colors ${
-                    over ? "text-red-400" : near ? "text-amber-400/80" : "text-white/20"
+                    over ? "text-[#B56A65]" : near ? "text-[#C99A3E]" : "text-[#C7C7CE]"
                 }`}>
                     {len} / {field.max.toLocaleString()}
                 </span>
             );
         } else if (field.min != null) {
             counter = (
-                <span className="text-[10px] text-white/20">min {field.min} chars</span>
+                <span className="text-[10px] text-[#C7C7CE]">min {field.min} chars</span>
             );
         }
     }
@@ -119,7 +119,7 @@ export default function TextField({field, value, onChange, onBlur, error}: Props
         const parts: string[] = [];
         if (field.min != null) parts.push(`min ${field.min}`);
         if (field.max != null) parts.push(`max ${field.max}`);
-        counter = <span className="text-[10px] text-white/20">{parts.join(" · ")}</span>;
+        counter = <span className="text-[10px] text-[#C7C7CE]">{parts.join(" · ")}</span>;
     }
 
     return (
