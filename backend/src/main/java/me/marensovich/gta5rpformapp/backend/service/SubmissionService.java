@@ -2,6 +2,7 @@ package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
+import me.marensovich.gta5rpformapp.backend.data.forms.WebhookConfig;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import me.marensovich.gta5rpformapp.backend.database.entity.Submission;
 import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionRepository;
@@ -9,11 +10,14 @@ import me.marensovich.gta5rpformapp.backend.database.repository.UserRepository;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmitFormRequest;
 import me.marensovich.gta5rpformapp.backend.dto.submission.UserSubmissionCountDto;
 import me.marensovich.gta5rpformapp.backend.exception.NotFoundException;
+import me.marensovich.gta5rpformapp.backend.service.jobs.OutboundJobService;
+import me.marensovich.gta5rpformapp.backend.service.jobs.WebhookDeliveryPayload;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,12 +44,17 @@ public class SubmissionService {
     private final FormService formService;
     private final WebhookService webhookService;
     private final AuditLogService auditLogService;
+    private final OutboundJobService outboundJobService;
 
     /**
      * Submits a response to a form.
      * <p>
-     * Validates that the form is active, saves the submission, and triggers
-     * webhook notifications for the submission.
+     * Validates that the form is active, saves the submission, and enqueues
+     * webhook-notification jobs for it (one per configured webhook — see
+     * {@code WebhookDeliveryProcessor}) in the same transaction as the save,
+     * so a submission is never persisted without its notifications durably
+     * queued. Delivery itself happens out-of-band; this method never makes a
+     * Discord API call.
      * </p>
      *
      * @param formId    the UUID of the form being submitted
@@ -70,12 +79,8 @@ public class SubmissionService {
         String discordUsername = userRepository.findByDiscordId(discordId)
                 .map(me.marensovich.gta5rpformapp.backend.database.entity.User::getDiscordUsername)
                 .orElse(null);
-        Map<String, String> messageIds = webhookService.sendSubmissionNotifications(
-                form, request.answers(), discordUsername, discordId, saved.getId());
-        if (!messageIds.isEmpty()) {
-            saved.setWebhookMessageIds(messageIds);
-            submissionRepository.save(saved);
-        }
+
+        enqueueWebhookDeliveries(form, saved, discordUsername, discordId);
 
         auditLogService.log(AuditAction.SUBMISSION_CREATED,
                 discordId, discordUsername,
@@ -83,6 +88,45 @@ public class SubmissionService {
                 "Form: " + form.getSchema().getTitle() + " (" + formId + ")\nSubmission ID: " + saved.getId());
 
         return saved;
+    }
+
+    private void enqueueWebhookDeliveries(Form form, Submission submission, String discordUsername, Long discordId) {
+        if (form.getWebhooks() == null) return;
+        for (WebhookConfig webhook : form.getWebhooks()) {
+            if (webhook.getUrl() == null || webhook.getUrl().isBlank()) continue;
+            if (Boolean.TRUE.equals(webhook.getInvalid())) continue;
+
+            var payload = new WebhookDeliveryPayload(
+                    form.getId(), submission.getId(), webhook.getUrl(),
+                    submission.getAnswers(), discordUsername, discordId);
+            outboundJobService.enqueue(OutboundJobService.JOB_TYPE_WEBHOOK_DELIVERY, payload);
+        }
+    }
+
+    /**
+     * Records the Discord message ID a queued webhook delivery produced, so
+     * it can be deleted later if the submission is deleted (see {@link #delete}).
+     * <p>
+     * Called by {@code WebhookDeliveryProcessor} after a successful delivery —
+     * merges into whatever's already recorded, since each webhook on a form
+     * delivers (and thus calls this) independently.
+     * </p>
+     *
+     * @param submissionId the submission the message belongs to
+     * @param webhookUrl   the webhook that delivered it
+     * @param messageId    the Discord message ID
+     * @since v.0.1
+     */
+    @Transactional
+    public void recordWebhookMessageId(UUID submissionId, String webhookUrl, String messageId) {
+        submissionRepository.findById(submissionId).ifPresent(submission -> {
+            Map<String, String> ids = submission.getWebhookMessageIds() != null
+                    ? new HashMap<>(submission.getWebhookMessageIds())
+                    : new HashMap<>();
+            ids.put(webhookUrl, messageId);
+            submission.setWebhookMessageIds(ids);
+            submissionRepository.save(submission);
+        });
     }
 
     /**

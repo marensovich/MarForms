@@ -159,4 +159,31 @@ public class WebhookConfig {
      * @since v.0.1
      */
     private Boolean fieldsInline;
+
+    /**
+     * Set when Discord has told us this webhook no longer exists (404 —
+     * deleted directly on Discord, outside this app). Delivery is skipped
+     * for a webhook marked invalid rather than retried forever.
+     * <p>
+     * System-managed — no UI sets this deliberately yet (that's Stage 2,
+     * E2.4), but it round-trips through the same JSON as every other field
+     * here since {@code Form.webhooks} is a single JSON column with no
+     * separate internal-vs-public projection. One consequence, treated as
+     * intentional rather than a bug: editing and re-saving a form's webhooks
+     * through the current UI (which doesn't know about this field) always
+     * clears it back to {@code null} — reads as "the owner touched this
+     * webhook, give it another chance" rather than needing a dedicated
+     * "un-invalidate" action.
+     * </p>
+     *
+     * @since v.0.1
+     */
+    private Boolean invalid;
+
+    /**
+     * Why this webhook was marked {@link #invalid}, kept for diagnosis.
+     *
+     * @since v.0.1
+     */
+    private String lastError;
 }

@@ -2,6 +2,7 @@ package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
+import me.marensovich.gta5rpformapp.backend.data.forms.WebhookConfig;
 import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import me.marensovich.gta5rpformapp.backend.database.repository.FormRepository;
@@ -147,6 +148,34 @@ public class FormService {
         auditLogService.logByCurrentUser(AuditAction.FORM_UPDATED, saved.getId().toString(), saved.getSchema().getTitle(),
                 changes.isEmpty() ? null : String.join("\n", changes));
         return saved;
+    }
+
+    /**
+     * Marks one of a form's webhooks as invalid — Discord returned 404 for it
+     * (see {@code WebhookDeliveryProcessor}), meaning it was deleted directly
+     * on Discord's side. A no-op if the form or that webhook no longer exists
+     * (e.g. it was removed from the form between the delivery attempt and
+     * this call).
+     *
+     * @param formId     the form the webhook belongs to
+     * @param webhookUrl identifies which webhook to mark
+     * @param error      a short description, kept for later diagnosis
+     * @since v.0.1
+     */
+    @Transactional
+    public void markWebhookInvalid(UUID formId, String webhookUrl, String error) {
+        formRepository.findById(formId).ifPresent(form -> {
+            if (form.getWebhooks() == null) return;
+            boolean changed = false;
+            for (WebhookConfig webhook : form.getWebhooks()) {
+                if (webhookUrl.equals(webhook.getUrl())) {
+                    webhook.setInvalid(true);
+                    webhook.setLastError(error);
+                    changed = true;
+                }
+            }
+            if (changed) formRepository.save(form);
+        });
     }
 
     /**

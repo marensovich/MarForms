@@ -23,6 +23,11 @@ import java.util.stream.Collectors;
 /**
  * Sends Discord webhook notifications for form submissions and deletes them on removal.
  * <p>
+ * Delivery itself is queued and async — see {@code OutboundJobService} and
+ * {@code WebhookDeliveryProcessor} — this class only knows how to build and
+ * send/delete one message at a time; it has no opinion on retry or scheduling.
+ * </p>
+ * <p>
  * Each submission produces a message with <b>two embeds</b>:
  * <ol>
  *   <li>The form-answers embed — configured per-webhook on the form.</li>
@@ -56,35 +61,34 @@ public class WebhookService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     /**
-     * Sends form-submission notifications to all configured webhooks.
-     * Posts with {@code ?wait=true} to capture Discord message IDs for later deletion.
+     * Delivers a submission notification to a single webhook.
+     * <p>
+     * Called by {@code WebhookDeliveryProcessor} for each queued delivery job
+     * (see {@code OutboundJobService#JOB_TYPE_WEBHOOK_DELIVERY}) — one job per
+     * webhook per submission, so one webhook's failure/retry never blocks or
+     * duplicates delivery to the form's other webhooks. Posts with
+     * {@code ?wait=true} to capture the Discord message ID for later deletion.
+     * </p>
+     * <p>
+     * Throws whatever the underlying HTTP call throws (notably
+     * {@code HttpClientErrorException.TooManyRequests} / {@code .NotFound}) —
+     * the processor is what decides retry/give-up/invalidate based on that,
+     * not this method.
+     * </p>
      *
      * @param form            the submitted form
+     * @param webhook         which of the form's webhooks to deliver to
      * @param answers         raw answer map
      * @param discordUsername username of the submitter (may be null)
      * @param discordId       Discord snowflake of the submitter (may be null)
-     * @param submissionId    UUID of the newly created submission
-     * @return map of webhook-URL → Discord message ID for every successfully delivered message
+     * @param submissionId    UUID of the submission being notified about
+     * @return the Discord message ID, or {@code null} if Discord's response didn't include one
      * @since v.0.1
      */
-    public Map<String, String> sendSubmissionNotifications(Form form, Map<String, Object> answers,
-                                                           String discordUsername, Long discordId,
-                                                           UUID submissionId) {
-        Map<String, String> messageIds = new LinkedHashMap<>();
-        if (form.getWebhooks() == null || form.getWebhooks().isEmpty()) return messageIds;
-
+    public String deliverToWebhook(Form form, WebhookConfig webhook, Map<String, Object> answers,
+                                    String discordUsername, Long discordId, UUID submissionId) {
         Map<String, String> vars = buildVars(form, discordId, discordUsername, submissionId);
-
-        for (WebhookConfig webhook : form.getWebhooks()) {
-            if (webhook.getUrl() == null || webhook.getUrl().isBlank()) continue;
-            try {
-                String messageId = dispatch(form, answers, discordUsername, webhook, vars);
-                if (messageId != null) messageIds.put(webhook.getUrl(), messageId);
-            } catch (Exception e) {
-                log.warn("Webhook delivery failed [{}]: {}", webhook.getUrl(), e.getMessage());
-            }
-        }
-        return messageIds;
+        return dispatch(form, answers, discordUsername, webhook, vars);
     }
 
     /**
