@@ -7,22 +7,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 class DiscordBotClientTest {
 
     @Test
-    void fetchGuildIsEmptyWhenNoBotTokenIsConfigured() {
-        DiscordBotClient client = new DiscordBotClient("");
+    void fetchGuildIsEmptyWhenNoJdaSessionIsAvailable() {
+        DiscordBotClient client = new DiscordBotClient(null);
 
         assertThat(client.fetchGuild(123L)).isEmpty();
     }
 
     @Test
-    void fetchTextChannelsIsEmptyWhenNoBotTokenIsConfigured() {
-        DiscordBotClient client = new DiscordBotClient("");
+    void fetchTextChannelsIsEmptyWhenNoJdaSessionIsAvailable() {
+        DiscordBotClient client = new DiscordBotClient(null);
 
         assertThat(client.fetchTextChannels(123L)).isEmpty();
     }
 
     @Test
-    void createWebhookIsEmptyWhenNoBotTokenIsConfigured() {
-        DiscordBotClient client = new DiscordBotClient("");
+    void createWebhookIsEmptyWhenNoJdaSessionIsAvailable() {
+        DiscordBotClient client = new DiscordBotClient(null);
 
         assertThat(client.createWebhook(123L, "MarForms")).isEmpty();
     }

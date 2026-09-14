@@ -1,28 +1,27 @@
 package me.marensovich.gta5rpformapp.backend.service.discord;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Webhook;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
- * Client for interacting with the Discord API using the bot's own token.
+ * Client for interacting with the Discord API using the bot's own JDA session.
  * <p>
  * Distinct from {@link DiscordApiClient}, which acts on behalf of a signed-in
  * user with their OAuth2 access token. Every call here degrades gracefully
  * (returns empty) rather than throwing — the bot may not have been added to
- * a given guild, may lack permissions, or {@code discord.bot.token} may not
- * be configured at all (e.g. in tests).
+ * a given guild, may lack permissions, or no {@code JDA} bean may exist at
+ * all (see {@code JdaConfig} — happens when {@code discord.bot.token} isn't
+ * configured, e.g. in tests).
  * </p>
  *
  * @author marensovich
@@ -33,68 +32,50 @@ import java.util.Optional;
 @Component
 public class DiscordBotClient {
 
-    private static final String DISCORD_API_BASE = "https://discord.com/api";
+    @Nullable
+    private final JDA jda;
 
-    /** Discord channel type value for a standard text channel. */
-    private static final int CHANNEL_TYPE_GUILD_TEXT = 0;
-
-    private final RestTemplate restTemplate = new RestTemplate();
-    private final String botToken;
-
-    public DiscordBotClient(@Value("${discord.bot.token:}") String botToken) {
-        this.botToken = botToken;
-    }
-
-    private HttpEntity<Void> authenticatedRequest() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set(HttpHeaders.AUTHORIZATION, "Bot " + botToken);
-        return new HttpEntity<>(headers);
+    @Autowired(required = false)
+    public DiscordBotClient(@Nullable JDA jda) {
+        this.jda = jda;
     }
 
     /**
-     * Fetches a guild's real name and icon hash from Discord, if the bot is a
-     * member of it and a token is configured.
+     * Fetches a guild's real name and icon hash, if the bot is a member of it.
      *
      * @param guildId the Discord guild snowflake ID
      * @return the guild info, or empty if unavailable for any reason
      * @since v.0.1
      */
     public Optional<DiscordGuildInfo> fetchGuild(Long guildId) {
-        if (botToken.isBlank()) return Optional.empty();
+        if (jda == null) return Optional.empty();
         try {
-            ResponseEntity<DiscordGuildInfo> response = restTemplate.exchange(
-                    DISCORD_API_BASE + "/guilds/" + guildId,
-                    HttpMethod.GET,
-                    authenticatedRequest(),
-                    DiscordGuildInfo.class
-            );
-            return Optional.ofNullable(response.getBody());
+            Guild guild = jda.getGuildById(guildId);
+            if (guild == null) return Optional.empty();
+            return Optional.of(new DiscordGuildInfo(guild.getId(), guild.getName(), guild.getIconId()));
         } catch (Exception e) {
-            log.warn("Failed to fetch guild {} via bot token: {}", guildId, e.getMessage());
+            log.warn("Failed to fetch guild {} via bot: {}", guildId, e.getMessage());
             return Optional.empty();
         }
     }
 
     /**
-     * Fetches the text channels of a guild that the bot can see.
+     * Fetches the text channels of a guild that the bot can both see and
+     * create webhooks in.
      *
      * @param guildId the Discord guild snowflake ID
-     * @return the guild's text channels, or an empty list if unavailable
+     * @return the guild's eligible text channels, or an empty list if unavailable
      * @since v.0.1
      */
     public List<DiscordChannel> fetchTextChannels(Long guildId) {
-        if (botToken.isBlank()) return List.of();
+        if (jda == null) return List.of();
         try {
-            ResponseEntity<DiscordChannel[]> response = restTemplate.exchange(
-                    DISCORD_API_BASE + "/guilds/" + guildId + "/channels",
-                    HttpMethod.GET,
-                    authenticatedRequest(),
-                    DiscordChannel[].class
-            );
-            DiscordChannel[] body = response.getBody();
-            if (body == null) return List.of();
-            return Arrays.stream(body)
-                    .filter(c -> c.type() == CHANNEL_TYPE_GUILD_TEXT)
+            Guild guild = jda.getGuildById(guildId);
+            if (guild == null) return List.of();
+            var self = guild.getSelfMember();
+            return guild.getTextChannels().stream()
+                    .filter(channel -> self.hasPermission(channel, Permission.VIEW_CHANNEL, Permission.MANAGE_WEBHOOKS))
+                    .map(channel -> new DiscordChannel(channel.getId(), channel.getName(), 0))
                     .toList();
         } catch (Exception e) {
             log.warn("Failed to fetch channels for guild {}: {}", guildId, e.getMessage());
@@ -114,24 +95,16 @@ public class DiscordBotClient {
      * @param channelId the Discord channel snowflake ID
      * @param name      the webhook's display name (shown as the message sender)
      * @return the created webhook, or empty if the bot lacks access/permission
-     *         or no bot token is configured
+     *         or no bot session is available
      * @since v.0.1
      */
     public Optional<CreatedWebhook> createWebhook(Long channelId, String name) {
-        if (botToken.isBlank()) return Optional.empty();
+        if (jda == null) return Optional.empty();
         try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.set(HttpHeaders.AUTHORIZATION, "Bot " + botToken);
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<Map<String, String>> request = new HttpEntity<>(Map.of("name", name), headers);
-
-            ResponseEntity<CreatedWebhook> response = restTemplate.exchange(
-                    DISCORD_API_BASE + "/channels/" + channelId + "/webhooks",
-                    HttpMethod.POST,
-                    request,
-                    CreatedWebhook.class
-            );
-            return Optional.ofNullable(response.getBody());
+            TextChannel channel = jda.getTextChannelById(channelId);
+            if (channel == null) return Optional.empty();
+            Webhook webhook = channel.createWebhook(name).complete();
+            return Optional.of(new CreatedWebhook(webhook.getId(), webhook.getToken()));
         } catch (Exception e) {
             log.warn("Failed to create webhook in channel {}: {}", channelId, e.getMessage());
             return Optional.empty();
@@ -154,7 +127,7 @@ public class DiscordBotClient {
      *
      * @param id   the channel ID as a string
      * @param name the channel's display name
-     * @param type the Discord channel type (0 = text; see {@link #CHANNEL_TYPE_GUILD_TEXT})
+     * @param type the Discord channel type (0 = text)
      * @since v.0.1
      */
     public record DiscordChannel(String id, String name, int type) {
