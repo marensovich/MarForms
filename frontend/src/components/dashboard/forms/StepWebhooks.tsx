@@ -47,10 +47,10 @@ function empty(): WebhookConfig {
 // ── Shared input styles ────────────────────────────────────────────────────────
 
 function inputCls(hasError?: boolean) {
-    return `w-full rounded-xl border px-3 py-2 text-sm text-white placeholder-white/20 outline-none transition-colors focus:ring-1 ${
+    return `w-full rounded-xl border px-3 py-2 text-sm text-[#1E1E24] placeholder-[#C7C7CE] outline-none transition-colors focus:ring-1 ${
         hasError
-            ? "border-red-500/50 bg-red-500/[0.04] focus:border-red-500/60 focus:ring-red-500/20"
-            : "border-white/[0.08] bg-white/[0.04] focus:border-indigo-500/60 focus:ring-indigo-500/30"
+            ? "border-[#EAD4D3] bg-[#F7EEEE] focus:border-[#B56A65] focus:ring-[#B56A65]/20"
+            : "border-[#E4E4E7] bg-[#FAFAFB] focus:border-[#3730A3] focus:ring-[#3730A3]/20"
     }`;
 }
 
@@ -64,8 +64,8 @@ function Group({label, icon, children}: {
     return (
         <div className="mt-4 first:mt-0">
             <div className="mb-2.5 flex items-center gap-1.5">
-                <span className="text-white/25">{icon}</span>
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-white/30">{label}</span>
+                <span className="text-[#C7C7CE]">{icon}</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#8B8B96]">{label}</span>
             </div>
             <div className="flex flex-col gap-2.5">
                 {children}
@@ -81,9 +81,9 @@ function Row({children}: { children: React.ReactNode }) {
 function Field({label, hint, children}: { label: string; hint?: string; children: React.ReactNode }) {
     return (
         <label className="flex flex-col gap-1">
-            <span className="text-[11px] font-medium text-white/40">
+            <span className="text-[11px] font-medium text-[#8B8B96]">
                 {label}
-                {hint && <span className="ml-1.5 text-white/20 font-normal">{hint}</span>}
+                {hint && <span className="ml-1.5 text-[#C7C7CE] font-normal">{hint}</span>}
             </span>
             {children}
         </label>
@@ -116,11 +116,11 @@ function WebhookCard({wh, onUpdate, onDelete}: {
     const str = (v: string | undefined) => v ?? "";
 
     return (
-        <div className="rounded-xl border border-white/[0.08] bg-white/[0.02]">
+        <div className="rounded-xl border border-[#E4E4E7] bg-white">
             {/* Header row */}
             <div className="flex items-center gap-3 p-4">
-                <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-indigo-500/15">
-                    <FiLink size={13} className="text-indigo-400"/>
+                <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-[#EEF0FB]">
+                    <FiLink size={13} className="text-[#3730A3]"/>
                 </div>
                 <div className="min-w-0 flex-1">
                     <input
@@ -131,7 +131,7 @@ function WebhookCard({wh, onUpdate, onDelete}: {
                         className={inputCls(!urlValid && wh.url.length > 0)}
                     />
                     {!urlValid && wh.url.length > 0 && (
-                        <p className="mt-1 flex items-center gap-1 text-[11px] text-red-400">
+                        <p className="mt-1 flex items-center gap-1 text-[11px] text-[#B56A65]">
                             <FiAlertCircle size={10}/> {t("wizard.webhooks.invalidUrl")}
                         </p>
                     )}
@@ -139,7 +139,7 @@ function WebhookCard({wh, onUpdate, onDelete}: {
                 <button
                     type="button"
                     onClick={() => setExpanded(e => !e)}
-                    className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-white/30 transition-colors hover:bg-white/[0.06] hover:text-white"
+                    className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-[#8B8B96] transition-colors hover:bg-[#F0F0F2] hover:text-[#1E1E24]"
                     title="Configure embed"
                 >
                     {expanded ? <FiChevronUp size={14}/> : <FiChevronDown size={14}/>}
@@ -147,7 +147,7 @@ function WebhookCard({wh, onUpdate, onDelete}: {
                 <button
                     type="button"
                     onClick={onDelete}
-                    className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-white/20 transition-colors hover:bg-red-500/10 hover:text-red-400"
+                    className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-[#C7C7CE] transition-colors hover:bg-[#F7EEEE] hover:text-[#B56A65]"
                     title="Remove webhook"
                 >
                     <FiTrash2 size={13}/>
@@ -156,11 +156,11 @@ function WebhookCard({wh, onUpdate, onDelete}: {
 
             {/* Expanded embed builder */}
             {expanded && (
-                <div className="border-t border-white/[0.06] px-4 pb-5 pt-4">
+                <div className="border-t border-[#E4E4E7] px-4 pb-5 pt-4">
 
                     {/* ── Variables reference ────────────────────────── */}
-                    <div className="rounded-lg border border-indigo-500/15 bg-indigo-500/5 px-3 py-2.5">
-                        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-indigo-300/70">
+                    <div className="rounded-lg border border-[#D8DCF5] bg-[#EEF0FB] px-3 py-2.5">
+                        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#3730A3]">
                             {t("wizard.webhooks.availableVars")}
                         </p>
                         <div className="flex flex-wrap gap-1">
@@ -177,12 +177,12 @@ function WebhookCard({wh, onUpdate, onDelete}: {
                                 ["{server_id}", "guild ID"],
                             ] as [string, string][]).map(([v, hint]) => (
                                 <span key={v} title={hint}
-                                      className="cursor-default rounded border border-indigo-500/20 bg-indigo-500/10 px-1.5 py-0.5 font-mono text-[10px] text-indigo-300">
+                                      className="cursor-default rounded border border-[#D8DCF5] bg-white px-1.5 py-0.5 font-mono text-[10px] text-[#3730A3]">
                                     {v}
                                 </span>
                             ))}
                         </div>
-                        <p className="mt-1.5 text-[10px] text-white/25">
+                        <p className="mt-1.5 text-[10px] text-[#8B8B96]">
                             {t("wizard.webhooks.varHint")}
                         </p>
                     </div>
@@ -224,7 +224,7 @@ function WebhookCard({wh, onUpdate, onDelete}: {
 
                         {/* Color picker */}
                         <div>
-                            <span className="text-[11px] font-medium text-white/40">{t("wizard.webhooks.fields.embedColor")}</span>
+                            <span className="text-[11px] font-medium text-[#8B8B96]">{t("wizard.webhooks.fields.embedColor")}</span>
                             <div className="mt-2 flex flex-wrap items-center gap-2">
                                 {COLOR_PRESETS.map(p => {
                                     const active = wh.color === p.value;
@@ -233,8 +233,8 @@ function WebhookCard({wh, onUpdate, onDelete}: {
                                                 onClick={() => selectPreset(p.value, p.hex)}
                                                 className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs transition-colors ${
                                                     active
-                                                        ? "border-white/30 bg-white/[0.08] text-white"
-                                                        : "border-white/[0.08] bg-white/[0.02] text-white/50 hover:text-white"
+                                                        ? "border-[#D4D4D9] bg-[#F0F0F2] text-[#1E1E24]"
+                                                        : "border-[#E4E4E7] bg-white text-[#6B6B76] hover:text-[#1E1E24]"
                                                 }`}>
                                             <span className="h-3 w-3 rounded-full" style={{background: p.hex}}/>
                                             {p.label}
@@ -243,12 +243,12 @@ function WebhookCard({wh, onUpdate, onDelete}: {
                                     );
                                 })}
                                 <div
-                                    className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.02] px-2.5 py-1">
-                                    <span className="text-xs text-white/40">HEX</span>
+                                    className="flex items-center gap-1.5 rounded-lg border border-[#E4E4E7] bg-white px-2.5 py-1">
+                                    <span className="text-xs text-[#8B8B96]">HEX</span>
                                     <input type="text" value={hexInput}
                                            onChange={e => handleHexChange(e.target.value)}
                                            placeholder="#5865F2" maxLength={7}
-                                           className="w-20 bg-transparent text-xs text-white outline-none placeholder-white/20"/>
+                                           className="w-20 bg-transparent text-xs text-[#1E1E24] outline-none placeholder-[#C7C7CE]"/>
                                 </div>
                             </div>
                         </div>
@@ -298,15 +298,15 @@ function WebhookCard({wh, onUpdate, onDelete}: {
                                 onClick={() => onUpdate({fieldsInline: !wh.fieldsInline})}
                                 className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors ${
                                     wh.fieldsInline
-                                        ? "border-indigo-500/60 bg-indigo-500/25"
-                                        : "border-white/[0.12] bg-white/[0.03] hover:border-white/25"
+                                        ? "border-[#3730A3] bg-[#EEF0FB]"
+                                        : "border-[#D4D4D9] bg-white hover:border-[#B5B5BC]"
                                 }`}
                             >
-                                {wh.fieldsInline && <div className="h-2 w-2 rounded-sm bg-indigo-400"/>}
+                                {wh.fieldsInline && <div className="h-2 w-2 rounded-sm bg-[#3730A3]"/>}
                             </div>
-                            <span className="text-xs text-white/60">
+                            <span className="text-xs text-[#6B6B76]">
                                 {t("wizard.webhooks.fields.inlineFields")}
-                                <span className="ml-1.5 text-white/25">{t("wizard.webhooks.fields.inlineFieldsHint")}</span>
+                                <span className="ml-1.5 text-[#8B8B96]">{t("wizard.webhooks.fields.inlineFieldsHint")}</span>
                             </span>
                         </label>
                     </Group>
@@ -338,8 +338,8 @@ export default function StepWebhooks({draft, onChange}: Props) {
     return (
         <div className="flex flex-col gap-4">
             <div>
-                <h3 className="text-sm font-semibold text-white">{t("wizard.webhooks.title")}</h3>
-                <p className="mt-1 text-sm text-white/50">
+                <h3 className="text-sm font-semibold text-[#1E1E24]">{t("wizard.webhooks.title")}</h3>
+                <p className="mt-1 text-sm text-[#8B8B96]">
                     {t("wizard.webhooks.subtitle")}
                 </p>
             </div>
@@ -358,17 +358,17 @@ export default function StepWebhooks({draft, onChange}: Props) {
             )}
 
             {webhooks.length === 0 && (
-                <div className="rounded-xl border border-dashed border-white/[0.08] py-8 text-center">
-                    <FiLink size={20} className="mx-auto mb-2 text-white/20"/>
-                    <p className="text-sm text-white/30">{t("wizard.webhooks.noWebhooks")}</p>
-                    <p className="mt-0.5 text-xs text-white/20">{t("wizard.webhooks.clickToAdd")}</p>
+                <div className="rounded-xl border border-dashed border-[#D4D4D9] py-8 text-center">
+                    <FiLink size={20} className="mx-auto mb-2 text-[#C7C7CE]"/>
+                    <p className="text-sm text-[#8B8B96]">{t("wizard.webhooks.noWebhooks")}</p>
+                    <p className="mt-0.5 text-xs text-[#C7C7CE]">{t("wizard.webhooks.clickToAdd")}</p>
                 </div>
             )}
 
             <button
                 type="button"
                 onClick={add}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-indigo-500/30 py-2.5 text-sm text-indigo-400 transition-colors hover:border-indigo-500/50 hover:bg-indigo-500/[0.04] hover:text-indigo-300"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-[#D8DCF5] py-2.5 text-sm text-[#3730A3] transition-colors hover:border-[#3730A3] hover:bg-[#EEF0FB]"
             >
                 <FiPlus size={14}/>
                 {t("wizard.webhooks.addWebhook")}
