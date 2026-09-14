@@ -3,6 +3,7 @@ package me.marensovich.gta5rpformapp.backend.service;
 import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.database.entity.User;
 import me.marensovich.gta5rpformapp.backend.database.repository.UserRepository;
+import me.marensovich.gta5rpformapp.backend.service.discord.DiscordBotClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -13,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({GuildService.class, GuildMembershipService.class})
+@Import({GuildService.class, GuildMembershipService.class, DiscordBotClient.class})
 class GuildMembershipServiceTest {
 
     @Autowired
