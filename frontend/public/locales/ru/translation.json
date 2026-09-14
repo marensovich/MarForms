@@ -185,6 +185,16 @@
     "connectServer": "Подключить сервер",
     "connectSuccess": "Сервер {{guildId}} подключён — бот установлен.",
     "connectError": "Не удалось подключить сервер. Попробуйте ещё раз.",
+    "guilds": {
+      "title": "Подключённые серверы",
+      "connected": "Подключён",
+      "kicked": "Бот удалён",
+      "role": {
+        "owner": "Владелец",
+        "moderator": "Модератор",
+        "respondent": "Респондент"
+      }
+    },
     "stats": {
       "totalForms": "Всего форм",
       "active": "Активные",

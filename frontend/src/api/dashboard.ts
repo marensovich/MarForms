@@ -64,6 +64,18 @@ export function getGuildConnectUrl(): Promise<{ url: string }> {
     return apiRequest("/guilds/connect");
 }
 
+export interface MyGuild {
+    guildId: string;
+    guildName: string;
+    botStatus: "CONNECTED" | "KICKED";
+    role: "OWNER" | "MODERATOR" | "RESPONDENT";
+    since: string;
+}
+
+export function getMyGuilds(): Promise<MyGuild[]> {
+    return apiRequest("/me/guilds");
+}
+
 export interface DiscordChannel {
     id: string;
     name: string;

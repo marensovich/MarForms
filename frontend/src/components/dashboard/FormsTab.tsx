@@ -4,11 +4,13 @@ import {useTranslation} from "react-i18next";
 import {
     type DashboardForm,
     type DashboardSubmission,
+    type MyGuild,
     deleteForm,
     getDashboardForms,
     getForm,
     getFormSubmissions,
     getGuildConnectUrl,
+    getMyGuilds,
     toggleFormActive,
 } from "../../api/dashboard";
 import {type FormDefinition} from "../../types/forms";
@@ -24,6 +26,7 @@ import {
     FiInbox,
     FiLink,
     FiList,
+    FiServer,
     FiToggleLeft,
     FiToggleRight,
     FiTrash2,
@@ -161,6 +164,21 @@ export default function FormsTab() {
     const [deleteTarget, setDeleteTarget] = useState<DashboardForm | null>(null);
     const [connectBanner, setConnectBanner] = useState<{ type: "success" | "error"; guildId?: string } | null>(null);
     const [connecting, setConnecting] = useState(false);
+    const [guilds, setGuilds] = useState<MyGuild[]>([]);
+    const [guildsLoading, setGuildsLoading] = useState(true);
+
+    const loadGuilds = async () => {
+        setGuildsLoading(true);
+        try {
+            setGuilds(await getMyGuilds());
+        } finally {
+            setGuildsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadGuilds();
+    }, []);
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -168,6 +186,7 @@ export default function FormsTab() {
         const connectError = params.get("guildConnectError");
         if (connectedGuild) {
             setConnectBanner({type: "success", guildId: connectedGuild});
+            loadGuilds();
         } else if (connectError) {
             setConnectBanner({type: "error"});
         }
@@ -268,6 +287,30 @@ export default function FormsTab() {
                     <button onClick={() => setConnectBanner(null)} className="flex-shrink-0 opacity-70 hover:opacity-100">
                         <FiX size={14}/>
                     </button>
+                </div>
+            )}
+
+            {/* Connected servers */}
+            {!guildsLoading && guilds.length > 0 && (
+                <div className="mb-6">
+                    <p className="mb-2 text-xs font-medium uppercase tracking-wider text-[#8B8B96]">
+                        {t("forms.guilds.title")}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                        {guilds.map(g => (
+                            <div
+                                key={g.guildId}
+                                className="flex items-center gap-2 rounded-lg border border-[#E4E4E7] bg-white px-3 py-2 text-sm"
+                            >
+                                <FiServer size={13} className="text-[#8B8B96]"/>
+                                <span className="font-medium text-[#1E1E24]">{g.guildName}</span>
+                                <Badge color={g.botStatus === "CONNECTED" ? "green" : "red"} dot>
+                                    {g.botStatus === "CONNECTED" ? t("forms.guilds.connected") : t("forms.guilds.kicked")}
+                                </Badge>
+                                <span className="text-xs text-[#8B8B96]">{t(`forms.guilds.role.${g.role.toLowerCase()}`)}</span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
 

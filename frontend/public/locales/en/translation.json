@@ -185,6 +185,16 @@
     "connectServer": "Connect a server",
     "connectSuccess": "Server {{guildId}} connected — the bot is now installed there.",
     "connectError": "Could not connect the server. Please try again.",
+    "guilds": {
+      "title": "Connected servers",
+      "connected": "Connected",
+      "kicked": "Bot removed",
+      "role": {
+        "owner": "Owner",
+        "moderator": "Moderator",
+        "respondent": "Respondent"
+      }
+    },
     "stats": {
       "totalForms": "Total Forms",
       "active": "Active",

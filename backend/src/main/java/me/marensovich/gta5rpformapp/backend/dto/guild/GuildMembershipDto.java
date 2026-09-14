@@ -2,6 +2,7 @@ package me.marensovich.gta5rpformapp.backend.dto.guild;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import me.marensovich.gta5rpformapp.backend.data.guilds.GuildBotStatus;
 import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.database.entity.GuildMembership;
 
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
  * @param guildId   the Discord guild snowflake ID
  * @param guildName the guild's display name (a placeholder until the bot module can
  *                  fetch real Discord metadata — see {@code GuildService})
+ * @param botStatus whether the bot is still installed on this guild
  * @param role      the user's role on this guild
  * @param since     when this membership was first recorded
  * @author marensovich
@@ -23,6 +25,7 @@ public record GuildMembershipDto(
         @JsonSerialize(using = ToStringSerializer.class)
         Long guildId,
         String guildName,
+        GuildBotStatus botStatus,
         GuildRole role,
         LocalDateTime since
 ) {
@@ -37,6 +40,7 @@ public record GuildMembershipDto(
         return new GuildMembershipDto(
                 membership.getGuild().getDiscordGuildId(),
                 membership.getGuild().getName(),
+                membership.getGuild().getBotStatus(),
                 membership.getRole(),
                 membership.getCreatedAt()
         );
