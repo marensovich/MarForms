@@ -1,8 +1,11 @@
 package me.marensovich.gta5rpformapp.backend.database.repository;
 
+import me.marensovich.gta5rpformapp.backend.data.guilds.GuildBotStatus;
 import me.marensovich.gta5rpformapp.backend.database.entity.Guild;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 /**
  * Repository interface for accessing {@link Guild} entities in the database.
@@ -13,4 +16,13 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface GuildRepository extends JpaRepository<Guild, Long> {
+
+    /**
+     * Finds all guilds currently in the given bot-connection status.
+     *
+     * @param botStatus the status to filter by
+     * @return matching guilds
+     * @since v.0.1
+     */
+    List<Guild> findAllByBotStatus(GuildBotStatus botStatus);
 }

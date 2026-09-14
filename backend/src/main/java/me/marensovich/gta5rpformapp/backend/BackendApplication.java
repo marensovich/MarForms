@@ -4,6 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import static org.springframework.data.web.config.EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO;
 
@@ -21,6 +22,8 @@ import static org.springframework.data.web.config.EnableSpringDataWebSupport.Pag
  *     <li><b>Page Serialization</b> — {@code @EnableSpringDataWebSupport} with
  *     {@code VIA_DTO} mode ensures Spring Data Page objects are serialized
  *     as DTOs for better API contract stability</li>
+ *     <li><b>Scheduling</b> — {@code @EnableScheduling} powers periodic
+ *     background jobs such as {@code GuildStatusReconciler}</li>
  * </ul>
  * </p>
  *
@@ -30,6 +33,7 @@ import static org.springframework.data.web.config.EnableSpringDataWebSupport.Pag
  */
 @SpringBootApplication
 @EnableAsync
+@EnableScheduling
 @EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO)
 public class BackendApplication {
 

@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.marensovich.gta5rpformapp.backend.config.JWT.JwtUtil;
 import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.service.GuildMembershipService;
+import me.marensovich.gta5rpformapp.backend.service.GuildService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,6 +46,7 @@ public class GuildConnectController {
     private static final long BOT_PERMISSIONS = (1L << 10) | (1L << 29);
 
     private final GuildMembershipService guildMembershipService;
+    private final GuildService guildService;
     private final JwtUtil jwtUtil;
 
     @Value("${spring.security.oauth2.client.registration.discord.client-id}")
@@ -109,6 +111,10 @@ public class GuildConnectController {
 
         Long discordId = jwtUtil.getUserIdFromToken(state);
         guildMembershipService.ensureMembership(discordId, guildId, GuildRole.OWNER);
+        // Reinstalling on a guild the bot was previously kicked from must
+        // flip its status back — getOrCreate() (called by ensureMembership)
+        // only sets it on first creation, not on every call.
+        guildService.markConnected(guildId);
 
         response.sendRedirect(frontendUrl + "/dashboard?connectedGuild=" + guildId);
     }

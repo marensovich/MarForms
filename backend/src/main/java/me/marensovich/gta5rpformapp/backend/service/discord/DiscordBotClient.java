@@ -41,6 +41,23 @@ public class DiscordBotClient {
     }
 
     /**
+     * Whether a live bot session is available at all.
+     * <p>
+     * Callers that need to distinguish "the bot isn't configured in this
+     * environment" from "the bot is configured but was kicked from this
+     * particular guild" (e.g. {@code GuildStatusReconciler}) should check
+     * this first — every other method here already returns an empty result
+     * in both cases, which is indistinguishable on its own.
+     * </p>
+     *
+     * @return {@code true} if a {@link JDA} session is connected
+     * @since v.0.1
+     */
+    public boolean isAvailable() {
+        return jda != null;
+    }
+
+    /**
      * Fetches a guild's real name and icon hash, if the bot is a member of it.
      *
      * @param guildId the Discord guild snowflake ID

@@ -62,6 +62,43 @@ public class GuildService {
         return guildRepository.save(guild);
     }
 
+    /**
+     * Marks a guild as no longer reachable by the bot (kicked, or the bot's
+     * invite was revoked). A no-op if the guild is already marked kicked, or
+     * if no row exists for it yet.
+     *
+     * @param discordGuildId the Discord guild snowflake ID
+     * @since v.0.1
+     */
+    @Transactional
+    public void markKicked(Long discordGuildId) {
+        guildRepository.findById(discordGuildId).ifPresent(guild -> {
+            if (guild.getBotStatus() != GuildBotStatus.KICKED) {
+                guild.setBotStatus(GuildBotStatus.KICKED);
+                guildRepository.save(guild);
+            }
+        });
+    }
+
+    /**
+     * Marks a guild as reachable by the bot again — used when the bot is
+     * reinstalled on a guild it was previously kicked from (see
+     * {@code GuildConnectController}). A no-op if the guild is already
+     * marked connected, or if no row exists for it yet.
+     *
+     * @param discordGuildId the Discord guild snowflake ID
+     * @since v.0.1
+     */
+    @Transactional
+    public void markConnected(Long discordGuildId) {
+        guildRepository.findById(discordGuildId).ifPresent(guild -> {
+            if (guild.getBotStatus() != GuildBotStatus.CONNECTED) {
+                guild.setBotStatus(GuildBotStatus.CONNECTED);
+                guildRepository.save(guild);
+            }
+        });
+    }
+
     private Optional<String> fetchRealName(Long discordGuildId) {
         return discordBotClient.fetchGuild(discordGuildId).map(DiscordBotClient.DiscordGuildInfo::name);
     }
