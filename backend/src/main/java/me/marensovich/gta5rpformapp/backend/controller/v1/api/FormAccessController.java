@@ -2,7 +2,9 @@ package me.marensovich.gta5rpformapp.backend.controller.v1.api;
 
 import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.config.security.CustomUserDetails;
+import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.service.FormService;
+import me.marensovich.gta5rpformapp.backend.service.GuildMembershipService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +31,7 @@ import java.util.UUID;
 public class FormAccessController {
 
     private final FormService formService;
+    private final GuildMembershipService guildMembershipService;
 
     /**
      * Checks if the authenticated user has access to the specified form.
@@ -50,6 +53,11 @@ public class FormAccessController {
     ) {
         var form = formService.getById(formId);
         boolean hasAccess = principal.getUser().isMemberOfGuild(form.getServerId());
+
+        if (hasAccess) {
+            guildMembershipService.ensureMembership(
+                    principal.getDiscordId(), form.getServerId(), GuildRole.RESPONDENT);
+        }
 
         return Map.of("hasAccess", hasAccess);
     }

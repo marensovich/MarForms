@@ -2,6 +2,7 @@ package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
+import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import me.marensovich.gta5rpformapp.backend.database.repository.FormRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionRepository;
@@ -36,6 +37,7 @@ public class FormService {
     private final FormRepository formRepository;
     private final SubmissionRepository submissionRepository;
     private final AuditLogService auditLogService;
+    private final GuildMembershipService guildMembershipService;
 
     /**
      * Retrieves a form by its ID.
@@ -74,6 +76,15 @@ public class FormService {
         }
         form.setSchema(request.schema());
         Form saved = formRepository.save(form);
+
+        Long actorId = auditLogService.currentActorId();
+        if (actorId != null) {
+            // Whoever has FORMS_MANAGE and creates a form for this guild is
+            // acting as its owner — see GuildMembershipService for the
+            // upgrade-only semantics (never downgrades an existing role).
+            guildMembershipService.ensureMembership(actorId, saved.getServerId(), GuildRole.OWNER);
+        }
+
         auditLogService.logByCurrentUser(AuditAction.FORM_CREATED,
                 saved.getId().toString(), saved.getSchema().getTitle(),
                 "Form ID: " + saved.getId());
