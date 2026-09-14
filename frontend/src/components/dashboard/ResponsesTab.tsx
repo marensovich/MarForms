@@ -66,16 +66,16 @@ function SubmissionDetailModal({
         >
             <div className="flex flex-col gap-2.5 max-h-[60vh] overflow-y-auto pr-1">
                 {Object.entries(submission.answers).map(([fieldId, value]) => (
-                    <div key={fieldId} className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-3">
-                        <p className="mb-1 text-xs font-medium text-white/60">{getLabel(fieldId)}</p>
-                        <p className="text-sm text-white break-words">
+                    <div key={fieldId} className="rounded-lg border border-[#E4E4E7] bg-[#FAFAFB] p-3">
+                        <p className="mb-1 text-xs font-medium text-[#6B6B76]">{getLabel(fieldId)}</p>
+                        <p className="text-sm text-[#1E1E24] break-words">
                             {Array.isArray(value) ? value.join(", ") : String(value)}
                         </p>
                     </div>
                 ))}
             </div>
-            <div className="mt-4 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2">
-                <span className="text-[11px] font-mono text-white/35">ID: {submission.id}</span>
+            <div className="mt-4 rounded-lg border border-[#E4E4E7] bg-[#FAFAFB] px-3 py-2">
+                <span className="text-[11px] font-mono text-[#8B8B96]">ID: {submission.id}</span>
             </div>
         </Modal>
     );
@@ -215,18 +215,18 @@ export default function ResponsesTab() {
             {/* Header */}
             <div className="mb-6 flex items-start justify-between">
                 <div>
-                    <h1 className="text-xl font-semibold text-white">{t("responses.title")}</h1>
-                    <p className="mt-0.5 text-sm text-white/65">{t("responses.subtitle")}</p>
+                    <h1 className="text-xl font-semibold text-[#1E1E24]">{t("responses.title")}</h1>
+                    <p className="mt-0.5 text-sm text-[#6B6B76]">{t("responses.subtitle")}</p>
                 </div>
-                <div className="flex rounded-lg border border-white/[0.08] bg-white/[0.02] p-0.5">
+                <div className="flex rounded-lg border border-[#E4E4E7] bg-white p-0.5">
                     {(["all", "by-user"] as const).map(v => (
                         <button
                             key={v}
                             onClick={() => setView(v)}
                             className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                                 view === v
-                                    ? "bg-white/[0.08] text-white"
-                                    : "text-white/45 hover:text-white/70"
+                                    ? "bg-[#F0F0F2] text-[#1E1E24]"
+                                    : "text-[#8B8B96] hover:text-[#55555F]"
                             }`}
                         >
                             {v === "all" ? <FiInbox size={12}/> : <FiUsers size={12}/>}
@@ -245,21 +245,21 @@ export default function ResponsesTab() {
                         ? t("responses.stats.inForm", {formName: formName(filters.formId)})
                         : t("responses.stats.acrossAllForms")}
                     icon={<FiInbox size={16}/>}
-                    accentColor="#6366f1"
+                    accentColor="#3730A3"
                 />
                 <StatsCard
                     label={t("responses.stats.forms")}
                     value={forms.length}
                     sub={t("responses.stats.activeForms", {count: forms.filter(f => f.active).length})}
                     icon={<FiFileText size={16}/>}
-                    accentColor="#34d399"
+                    accentColor="#3F6B4A"
                 />
                 <StatsCard
                     label={t("responses.stats.uniqueUsers")}
                     value={userCounts.length}
                     sub={t("responses.stats.withAtLeastOne")}
                     icon={<FiUsers size={16}/>}
-                    accentColor="#a78bfa"
+                    accentColor="#5B3E96"
                 />
             </div>
 
@@ -273,7 +273,7 @@ export default function ResponsesTab() {
                                 setFilters(f => ({...f, formId: e.target.value}));
                                 setPage(0);
                             }}
-                            className="rounded-lg border border-white/[0.08] bg-[#0d0d1e] px-3 py-2 text-xs text-white/80 outline-none focus:border-indigo-500/50"
+                            className="rounded-lg border border-[#E4E4E7] bg-white px-3 py-2 text-xs text-[#55555F] outline-none focus:border-[#3730A3]"
                         >
                             <option value="">{t("responses.filter.allForms")}</option>
                             {forms.map(f => (
@@ -282,39 +282,39 @@ export default function ResponsesTab() {
                         </select>
 
                         <div
-                            className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.02] px-3 py-2">
-                            <FiSearch size={12} className="flex-shrink-0 text-white/40"/>
+                            className="flex items-center gap-1.5 rounded-lg border border-[#E4E4E7] bg-white px-3 py-2">
+                            <FiSearch size={12} className="flex-shrink-0 text-[#8B8B96]"/>
                             <input
                                 value={searchInput}
                                 onChange={e => setSearchInput(e.target.value)}
                                 onKeyDown={e => e.key === "Enter" && applySearch()}
                                 placeholder={t("responses.filter.searchPlaceholder")}
-                                className="w-36 bg-transparent text-xs text-white placeholder-white/30 outline-none"
+                                className="w-36 bg-transparent text-xs text-[#1E1E24] placeholder-[#C7C7CE] outline-none"
                             />
                             {searchInput && (
                                 <button onClick={clearSearch}
-                                        className="text-white/35 hover:text-white transition-colors">
+                                        className="text-[#8B8B96] hover:text-[#1E1E24] transition-colors">
                                     <FiX size={11}/>
                                 </button>
                             )}
                         </div>
                         <button
                             onClick={applySearch}
-                            className="rounded-lg bg-indigo-600/80 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-indigo-500"
+                            className="rounded-lg bg-[#3730A3] px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-[#2D2682]"
                         >
                             {t("common.search")}
                         </button>
 
                         <div className="ml-auto flex items-center gap-1.5">
-                            <FiFilter size={11} className="text-white/30"/>
+                            <FiFilter size={11} className="text-[#8B8B96]"/>
                             {(["createdAt", "discordId"] as const).map(field => (
                                 <button
                                     key={field}
                                     onClick={() => toggleSort(field)}
                                     className={`flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs transition-colors ${
                                         filters.sortBy === field
-                                            ? "border-indigo-500/30 bg-indigo-500/15 text-indigo-300"
-                                            : "border-white/[0.07] bg-white/[0.02] text-white/55 hover:text-white"
+                                            ? "border-[#D8DCF5] bg-[#EEF0FB] text-[#3730A3]"
+                                            : "border-[#E4E4E7] bg-white text-[#6B6B76] hover:text-[#1E1E24]"
                                     }`}
                                 >
                                     {field === "createdAt" ? t("responses.filter.date") : t("responses.filter.user")}
@@ -329,7 +329,7 @@ export default function ResponsesTab() {
                         <div className="mb-3 flex flex-wrap items-center gap-2">
                             {filters.formId && (
                                 <span
-                                    className="flex items-center gap-1.5 rounded-full border border-indigo-500/25 bg-indigo-500/10 px-2.5 py-1 text-xs text-indigo-300">
+                                    className="flex items-center gap-1.5 rounded-full border border-[#D8DCF5] bg-[#EEF0FB] px-2.5 py-1 text-xs text-[#3730A3]">
                                     <FiFileText size={10}/>
                                     {formName(filters.formId)}
                                     <button
@@ -337,7 +337,7 @@ export default function ResponsesTab() {
                                             setFilters(f => ({...f, formId: ""}));
                                             setPage(0);
                                         }}
-                                        className="ml-0.5 transition-colors hover:text-white"
+                                        className="ml-0.5 transition-colors hover:text-[#2D2682]"
                                     >
                                         <FiX size={9}/>
                                     </button>
@@ -345,10 +345,10 @@ export default function ResponsesTab() {
                             )}
                             {filters.search && (
                                 <span
-                                    className="flex items-center gap-1.5 rounded-full border border-purple-500/25 bg-purple-500/10 px-2.5 py-1 text-xs text-purple-300">
+                                    className="flex items-center gap-1.5 rounded-full border border-[#E0D5F2] bg-[#F2EEFA] px-2.5 py-1 text-xs text-[#5B3E96]">
                                     <FiUser size={10}/>
                                     {filters.search}
-                                    <button onClick={clearSearch} className="ml-0.5 transition-colors hover:text-white">
+                                    <button onClick={clearSearch} className="ml-0.5 transition-colors hover:text-[#3E2A6B]">
                                         <FiX size={9}/>
                                     </button>
                                 </span>
@@ -362,38 +362,38 @@ export default function ResponsesTab() {
                     ) : submissions.length === 0 ? (
                         <EmptyState message={t("responses.noResponses")} icon={<FiInbox/>}/>
                     ) : (
-                        <div className="overflow-hidden rounded-xl border border-white/[0.07]">
+                        <div className="overflow-hidden rounded-xl border border-[#E4E4E7]">
                             <table className="w-full text-sm">
                                 <thead>
-                                <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">{t("responses.table.user")}</th>
-                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">{t("responses.table.form")}</th>
-                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">{t("responses.table.date")}</th>
-                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-white/55">{t("responses.table.fields")}</th>
-                                    <th className="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-white/55">{t("responses.table.actions")}</th>
+                                <tr className="border-b border-[#E4E4E7] bg-[#FAFAFB]">
+                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#6B6B76]">{t("responses.table.user")}</th>
+                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#6B6B76]">{t("responses.table.form")}</th>
+                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#6B6B76]">{t("responses.table.date")}</th>
+                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#6B6B76]">{t("responses.table.fields")}</th>
+                                    <th className="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#6B6B76]">{t("responses.table.actions")}</th>
                                 </tr>
                                 </thead>
-                                <tbody className="divide-y divide-white/[0.04]">
+                                <tbody className="divide-y divide-[#F0F0F2]">
                                 {submissions.map(sub => (
-                                    <tr key={sub.id} className="group transition-colors hover:bg-white/[0.015]">
+                                    <tr key={sub.id} className="group transition-colors hover:bg-[#FAFAFB]">
                                         <td className="px-5 py-4">
-                                            <p className="text-sm text-white">{username(sub.discordId)}</p>
-                                            <p className="mt-0.5 font-mono text-[11px] text-white/35">{sub.discordId}</p>
+                                            <p className="text-sm text-[#1E1E24]">{username(sub.discordId)}</p>
+                                            <p className="mt-0.5 font-mono text-[11px] text-[#8B8B96]">{sub.discordId}</p>
                                         </td>
                                         <td className="px-5 py-4">
-                                            <p className="max-w-[160px] truncate text-sm text-white/75">{formName(sub.formId)}</p>
+                                            <p className="max-w-[160px] truncate text-sm text-[#55555F]">{formName(sub.formId)}</p>
                                         </td>
                                         <td className="px-5 py-4">
-                                            <p className="text-sm text-white/70">
+                                            <p className="text-sm text-[#55555F]">
                                                 {new Date(sub.createdAt).toLocaleDateString("en-GB", {
                                                     day: "2-digit", month: "short", year: "numeric",
                                                 })}
                                             </p>
-                                            <p className="mt-0.5 text-xs text-white/40">{new Date(sub.createdAt).toLocaleTimeString()}</p>
+                                            <p className="mt-0.5 text-xs text-[#8B8B96]">{new Date(sub.createdAt).toLocaleTimeString()}</p>
                                         </td>
                                         <td className="px-5 py-4">
                                                 <span
-                                                    className="rounded-md border border-white/[0.06] bg-white/[0.03] px-2 py-0.5 text-xs text-white/55">
+                                                    className="rounded-md border border-[#E4E4E7] bg-[#FAFAFB] px-2 py-0.5 text-xs text-[#6B6B76]">
                                                     {t("responses.table.fieldsCount", {count: Object.keys(sub.answers).length})}
                                                 </span>
                                         </td>
@@ -419,21 +419,21 @@ export default function ResponsesTab() {
                     {/* Pagination */}
                     {totalPages > 1 && (
                         <div className="mt-4 flex items-center justify-between">
-                            <span className="text-xs text-white/40">
+                            <span className="text-xs text-[#8B8B96]">
                                 {t("responses.pagination.info", {page: page + 1, total: totalPages, elements: totalElements})}
                             </span>
                             <div className="flex items-center gap-1.5">
                                 <button
                                     onClick={() => setPage(p => Math.max(0, p - 1))}
                                     disabled={page === 0}
-                                    className="flex items-center gap-1 rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-white/60 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+                                    className="flex items-center gap-1 rounded-lg border border-[#E4E4E7] px-3 py-1.5 text-xs text-[#6B6B76] transition-colors hover:text-[#1E1E24] disabled:cursor-not-allowed disabled:opacity-30"
                                 >
                                     <FiChevronLeft size={13}/> {t("responses.pagination.prev")}
                                 </button>
                                 <button
                                     onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                                     disabled={page >= totalPages - 1}
-                                    className="flex items-center gap-1 rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-white/60 transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+                                    className="flex items-center gap-1 rounded-lg border border-[#E4E4E7] px-3 py-1.5 text-xs text-[#6B6B76] transition-colors hover:text-[#1E1E24] disabled:cursor-not-allowed disabled:opacity-30"
                                 >
                                     {t("responses.pagination.next")} <FiChevronRight size={13}/>
                                 </button>
@@ -444,7 +444,7 @@ export default function ResponsesTab() {
             ) : (
                 /* By User view */
                 <>
-                    <p className="mb-4 text-xs text-white/45">
+                    <p className="mb-4 text-xs text-[#8B8B96]">
                         {t("responses.byUserHint")}
                     </p>
                     {loading ? (
@@ -457,22 +457,22 @@ export default function ResponsesTab() {
                                 <button
                                     key={discordId}
                                     onClick={() => drillToUser(discordId)}
-                                    className="flex items-center gap-4 rounded-xl border border-white/[0.07] bg-white/[0.02] p-4 text-left transition-colors hover:border-indigo-500/20 hover:bg-indigo-500/[0.04]"
+                                    className="flex items-center gap-4 rounded-xl border border-[#E4E4E7] bg-white p-4 text-left transition-colors hover:border-[#D8DCF5] hover:bg-[#EEF0FB]"
                                 >
                                     <div
-                                        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-indigo-500/20 bg-indigo-500/10">
-                                        <FiUser size={16} className="text-indigo-400"/>
+                                        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-[#D8DCF5] bg-[#EEF0FB]">
+                                        <FiUser size={16} className="text-[#3730A3]"/>
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <p className="truncate text-sm font-medium text-white">
+                                        <p className="truncate text-sm font-medium text-[#1E1E24]">
                                             {username(discordId)}
                                         </p>
-                                        <p className="mt-0.5 font-mono text-[11px] text-white/35">{discordId}</p>
-                                        <p className="mt-0.5 text-xs text-white/50">
+                                        <p className="mt-0.5 font-mono text-[11px] text-[#8B8B96]">{discordId}</p>
+                                        <p className="mt-0.5 text-xs text-[#8B8B96]">
                                             {t("responses.responseCount", {count})}
                                         </p>
                                     </div>
-                                    <FiChevronRight size={14} className="flex-shrink-0 text-white/30"/>
+                                    <FiChevronRight size={14} className="flex-shrink-0 text-[#C7C7CE]"/>
                                 </button>
                             ))}
                         </div>

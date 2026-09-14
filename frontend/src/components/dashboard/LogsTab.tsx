@@ -27,94 +27,94 @@ interface ActionMeta {
 const ACTION_META: Record<AuditAction, ActionMeta> = {
     USER_LOGIN: {
         label: "Login",
-        bg: "bg-indigo-500/10",
-        text: "text-indigo-300",
-        border: "border-indigo-500/25",
-        dot: "bg-indigo-400"
+        bg: "bg-[#EEF0FB]",
+        text: "text-[#3730A3]",
+        border: "border-[#D8DCF5]",
+        dot: "bg-[#3730A3]"
     },
     USER_BANNED: {
         label: "User Banned",
-        bg: "bg-red-500/10",
-        text: "text-red-300",
-        border: "border-red-500/25",
-        dot: "bg-red-400"
+        bg: "bg-[#F7EEEE]",
+        text: "text-[#8B4A46]",
+        border: "border-[#EAD4D3]",
+        dot: "bg-[#B56A65]"
     },
     USER_UNBANNED: {
         label: "User Unbanned",
-        bg: "bg-emerald-500/10",
-        text: "text-emerald-300",
-        border: "border-emerald-500/25",
-        dot: "bg-emerald-400"
+        bg: "bg-[#EEF4EE]",
+        text: "text-[#3F6B4A]",
+        border: "border-[#D7E8D9]",
+        dot: "bg-[#5C8F6A]"
     },
     USER_ROLES_UPDATED: {
         label: "Roles Updated",
-        bg: "bg-yellow-500/10",
-        text: "text-yellow-300",
-        border: "border-yellow-500/25",
-        dot: "bg-yellow-400"
+        bg: "bg-[#FBF3E4]",
+        text: "text-[#92702A]",
+        border: "border-[#EFDFC0]",
+        dot: "bg-[#C99A3E]"
     },
     FORM_CREATED: {
         label: "Form Created",
-        bg: "bg-emerald-500/10",
-        text: "text-emerald-300",
-        border: "border-emerald-500/25",
-        dot: "bg-emerald-400"
+        bg: "bg-[#EEF4EE]",
+        text: "text-[#3F6B4A]",
+        border: "border-[#D7E8D9]",
+        dot: "bg-[#5C8F6A]"
     },
     FORM_UPDATED: {
         label: "Form Updated",
-        bg: "bg-indigo-500/10",
-        text: "text-indigo-300",
-        border: "border-indigo-500/25",
-        dot: "bg-indigo-400"
+        bg: "bg-[#EEF0FB]",
+        text: "text-[#3730A3]",
+        border: "border-[#D8DCF5]",
+        dot: "bg-[#3730A3]"
     },
     FORM_DELETED: {
         label: "Form Deleted",
-        bg: "bg-red-500/10",
-        text: "text-red-300",
-        border: "border-red-500/25",
-        dot: "bg-red-400"
+        bg: "bg-[#F7EEEE]",
+        text: "text-[#8B4A46]",
+        border: "border-[#EAD4D3]",
+        dot: "bg-[#B56A65]"
     },
     SUBMISSION_CREATED: {
         label: "Submission Created",
-        bg: "bg-emerald-500/10",
-        text: "text-emerald-300",
-        border: "border-emerald-500/25",
-        dot: "bg-emerald-400"
+        bg: "bg-[#EEF4EE]",
+        text: "text-[#3F6B4A]",
+        border: "border-[#D7E8D9]",
+        dot: "bg-[#5C8F6A]"
     },
     SUBMISSION_DELETED: {
         label: "Submission Deleted",
-        bg: "bg-red-500/10",
-        text: "text-red-300",
-        border: "border-red-500/25",
-        dot: "bg-red-400"
+        bg: "bg-[#F7EEEE]",
+        text: "text-[#8B4A46]",
+        border: "border-[#EAD4D3]",
+        dot: "bg-[#B56A65]"
     },
     ROLE_CREATED: {
         label: "Role Created",
-        bg: "bg-emerald-500/10",
-        text: "text-emerald-300",
-        border: "border-emerald-500/25",
-        dot: "bg-emerald-400"
+        bg: "bg-[#EEF4EE]",
+        text: "text-[#3F6B4A]",
+        border: "border-[#D7E8D9]",
+        dot: "bg-[#5C8F6A]"
     },
     ROLE_UPDATED: {
         label: "Role Updated",
-        bg: "bg-indigo-500/10",
-        text: "text-indigo-300",
-        border: "border-indigo-500/25",
-        dot: "bg-indigo-400"
+        bg: "bg-[#EEF0FB]",
+        text: "text-[#3730A3]",
+        border: "border-[#D8DCF5]",
+        dot: "bg-[#3730A3]"
     },
     ROLE_DELETED: {
         label: "Role Deleted",
-        bg: "bg-red-500/10",
-        text: "text-red-300",
-        border: "border-red-500/25",
-        dot: "bg-red-400"
+        bg: "bg-[#F7EEEE]",
+        text: "text-[#8B4A46]",
+        border: "border-[#EAD4D3]",
+        dot: "bg-[#B56A65]"
     },
     SETTINGS_UPDATED: {
         label: "Settings Updated",
-        bg: "bg-yellow-500/10",
-        text: "text-yellow-300",
-        border: "border-yellow-500/25",
-        dot: "bg-yellow-400"
+        bg: "bg-[#FBF3E4]",
+        text: "text-[#92702A]",
+        border: "border-[#EFDFC0]",
+        dot: "bg-[#C99A3E]"
     },
 };
 
@@ -126,7 +126,7 @@ function DiffLine({line}: { line: string }) {
     // Arrow separator is  →  (with spaces)
     const arrowIdx = line.indexOf(" → ");
     if (arrowIdx === -1) {
-        return <p className="text-xs text-white/55 font-mono">{line}</p>;
+        return <p className="text-xs text-[#6B6B76] font-mono">{line}</p>;
     }
 
     const colonIdx = line.indexOf(": ");
@@ -138,11 +138,11 @@ function DiffLine({line}: { line: string }) {
     return (
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 font-mono text-xs">
             {label && (
-                <span className="text-white/40 shrink-0">{label}:</span>
+                <span className="text-[#8B8B96] shrink-0">{label}:</span>
             )}
-            <span className="text-red-400/80 line-through break-all">{before}</span>
-            <span className="text-white/30 shrink-0">→</span>
-            <span className="text-emerald-400 break-all">{after}</span>
+            <span className="text-[#B56A65] line-through break-all">{before}</span>
+            <span className="text-[#8B8B96] shrink-0">→</span>
+            <span className="text-[#3F6B4A] break-all">{after}</span>
         </div>
     );
 }
@@ -150,7 +150,7 @@ function DiffLine({line}: { line: string }) {
 function DiffBlock({details}: { details: string }) {
     const lines = details.split("\n").filter(l => l.trim());
     return (
-        <div className="flex flex-col gap-1.5 rounded-lg border border-white/[0.06] bg-black/20 px-4 py-3">
+        <div className="flex flex-col gap-1.5 rounded-lg border border-[#E4E4E7] bg-[#F7F7F8] px-4 py-3">
             {lines.map((line, i) => <DiffLine key={i} line={line}/>)}
         </div>
     );
@@ -184,16 +184,16 @@ function LogRow({entry}: { entry: AuditLogEntry }) {
     const previewLine = hasDetails ? entry.details!.split("\n")[0].trim() : null;
 
     return (
-        <div className="border-b border-white/[0.045] last:border-0">
+        <div className="border-b border-[#F0F0F2] last:border-0">
             {/* Main row */}
             <div
-                className={`grid grid-cols-[110px_148px_180px_180px_1fr_28px] items-start gap-3 px-4 py-3 text-sm transition-colors ${hasDetails ? "cursor-pointer hover:bg-white/[0.025]" : "hover:bg-white/[0.015]"}`}
+                className={`grid grid-cols-[110px_148px_180px_180px_1fr_28px] items-start gap-3 px-4 py-3 text-sm transition-colors ${hasDetails ? "cursor-pointer hover:bg-[#FAFAFB]" : "hover:bg-[#FAFAFB]"}`}
                 onClick={hasDetails ? () => setOpen(o => !o) : undefined}
             >
                 {/* Timestamp */}
                 <div className="flex flex-col pt-0.5">
-                    <span className="font-mono text-xs text-white/80 tabular-nums">{timeStr}</span>
-                    <span className="text-[10px] text-white/30 tabular-nums">{dateStr}</span>
+                    <span className="font-mono text-xs text-[#55555F] tabular-nums">{timeStr}</span>
+                    <span className="text-[10px] text-[#8B8B96] tabular-nums">{dateStr}</span>
                 </div>
 
                 {/* Action */}
@@ -203,33 +203,33 @@ function LogRow({entry}: { entry: AuditLogEntry }) {
 
                 {/* Actor */}
                 <div className="flex flex-col min-w-0 pt-0.5">
-                    <span className="truncate text-xs font-medium text-white/80">
-                        {entry.actorUsername ?? <span className="text-white/25">Unknown</span>}
+                    <span className="truncate text-xs font-medium text-[#55555F]">
+                        {entry.actorUsername ?? <span className="text-[#C7C7CE]">Unknown</span>}
                     </span>
                     {entry.actorDiscordId && (
-                        <span className="truncate font-mono text-[10px] text-white/30">{entry.actorDiscordId}</span>
+                        <span className="truncate font-mono text-[10px] text-[#8B8B96]">{entry.actorDiscordId}</span>
                     )}
                 </div>
 
                 {/* Target */}
                 <div className="flex flex-col min-w-0 pt-0.5">
                     {entry.targetName
-                        ? <span className="truncate text-xs text-white/70">{entry.targetName}</span>
+                        ? <span className="truncate text-xs text-[#55555F]">{entry.targetName}</span>
                         : entry.targetId
-                            ? <span className="truncate font-mono text-[10px] text-white/40">{entry.targetId}</span>
-                            : <span className="text-xs text-white/20">—</span>
+                            ? <span className="truncate font-mono text-[10px] text-[#8B8B96]">{entry.targetId}</span>
+                            : <span className="text-xs text-[#C7C7CE]">—</span>
                     }
                     {entry.targetName && entry.targetId && (
-                        <span className="truncate font-mono text-[10px] text-white/25">{entry.targetId}</span>
+                        <span className="truncate font-mono text-[10px] text-[#C7C7CE]">{entry.targetId}</span>
                     )}
                 </div>
 
                 {/* Details preview */}
                 <div className="min-w-0 pt-0.5">
                     {previewLine ? (
-                        <span className="block truncate text-xs text-white/45">{previewLine}</span>
+                        <span className="block truncate text-xs text-[#8B8B96]">{previewLine}</span>
                     ) : (
-                        <span className="text-xs text-white/20">—</span>
+                        <span className="text-xs text-[#C7C7CE]">—</span>
                     )}
                 </div>
 
@@ -238,7 +238,7 @@ function LogRow({entry}: { entry: AuditLogEntry }) {
                     {hasDetails && (
                         <FiChevronDown
                             size={13}
-                            className={`text-white/30 transition-transform duration-150 ${open ? "rotate-180" : ""}`}
+                            className={`text-[#8B8B96] transition-transform duration-150 ${open ? "rotate-180" : ""}`}
                         />
                     )}
                 </div>
@@ -311,11 +311,11 @@ export default function LogsTab() {
             {/* Header */}
             <div className="flex items-start justify-between">
                 <div>
-                    <h1 className="text-xl font-semibold text-white">{t("logs.title")}</h1>
-                    <p className="mt-0.5 text-sm text-white/55">
+                    <h1 className="text-xl font-semibold text-[#1E1E24]">{t("logs.title")}</h1>
+                    <p className="mt-0.5 text-sm text-[#6B6B76]">
                         {t("logs.subtitle")}
                         {totalElements > 0 && (
-                            <span className="ml-2 text-white/30">· {t("logs.entries", {count: totalElements.toLocaleString()})}</span>
+                            <span className="ml-2 text-[#8B8B96]">· {t("logs.entries", {count: totalElements.toLocaleString()})}</span>
                         )}
                     </p>
                 </div>
@@ -326,8 +326,8 @@ export default function LogsTab() {
                         title="Auto-refresh every 10 s"
                         className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
                             autoRefresh
-                                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                                : "border-white/[0.08] bg-white/[0.03] text-white/45 hover:text-white"
+                                ? "border-[#D7E8D9] bg-[#EEF4EE] text-[#3F6B4A]"
+                                : "border-[#E4E4E7] bg-white text-[#8B8B96] hover:text-[#1E1E24]"
                         }`}
                     >
                         <FiRefreshCw size={12} className={autoRefresh ? "animate-spin" : ""}/>
@@ -335,7 +335,7 @@ export default function LogsTab() {
                     </button>
                     <button
                         onClick={() => load(page, filterAction, filterActor)}
-                        className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs font-medium text-white/45 transition-colors hover:text-white"
+                        className="flex items-center gap-1.5 rounded-lg border border-[#E4E4E7] bg-white px-3 py-2 text-xs font-medium text-[#8B8B96] transition-colors hover:text-[#1E1E24]"
                     >
                         <FiRefreshCw size={12}/>
                         {t("logs.refresh")}
@@ -346,15 +346,15 @@ export default function LogsTab() {
             {/* Filters */}
             <div className="flex flex-wrap items-center gap-3">
                 <div
-                    className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2">
-                    <FiFilter size={12} className="text-white/35 shrink-0"/>
+                    className="flex items-center gap-2 rounded-xl border border-[#E4E4E7] bg-white px-3 py-2">
+                    <FiFilter size={12} className="text-[#8B8B96] shrink-0"/>
                     <select
                         value={filterAction}
                         onChange={e => {
                             setFilterAction(e.target.value as AuditAction | "");
                             setPage(0);
                         }}
-                        className="bg-transparent text-sm text-white/80 outline-none"
+                        className="bg-transparent text-sm text-[#55555F] outline-none"
                     >
                         <option value="">{t("logs.allActions")}</option>
                         {ALL_ACTIONS.map(a => (
@@ -364,40 +364,40 @@ export default function LogsTab() {
                 </div>
 
                 <div
-                    className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2">
-                    <FiUser size={12} className="text-white/35 shrink-0"/>
+                    className="flex items-center gap-2 rounded-xl border border-[#E4E4E7] bg-white px-3 py-2">
+                    <FiUser size={12} className="text-[#8B8B96] shrink-0"/>
                     <input
                         type="text"
                         placeholder={t("logs.discordIdFilter")}
                         value={filterActor}
                         onChange={e => setFilterActor(e.target.value)}
                         onKeyDown={e => e.key === "Enter" && applyActorFilter()}
-                        className="w-40 bg-transparent text-sm text-white/80 placeholder-white/25 outline-none"
+                        className="w-40 bg-transparent text-sm text-[#55555F] placeholder-[#C7C7CE] outline-none"
                     />
                     {filterActor && (
                         <button onClick={() => {
                             setFilterActor("");
                             load(page, filterAction, "");
                         }}>
-                            <FiX size={12} className="text-white/35 hover:text-white"/>
+                            <FiX size={12} className="text-[#8B8B96] hover:text-[#1E1E24]"/>
                         </button>
                     )}
                 </div>
 
                 {hasFilters && (
-                    <button onClick={clearFilters} className="text-xs text-white/35 underline hover:text-white/70">
+                    <button onClick={clearFilters} className="text-xs text-[#8B8B96] underline hover:text-[#55555F]">
                         {t("logs.clearFilters")}
                     </button>
                 )}
             </div>
 
             {/* Table */}
-            <div className="rounded-xl border border-white/[0.07] bg-white/[0.015] overflow-hidden">
+            <div className="rounded-xl border border-[#E4E4E7] bg-white overflow-hidden">
                 {/* Column headers */}
                 <div
-                    className="grid grid-cols-[110px_148px_180px_180px_1fr_28px] gap-3 border-b border-white/[0.07] bg-white/[0.025] px-4 py-2.5">
+                    className="grid grid-cols-[110px_148px_180px_180px_1fr_28px] gap-3 border-b border-[#E4E4E7] bg-[#FAFAFB] px-4 py-2.5">
                     {[t("logs.columns.time"), t("logs.columns.action"), t("logs.columns.actor"), t("logs.columns.target"), t("logs.columns.details"), ""].map((h, i) => (
-                        <span key={i} className="text-[10px] font-semibold uppercase tracking-wider text-white/30">
+                        <span key={i} className="text-[10px] font-semibold uppercase tracking-wider text-[#8B8B96]">
                             {h}
                         </span>
                     ))}
@@ -406,11 +406,11 @@ export default function LogsTab() {
                 {loading ? (
                     <div className="py-12"><TabSkeleton/></div>
                 ) : entries.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center gap-3 py-20 text-white/25">
+                    <div className="flex flex-col items-center justify-center gap-3 py-20 text-[#C7C7CE]">
                         <FiAlertOctagon size={30}/>
                         <p className="text-sm">{t("logs.noLogs")}</p>
                         {hasFilters && (
-                            <button onClick={clearFilters} className="text-xs text-indigo-400 hover:text-indigo-300">
+                            <button onClick={clearFilters} className="text-xs text-[#3730A3] hover:text-[#2D2682]">
                                 {t("logs.clearFilters")}
                             </button>
                         )}
@@ -427,26 +427,26 @@ export default function LogsTab() {
                 {(["FORM_CREATED", "FORM_DELETED", "FORM_UPDATED", "SETTINGS_UPDATED"] as AuditAction[]).map(a => {
                     const m = ACTION_META[a];
                     return (
-                        <div key={a} className="flex items-center gap-1.5 text-[10px] text-white/30">
+                        <div key={a} className="flex items-center gap-1.5 text-[10px] text-[#8B8B96]">
                             <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`}/>
                             {t(`logs.actions.${a}`)}
                         </div>
                     );
                 })}
-                <span className="text-[10px] text-white/20">{t("logs.expandHint")}</span>
+                <span className="text-[10px] text-[#C7C7CE]">{t("logs.expandHint")}</span>
             </div>
 
             {/* Pagination */}
             {totalPages > 1 && (
                 <div className="flex items-center justify-between">
-                    <span className="text-xs text-white/35">
+                    <span className="text-xs text-[#8B8B96]">
                         {t("logs.pagination.page", {page: page + 1, total: totalPages})}
                     </span>
                     <div className="flex items-center gap-1">
                         <button
                             onClick={() => setPage(p => p - 1)}
                             disabled={page === 0}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-white/45 transition-colors hover:text-white disabled:opacity-25 disabled:cursor-not-allowed"
+                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E4E4E7] bg-white text-[#8B8B96] transition-colors hover:text-[#1E1E24] disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                             <FiChevronLeft size={14}/>
                         </button>
@@ -462,8 +462,8 @@ export default function LogsTab() {
                                     onClick={() => setPage(p)}
                                     className={`h-8 min-w-[32px] rounded-lg border px-2 text-xs font-medium transition-colors ${
                                         p === page
-                                            ? "border-indigo-500/40 bg-indigo-500/15 text-indigo-300"
-                                            : "border-white/[0.08] bg-white/[0.03] text-white/45 hover:text-white"
+                                            ? "border-[#D8DCF5] bg-[#EEF0FB] text-[#3730A3]"
+                                            : "border-[#E4E4E7] bg-white text-[#8B8B96] hover:text-[#1E1E24]"
                                     }`}
                                 >
                                     {p + 1}
@@ -474,7 +474,7 @@ export default function LogsTab() {
                         <button
                             onClick={() => setPage(p => p + 1)}
                             disabled={page >= totalPages - 1}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-white/45 transition-colors hover:text-white disabled:opacity-25 disabled:cursor-not-allowed"
+                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E4E4E7] bg-white text-[#8B8B96] transition-colors hover:text-[#1E1E24] disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                             <FiChevronRight size={14}/>
                         </button>
