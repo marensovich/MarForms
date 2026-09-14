@@ -5,12 +5,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -101,6 +103,42 @@ public class DiscordBotClient {
     }
 
     /**
+     * Creates a webhook in the given channel.
+     * <p>
+     * Requires the bot to have {@code MANAGE_WEBHOOKS} on that channel — see
+     * product spec раздел 4.1. Callers are responsible for persisting the
+     * returned URL; Discord does not let it be retrieved again later, only
+     * the webhook's ID (not its token).
+     * </p>
+     *
+     * @param channelId the Discord channel snowflake ID
+     * @param name      the webhook's display name (shown as the message sender)
+     * @return the created webhook, or empty if the bot lacks access/permission
+     *         or no bot token is configured
+     * @since v.0.1
+     */
+    public Optional<CreatedWebhook> createWebhook(Long channelId, String name) {
+        if (botToken.isBlank()) return Optional.empty();
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.AUTHORIZATION, "Bot " + botToken);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, String>> request = new HttpEntity<>(Map.of("name", name), headers);
+
+            ResponseEntity<CreatedWebhook> response = restTemplate.exchange(
+                    DISCORD_API_BASE + "/channels/" + channelId + "/webhooks",
+                    HttpMethod.POST,
+                    request,
+                    CreatedWebhook.class
+            );
+            return Optional.ofNullable(response.getBody());
+        } catch (Exception e) {
+            log.warn("Failed to create webhook in channel {}: {}", channelId, e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    /**
      * A guild as reported by the Discord API.
      *
      * @param id   the guild ID as a string
@@ -120,5 +158,26 @@ public class DiscordBotClient {
      * @since v.0.1
      */
     public record DiscordChannel(String id, String name, int type) {
+    }
+
+    /**
+     * A webhook as reported by the Discord API right after creation — includes
+     * the {@code token}, which Discord only ever returns this once.
+     *
+     * @param id    the webhook's snowflake ID
+     * @param token the webhook's secret token
+     * @since v.0.1
+     */
+    public record CreatedWebhook(String id, String token) {
+        /**
+         * Builds the full webhook URL, in the same format used everywhere
+         * else in the app ({@code WebhookConfig.url}, {@code WebhookService}).
+         *
+         * @return the webhook's executable URL
+         * @since v.0.1
+         */
+        public String url() {
+            return "https://discord.com/api/webhooks/" + id + "/" + token;
+        }
     }
 }

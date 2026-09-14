@@ -19,4 +19,18 @@ class DiscordBotClientTest {
 
         assertThat(client.fetchTextChannels(123L)).isEmpty();
     }
+
+    @Test
+    void createWebhookIsEmptyWhenNoBotTokenIsConfigured() {
+        DiscordBotClient client = new DiscordBotClient("");
+
+        assertThat(client.createWebhook(123L, "MarForms")).isEmpty();
+    }
+
+    @Test
+    void createdWebhookUrlMatchesTheFormatWebhookServiceExpects() {
+        var webhook = new DiscordBotClient.CreatedWebhook("111", "secret-token");
+
+        assertThat(webhook.url()).isEqualTo("https://discord.com/api/webhooks/111/secret-token");
+    }
 }

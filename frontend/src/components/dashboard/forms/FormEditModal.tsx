@@ -212,7 +212,7 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
                                         title,
                                         description,
                                         fields: definition?.schema.fields ?? [],
-                                        serverId: "",
+                                        serverId: definition ? String(definition.serverId) : "",
                                         channelsIds: [],
                                         webhooks,
                                     }}

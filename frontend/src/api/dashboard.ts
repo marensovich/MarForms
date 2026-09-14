@@ -60,6 +60,26 @@ export function createForm(payload: CreateFormPayload): Promise<DashboardForm> {
     return apiRequest("/forms", {method: "POST", body: payload});
 }
 
+export interface DiscordChannel {
+    id: string;
+    name: string;
+}
+
+export function getGuildChannels(guildId: string): Promise<DiscordChannel[]> {
+    return apiRequest(`/guilds/${guildId}/channels`);
+}
+
+export function createGuildWebhook(
+    guildId: string,
+    channelId: string,
+    name?: string
+): Promise<{ url: string }> {
+    return apiRequest(`/guilds/${guildId}/channels/${channelId}/webhooks`, {
+        method: "POST",
+        body: name ? {name} : {},
+    });
+}
+
 export function toggleFormActive(formId: string, active: boolean): Promise<DashboardForm> {
     return apiRequest(`/forms/${formId}`, {method: "PUT", body: {active}});
 }

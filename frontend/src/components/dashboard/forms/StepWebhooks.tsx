@@ -1,18 +1,22 @@
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {useTranslation} from "react-i18next";
 import {
     FiAlertCircle,
     FiCheck,
     FiChevronDown,
     FiChevronUp,
+    FiHash,
     FiImage,
     FiLink,
+    FiLoader,
     FiPlus,
     FiTrash2,
     FiUser,
+    FiZap,
 } from "react-icons/fi";
 import type {FormDraft} from "./FormWizard";
 import type {WebhookConfig} from "../../../types/forms";
+import {type DiscordChannel, createGuildWebhook, getGuildChannels} from "../../../api/dashboard";
 
 interface Props {
     draft: FormDraft;
@@ -92,16 +96,36 @@ function Field({label, hint, children}: { label: string; hint?: string; children
 
 // ── Webhook card ───────────────────────────────────────────────────────────────
 
-function WebhookCard({wh, onUpdate, onDelete}: {
+function WebhookCard({wh, guildId, channels, channelsLoading, onUpdate, onDelete}: {
     wh: WebhookConfig;
+    guildId: string;
+    channels: DiscordChannel[];
+    channelsLoading: boolean;
     onUpdate: (patch: Partial<WebhookConfig>) => void;
     onDelete: () => void;
 }) {
     const {t} = useTranslation();
     const [expanded, setExpanded] = useState(false);
     const [hexInput, setHexInput] = useState(wh.color != null ? intToHex(wh.color) : "");
+    const [selectedChannel, setSelectedChannel] = useState("");
+    const [creating, setCreating] = useState(false);
+    const [createError, setCreateError] = useState<string | null>(null);
 
     const urlValid = !wh.url || DISCORD_WEBHOOK_RE.test(wh.url);
+
+    const handleCreateFromChannel = async () => {
+        if (!selectedChannel) return;
+        setCreating(true);
+        setCreateError(null);
+        try {
+            const {url} = await createGuildWebhook(guildId, selectedChannel);
+            onUpdate({url});
+        } catch (e) {
+            setCreateError(e instanceof Error ? e.message : t("wizard.webhooks.createFailed"));
+        } finally {
+            setCreating(false);
+        }
+    };
 
     const handleHexChange = (val: string) => {
         setHexInput(val);
@@ -117,6 +141,45 @@ function WebhookCard({wh, onUpdate, onDelete}: {
 
     return (
         <div className="rounded-xl border border-[#E4E4E7] bg-white">
+            {/* Create-from-channel row (bot-managed) */}
+            {guildId && (
+                <div className="flex flex-wrap items-center gap-2 border-b border-[#E4E4E7] bg-[#FAFAFB] px-4 py-3">
+                    <FiHash size={12} className="flex-shrink-0 text-[#8B8B96]"/>
+                    <span className="text-xs font-medium text-[#6B6B76]">{t("wizard.webhooks.createFromChannel")}</span>
+                    <select
+                        value={selectedChannel}
+                        onChange={e => setSelectedChannel(e.target.value)}
+                        disabled={channelsLoading || channels.length === 0}
+                        className="min-w-[160px] flex-1 rounded-lg border border-[#E4E4E7] bg-white px-2.5 py-1.5 text-xs text-[#1E1E24] outline-none focus:border-[#3730A3] disabled:text-[#C7C7CE]"
+                    >
+                        <option value="">
+                            {channelsLoading
+                                ? t("wizard.webhooks.loadingChannels")
+                                : channels.length === 0
+                                    ? t("wizard.webhooks.noChannelsFound")
+                                    : t("wizard.webhooks.selectChannel")}
+                        </option>
+                        {channels.map(c => (
+                            <option key={c.id} value={c.id}>#{c.name}</option>
+                        ))}
+                    </select>
+                    <button
+                        type="button"
+                        onClick={handleCreateFromChannel}
+                        disabled={!selectedChannel || creating}
+                        className="flex items-center gap-1.5 rounded-lg bg-[#3730A3] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#2D2682] disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                        {creating ? <FiLoader size={11} className="animate-spin"/> : <FiZap size={11}/>}
+                        {t("wizard.webhooks.createButton")}
+                    </button>
+                    {createError && (
+                        <p className="flex w-full items-center gap-1 text-[11px] text-[#B56A65]">
+                            <FiAlertCircle size={10}/> {createError}
+                        </p>
+                    )}
+                </div>
+            )}
+
             {/* Header row */}
             <div className="flex items-center gap-3 p-4">
                 <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-[#EEF0FB]">
@@ -127,13 +190,15 @@ function WebhookCard({wh, onUpdate, onDelete}: {
                         type="url"
                         value={wh.url}
                         onChange={e => onUpdate({url: e.target.value})}
-                        placeholder="https://discord.com/api/webhooks/…"
+                        placeholder={t("wizard.webhooks.urlPlaceholder")}
                         className={inputCls(!urlValid && wh.url.length > 0)}
                     />
-                    {!urlValid && wh.url.length > 0 && (
+                    {!urlValid && wh.url.length > 0 ? (
                         <p className="mt-1 flex items-center gap-1 text-[11px] text-[#B56A65]">
                             <FiAlertCircle size={10}/> {t("wizard.webhooks.invalidUrl")}
                         </p>
+                    ) : guildId && (
+                        <p className="mt-1 text-[11px] text-[#C7C7CE]">{t("wizard.webhooks.orPasteManually")}</p>
                     )}
                 </div>
                 <button
@@ -321,6 +386,32 @@ function WebhookCard({wh, onUpdate, onDelete}: {
 export default function StepWebhooks({draft, onChange}: Props) {
     const {t} = useTranslation();
     const webhooks = draft.webhooks;
+    const guildId = draft.serverId.trim();
+
+    const [channels, setChannels] = useState<DiscordChannel[]>([]);
+    const [channelsLoading, setChannelsLoading] = useState(false);
+
+    useEffect(() => {
+        if (!guildId) {
+            setChannels([]);
+            return;
+        }
+        let cancelled = false;
+        setChannelsLoading(true);
+        getGuildChannels(guildId)
+            .then(result => {
+                if (!cancelled) setChannels(result);
+            })
+            .catch(() => {
+                if (!cancelled) setChannels([]);
+            })
+            .finally(() => {
+                if (!cancelled) setChannelsLoading(false);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [guildId]);
 
     const update = (index: number, patch: Partial<WebhookConfig>) => {
         const next = webhooks.map((w, i) => (i === index ? {...w, ...patch} : w));
@@ -350,6 +441,9 @@ export default function StepWebhooks({draft, onChange}: Props) {
                         <WebhookCard
                             key={i}
                             wh={wh}
+                            guildId={guildId}
+                            channels={channels}
+                            channelsLoading={channelsLoading}
                             onUpdate={patch => update(i, patch)}
                             onDelete={() => remove(i)}
                         />
