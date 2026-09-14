@@ -182,6 +182,9 @@
     "title": "Forms",
     "subtitle": "Manage and publish your Discord forms",
     "newForm": "New form",
+    "connectServer": "Connect a server",
+    "connectSuccess": "Server {{guildId}} connected — the bot is now installed there.",
+    "connectError": "Could not connect the server. Please try again.",
     "stats": {
       "totalForms": "Total Forms",
       "active": "Active",

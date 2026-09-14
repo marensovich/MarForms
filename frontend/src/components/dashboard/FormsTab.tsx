@@ -8,6 +8,7 @@ import {
     getDashboardForms,
     getForm,
     getFormSubmissions,
+    getGuildConnectUrl,
     toggleFormActive,
 } from "../../api/dashboard";
 import {type FormDefinition} from "../../types/forms";
@@ -18,6 +19,7 @@ import {
     FiCheck,
     FiCheckCircle,
     FiEdit3,
+    FiExternalLink,
     FiFileText,
     FiInbox,
     FiLink,
@@ -25,6 +27,7 @@ import {
     FiToggleLeft,
     FiToggleRight,
     FiTrash2,
+    FiX,
 } from "react-icons/fi";
 
 type StatusFilter = "all" | "active" | "inactive";
@@ -156,6 +159,35 @@ export default function FormsTab() {
     const [responsesForm, setResponsesForm] = useState<DashboardForm | null>(null);
     const [editForm, setEditForm] = useState<DashboardForm | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<DashboardForm | null>(null);
+    const [connectBanner, setConnectBanner] = useState<{ type: "success" | "error"; guildId?: string } | null>(null);
+    const [connecting, setConnecting] = useState(false);
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const connectedGuild = params.get("connectedGuild");
+        const connectError = params.get("guildConnectError");
+        if (connectedGuild) {
+            setConnectBanner({type: "success", guildId: connectedGuild});
+        } else if (connectError) {
+            setConnectBanner({type: "error"});
+        }
+        if (connectedGuild || connectError) {
+            params.delete("connectedGuild");
+            params.delete("guildConnectError");
+            const query = params.toString();
+            window.history.replaceState({}, "", window.location.pathname + (query ? `?${query}` : ""));
+        }
+    }, []);
+
+    const handleConnect = async () => {
+        setConnecting(true);
+        try {
+            const {url} = await getGuildConnectUrl();
+            window.location.href = url;
+        } finally {
+            setConnecting(false);
+        }
+    };
 
     const loadForms = async () => {
         setLoading(true);
@@ -202,14 +234,42 @@ export default function FormsTab() {
                         {t("forms.subtitle")}
                     </p>
                 </div>
-                <button
-                    onClick={() => setShowWizard(true)}
-                    className="flex items-center gap-2 rounded-lg bg-[#3730A3] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#2D2682]"
-                >
-                    <FiFileText size={14}/>
-                    {t("forms.newForm")}
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={handleConnect}
+                        disabled={connecting}
+                        className="flex items-center gap-2 rounded-lg border border-[#E4E4E7] bg-white px-4 py-2 text-sm font-medium text-[#55555F] transition-colors hover:border-[#D4D4D9] hover:text-[#1E1E24] disabled:opacity-50"
+                    >
+                        <FiExternalLink size={14}/>
+                        {t("forms.connectServer")}
+                    </button>
+                    <button
+                        onClick={() => setShowWizard(true)}
+                        className="flex items-center gap-2 rounded-lg bg-[#3730A3] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#2D2682]"
+                    >
+                        <FiFileText size={14}/>
+                        {t("forms.newForm")}
+                    </button>
+                </div>
             </div>
+
+            {/* Connect result banner */}
+            {connectBanner && (
+                <div className={`mb-6 flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm ${
+                    connectBanner.type === "success"
+                        ? "border-[#D7E8D9] bg-[#EEF4EE] text-[#3F6B4A]"
+                        : "border-[#EAD4D3] bg-[#F7EEEE] text-[#8B4A46]"
+                }`}>
+                    <span>
+                        {connectBanner.type === "success"
+                            ? t("forms.connectSuccess", {guildId: connectBanner.guildId})
+                            : t("forms.connectError")}
+                    </span>
+                    <button onClick={() => setConnectBanner(null)} className="flex-shrink-0 opacity-70 hover:opacity-100">
+                        <FiX size={14}/>
+                    </button>
+                </div>
+            )}
 
             {/* Stats */}
             {!loading && (

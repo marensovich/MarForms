@@ -60,6 +60,10 @@ export function createForm(payload: CreateFormPayload): Promise<DashboardForm> {
     return apiRequest("/forms", {method: "POST", body: payload});
 }
 
+export function getGuildConnectUrl(): Promise<{ url: string }> {
+    return apiRequest("/guilds/connect");
+}
+
 export interface DiscordChannel {
     id: string;
     name: string;

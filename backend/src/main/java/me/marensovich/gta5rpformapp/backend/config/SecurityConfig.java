@@ -76,6 +76,10 @@ public class SecurityConfig {
                         .requestMatchers("/oauth2/**", "/login/**").permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/settings/public").permitAll()
+                        // Discord redirects the browser here directly after a bot
+                        // install — no Authorization header to check; the acting
+                        // user is instead identified via the signed `state` param.
+                        .requestMatchers("/api/v1/guilds/connect/callback").permitAll()
                         .requestMatchers("/api/v1/**").authenticated()
                         .anyRequest().permitAll()
                 )
