@@ -5,7 +5,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.marensovich.gta5rpformapp.backend.service.AuthService;
-import me.marensovich.gta5rpformapp.backend.service.discord.DiscordApiClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
@@ -16,6 +15,10 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 /**
  * Handles successful OAuth2 authentication by processing the OAuth2 user information
@@ -37,7 +40,6 @@ public class OAuthSuccessHandler implements AuthenticationSuccessHandler {
 
     private final AuthService authService;
     private final OAuth2AuthorizedClientService authorizedClientService;
-    private final DiscordApiClient discordApiClient;
 
     /**
      * Frontend URL to redirect after successful authentication.
@@ -71,18 +73,27 @@ public class OAuthSuccessHandler implements AuthenticationSuccessHandler {
 
         OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
 
-        String accessToken = null;
+        AuthService.DiscordTokens tokens = null;
         if (authentication instanceof OAuth2AuthenticationToken oauthToken) {
             OAuth2AuthorizedClient client = authorizedClientService.loadAuthorizedClient(
                     oauthToken.getAuthorizedClientRegistrationId(),
                     oauthToken.getName()
             );
             if (client != null) {
-                accessToken = client.getAccessToken().getTokenValue();
+                var access = client.getAccessToken();
+                var refresh = client.getRefreshToken();
+                tokens = new AuthService.DiscordTokens(
+                        access.getTokenValue(),
+                        refresh != null ? refresh.getTokenValue() : null,
+                        access.getExpiresAt() != null
+                                ? LocalDateTime.ofInstant(access.getExpiresAt(), ZoneId.systemDefault())
+                                : null,
+                        String.join(" ", access.getScopes())
+                );
             }
         }
 
-        String jwt = authService.loginWithDiscord(oauthUser, accessToken);
+        String jwt = authService.loginWithDiscord(oauthUser, tokens);
 
         response.sendRedirect(frontendUrl + "/auth?token=" + jwt);
     }

@@ -5,6 +5,7 @@ import me.marensovich.gta5rpformapp.backend.config.security.CustomUserDetails;
 import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.service.FormService;
 import me.marensovich.gta5rpformapp.backend.service.GuildMembershipService;
+import me.marensovich.gta5rpformapp.backend.service.UserService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,6 +33,7 @@ public class FormAccessController {
 
     private final FormService formService;
     private final GuildMembershipService guildMembershipService;
+    private final UserService userService;
 
     /**
      * Checks if the authenticated user has access to the specified form.
@@ -52,7 +54,14 @@ public class FormAccessController {
             @AuthenticationPrincipal CustomUserDetails principal
     ) {
         var form = formService.getById(formId);
-        boolean hasAccess = principal.getUser().isMemberOfGuild(form.getServerId());
+        var user = principal.getUser();
+        boolean hasAccess = user.isMemberOfGuild(form.getServerId());
+
+        // The guild list is a login-time snapshot — the user may have joined
+        // the server since. Re-check with their stored Discord token (#31).
+        if (!hasAccess && userService.resyncGuildsWithStoredToken(user)) {
+            hasAccess = user.isMemberOfGuild(form.getServerId());
+        }
 
         if (hasAccess) {
             guildMembershipService.ensureMembership(

@@ -34,6 +34,23 @@ Two distinct Discord integrations live side by side, both under
   session (fetching real guild names, listing channels, creating webhooks,
   detecting when the bot is kicked). See `JdaConfig`.
 
+### Discord tokens: bot vs user
+
+| Call | Token | Why |
+|---|---|---|
+| `GET /users/@me/guilds` (which servers the user is in) | **user** | Only the user's own token can answer this |
+| `POST /oauth2/token` (refresh) | client id/secret + user refresh token | Renews the user token |
+| Guild name/icon, channel list, webhook creation | **bot** | Guild-side data; works regardless of who is logged in |
+| Member roles (`GET /guilds/{g}/members/{u}`) | **bot** | Needed for role gating; see `GuildMembershipService` |
+| Webhook execution | webhook URL token | No auth header at all |
+
+User tokens are stored AES-GCM-encrypted in `discord_token_sets`
+(`DiscordTokenService`, key from `TOKEN_ENCRYPTION_KEY`). The access token is
+refreshed lazily on use when it's within a minute of expiry, and proactively
+by `DiscordTokenRefresher` (every 30 min, anything expiring within an hour).
+If Discord rejects the refresh token (revoked/de-authorized), the stored
+tokens are dropped and the user just has to log in again.
+
 ## Error format
 
 Every 4xx/5xx response goes through `GlobalExceptionHandler` and comes back
@@ -64,6 +81,7 @@ and unauthenticated.
 | `HOST_APP_PORT` | Port the backend listens on |
 | `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `DB_DRIVER` | Postgres connection |
 | `JWT_SECRET`, `JWT_EXPIRATION` | Our own session JWT signing key/lifetime |
+| `TOKEN_ENCRYPTION_KEY` | AES-256 key (base64) for stored Discord user tokens |
 | `FRONTEND_URL` | Used to build redirect URLs back to the SPA |
 | `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URI` | Discord OAuth2 app (user login) |
 | `DISCORD_BOT_TOKEN` | Bot user token (JDA session) — blank disables bot features |

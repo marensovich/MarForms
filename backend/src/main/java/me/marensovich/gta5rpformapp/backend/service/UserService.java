@@ -9,11 +9,13 @@ import me.marensovich.gta5rpformapp.backend.dto.user.AssignRolesRequest;
 import me.marensovich.gta5rpformapp.backend.dto.user.BanUserRequest;
 import me.marensovich.gta5rpformapp.backend.exception.NotFoundException;
 import me.marensovich.gta5rpformapp.backend.service.discord.DiscordApiClient;
+import me.marensovich.gta5rpformapp.backend.service.discord.DiscordTokenService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -36,7 +38,10 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final RoleService roleService;
+    static final Duration GUILD_RESYNC_THROTTLE = Duration.ofMinutes(1);
+
     private final DiscordApiClient discordApiClient;
+    private final DiscordTokenService discordTokenService;
     private final AuditLogService auditLogService;
 
     /**
@@ -100,6 +105,33 @@ public class UserService {
         user.setGuildIds(guildIds);
         user.setGuildsSyncedAt(LocalDateTime.now());
         return userRepository.save(user);
+    }
+
+    /**
+     * Re-syncs the user's guild list using their stored (and, if needed,
+     * auto-refreshed) Discord token — no re-login required.
+     * <p>
+     * Used when a form access check fails: the user may have joined the
+     * server after logging in. Throttled to once per
+     * {@link #GUILD_RESYNC_THROTTLE} so repeated checks don't hammer Discord.
+     * </p>
+     *
+     * @param user the user to re-sync
+     * @return {@code true} if a re-sync actually happened
+     * @since v.0.1
+     */
+    @Transactional
+    public boolean resyncGuildsWithStoredToken(User user) {
+        if (user.getGuildsSyncedAt() != null
+                && user.getGuildsSyncedAt().isAfter(LocalDateTime.now().minus(GUILD_RESYNC_THROTTLE))) {
+            return false;
+        }
+        return discordTokenService.getValidAccessToken(user.getId())
+                .map(token -> {
+                    syncGuilds(user, token);
+                    return true;
+                })
+                .orElse(false);
     }
 
     /**
