@@ -67,8 +67,8 @@ public class SubmissionService {
     @Transactional
     public Submission submit(UUID formId, Long discordId, SubmitFormRequest request) {
         Form form = formService.getById(formId);
-        if (!form.isActive()) {
-            throw new IllegalArgumentException("This form is no longer accepting submissions");
+        if (!form.isAcceptingSubmissions()) {
+            throw new IllegalArgumentException("This form is not accepting submissions");
         }
         Submission submission = new Submission();
         submission.setFormId(formId);

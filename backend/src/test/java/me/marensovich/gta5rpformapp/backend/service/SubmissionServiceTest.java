@@ -45,7 +45,7 @@ class SubmissionServiceTest {
     private Form activeFormWithWebhooks(WebhookConfig... webhooks) {
         Form form = new Form();
         form.setId(UUID.randomUUID());
-        form.setActive(true);
+        form.setStatus(me.marensovich.gta5rpformapp.backend.data.forms.FormStatus.PUBLISHED);
         FormSchema schema = new FormSchema();
         schema.setTitle("Test Form");
         form.setSchema(schema);
@@ -113,7 +113,7 @@ class SubmissionServiceTest {
     @Test
     void rejectsSubmissionsToAnInactiveForm() {
         Form form = activeFormWithWebhooks();
-        form.setActive(false);
+        form.setStatus(me.marensovich.gta5rpformapp.backend.data.forms.FormStatus.CLOSED);
         when(formService.getById(form.getId())).thenReturn(form);
 
         try {

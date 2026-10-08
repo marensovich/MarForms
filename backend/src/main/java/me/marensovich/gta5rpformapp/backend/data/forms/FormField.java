@@ -81,6 +81,21 @@ public class FormField {
     private Integer min;
 
     /**
+     * Placeholder text shown inside empty inputs.
+     *
+     * @since v.0.1
+     */
+    private String placeholder;
+
+    /**
+     * Help text shown under the label (or the body text of a
+     * {@code SECTION_BREAK}).
+     *
+     * @since v.0.1
+     */
+    private String description;
+
+    /**
      * Enumeration of all supported field input types.
      * <p>
      * Each type corresponds to a specific input control and validation strategy.
@@ -149,6 +164,25 @@ public class FormField {
         /**
          * Combined date and time picker
          */
-        DATETIME
+        DATETIME,
+        /**
+         * Star/scale rating from 1 to {@code max} (default 5, at most 10)
+         */
+        RATING,
+        /**
+         * Not an input: a heading ({@code label}) and optional text
+         * ({@code description}) that splits a long form into sections.
+         * Never required, never has an answer.
+         */
+        SECTION_BREAK;
+
+        /**
+         * Whether a respondent answers this field at all.
+         *
+         * @return {@code false} only for {@link #SECTION_BREAK}
+         */
+        public boolean isInput() {
+            return this != SECTION_BREAK;
+        }
     }
 }

@@ -2,7 +2,9 @@ package me.marensovich.gta5rpformapp.backend.dto.form;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import me.marensovich.gta5rpformapp.backend.data.forms.FormAccessMode;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormSchema;
+import me.marensovich.gta5rpformapp.backend.data.forms.FormStatus;
 import me.marensovich.gta5rpformapp.backend.data.forms.WebhookConfig;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 
@@ -38,7 +40,14 @@ public record FormResponseDto(
         FormSchema schema,
         List<WebhookConfig> webhooks,
         boolean active,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        FormStatus status,
+        FormAccessMode accessMode,
+        String slug,
+        Integer submissionLimitPerUser,
+        LocalDateTime opensAt,
+        LocalDateTime closesAt,
+        LocalDateTime updatedAt
 ) {
     /**
      * Converts a {@link Form} entity to a {@link FormResponseDto}.
@@ -55,7 +64,14 @@ public record FormResponseDto(
                 form.getSchema(),
                 form.getWebhooks(),
                 form.isActive(),
-                form.getCreatedAt()
+                form.getCreatedAt(),
+                form.getStatus(),
+                form.getAccessMode(),
+                form.getSlug(),
+                form.getSubmissionLimitPerUser(),
+                form.getOpensAt(),
+                form.getClosesAt(),
+                form.getUpdatedAt()
         );
     }
 }

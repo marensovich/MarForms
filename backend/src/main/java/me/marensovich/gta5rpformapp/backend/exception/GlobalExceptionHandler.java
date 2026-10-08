@@ -70,6 +70,37 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles {@link FieldValidationException} — domain-level validation
+     * failures with a per-field breakdown.
+     *
+     * @param ex the exception carrying the error map
+     * @return 400 with {@code {"error": "...", "fields": {path: message}}}
+     * @since v.0.1
+     */
+    @ExceptionHandler(FieldValidationException.class)
+    public ResponseEntity<Map<String, Object>> handleFieldValidation(FieldValidationException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("error", ex.getMessage());
+        body.put("fields", ex.getErrors());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    /**
+     * Handles {@link InvalidStateException} raised for an operation that is
+     * not allowed in the resource's current state (e.g. publishing an
+     * archived form).
+     *
+     * @param ex the exception containing the error message
+     * @return 409 (Conflict) with the error message
+     * @since v.0.1
+     */
+    @ExceptionHandler(InvalidStateException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidState(InvalidStateException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    /**
      * Handles {@link IllegalArgumentException} for invalid arguments.
      *
      * @param ex the exception containing the error message

@@ -1,11 +1,13 @@
 package me.marensovich.gta5rpformapp.backend.database.repository;
 
+import me.marensovich.gta5rpformapp.backend.data.forms.FormStatus;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -33,4 +35,43 @@ public interface FormRepository extends JpaRepository<Form, UUID> {
      * @since v.0.1
      */
     Page<Form> findAllByActiveTrue(Pageable pageable);
+
+    /**
+     * A guild's forms, for the owner panel.
+     *
+     * @param serverId the Discord guild snowflake ID
+     * @param pageable pagination parameters
+     * @return the guild's forms
+     * @since v.0.1
+     */
+    Page<Form> findAllByServerId(Long serverId, Pageable pageable);
+
+    /**
+     * A guild's forms, excluding one status (used to hide archived forms).
+     *
+     * @param serverId the Discord guild snowflake ID
+     * @param status   the status to exclude
+     * @param pageable pagination parameters
+     * @return the matching forms
+     * @since v.0.1
+     */
+    Page<Form> findAllByServerIdAndStatusNot(Long serverId, FormStatus status, Pageable pageable);
+
+    /**
+     * Whether a slug is already taken.
+     *
+     * @param slug the candidate slug
+     * @return {@code true} if some form uses it
+     * @since v.0.1
+     */
+    boolean existsBySlug(String slug);
+
+    /**
+     * Looks a form up by its public slug.
+     *
+     * @param slug the slug
+     * @return the form, if any
+     * @since v.0.1
+     */
+    Optional<Form> findBySlug(String slug);
 }

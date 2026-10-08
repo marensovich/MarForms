@@ -96,6 +96,22 @@ instance. Flyway is disabled for tests; Hibernate generates the schema
 from the entities instead, since the migrations use Postgres-only syntax
 (JSONB, etc).
 
+## Forms
+
+A form's fields live inside its JSONB `schema`, not in a separate table —
+see [`docs/adr/0002-form-fields-in-jsonb.md`](../docs/adr/0002-form-fields-in-jsonb.md).
+Lifecycle: `DRAFT` → `PUBLISHED` (gets a permanent public slug) →
+`CLOSED` / `ARCHIVED`. Owners manage forms via
+`/api/v1/guilds/{guildId}/forms`; the older `/api/v1/forms` endpoints are
+kept for platform admins.
+
+## Billing groundwork
+
+`guilds.plan_tier` (`PlanTier`, always `FREE` for now) is the billing hook.
+Limits are applied per guild, not per form, so `form` has no limit columns.
+Nothing reads `plan_tier` yet — limits and their enforcement are Stage 4
+(E4.1).
+
 ## Background jobs
 
 See [`docs/adr/0001-background-job-mechanism.md`](../docs/adr/0001-background-job-mechanism.md)
