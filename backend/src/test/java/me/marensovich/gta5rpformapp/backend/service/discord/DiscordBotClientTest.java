@@ -28,6 +28,13 @@ class DiscordBotClientTest {
     }
 
     @Test
+    void fetchMemberRoleIdsIsEmptyWhenNoJdaSessionIsAvailable() {
+        DiscordBotClient client = new DiscordBotClient(null);
+
+        assertThat(client.fetchMemberRoleIds(123L, 456L)).isEmpty();
+    }
+
+    @Test
     void createdWebhookUrlMatchesTheFormatWebhookServiceExpects() {
         var webhook = new DiscordBotClient.CreatedWebhook("111", "secret-token");
 

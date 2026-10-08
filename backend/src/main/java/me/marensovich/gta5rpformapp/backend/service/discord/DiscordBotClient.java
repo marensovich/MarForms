@@ -4,8 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.Webhook;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
+import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
@@ -124,6 +128,43 @@ public class DiscordBotClient {
             return Optional.of(new CreatedWebhook(webhook.getId(), webhook.getToken()));
         } catch (Exception e) {
             log.warn("Failed to create webhook in channel {}: {}", channelId, e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Fetches the Discord role IDs a user currently holds on a guild
+     * ({@code GET /guilds/{guild.id}/members/{user.id}}, via JDA).
+     * <p>
+     * A single-member REST lookup does <b>not</b> need the privileged
+     * {@code GUILD_MEMBERS} intent (only member <i>listing</i> and member
+     * Gateway events do), so the bot keeps running with
+     * {@code createLight} and no privileged intents.
+     * </p>
+     *
+     * @param guildId the Discord guild snowflake ID
+     * @param userId  the user's Discord snowflake ID
+     * @return the member's role IDs (excluding {@code @everyone}), or empty
+     * if they couldn't be determined — no bot session, the bot isn't in the
+     * guild, the user isn't a member, or the request failed
+     * @since v.0.1
+     */
+    public Optional<List<Long>> fetchMemberRoleIds(Long guildId, Long userId) {
+        if (jda == null) return Optional.empty();
+        try {
+            Guild guild = jda.getGuildById(guildId);
+            if (guild == null) return Optional.empty();
+            Member member = guild.retrieveMemberById(userId).complete();
+            return Optional.of(member.getRoles().stream().map(Role::getIdLong).toList());
+        } catch (ErrorResponseException e) {
+            if (e.getErrorResponse() == ErrorResponse.UNKNOWN_MEMBER) {
+                log.debug("User {} is not a member of guild {}", userId, guildId);
+            } else {
+                log.warn("Failed to fetch member {} of guild {}: {}", userId, guildId, e.getMessage());
+            }
+            return Optional.empty();
+        } catch (Exception e) {
+            log.warn("Failed to fetch member {} of guild {}: {}", userId, guildId, e.getMessage());
             return Optional.empty();
         }
     }

@@ -8,8 +8,14 @@ import me.marensovich.gta5rpformapp.backend.database.entity.User;
 import me.marensovich.gta5rpformapp.backend.database.repository.GuildMembershipRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.UserRepository;
 import me.marensovich.gta5rpformapp.backend.exception.NotFoundException;
+import me.marensovich.gta5rpformapp.backend.service.discord.DiscordBotClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.Optional;
 
 /**
  * Service for managing {@link GuildMembership} entities.
@@ -29,6 +35,13 @@ public class GuildMembershipService {
     private final GuildMembershipRepository guildMembershipRepository;
     private final GuildService guildService;
     private final UserRepository userRepository;
+    private final DiscordBotClient discordBotClient;
+
+    /**
+     * How long cached Discord roles are trusted before being re-fetched.
+     */
+    @Value("${app.discord.member-roles-ttl:PT5M}")
+    private Duration memberRolesTtl = Duration.ofMinutes(5);
 
     /**
      * Ensures a user holds at least the given role on a guild.
@@ -70,5 +83,41 @@ public class GuildMembershipService {
         }
 
         return membership;
+    }
+
+    /**
+     * Refreshes a member's cached Discord roles ({@link GuildMembership#getDiscordRoles()})
+     * via the bot, if the cache is older than {@code app.discord.member-roles-ttl}
+     * (product spec раздел 4.3: for MVP, check on every visit with a TTL cache,
+     * no Gateway subscription).
+     * <p>
+     * If the bot can't answer (not configured, not in the guild, Discord
+     * error), the existing cache is left as-is rather than wiped — a stale
+     * role list is better than none for a later RoleGate check.
+     * </p>
+     *
+     * @param userDiscordId  the Discord ID of the member
+     * @param guildDiscordId the Discord guild snowflake ID
+     * @return the membership (possibly with refreshed roles), or empty if
+     * there is no membership row for this user/guild
+     * @since v.0.1
+     */
+    @Transactional
+    public Optional<GuildMembership> syncDiscordRolesIfStale(Long userDiscordId, Long guildDiscordId) {
+        return guildMembershipRepository
+                .findByUser_DiscordIdAndGuild_DiscordGuildId(userDiscordId, guildDiscordId)
+                .map(membership -> {
+                    LocalDateTime syncedAt = membership.getDiscordRolesSyncedAt();
+                    if (syncedAt != null && syncedAt.isAfter(LocalDateTime.now().minus(memberRolesTtl))) {
+                        return membership;
+                    }
+                    return discordBotClient.fetchMemberRoleIds(guildDiscordId, userDiscordId)
+                            .map(roles -> {
+                                membership.setDiscordRoles(roles);
+                                membership.setDiscordRolesSyncedAt(LocalDateTime.now());
+                                return guildMembershipRepository.save(membership);
+                            })
+                            .orElse(membership);
+                });
     }
 }

@@ -82,6 +82,7 @@ and unauthenticated.
 | `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `DB_DRIVER` | Postgres connection |
 | `JWT_SECRET`, `JWT_EXPIRATION` | Our own session JWT signing key/lifetime |
 | `TOKEN_ENCRYPTION_KEY` | AES-256 key (base64) for stored Discord user tokens |
+| `DISCORD_MEMBER_ROLES_TTL` | ISO-8601 duration a member's cached Discord roles are trusted (default `PT5M`) |
 | `FRONTEND_URL` | Used to build redirect URLs back to the SPA |
 | `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URI` | Discord OAuth2 app (user login) |
 | `DISCORD_BOT_TOKEN` | Bot user token (JDA session) — blank disables bot features |

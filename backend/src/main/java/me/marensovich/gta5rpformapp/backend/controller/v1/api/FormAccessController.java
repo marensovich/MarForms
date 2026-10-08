@@ -66,6 +66,8 @@ public class FormAccessController {
         if (hasAccess) {
             guildMembershipService.ensureMembership(
                     principal.getDiscordId(), form.getServerId(), GuildRole.RESPONDENT);
+            // Cached for future role gating (#10); refreshed only once the TTL has lapsed.
+            guildMembershipService.syncDiscordRolesIfStale(principal.getDiscordId(), form.getServerId());
         }
 
         return Map.of("hasAccess", hasAccess);

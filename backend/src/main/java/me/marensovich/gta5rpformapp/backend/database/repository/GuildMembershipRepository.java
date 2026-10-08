@@ -31,6 +31,17 @@ public interface GuildMembershipRepository extends JpaRepository<GuildMembership
     Optional<GuildMembership> findByUser_IdAndGuild_DiscordGuildId(Long userId, Long guildId);
 
     /**
+     * Same as {@link #findByUser_IdAndGuild_DiscordGuildId}, but keyed by the
+     * user's Discord ID instead of the internal one.
+     *
+     * @param discordId the user's Discord snowflake ID
+     * @param guildId   the Discord guild snowflake ID
+     * @return an {@link Optional} containing the membership, if any
+     * @since v.0.1
+     */
+    Optional<GuildMembership> findByUser_DiscordIdAndGuild_DiscordGuildId(Long discordId, Long guildId);
+
+    /**
      * Retrieves all of a user's memberships across every guild.
      *
      * @param userId the user's internal ID
