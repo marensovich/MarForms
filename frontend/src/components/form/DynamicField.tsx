@@ -4,6 +4,7 @@ import SelectField from "./fields/SelectField";
 import MultiSelectField from "./fields/MultiSelectField";
 import RadioField from "./fields/RadioField";
 import CheckboxField from "./fields/CheckboxField";
+import CheckboxGroupField from "./fields/CheckboxGroupField";
 import RatingField from "./fields/RatingField";
 import SectionBreak from "./fields/SectionBreak";
 
@@ -82,6 +83,28 @@ export default function DynamicField({field, value, onChange, onBlur, error}: Pr
         case "SECTION_BREAK":
             return <SectionBreak field={field}/>;
         case "CHECKBOX":
+            // With options it's a checkbox group (what the builder configures);
+            // without, a single tick box, as older forms used it.
+            if (field.options?.length) {
+                return (
+                    <CheckboxGroupField
+                        field={field}
+                        value={Array.isArray(value) ? value : []}
+                        onChange={onChangeArr}
+                        onBlur={handleBlur}
+                        error={error}
+                    />
+                );
+            }
+            return (
+                <CheckboxField
+                    field={field}
+                    value={(value as boolean) ?? false}
+                    onChange={onChangeBool}
+                    onBlur={handleBlur}
+                    error={error}
+                />
+            );
         case "BOOLEAN":
             return (
                 <CheckboxField
