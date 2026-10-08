@@ -24,7 +24,7 @@ class DiscordBotClientTest {
     void createWebhookIsEmptyWhenNoJdaSessionIsAvailable() {
         DiscordBotClient client = new DiscordBotClient(null);
 
-        assertThat(client.createWebhook(123L, "MarForms")).isEmpty();
+        assertThat(client.createWebhook(1L, 123L, "MarForms")).isEmpty();
     }
 
     @Test

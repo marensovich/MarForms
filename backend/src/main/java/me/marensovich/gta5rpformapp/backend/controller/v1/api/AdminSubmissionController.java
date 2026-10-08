@@ -101,7 +101,7 @@ public class AdminSubmissionController {
      * @return a {@link ResponseEntity} with status 204 (No Content)
      * @since v.0.1
      */
-    @PreAuthorize("hasAuthority('RESPONSES_MANAGE')")
+    @PreAuthorize("hasAuthority('RESPONSES_MANAGE') or @guildAccess.hasRoleForSubmission(#id, 'MODERATOR')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         submissionService.delete(id);

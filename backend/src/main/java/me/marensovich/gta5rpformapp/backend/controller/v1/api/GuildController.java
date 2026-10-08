@@ -48,7 +48,7 @@ public class GuildController {
      * @return the guild's bot-visible text channels
      * @since v.0.1
      */
-    @PreAuthorize("hasAuthority('FORMS_MANAGE')")
+    @PreAuthorize("hasAuthority('FORMS_MANAGE') or @guildAccess.hasRole(#guildId, 'OWNER')")
     @GetMapping("/channels")
     public List<DiscordChannelDto> channels(@PathVariable Long guildId) {
         return discordBotClient.fetchTextChannels(guildId).stream()
@@ -73,7 +73,7 @@ public class GuildController {
      *                           guild, missing permission, or no bot token configured)
      * @since v.0.1
      */
-    @PreAuthorize("hasAuthority('FORMS_MANAGE')")
+    @PreAuthorize("hasAuthority('FORMS_MANAGE') or @guildAccess.hasRole(#guildId, 'OWNER')")
     @PostMapping("/channels/{channelId}/webhooks")
     public ResponseEntity<CreatedWebhookResponse> createWebhook(
             @PathVariable Long guildId,
@@ -81,7 +81,7 @@ public class GuildController {
             @RequestBody(required = false) CreateWebhookRequest request) {
         String name = request != null && request.name() != null && !request.name().isBlank()
                 ? request.name() : "MarForms";
-        var webhook = discordBotClient.createWebhook(channelId, name)
+        var webhook = discordBotClient.createWebhook(guildId, channelId, name)
                 .orElseThrow(() -> new NotFoundException(
                         "Could not create a webhook in channel " + channelId
                                 + " — the bot may not have access to it"));

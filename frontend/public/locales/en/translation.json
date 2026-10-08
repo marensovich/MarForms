@@ -19,6 +19,7 @@
     "clearFilters": "Clear filters"
   },
   "nav": {
+    "servers": "Servers",
     "navigation": "Navigation",
     "dashboard": "Dashboard",
     "forms": "Forms",
@@ -772,5 +773,27 @@
     "saved": "Saved",
     "loadError": "Failed to load form data.",
     "saveError": "Save failed."
+  },
+  "moderators": {
+    "title": "Moderators",
+    "placeholder": "Discord ID or username",
+    "add": "Add",
+    "remove": "Remove moderator",
+    "hint": "Moderators can review submissions but cannot edit forms. The user must have logged in to MarForms at least once.",
+    "empty": "No moderators yet",
+    "loadError": "Could not load moderators",
+    "addError": "Could not add moderator",
+    "removeError": "Could not remove moderator",
+    "manage": "Moderators"
+  },
+  "servers": {
+    "title": "My servers",
+    "subtitle": "Servers you own or moderate",
+    "empty": "You don't own or moderate any server yet. Add the bot to a server to get started.",
+    "columns": {
+      "server": "Server",
+      "bot": "Bot",
+      "role": "Your role"
+    }
   }
 }

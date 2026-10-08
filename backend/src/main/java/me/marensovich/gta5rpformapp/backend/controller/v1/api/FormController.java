@@ -78,7 +78,7 @@ public class FormController {
      * @return a {@link ResponseEntity} with status 201 (Created) containing the created form
      * @since v.0.1
      */
-    @PreAuthorize("hasAuthority('FORMS_MANAGE')")
+    @PreAuthorize("hasAuthority('FORMS_MANAGE') or @guildAccess.hasRole(#request.serverId(), 'OWNER')")
     @PostMapping
     public ResponseEntity<FormResponseDto> create(@Valid @RequestBody CreateFormRequest request) {
         var form = formService.create(request);
@@ -96,7 +96,7 @@ public class FormController {
      * @return a {@link FormResponseDto} containing the updated form
      * @since v.0.1
      */
-    @PreAuthorize("hasAuthority('FORMS_MANAGE')")
+    @PreAuthorize("hasAuthority('FORMS_MANAGE') or @guildAccess.hasRoleForForm(#formId, 'OWNER')")
     @PutMapping("/{formId}")
     public FormResponseDto update(@PathVariable UUID formId, @Valid @RequestBody UpdateFormRequest request) {
         return FormResponseDto.from(formService.update(formId, request));
@@ -112,7 +112,7 @@ public class FormController {
      * @return a {@link ResponseEntity} with status 204 (No Content)
      * @since v.0.1
      */
-    @PreAuthorize("hasAuthority('FORMS_MANAGE')")
+    @PreAuthorize("hasAuthority('FORMS_MANAGE') or @guildAccess.hasRoleForForm(#formId, 'OWNER')")
     @DeleteMapping("/{formId}")
     public ResponseEntity<Void> delete(@PathVariable UUID formId) {
         formService.delete(formId);

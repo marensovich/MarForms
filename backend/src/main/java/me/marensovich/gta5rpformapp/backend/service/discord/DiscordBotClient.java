@@ -113,17 +113,20 @@ public class DiscordBotClient {
      * the webhook's ID (not its token).
      * </p>
      *
+     * @param guildId   the guild the channel must belong to — prevents an
+     *                  owner of one guild from creating webhooks in another
+     *                  guild's channel just by knowing its ID
      * @param channelId the Discord channel snowflake ID
      * @param name      the webhook's display name (shown as the message sender)
-     * @return the created webhook, or empty if the bot lacks access/permission
-     *         or no bot session is available
+     * @return the created webhook, or empty if the bot lacks access/permission,
+     *         the channel isn't in {@code guildId}, or no bot session is available
      * @since v.0.1
      */
-    public Optional<CreatedWebhook> createWebhook(Long channelId, String name) {
+    public Optional<CreatedWebhook> createWebhook(Long guildId, Long channelId, String name) {
         if (jda == null) return Optional.empty();
         try {
             TextChannel channel = jda.getTextChannelById(channelId);
-            if (channel == null) return Optional.empty();
+            if (channel == null || channel.getGuild().getIdLong() != guildId) return Optional.empty();
             Webhook webhook = channel.createWebhook(name).complete();
             return Optional.of(new CreatedWebhook(webhook.getId(), webhook.getToken()));
         } catch (Exception e) {

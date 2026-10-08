@@ -76,6 +76,27 @@ export function getMyGuilds(): Promise<MyGuild[]> {
     return apiRequest("/me/guilds");
 }
 
+export interface GuildModerator {
+    discordId: string;
+    username: string;
+    since: string;
+}
+
+export function getGuildModerators(guildId: string): Promise<GuildModerator[]> {
+    return apiRequest(`/guilds/${guildId}/moderators`);
+}
+
+export function addGuildModerator(
+    guildId: string,
+    target: { discordId?: string; username?: string }
+): Promise<GuildModerator> {
+    return apiRequest(`/guilds/${guildId}/moderators`, {method: "POST", body: target});
+}
+
+export function removeGuildModerator(guildId: string, discordId: string): Promise<void> {
+    return apiRequest(`/guilds/${guildId}/moderators/${discordId}`, {method: "DELETE"});
+}
+
 export interface DiscordChannel {
     id: string;
     name: string;

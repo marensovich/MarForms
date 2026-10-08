@@ -2,17 +2,23 @@ import SettingsTab from "../components/dashboard/SettingsTab";
 import SystemTab from "../components/dashboard/SystemTab";
 import LogsTab from "../components/dashboard/LogsTab";
 import {useAuth} from "../hooks/useAuth";
-import {useState} from "react";
+import {useEffect, useState} from "react";
+import ServersTab from "../components/dashboard/ServersTab";
+import LoadingScreen from "../components/LoadingScreen";
+import {getMyGuilds} from "../api/dashboard";
 import {Navigate} from "react-router-dom";
 import {AnimatePresence, motion} from "framer-motion";
 import FormsTab from "../components/dashboard/FormsTab.tsx";
 import UsersTab from "../components/dashboard/UsersTab.tsx";
 import RolesTab from "../components/dashboard/RolesTab.tsx";
 import ResponsesTab from "../components/dashboard/ResponsesTab.tsx";
-import {FiActivity, FiFileText, FiInbox, FiList, FiSettings, FiShield, FiUsers,} from "react-icons/fi";
+import {FiActivity, FiFileText, FiInbox, FiList, FiServer, FiSettings, FiShield, FiUsers,} from "react-icons/fi";
 import {useTranslation} from "react-i18next";
 
+// `permission: null` = shown to anyone who owns or moderates a server
+// (per-guild role), regardless of global platform permissions.
 const TABS = [
+    {id: "servers", labelKey: "nav.servers", icon: FiServer, permission: null},
     {id: "forms", labelKey: "nav.forms", icon: FiFileText, permission: "FORMS_MANAGE"},
     {id: "responses", labelKey: "nav.responses", icon: FiInbox, permission: "RESPONSES_MANAGE"},
     {id: "users", labelKey: "nav.users", icon: FiUsers, permission: "USERS_MODERATE"},
@@ -47,12 +53,36 @@ function Initials({name}: { name: string }) {
 export default function DashboardPage() {
     const {user} = useAuth();
     const {t} = useTranslation();
-    const [activeTab, setActiveTab] = useState<Tab>("forms");
+    const [selectedTab, setSelectedTab] = useState<Tab | null>(null);
+    // null = still loading. Owners/moderators of a server get into the
+    // dashboard even without the global DASHBOARD_ACCESS permission.
+    const [hasGuildStaffRole, setHasGuildStaffRole] = useState<boolean | null>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        getMyGuilds()
+            .then(guilds => {
+                if (!cancelled) setHasGuildStaffRole(guilds.some(g => g.role !== "RESPONDENT"));
+            })
+            .catch(() => {
+                if (!cancelled) setHasGuildStaffRole(false);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     const hasDashboardAccess = user?.permissions.includes("DASHBOARD_ACCESS") ?? false;
-    if (!hasDashboardAccess) return <Navigate to="/" replace/>;
+    if (!hasDashboardAccess && hasGuildStaffRole === null) return <LoadingScreen/>;
+    if (!hasDashboardAccess && !hasGuildStaffRole) return <Navigate to="/" replace/>;
 
-    const visibleTabs = TABS.filter(tab => user?.permissions.includes(tab.permission));
+    const visibleTabs = TABS.filter(tab => tab.permission === null
+        ? hasGuildStaffRole || user?.permissions.includes("FORMS_MANAGE")
+        : hasDashboardAccess && user?.permissions.includes(tab.permission));
+    const activeTab: Tab = selectedTab && visibleTabs.some(tab => tab.id === selectedTab)
+        ? selectedTab
+        : (visibleTabs.find(tab => tab.id === "forms") ?? visibleTabs[0])?.id ?? "servers";
+    const setActiveTab = setSelectedTab;
     const adminLevelKey = getAdminLevelKey(user?.permissions ?? []);
 
     return (
@@ -140,6 +170,7 @@ export default function DashboardPage() {
                                 exit={{opacity: 0, y: -6}}
                                 transition={{duration: 0.18}}
                             >
+                                {activeTab === "servers" && <ServersTab/>}
                                 {activeTab === "forms" && <FormsTab/>}
                                 {activeTab === "responses" && <ResponsesTab/>}
                                 {activeTab === "users" && <UsersTab/>}

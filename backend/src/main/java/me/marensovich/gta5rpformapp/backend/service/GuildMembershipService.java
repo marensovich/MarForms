@@ -13,8 +13,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import me.marensovich.gta5rpformapp.backend.dto.guild.AddModeratorRequest;
+import me.marensovich.gta5rpformapp.backend.dto.guild.ModeratorDto;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -83,6 +88,117 @@ public class GuildMembershipService {
         }
 
         return membership;
+    }
+
+    /**
+     * Lists a guild's moderators.
+     *
+     * @param guildDiscordId the Discord guild snowflake ID
+     * @return the moderators, oldest first
+     * @since v.0.1
+     */
+    @Transactional(readOnly = true)
+    public List<ModeratorDto> listModerators(Long guildDiscordId) {
+        return guildMembershipRepository.findAllByGuild_DiscordGuildIdAndRole(guildDiscordId, GuildRole.MODERATOR)
+                .stream()
+                .map(ModeratorDto::from)
+                .sorted(Comparator.comparing(ModeratorDto::since))
+                .toList();
+    }
+
+    /**
+     * Makes an existing user a moderator of a guild (task #60).
+     * <p>
+     * Behaviour on edge cases:
+     * <ul>
+     *     <li>The user must already exist (have logged in once) — otherwise 404.</li>
+     *     <li><b>The target is this guild's OWNER</b> — rejected with 400.
+     *     An owner already has every moderator right, and silently demoting
+     *     them to MODERATOR would lock them out of owner-only actions.</li>
+     *     <li>The target is already a moderator — no-op, returns them as-is.</li>
+     *     <li>The target is a RESPONDENT (or has no membership yet) — promoted.</li>
+     * </ul>
+     * </p>
+     *
+     * @param guildDiscordId the Discord guild snowflake ID
+     * @param request        identifies the user by Discord ID or username
+     * @return the new (or existing) moderator
+     * @throws NotFoundException        if no such user exists
+     * @throws IllegalArgumentException if the user is the guild's owner, or
+     *                                  the request is empty/ambiguous
+     * @since v.0.1
+     */
+    @Transactional
+    public ModeratorDto addModerator(Long guildDiscordId, AddModeratorRequest request) {
+        User user = resolveUser(request);
+        Guild guild = guildService.getOrCreate(guildDiscordId);
+
+        GuildMembership membership = guildMembershipRepository
+                .findByUser_IdAndGuild_DiscordGuildId(user.getId(), guildDiscordId)
+                .orElse(null);
+
+        if (membership != null && membership.getRole() == GuildRole.OWNER) {
+            throw new IllegalArgumentException("This user is the server owner and already has full access");
+        }
+        if (membership == null) {
+            membership = new GuildMembership();
+            membership.setUser(user);
+            membership.setGuild(guild);
+        }
+        if (membership.getRole() != GuildRole.MODERATOR) {
+            membership.setRole(GuildRole.MODERATOR);
+            membership = guildMembershipRepository.save(membership);
+        }
+        return ModeratorDto.from(membership);
+    }
+
+    /**
+     * Removes the moderator role from a user — they go back to being a
+     * plain RESPONDENT of the guild (the membership row is kept).
+     *
+     * @param guildDiscordId the Discord guild snowflake ID
+     * @param userDiscordId  the moderator's Discord ID
+     * @throws NotFoundException if the user isn't a moderator of this guild
+     * @since v.0.1
+     */
+    @Transactional
+    public void removeModerator(Long guildDiscordId, Long userDiscordId) {
+        GuildMembership membership = guildMembershipRepository
+                .findByUser_DiscordIdAndGuild_DiscordGuildId(userDiscordId, guildDiscordId)
+                .filter(m -> m.getRole() == GuildRole.MODERATOR)
+                .orElseThrow(() -> new NotFoundException("User " + userDiscordId + " is not a moderator of this server"));
+        membership.setRole(GuildRole.RESPONDENT);
+        guildMembershipRepository.save(membership);
+    }
+
+    private User resolveUser(AddModeratorRequest request) {
+        if (request == null) throw new IllegalArgumentException("Specify a Discord ID or username");
+        if (request.discordId() != null && !request.discordId().isBlank()) {
+            long discordId;
+            try {
+                discordId = Long.parseUnsignedLong(request.discordId().trim());
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Invalid Discord ID: " + request.discordId());
+            }
+            return userRepository.findByDiscordId(discordId)
+                    .orElseThrow(() -> new NotFoundException(
+                            "No user with Discord ID " + discordId + " — they need to log in to MarForms once first"));
+        }
+        if (request.username() != null && !request.username().isBlank()) {
+            String username = request.username().trim();
+            List<User> matches = userRepository.findAllByDiscordUsernameContainingIgnoreCase(username).stream()
+                    .filter(u -> u.getDiscordUsername().equalsIgnoreCase(username))
+                    .toList();
+            if (matches.isEmpty()) {
+                throw new NotFoundException(
+                        "No user named " + username + " — they need to log in to MarForms once first");
+            }
+            if (matches.size() > 1) {
+                throw new IllegalArgumentException("Several users are named " + username + " — use the Discord ID");
+            }
+            return matches.getFirst();
+        }
+        throw new IllegalArgumentException("Specify a Discord ID or username");
     }
 
     /**
