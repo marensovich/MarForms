@@ -6,6 +6,8 @@ import type {FormDraft} from "./FormWizard";
 interface Props {
     draft: FormDraft;
     onChange: (patch: Partial<FormDraft>) => void;
+    /** The server is fixed (owner panel creates forms inside a chosen guild). */
+    lockServer?: boolean;
 }
 
 const inputCls =
@@ -15,7 +17,7 @@ function isValidSnowflake(id: string): boolean {
     return /^\d{17,19}$/.test(id.trim());
 }
 
-export default function StepServerSettings({draft, onChange}: Props) {
+export default function StepServerSettings({draft, onChange, lockServer = false}: Props) {
     const {t} = useTranslation();
     const [channelInput, setChannelInput] = useState("");
     const [channelError, setChannelError] = useState<string | null>(null);
@@ -65,8 +67,9 @@ export default function StepServerSettings({draft, onChange}: Props) {
                     type="text"
                     value={draft.serverId}
                     onChange={e => onChange({serverId: e.target.value.trim()})}
+                    readOnly={lockServer}
                     placeholder={t("wizard.server.serverIdPlaceholder")}
-                    className={`${inputCls} font-mono ${
+                    className={`${inputCls} font-mono ${lockServer ? "cursor-not-allowed text-[#8B8B96]" : ""} ${
                         draft.serverId && !serverIdValid ? "border-[#EAD4D3] focus:border-[#B56A65]" : ""
                     }`}
                 />

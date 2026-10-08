@@ -98,6 +98,7 @@
     "footer": "MarForms · Система заявок Discord · Только по ссылкам"
   },
   "form": {
+    "previewSubmitDisabled": "Предпросмотр — отправка отключена",
     "validation": {
       "required": "Это поле обязательно",
       "requiredBoolean": "Пожалуйста, подтвердите это поле",
@@ -573,6 +574,7 @@
     }
   },
   "wizard": {
+    "createDraft": "Создать черновик",
     "steps": {
       "basicInfo": "Основное",
       "basicInfoDesc": "Название и описание",
@@ -589,6 +591,7 @@
         "title": "Выберите тип поля"
       },
       "list": {
+        "dragToReorder": "Перетащите, чтобы изменить порядок",
         "fieldCount_one": "{{count}} поле",
         "fieldCount_few": "{{count}} поля",
         "fieldCount_other": "{{count}} полей",
@@ -603,6 +606,8 @@
         "addFirstBtn": "Добавить первое поле"
       },
       "editor": {
+        "ratingScale": "Шкала",
+        "ratingScaleHint": "Из скольких звёзд выбирает респондент",
         "sectionContent": "Содержание",
         "sectionType": "Тип поля",
         "sectionParameters": "Параметры",
@@ -644,6 +649,8 @@
         "optionPlaceholder": "Вариант {{n}}"
       },
       "types": {
+        "RATING": {"label":"Оценка","desc":"Звёзды от 1 до N"},
+        "SECTION_BREAK": {"label":"Раздел","desc":"Заголовок, разделяющий форму"},
         "TEXT": {"label": "Короткий текст", "desc": "Однострочный, до 255 символов"},
         "TEXTAREA": {"label": "Длинный текст", "desc": "Многострочный ответ"},
         "NUMBER": {"label": "Число", "desc": "Целое или дробное с проверкой"},
@@ -661,6 +668,7 @@
         "DATETIME": {"label": "Дата и время", "desc": "Совместный выбор даты и времени"}
       },
       "groups": {
+        "layout": "Оформление",
         "text": "Текстовые поля",
         "choice": "Поля выбора",
         "datetime": "Дата и время"
@@ -760,6 +768,8 @@
   "formEdit": {
     "title": "Редактировать форму",
     "tabs": {
+      "fields": "Поля",
+      "access": "Доступ",
       "basicInfo": "Основное",
       "webhooks": "Вебхуки"
     },
@@ -789,6 +799,7 @@
     "manage": "Модераторы"
   },
   "servers": {
+    "openForms": "Формы",
     "title": "Мои серверы",
     "subtitle": "Серверы, которыми вы владеете или модерируете",
     "empty": "У вас пока нет серверов, где вы владелец или модератор. Добавьте бота на сервер, чтобы начать.",
@@ -796,6 +807,71 @@
       "server": "Сервер",
       "bot": "Бот",
       "role": "Ваша роль"
+    }
+  },
+  "preview": {
+    "open": "Предпросмотр",
+    "close": "Закрыть предпросмотр",
+    "banner": "Предпросмотр — так форму увидит респондент. Ответы не отправляются.",
+    "untitled": "Форма без названия"
+  },
+  "access": {
+    "title": "Кто может заполнить форму",
+    "soon": "Скоро",
+    "limit": "Заявок на человека",
+    "limitPlaceholder": "Без ограничений",
+    "opensAt": "Открывается",
+    "closesAt": "Закрывается",
+    "scheduleHint": "Оставьте пустым, чтобы принимать заявки, пока форма опубликована.",
+    "modes": {
+      "OPEN": {
+        "label": "Все",
+        "desc": "Без входа. Вошедшие респонденты всё равно определяются."
+      },
+      "AUTHENTICATED": {
+        "label": "Участники сервера",
+        "desc": "Нужен вход через Discord и членство на этом сервере."
+      },
+      "ROLE_GATED": {
+        "label": "Определённые роли",
+        "desc": "Только участники с выбранными ролями Discord."
+      },
+      "ANONYMOUS": {
+        "label": "Анонимно",
+        "desc": "Личность не сохраняется."
+      }
+    }
+  },
+  "guildForms": {
+    "subtitle_one": "{{count}} форма",
+    "subtitle_few": "{{count}} формы",
+    "subtitle_many": "{{count}} форм",
+    "subtitle_other": "{{count}} форм",
+    "fieldCount_one": "{{count}} поле",
+    "fieldCount_few": "{{count}} поля",
+    "fieldCount_many": "{{count}} полей",
+    "fieldCount_other": "{{count}} полей",
+    "showArchived": "Показать архивные",
+    "empty": "На этом сервере пока нет форм.",
+    "emptyOwner": "Форм пока нет — создайте первую.",
+    "loadError": "Не удалось загрузить формы",
+    "actionError": "Действие не выполнено",
+    "copyLink": "Скопировать ссылку",
+    "publish": "Опубликовать",
+    "close": "Закрыть",
+    "archive": "В архив",
+    "unarchive": "Из архива",
+    "columns": {
+      "title": "Форма",
+      "status": "Статус",
+      "access": "Доступ",
+      "responses": "Заявки"
+    },
+    "status": {
+      "DRAFT": "Черновик",
+      "PUBLISHED": "Опубликована",
+      "CLOSED": "Закрыта",
+      "ARCHIVED": "В архиве"
     }
   }
 }

@@ -1,5 +1,5 @@
 import {apiRequest} from "./client";
-import type {FormAnswers, WebhookConfig} from "../types/forms";
+import type {FormAccessMode, FormAnswers, FormDefinition, FormStatus, WebhookConfig} from "../types/forms";
 
 export interface DashboardForm {
     id: string;
@@ -7,6 +7,56 @@ export interface DashboardForm {
     active: boolean;
     submissionCount: number;
     createdAt: string;
+    serverId?: string;
+    status?: FormStatus;
+    accessMode?: FormAccessMode;
+    slug?: string | null;
+    fieldCount?: number;
+    updatedAt?: string;
+}
+
+// ── Guild-scoped forms (owner panel) ───────────────────────────────────────
+
+export function getGuildForms(guildId: string, includeArchived = false): Promise<PageResponse<DashboardForm>> {
+    return apiRequest(`/guilds/${guildId}/forms?includeArchived=${includeArchived}&size=100`);
+}
+
+export interface CreateGuildFormPayload {
+    schema: { title: string; description: string; fields: unknown[] };
+    channelsIds?: string[];
+    webhooks?: WebhookConfig[];
+    accessMode?: FormAccessMode;
+}
+
+export function createGuildForm(guildId: string, payload: CreateGuildFormPayload): Promise<FormDefinition> {
+    return apiRequest(`/guilds/${guildId}/forms`, {method: "POST", body: payload});
+}
+
+export function publishGuildForm(guildId: string, formId: string): Promise<FormDefinition> {
+    return apiRequest(`/guilds/${guildId}/forms/${formId}/publish`, {method: "POST"});
+}
+
+export function setGuildFormStatus(guildId: string, formId: string, status: FormStatus): Promise<FormDefinition> {
+    return apiRequest(`/guilds/${guildId}/forms/${formId}/status`, {method: "PUT", body: {status}});
+}
+
+export interface FormSettingsPayload {
+    accessMode: FormAccessMode;
+    submissionLimitPerUser: number | null;
+    opensAt: string | null;
+    closesAt: string | null;
+}
+
+export function updateGuildFormSettings(
+    guildId: string,
+    formId: string,
+    payload: FormSettingsPayload
+): Promise<FormDefinition> {
+    return apiRequest(`/guilds/${guildId}/forms/${formId}/settings`, {method: "PUT", body: payload});
+}
+
+export function deleteGuildForm(guildId: string, formId: string): Promise<void> {
+    return apiRequest(`/guilds/${guildId}/forms/${formId}`, {method: "DELETE"});
 }
 
 export interface DashboardUser {

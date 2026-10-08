@@ -98,6 +98,7 @@
     "footer": "MarForms · Discord Application System · Form links only"
   },
   "form": {
+    "previewSubmitDisabled": "Preview — submitting is disabled",
     "validation": {
       "required": "This field is required",
       "requiredBoolean": "Please confirm this field",
@@ -572,6 +573,7 @@
     }
   },
   "wizard": {
+    "createDraft": "Create draft",
     "steps": {
       "basicInfo": "Basic Info",
       "basicInfoDesc": "Title & description",
@@ -588,6 +590,7 @@
         "title": "Choose field type"
       },
       "list": {
+        "dragToReorder": "Drag to reorder",
         "fieldCount_one": "{{count}} field",
         "fieldCount_other": "{{count}} fields",
         "addField": "Add field",
@@ -601,6 +604,8 @@
         "addFirstBtn": "Add first field"
       },
       "editor": {
+        "ratingScale": "Scale",
+        "ratingScaleHint": "How many stars respondents choose from",
         "sectionContent": "Content",
         "sectionType": "Field Type",
         "sectionParameters": "Parameters",
@@ -642,6 +647,8 @@
         "optionPlaceholder": "Option {{n}}"
       },
       "types": {
+        "RATING": {"label":"Rating","desc":"Stars from 1 to N"},
+        "SECTION_BREAK": {"label":"Section","desc":"Heading that splits the form"},
         "TEXT": {"label": "Short Text", "desc": "Single-line, up to 255 chars"},
         "TEXTAREA": {"label": "Long Text", "desc": "Multi-line paragraph answer"},
         "NUMBER": {"label": "Number", "desc": "Integer or decimal with validation"},
@@ -659,6 +666,7 @@
         "DATETIME": {"label": "Date & Time", "desc": "Combined date and time picker"}
       },
       "groups": {
+        "layout": "Layout",
         "text": "Text Fields",
         "choice": "Choice Fields",
         "datetime": "Date & Time"
@@ -758,6 +766,8 @@
   "formEdit": {
     "title": "Edit Form",
     "tabs": {
+      "fields": "Fields",
+      "access": "Access",
       "basicInfo": "Basic Info",
       "webhooks": "Webhooks"
     },
@@ -787,6 +797,7 @@
     "manage": "Moderators"
   },
   "servers": {
+    "openForms": "Forms",
     "title": "My servers",
     "subtitle": "Servers you own or moderate",
     "empty": "You don't own or moderate any server yet. Add the bot to a server to get started.",
@@ -794,6 +805,67 @@
       "server": "Server",
       "bot": "Bot",
       "role": "Your role"
+    }
+  },
+  "preview": {
+    "open": "Preview",
+    "close": "Close preview",
+    "banner": "Preview — this is exactly what respondents see. Answers are not sent.",
+    "untitled": "Untitled form"
+  },
+  "access": {
+    "title": "Who can fill in the form",
+    "soon": "Soon",
+    "limit": "Submissions per person",
+    "limitPlaceholder": "Unlimited",
+    "opensAt": "Opens at",
+    "closesAt": "Closes at",
+    "scheduleHint": "Leave empty to accept submissions as long as the form is published.",
+    "modes": {
+      "OPEN": {
+        "label": "Anyone",
+        "desc": "No login needed. Logged-in respondents are still recognised."
+      },
+      "AUTHENTICATED": {
+        "label": "Server members",
+        "desc": "Discord login required; must be a member of this server."
+      },
+      "ROLE_GATED": {
+        "label": "Specific roles",
+        "desc": "Only members with chosen Discord roles."
+      },
+      "ANONYMOUS": {
+        "label": "Anonymous",
+        "desc": "Identity is never recorded."
+      }
+    }
+  },
+  "guildForms": {
+    "subtitle_one": "{{count}} form",
+    "subtitle_other": "{{count}} forms",
+    "fieldCount_one": "{{count}} field",
+    "fieldCount_other": "{{count}} fields",
+    "showArchived": "Show archived",
+    "empty": "This server has no forms yet.",
+    "emptyOwner": "No forms yet — create the first one.",
+    "loadError": "Could not load forms",
+    "actionError": "Action failed",
+    "copyLink": "Copy link",
+    "publish": "Publish",
+    "close": "Close",
+    "archive": "Archive",
+    "unarchive": "Unarchive",
+    "columns": {
+      "title": "Form",
+      "status": "Status",
+      "access": "Access",
+      "responses": "Responses"
+    },
+    "status": {
+      "DRAFT": "Draft",
+      "PUBLISHED": "Published",
+      "CLOSED": "Closed",
+      "ARCHIVED": "Archived"
     }
   }
 }

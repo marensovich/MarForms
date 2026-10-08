@@ -71,7 +71,7 @@ public class GuildFormController {
         return FormResponseDto.from(formService.update(formId, request));
     }
 
-    @PreAuthorize("@guildAccess.hasRole(#guildId, 'OWNER')")
+    @PreAuthorize("hasAuthority('FORMS_MANAGE') or @guildAccess.hasRole(#guildId, 'OWNER')")
     @PutMapping("/{formId}/settings")
     public FormResponseDto updateSettings(@PathVariable Long guildId, @PathVariable UUID formId,
                                           @Valid @RequestBody FormSettingsRequest request) {
@@ -79,14 +79,14 @@ public class GuildFormController {
         return FormResponseDto.from(formService.updateSettings(formId, request));
     }
 
-    @PreAuthorize("@guildAccess.hasRole(#guildId, 'OWNER')")
+    @PreAuthorize("hasAuthority('FORMS_MANAGE') or @guildAccess.hasRole(#guildId, 'OWNER')")
     @PostMapping("/{formId}/publish")
     public FormResponseDto publish(@PathVariable Long guildId, @PathVariable UUID formId) {
         formService.getInGuild(guildId, formId);
         return FormResponseDto.from(formService.publish(formId));
     }
 
-    @PreAuthorize("@guildAccess.hasRole(#guildId, 'OWNER')")
+    @PreAuthorize("hasAuthority('FORMS_MANAGE') or @guildAccess.hasRole(#guildId, 'OWNER')")
     @PutMapping("/{formId}/status")
     public FormResponseDto changeStatus(@PathVariable Long guildId, @PathVariable UUID formId,
                                         @Valid @RequestBody FormStatusRequest request) {

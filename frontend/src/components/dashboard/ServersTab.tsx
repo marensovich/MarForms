@@ -1,10 +1,11 @@
 import {useEffect, useState} from "react";
 import {AnimatePresence} from "framer-motion";
 import {useTranslation} from "react-i18next";
-import {FiExternalLink, FiServer, FiUsers} from "react-icons/fi";
+import {FiChevronRight, FiExternalLink, FiServer, FiUsers} from "react-icons/fi";
 import {getGuildConnectUrl, getMyGuilds, type MyGuild} from "../../api/dashboard";
 import {ActionBtn, Badge, EmptyState, TabSkeleton} from "./shared";
 import ModeratorsModal from "./ModeratorsModal";
+import GuildFormsPanel from "./GuildFormsPanel";
 
 /**
  * The servers the current user owns or moderates — the entry point of the
@@ -16,6 +17,7 @@ export default function ServersTab() {
     const [loading, setLoading] = useState(true);
     const [connecting, setConnecting] = useState(false);
     const [moderatorsGuild, setModeratorsGuild] = useState<MyGuild | null>(null);
+    const [openGuild, setOpenGuild] = useState<MyGuild | null>(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -40,6 +42,10 @@ export default function ServersTab() {
             setConnecting(false);
         }
     };
+
+    if (openGuild) {
+        return <GuildFormsPanel guild={openGuild} onBack={() => setOpenGuild(null)}/>;
+    }
 
     return (
         <div>
@@ -75,7 +81,8 @@ export default function ServersTab() {
                         </thead>
                         <tbody>
                         {guilds.map(g => (
-                            <tr key={g.guildId} className="border-b border-[#F0F0F2] last:border-0">
+                            <tr key={g.guildId} onClick={() => setOpenGuild(g)}
+                                className="cursor-pointer border-b border-[#F0F0F2] transition-colors last:border-0 hover:bg-[#FAFAFB]">
                                 <td className="px-5 py-3">
                                     <p className="font-medium text-[#1E1E24]">{g.guildName}</p>
                                     <p className="text-xs text-[#8B8B96]">{g.guildId}</p>
@@ -88,13 +95,19 @@ export default function ServersTab() {
                                 <td className="px-5 py-3 text-[#55555F]">
                                     {t(`forms.guilds.role.${g.role.toLowerCase()}`)}
                                 </td>
-                                <td className="px-5 py-3 text-right">
-                                    {g.role === "OWNER" && (
-                                        <ActionBtn variant="primary" onClick={() => setModeratorsGuild(g)}>
-                                            <FiUsers size={11} className="mr-1 inline"/>
-                                            {t("moderators.manage")}
+                                <td className="px-5 py-3 text-right" onClick={e => e.stopPropagation()}>
+                                    <div className="flex items-center justify-end gap-1">
+                                        {g.role === "OWNER" && (
+                                            <ActionBtn variant="primary" onClick={() => setModeratorsGuild(g)}>
+                                                <FiUsers size={11} className="mr-1 inline"/>
+                                                {t("moderators.manage")}
+                                            </ActionBtn>
+                                        )}
+                                        <ActionBtn onClick={() => setOpenGuild(g)}>
+                                            {t("servers.openForms")}
+                                            <FiChevronRight size={11} className="ml-1 inline"/>
                                         </ActionBtn>
-                                    )}
+                                    </div>
                                 </td>
                             </tr>
                         ))}

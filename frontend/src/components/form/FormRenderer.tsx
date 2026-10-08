@@ -2,7 +2,8 @@ import {useMemo, useState} from "react";
 import {AnimatePresence, motion} from "framer-motion";
 import {useTranslation} from "react-i18next";
 import i18n from "../../i18n";
-import type {FieldType, FormAnswers, FormDefinition, FormField} from "../../types/forms";
+import {type FieldType, type FormAnswers, type FormDefinition, type FormField, isInputField} from "../../types/forms";
+import {DEFAULT_RATING_SCALE} from "./fields/RatingField";
 import {submitForm} from "../../api/forms";
 import {ApiError} from "../../api/client";
 import DynamicField from "./DynamicField";
@@ -24,6 +25,7 @@ import {
     FiPhone,
     FiSend,
     FiShield,
+    FiStar,
     FiToggleLeft,
     FiType,
     FiUser,
@@ -35,6 +37,7 @@ function validate(form: FormDefinition, answers: FormAnswers): Record<string, st
     const errors: Record<string, string> = {};
 
     for (const field of form.schema.fields) {
+        if (!isInputField(field)) continue;
         const val = answers[field.id];
         const str = typeof val === "string" ? val.trim() : String(val ?? "");
         const isEmpty =
@@ -148,6 +151,14 @@ function validateByType(field: FormField, str: string, raw: FormAnswers[string])
             return null;
         }
 
+        case "RATING": {
+            const n = Number(raw);
+            const scale = field.max ?? DEFAULT_RATING_SCALE;
+            if (!Number.isInteger(n) || n < 1 || n > scale)
+                return t("form.validation.invalidOption");
+            return null;
+        }
+
         case "DATE":
             if (!/^\d{4}-\d{2}-\d{2}$/.test(str) || isNaN(Date.parse(str)))
                 return t("form.validation.invalidDate");
@@ -185,6 +196,7 @@ const TYPE_ICON: Partial<Record<FieldType, React.ElementType>> = {
     DATE: FiCalendar,
     TIME: FiClock,
     DATETIME: FiCalendar,
+    RATING: FiStar,
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -272,10 +284,10 @@ interface SidebarProps {
 
 function FormSidebar({form, progress, answeredRequired, totalRequired}: SidebarProps) {
     const {t} = useTranslation();
-    const totalFields = form.schema.fields.length;
+    const totalFields = form.schema.fields.filter(isInputField).length;
     const typeGroups = useMemo(() => {
         const counts: Partial<Record<FieldType, number>> = {};
-        for (const f of form.schema.fields) {
+        for (const f of form.schema.fields.filter(isInputField)) {
             counts[f.type] = (counts[f.type] ?? 0) + 1;
         }
         return Object.entries(counts) as [FieldType, number][];
@@ -408,11 +420,16 @@ function StatCard({icon: Icon, label, value, accent = false}: {
 
 interface Props {
     form: FormDefinition;
+    /**
+     * Builder preview (#45): renders exactly what a respondent sees and runs
+     * the same validation, but never submits.
+     */
+    preview?: boolean;
 }
 
 type SubmitStatus = "idle" | "submitting" | "success" | "error";
 
-export default function FormRenderer({form}: Props) {
+export default function FormRenderer({form, preview = false}: Props) {
     const {t} = useTranslation();
     const [answers, setAnswers] = useState<FormAnswers>({});
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -422,7 +439,7 @@ export default function FormRenderer({form}: Props) {
     const [submitError, setSubmitError] = useState<string | null>(null);
 
     const requiredFields = useMemo(
-        () => form.schema.fields.filter(f => f.required),
+        () => form.schema.fields.filter(f => f.required && isInputField(f)),
         [form.schema.fields]
     );
 
@@ -483,6 +500,7 @@ export default function FormRenderer({form}: Props) {
             document.getElementById(`field-${firstErrorId}`)?.scrollIntoView({behavior: "smooth", block: "center"});
             return;
         }
+        if (preview) return;
         setSubmitStatus("submitting");
         setSubmitError(null);
         try {
@@ -547,7 +565,7 @@ export default function FormRenderer({form}: Props) {
                             {/* Field count header */}
                             <div className="mb-6 flex items-center justify-between">
                                 <p className="text-xs text-[#8B8B96]">
-                                    {t("form.fieldCount", {count: form.schema.fields.length})}
+                                    {t("form.fieldCount", {count: form.schema.fields.filter(isInputField).length})}
                                     {requiredFields.length > 0 && (
                                         <span className="text-[#C7C7CE]"> {t("form.requiredCount", {count: requiredFields.length})}</span>
                                     )}
@@ -617,7 +635,7 @@ export default function FormRenderer({form}: Props) {
                             <div className="mt-7 border-t border-[#E4E4E7] pt-6">
                                 <motion.button
                                     onClick={handleSubmit}
-                                    disabled={submitStatus === "submitting"}
+                                    disabled={submitStatus === "submitting" || preview}
                                     whileHover={{scale: submitStatus === "submitting" ? 1 : 1.015}}
                                     whileTap={{scale: submitStatus === "submitting" ? 1 : 0.985}}
                                     className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-[#3730A3] px-6 py-3.5 font-semibold text-white transition-colors hover:bg-[#2D2682] disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[#3730A3]/40 focus:ring-offset-2 focus:ring-offset-white"
@@ -625,7 +643,7 @@ export default function FormRenderer({form}: Props) {
                                     {submitStatus === "submitting" ? (
                                         <><Spinner/>{t("form.submitting")}</>
                                     ) : (
-                                        <><FiSend size={15}/>{t("form.submit")}</>
+                                        <><FiSend size={15}/>{preview ? t("form.previewSubmitDisabled") : t("form.submit")}</>
                                     )}
                                 </motion.button>
                             </div>

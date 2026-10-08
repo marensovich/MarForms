@@ -1,11 +1,27 @@
 import {useEffect, useState} from "react";
-import {motion} from "framer-motion";
+import {AnimatePresence, motion} from "framer-motion";
 import {useTranslation} from "react-i18next";
-import {FiAlertCircle, FiCheckCircle, FiEdit3, FiFileText, FiLink, FiLoader, FiSave, FiX,} from "react-icons/fi";
+import {
+    FiAlertCircle,
+    FiCheckCircle,
+    FiEdit3,
+    FiEye,
+    FiFileText,
+    FiLink,
+    FiList,
+    FiLoader,
+    FiLock,
+    FiSave,
+    FiX,
+} from "react-icons/fi";
 import type {DashboardForm, UpdateFormPayload} from "../../../api/dashboard";
-import {getForm, updateForm} from "../../../api/dashboard";
-import type {FormDefinition, WebhookConfig} from "../../../types/forms";
+import {getForm, updateForm, updateGuildFormSettings} from "../../../api/dashboard";
+import {describeApiError} from "../../../api/errors";
+import type {FormAccessMode, FormDefinition, FormField, WebhookConfig} from "../../../types/forms";
 import StepWebhooks from "./StepWebhooks";
+import StepFields from "./StepFields";
+import AccessModeSelector from "./AccessModeSelector";
+import FormPreviewModal from "./FormPreviewModal";
 
 interface Props {
     form: DashboardForm;
@@ -13,7 +29,14 @@ interface Props {
     onUpdated: () => void;
 }
 
-type Tab = "basic" | "webhooks";
+type Tab = "basic" | "fields" | "access" | "webhooks";
+
+interface AccessSettings {
+    accessMode: FormAccessMode;
+    limit: string;
+    opensAt: string;
+    closesAt: string;
+}
 
 function inputCls(error?: boolean) {
     return `w-full rounded-xl border px-4 py-2.5 text-sm text-[#1E1E24] placeholder-[#C7C7CE] outline-none transition-colors focus:ring-1 ${
@@ -21,6 +44,18 @@ function inputCls(error?: boolean) {
             ? "border-[#EAD4D3] bg-[#F7EEEE] focus:border-[#B56A65] focus:ring-[#B56A65]/20"
             : "border-[#E4E4E7] bg-[#FAFAFB] focus:border-[#3730A3] focus:ring-[#3730A3]/20"
     }`;
+}
+
+/** Backend LocalDateTime ("2026-10-08T12:00:00") → <input type="datetime-local"> value. */
+const toLocalInput = (value?: string | null) => (value ? value.slice(0, 16) : "");
+
+function accessOf(def: FormDefinition): AccessSettings {
+    return {
+        accessMode: def.accessMode ?? "AUTHENTICATED",
+        limit: def.submissionLimitPerUser ? String(def.submissionLimitPerUser) : "",
+        opensAt: toLocalInput(def.opensAt),
+        closesAt: toLocalInput(def.closesAt),
+    };
 }
 
 export default function FormEditModal({form, onClose, onUpdated}: Props) {
@@ -31,10 +66,13 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
     const [error, setError] = useState<string | null>(null);
     const [tab, setTab] = useState<Tab>("basic");
     const [definition, setDefinition] = useState<FormDefinition | null>(null);
+    const [previewOpen, setPreviewOpen] = useState(false);
 
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
+    const [fields, setFields] = useState<FormField[]>([]);
     const [webhooks, setWebhooks] = useState<WebhookConfig[]>([]);
+    const [access, setAccess] = useState<AccessSettings | null>(null);
 
     useEffect(() => {
         getForm(form.id)
@@ -42,32 +80,43 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
                 setDefinition(def);
                 setTitle(def.schema.title);
                 setDescription(def.schema.description ?? "");
+                setFields(def.schema.fields ?? []);
                 setWebhooks(def.webhooks ?? []);
+                setAccess(accessOf(def));
             })
             .catch(() => setError(t("formEdit.loadError")))
             .finally(() => setLoading(false));
-    }, [form.id]);
+    }, [form.id, t]);
+
+    const accessChanged = definition !== null && access !== null
+        && JSON.stringify(access) !== JSON.stringify(accessOf(definition));
 
     const handleSave = async () => {
-        if (!definition) return;
+        if (!definition || !access) return;
         setSaving(true);
         setError(null);
         setSaved(false);
         try {
             const payload: UpdateFormPayload = {
-                schema: {
-                    title: title.trim(),
-                    description,
-                    fields: definition.schema.fields,
-                },
+                schema: {title: title.trim(), description, fields},
                 webhooks: webhooks.filter(w => w.url.trim()),
             };
-            await updateForm(form.id, payload);
+            let updated = await updateForm(form.id, payload);
+            if (accessChanged) {
+                updated = await updateGuildFormSettings(String(definition.serverId), form.id, {
+                    accessMode: access.accessMode,
+                    submissionLimitPerUser: access.limit ? Number(access.limit) : null,
+                    opensAt: access.opensAt || null,
+                    closesAt: access.closesAt || null,
+                });
+            }
+            setDefinition(updated);
+            setAccess(accessOf(updated));
             setSaved(true);
             setTimeout(() => setSaved(false), 3000);
             onUpdated();
         } catch (e) {
-            setError(e instanceof Error ? e.message : t("formEdit.saveError"));
+            setError(describeApiError(e, t("formEdit.saveError")));
         } finally {
             setSaving(false);
         }
@@ -75,6 +124,8 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
 
     const tabs: { id: Tab; label: string; icon: React.ReactNode; count?: number }[] = [
         {id: "basic", label: t("formEdit.tabs.basicInfo"), icon: <FiFileText size={13}/>},
+        {id: "fields", label: t("formEdit.tabs.fields"), icon: <FiList size={13}/>, count: fields.length},
+        {id: "access", label: t("formEdit.tabs.access"), icon: <FiLock size={13}/>},
         {
             id: "webhooks",
             label: t("formEdit.tabs.webhooks"),
@@ -90,7 +141,9 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
                 animate={{opacity: 1, scale: 1, y: 0}}
                 exit={{opacity: 0, scale: 0.96, y: 8}}
                 transition={{duration: 0.18}}
-                className="flex w-full max-w-[580px] flex-col rounded-2xl border border-[#E4E4E7] bg-white shadow-xl"
+                className={`flex w-full flex-col rounded-2xl border border-[#E4E4E7] bg-white shadow-xl transition-all duration-200 ${
+                    tab === "fields" ? "max-w-[960px]" : "max-w-[580px]"
+                }`}
                 style={{maxHeight: "calc(100vh - 2rem)"}}
             >
                 {/* Header */}
@@ -140,14 +193,14 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 min-h-0 overflow-y-auto p-6">
+                <div className={`flex-1 min-h-0 overflow-y-auto ${tab === "fields" ? "" : "p-6"}`}>
                     {loading ? (
                         <div className="flex items-center justify-center py-16">
                             <FiLoader size={20} className="animate-spin text-[#8B8B96]"/>
                         </div>
                     ) : error && !definition ? (
                         <div
-                            className="flex items-center gap-2 rounded-xl border border-[#EAD4D3] bg-[#F7EEEE] px-4 py-3 text-sm text-[#8B4A46]">
+                            className="m-6 flex items-center gap-2 rounded-xl border border-[#EAD4D3] bg-[#F7EEEE] px-4 py-3 text-sm text-[#8B4A46]">
                             <FiAlertCircle size={14}/>{error}
                         </div>
                     ) : (
@@ -180,29 +233,67 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
                                             className={`${inputCls()} resize-none`}
                                         />
                                     </label>
+                                </div>
+                            )}
 
-                                    {definition && (
-                                        <div
-                                            className="rounded-xl border border-[#E4E4E7] bg-[#FAFAFB] px-4 py-3">
-                                            <p className="text-xs font-medium text-[#8B8B96] mb-2">{t("formEdit.fields")}</p>
-                                            <div className="flex flex-col gap-1.5">
-                                                {definition.schema.fields.map(f => (
-                                                    <div key={f.id}
-                                                         className="flex items-center gap-2 text-xs text-[#6B6B76]">
-                                                        <span
-                                                            className="h-1 w-1 rounded-full bg-[#D4D4D9] flex-shrink-0"/>
-                                                        <span className="font-medium text-[#55555F]">{f.label}</span>
-                                                        <span className="text-[#C7C7CE]">{f.type.toLowerCase()}</span>
-                                                        {f.required &&
-                                                            <span className="text-[#B56A65]">required</span>}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                            <p className="mt-2.5 text-[11px] text-[#C7C7CE]">
-                                                {t("formEdit.fieldEditNote")}
-                                            </p>
-                                        </div>
-                                    )}
+                            {tab === "fields" && (
+                                <StepFields
+                                    draft={{
+                                        title,
+                                        description,
+                                        fields,
+                                        serverId: definition ? String(definition.serverId) : "",
+                                        channelsIds: [],
+                                        webhooks,
+                                        accessMode: access?.accessMode ?? "AUTHENTICATED",
+                                    }}
+                                    onChange={patch => {
+                                        if (patch.fields !== undefined) setFields(patch.fields);
+                                    }}
+                                />
+                            )}
+
+                            {tab === "access" && access && (
+                                <div className="flex flex-col gap-5">
+                                    <div>
+                                        <p className="mb-2 text-xs font-medium text-[#6B6B76]">{t("access.title")}</p>
+                                        <AccessModeSelector
+                                            value={access.accessMode}
+                                            onChange={accessMode => setAccess({...access, accessMode})}
+                                        />
+                                    </div>
+                                    <label className="flex flex-col gap-1.5">
+                                        <span className="text-xs font-medium text-[#6B6B76]">{t("access.limit")}</span>
+                                        <input
+                                            type="number"
+                                            min={1}
+                                            value={access.limit}
+                                            onChange={e => setAccess({...access, limit: e.target.value})}
+                                            placeholder={t("access.limitPlaceholder")}
+                                            className={inputCls()}
+                                        />
+                                    </label>
+                                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                        <label className="flex flex-col gap-1.5">
+                                            <span className="text-xs font-medium text-[#6B6B76]">{t("access.opensAt")}</span>
+                                            <input
+                                                type="datetime-local"
+                                                value={access.opensAt}
+                                                onChange={e => setAccess({...access, opensAt: e.target.value})}
+                                                className={inputCls()}
+                                            />
+                                        </label>
+                                        <label className="flex flex-col gap-1.5">
+                                            <span className="text-xs font-medium text-[#6B6B76]">{t("access.closesAt")}</span>
+                                            <input
+                                                type="datetime-local"
+                                                value={access.closesAt}
+                                                onChange={e => setAccess({...access, closesAt: e.target.value})}
+                                                className={inputCls()}
+                                            />
+                                        </label>
+                                    </div>
+                                    <p className="text-[11px] text-[#8B8B96]">{t("access.scheduleHint")}</p>
                                 </div>
                             )}
 
@@ -211,10 +302,11 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
                                     draft={{
                                         title,
                                         description,
-                                        fields: definition?.schema.fields ?? [],
+                                        fields,
                                         serverId: definition ? String(definition.serverId) : "",
                                         channelsIds: [],
                                         webhooks,
+                                        accessMode: access?.accessMode ?? "AUTHENTICATED",
                                     }}
                                     onChange={patch => {
                                         if (patch.webhooks !== undefined) setWebhooks(patch.webhooks);
@@ -236,14 +328,23 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
 
                     <div className="flex items-center gap-3">
                         {error && definition && (
-                            <div className="flex items-center gap-1.5 text-xs text-[#B56A65]">
-                                <FiAlertCircle size={12}/>{error}
+                            <div className="flex max-w-xs items-center gap-1.5 text-xs text-[#B56A65]">
+                                <FiAlertCircle size={12} className="flex-shrink-0"/>{error}
                             </div>
                         )}
                         {saved && (
                             <div className="flex items-center gap-1.5 text-xs text-[#3F6B4A]">
                                 <FiCheckCircle size={12}/>{t("formEdit.saved")}
                             </div>
+                        )}
+                        {fields.length > 0 && (
+                            <button
+                                onClick={() => setPreviewOpen(true)}
+                                className="flex items-center gap-1.5 rounded-xl border border-[#E4E4E7] px-3 py-2 text-sm text-[#55555F] transition-colors hover:border-[#D4D4D9] hover:text-[#1E1E24]"
+                            >
+                                <FiEye size={13}/>
+                                {t("preview.open")}
+                            </button>
                         )}
                         <button
                             onClick={handleSave}
@@ -258,6 +359,12 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
                     </div>
                 </div>
             </motion.div>
+            <AnimatePresence>
+                {previewOpen && (
+                    <FormPreviewModal title={title} description={description} fields={fields}
+                                      onClose={() => setPreviewOpen(false)}/>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

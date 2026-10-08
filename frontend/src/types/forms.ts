@@ -13,7 +13,16 @@ export type FieldType =
     | "BOOLEAN"
     | "DATE"
     | "TIME"
-    | "DATETIME";
+    | "DATETIME"
+    | "RATING"
+    | "SECTION_BREAK";
+
+/** Not an input: a heading + text that splits a form into sections. */
+export const isInputField = (field: { type: FieldType }) => field.type !== "SECTION_BREAK";
+
+export type FormStatus = "DRAFT" | "PUBLISHED" | "CLOSED" | "ARCHIVED";
+
+export type FormAccessMode = "OPEN" | "AUTHENTICATED" | "ROLE_GATED" | "ANONYMOUS";
 
 export interface FormFieldOption {
     label: string;
@@ -46,6 +55,13 @@ export interface FormDefinition {
     webhooks: WebhookConfig[];
     active: boolean;
     createdAt: string;
+    status?: FormStatus;
+    accessMode?: FormAccessMode;
+    slug?: string | null;
+    submissionLimitPerUser?: number | null;
+    opensAt?: string | null;
+    closesAt?: string | null;
+    updatedAt?: string;
     createdByDiscordId?: string;
     createdByDiscordUsername?: string;
 }

@@ -20,14 +20,35 @@ import {
     FiPlus,
     FiToggleLeft,
     FiTrash2,
+    FiMenu,
+    FiMinus,
+    FiStar,
     FiType,
 } from "react-icons/fi";
+import {
+    closestCenter,
+    DndContext,
+    type DragEndEvent,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+} from "@dnd-kit/core";
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    useSortable,
+    verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import {CSS, type Transform} from "@dnd-kit/utilities";
 import type {FieldType, FormField} from "../../../types/forms";
+import {DEFAULT_RATING_SCALE} from "../../form/fields/RatingField";
 import type {FormDraft} from "./FormWizard";
 
 // ── Type metadata ──────────────────────────────────────────────────────────
 
-type TypeGroup = "text" | "choice" | "datetime";
+type TypeGroup = "text" | "choice" | "datetime" | "layout";
 
 interface TypeMeta {
     icon: React.ElementType;
@@ -143,12 +164,27 @@ const TYPE_META: Record<FieldType, TypeMeta> = {
         group: "datetime",
         iconCls: "text-[#3F6B4A] bg-[#EEF4EE]"
     },
+    RATING: {
+        icon: FiStar,
+        labelKey: "wizard.fields.types.RATING.label",
+        descKey: "wizard.fields.types.RATING.desc",
+        group: "choice",
+        iconCls: "text-[#92702A] bg-[#FBF3E4]"
+    },
+    SECTION_BREAK: {
+        icon: FiMinus,
+        labelKey: "wizard.fields.types.SECTION_BREAK.label",
+        descKey: "wizard.fields.types.SECTION_BREAK.desc",
+        group: "layout",
+        iconCls: "text-[#55555F] bg-[#F0F0F2]"
+    },
 };
 
 const TYPE_GROUPS: { id: TypeGroup; labelKey: string; types: FieldType[] }[] = [
     {id: "text", labelKey: "wizard.fields.groups.text", types: ["TEXT", "TEXTAREA", "NUMBER", "EMAIL", "URL", "PHONE"]},
-    {id: "choice", labelKey: "wizard.fields.groups.choice", types: ["SELECT", "MULTI_SELECT", "RADIO", "CHECKBOX", "BOOLEAN"]},
+    {id: "choice", labelKey: "wizard.fields.groups.choice", types: ["SELECT", "MULTI_SELECT", "RADIO", "CHECKBOX", "BOOLEAN", "RATING"]},
     {id: "datetime", labelKey: "wizard.fields.groups.datetime", types: ["DATE", "TIME", "DATETIME"]},
+    {id: "layout", labelKey: "wizard.fields.groups.layout", types: ["SECTION_BREAK"]},
 ];
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -205,12 +241,11 @@ export default function StepFields({draft, onChange}: Props) {
     const updateField = (id: string, patch: Partial<FormField>) =>
         setFields(draft.fields.map(f => f.id === id ? {...f, ...patch} : f));
 
-    const moveField = (idx: number, dir: -1 | 1) => {
-        const next = [...draft.fields];
-        const target = idx + dir;
-        if (target < 0 || target >= next.length) return;
-        [next[idx], next[target]] = [next[target], next[idx]];
-        setFields(next);
+    const reorderField = (activeId: string, overId: string) => {
+        const from = draft.fields.findIndex(f => f.id === activeId);
+        const to = draft.fields.findIndex(f => f.id === overId);
+        if (from < 0 || to < 0) return;
+        setFields(arrayMove(draft.fields, from, to));
     };
 
     const selectedField = draft.fields.find(f => f.id === selectedId) ?? null;
@@ -236,7 +271,7 @@ export default function StepFields({draft, onChange}: Props) {
                             onAdd={() => setLeftMode("picker")}
                             onRemove={removeField}
                             onDuplicate={duplicateField}
-                            onMove={moveField}
+                            onReorder={reorderField}
                         />
                     )}
                 </AnimatePresence>
@@ -334,7 +369,7 @@ function FieldList({
                        onAdd,
                        onRemove,
                        onDuplicate,
-                       onMove,
+                       onReorder,
                    }: {
     fields: FormField[];
     selectedId: string | null;
@@ -342,9 +377,22 @@ function FieldList({
     onAdd: () => void;
     onRemove: (id: string) => void;
     onDuplicate: (id: string) => void;
-    onMove: (idx: number, dir: -1 | 1) => void;
+    onReorder: (activeId: string, overId: string) => void;
 }) {
     const {t} = useTranslation();
+    // A small activation distance keeps plain clicks (select a field) from
+    // being swallowed as drags; the keyboard sensor makes ordering
+    // accessible without a mouse (focus the handle, Space, arrows, Space).
+    const sensors = useSensors(
+        useSensor(PointerSensor, {activationConstraint: {distance: 4}}),
+        useSensor(KeyboardSensor, {coordinateGetter: sortableKeyboardCoordinates}),
+    );
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const {active, over} = event;
+        if (over && active.id !== over.id) onReorder(String(active.id), String(over.id));
+    };
+
     return (
         <motion.div
             initial={{opacity: 0, x: 8}}
@@ -367,86 +415,115 @@ function FieldList({
             </div>
 
             <div className="flex-1 overflow-y-auto p-2 space-y-1">
-                {fields.map((field, idx) => {
-                    const meta = TYPE_META[field.type];
-                    const Icon = meta.icon;
-                    const selected = selectedId === field.id;
-                    return (
-                        <div
-                            key={field.id}
-                            onClick={() => onSelect(field.id)}
-                            className={`group flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2.5 transition-all ${
-                                selected
-                                    ? "border-[#D8DCF5] bg-[#EEF0FB]"
-                                    : "border-transparent hover:border-[#E4E4E7] hover:bg-[#FAFAFB]"
-                            }`}
-                        >
-                            {/* Move buttons */}
-                            <div className="flex flex-col gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-                                <button
-                                    onClick={e => {
-                                        e.stopPropagation();
-                                        onMove(idx, -1);
-                                    }}
-                                    disabled={idx === 0}
-                                    className="text-[8px] leading-none text-[#B5B5BC] hover:text-[#1E1E24] disabled:opacity-30"
-                                >▲
-                                </button>
-                                <button
-                                    onClick={e => {
-                                        e.stopPropagation();
-                                        onMove(idx, 1);
-                                    }}
-                                    disabled={idx === fields.length - 1}
-                                    className="text-[8px] leading-none text-[#B5B5BC] hover:text-[#1E1E24] disabled:opacity-30"
-                                >▼
-                                </button>
-                            </div>
-
-                            {/* Icon */}
-                            <div
-                                className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md ${meta.iconCls}`}>
-                                <Icon size={11}/>
-                            </div>
-
-                            {/* Label */}
-                            <div className="flex-1 min-w-0">
-                                <p className="truncate text-xs font-medium text-[#1E1E24] leading-tight">
-                                    {field.label || <span className="italic text-[#C7C7CE]">{t("wizard.fields.list.untitled")}</span>}
-                                </p>
-                                <p className="text-[10px] text-[#8B8B96] leading-tight">{t(meta.labelKey)}</p>
-                            </div>
-
-                            {/* Required dot */}
-                            {field.required && (
-                                <span className="flex-shrink-0 text-[8px] text-[#B56A65]" title="Required">●</span>
-                            )}
-
-                            {/* Actions */}
-                            <div
-                                className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100"
-                                onClick={e => e.stopPropagation()}
-                            >
-                                <button
-                                    onClick={() => onDuplicate(field.id)}
-                                    title="Duplicate"
-                                    className="rounded p-1 text-[#C7C7CE] transition-colors hover:text-[#55555F]"
-                                >
-                                    <FiCopy size={10}/>
-                                </button>
-                                <button
-                                    onClick={() => onRemove(field.id)}
-                                    title="Delete"
-                                    className="rounded p-1 text-[#C7C7CE] transition-colors hover:text-[#B56A65]"
-                                >
-                                    <FiTrash2 size={10}/>
-                                </button>
-                            </div>
-                        </div>
-                    );
-                })}
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}
+                            modifiers={[restrictToVerticalAxis]}>
+                    <SortableContext items={fields.map(f => f.id)} strategy={verticalListSortingStrategy}>
+                        {fields.map(field => (
+                            <SortableFieldRow
+                                key={field.id}
+                                field={field}
+                                selected={selectedId === field.id}
+                                onSelect={() => onSelect(field.id)}
+                                onRemove={() => onRemove(field.id)}
+                                onDuplicate={() => onDuplicate(field.id)}
+                            />
+                        ))}
+                    </SortableContext>
+                </DndContext>
             </div>
         </motion.div>
+    );
+}
+
+function restrictToVerticalAxis({transform}: { transform: Transform }): Transform {
+    return {...transform, x: 0};
+}
+
+function SortableFieldRow({
+                              field,
+                              selected,
+                              onSelect,
+                              onRemove,
+                              onDuplicate,
+                          }: {
+    field: FormField;
+    selected: boolean;
+    onSelect: () => void;
+    onRemove: () => void;
+    onDuplicate: () => void;
+}) {
+    const {t} = useTranslation();
+    const {attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging} =
+        useSortable({id: field.id});
+    const meta = TYPE_META[field.type];
+    const Icon = meta.icon;
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={{transform: CSS.Transform.toString(transform), transition}}
+            onClick={onSelect}
+            className={`group relative flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2.5 transition-colors ${
+                isDragging
+                    ? "z-10 border-[#D8DCF5] bg-white shadow-lg"
+                    : selected
+                        ? "border-[#D8DCF5] bg-[#EEF0FB]"
+                        : "border-transparent hover:border-[#E4E4E7] hover:bg-[#FAFAFB]"
+            }`}
+        >
+            {/* Drag handle */}
+            <button
+                ref={setActivatorNodeRef}
+                {...attributes}
+                {...listeners}
+                onClick={e => e.stopPropagation()}
+                title={t("wizard.fields.list.dragToReorder")}
+                aria-label={t("wizard.fields.list.dragToReorder")}
+                className="flex-shrink-0 cursor-grab touch-none rounded p-0.5 text-[#C7C7CE] transition-colors hover:text-[#55555F] active:cursor-grabbing"
+            >
+                <FiMenu size={12}/>
+            </button>
+
+            {/* Icon */}
+            <div
+                className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md ${meta.iconCls}`}>
+                <Icon size={11}/>
+            </div>
+
+            {/* Label */}
+            <div className="flex-1 min-w-0">
+                <p className="truncate text-xs font-medium text-[#1E1E24] leading-tight">
+                    {field.label || <span className="italic text-[#C7C7CE]">{t("wizard.fields.list.untitled")}</span>}
+                </p>
+                <p className="text-[10px] text-[#8B8B96] leading-tight">{t(meta.labelKey)}</p>
+            </div>
+
+            {/* Required dot */}
+            {field.required && (
+                <span className="flex-shrink-0 text-[8px] text-[#B56A65]" title="Required">●</span>
+            )}
+
+            {/* Actions */}
+            <div
+                className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+                onClick={e => e.stopPropagation()}
+            >
+                <button
+                    onClick={onDuplicate}
+                    title="Duplicate"
+                    className="rounded p-1 text-[#C7C7CE] transition-colors hover:text-[#55555F]"
+                >
+                    <FiCopy size={10}/>
+                </button>
+                <button
+                    onClick={onRemove}
+                    title="Delete"
+                    className="rounded p-1 text-[#C7C7CE] transition-colors hover:text-[#B56A65]"
+                >
+                    <FiTrash2 size={10}/>
+                </button>
+            </div>
+        </div>
     );
 }
 
@@ -504,6 +581,8 @@ function FieldEditor({field, onUpdate, onDelete, onDuplicate}: FieldEditorProps)
     const isNumber = field.type === "NUMBER";
     const isBoolean = field.type === "BOOLEAN";
     const isDateTime = ["DATE", "TIME", "DATETIME"].includes(field.type);
+    const isRating = field.type === "RATING";
+    const isSection = field.type === "SECTION_BREAK";
 
     const inputCls =
         "w-full rounded-xl border border-[#E4E4E7] bg-white px-3 py-2.5 text-sm text-[#1E1E24] placeholder-[#C7C7CE] outline-none transition-colors focus:border-[#3730A3]";
@@ -642,7 +721,8 @@ function FieldEditor({field, onUpdate, onDelete, onDuplicate}: FieldEditorProps)
                                                                         options: HAS_OPTIONS.includes(type) ? (field.options ?? []) : undefined,
                                                                         placeholder: HAS_PLACEHOLDER.includes(type) ? field.placeholder : undefined,
                                                                         min: HAS_MIN_MAX.includes(type) ? field.min : undefined,
-                                                                        max: HAS_MIN_MAX.includes(type) ? field.max : undefined,
+                                                                        max: HAS_MIN_MAX.includes(type) ? field.max : type === "RATING" ? DEFAULT_RATING_SCALE : undefined,
+                                                                        required: type === "SECTION_BREAK" ? false : field.required,
                                                                     });
                                                                     setTypePickerOpen(false);
                                                                 }}
@@ -671,7 +751,7 @@ function FieldEditor({field, onUpdate, onDelete, onDuplicate}: FieldEditorProps)
                 </EditorSection>
 
                 {/* ─ Section: Parameters (type-specific) ──────────── */}
-                {(hasPlaceholder || hasMinMax || hasOptions || isBoolean || isDateTime) && (
+                {(hasPlaceholder || hasMinMax || hasOptions || isBoolean || isDateTime || isRating) && (
                     <EditorSection label={t("wizard.fields.editor.sectionParameters")}>
 
                         {/* Placeholder */}
@@ -738,6 +818,24 @@ function FieldEditor({field, onUpdate, onDelete, onDuplicate}: FieldEditorProps)
                             </div>
                         )}
 
+                        {/* Rating scale */}
+                        {isRating && (
+                            <EditorField
+                                label={t("wizard.fields.editor.ratingScale")}
+                                hint={t("wizard.fields.editor.ratingScaleHint")}
+                            >
+                                <select
+                                    value={field.max ?? DEFAULT_RATING_SCALE}
+                                    onChange={e => onUpdate({max: Number(e.target.value)})}
+                                    className={inputCls}
+                                >
+                                    {[2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+                                        <option key={n} value={n}>{n}</option>
+                                    ))}
+                                </select>
+                            </EditorField>
+                        )}
+
                         {/* Date/Time info */}
                         {isDateTime && (
                             <div className="rounded-xl border border-[#E4E4E7] bg-white p-4">
@@ -750,7 +848,7 @@ function FieldEditor({field, onUpdate, onDelete, onDuplicate}: FieldEditorProps)
                 )}
 
                 {/* ─ Section: Validation ──────────────────────────── */}
-                <EditorSection label={t("wizard.fields.editor.sectionValidation")}>
+                {!isSection && <EditorSection label={t("wizard.fields.editor.sectionValidation")}>
                     <label
                         className="flex cursor-pointer items-start gap-3 rounded-xl border border-[#E4E4E7] bg-white p-4 transition-colors hover:border-[#D4D4D9]">
                         <div className="mt-0.5 flex-shrink-0">
@@ -772,7 +870,7 @@ function FieldEditor({field, onUpdate, onDelete, onDuplicate}: FieldEditorProps)
                             </p>
                         </div>
                     </label>
-                </EditorSection>
+                </EditorSection>}
             </div>
         </div>
     );

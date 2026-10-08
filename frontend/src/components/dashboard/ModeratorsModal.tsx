@@ -8,21 +8,8 @@ import {
     type MyGuild,
     removeGuildModerator,
 } from "../../api/dashboard";
-import {ApiError} from "../../api/client";
+import {describeApiError} from "../../api/errors";
 import {ActionBtn, EmptyState, Modal} from "./shared";
-
-function errorMessage(e: unknown, fallback: string): string {
-    if (e instanceof ApiError) {
-        try {
-            const parsed = JSON.parse(e.message);
-            if (parsed?.error) return parsed.error;
-        } catch {
-            // not JSON — use the raw text below
-        }
-        return e.message || fallback;
-    }
-    return fallback;
-}
 
 /**
  * Owner-only screen for a guild's moderators (task #61): list, add by
@@ -43,7 +30,7 @@ export default function ModeratorsModal({guild, onClose}: { guild: MyGuild; onCl
                 if (!cancelled) setModerators(list);
             })
             .catch(e => {
-                if (!cancelled) setError(errorMessage(e, t("moderators.loadError")));
+                if (!cancelled) setError(describeApiError(e, t("moderators.loadError")));
             })
             .finally(() => {
                 if (!cancelled) setLoading(false);
@@ -64,7 +51,7 @@ export default function ModeratorsModal({guild, onClose}: { guild: MyGuild; onCl
             setModerators(prev => prev.some(m => m.discordId === added.discordId) ? prev : [...prev, added]);
             setInput("");
         } catch (e) {
-            setError(errorMessage(e, t("moderators.addError")));
+            setError(describeApiError(e, t("moderators.addError")));
         } finally {
             setBusy(false);
         }
@@ -77,7 +64,7 @@ export default function ModeratorsModal({guild, onClose}: { guild: MyGuild; onCl
             await removeGuildModerator(guild.guildId, discordId);
             setModerators(prev => prev.filter(m => m.discordId !== discordId));
         } catch (e) {
-            setError(errorMessage(e, t("moderators.removeError")));
+            setError(describeApiError(e, t("moderators.removeError")));
         } finally {
             setBusy(false);
         }

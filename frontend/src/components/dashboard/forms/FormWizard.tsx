@@ -1,17 +1,25 @@
 import {useState} from "react";
 import {AnimatePresence, motion} from "framer-motion";
-import {FiAlertCircle, FiCheck, FiChevronRight, FiX} from "react-icons/fi";
+import {FiAlertCircle, FiCheck, FiChevronRight, FiEye, FiX} from "react-icons/fi";
 import {useTranslation} from "react-i18next";
-import type {FormField, WebhookConfig} from "../../../types/forms";
+import type {FormAccessMode, FormField, WebhookConfig} from "../../../types/forms";
 import StepBasicInfo from "./StepBasicInfo";
 import StepFields from "./StepFields";
 import StepServerSettings from "./StepServerSettings";
 import StepWebhooks from "./StepWebhooks";
-import {createForm} from "../../../api/dashboard";
+import {createForm, createGuildForm} from "../../../api/dashboard";
+import AccessModeSelector from "./AccessModeSelector";
+import FormPreviewModal from "./FormPreviewModal";
 
 interface Props {
     onClose: () => void;
     onCreated: () => void;
+    /**
+     * Owner-panel mode: the form is created in this guild as a DRAFT (via
+     * the guild-scoped API) and published later from the forms list.
+     * Without it, the legacy admin flow publishes immediately.
+     */
+    guildId?: string;
 }
 
 export interface FormDraft {
@@ -21,6 +29,7 @@ export interface FormDraft {
     serverId: string;
     channelsIds: string[];
     webhooks: WebhookConfig[];
+    accessMode: FormAccessMode;
 }
 
 const STEPS = [
@@ -37,6 +46,7 @@ const EMPTY_DRAFT: FormDraft = {
     serverId: "",
     channelsIds: [],
     webhooks: [],
+    accessMode: "AUTHENTICATED",
 };
 
 function canProceed(step: number, draft: FormDraft): boolean {
@@ -46,10 +56,11 @@ function canProceed(step: number, draft: FormDraft): boolean {
     return true;
 }
 
-export default function FormWizard({onClose, onCreated}: Props) {
+export default function FormWizard({onClose, onCreated, guildId}: Props) {
     const {t} = useTranslation();
     const [step, setStep] = useState(1);
-    const [draft, setDraft] = useState<FormDraft>(EMPTY_DRAFT);
+    const [draft, setDraft] = useState<FormDraft>({...EMPTY_DRAFT, serverId: guildId ?? ""});
+    const [previewOpen, setPreviewOpen] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -69,6 +80,16 @@ export default function FormWizard({onClose, onCreated}: Props) {
         setSubmitting(true);
         setError(null);
         try {
+            if (guildId) {
+                await createGuildForm(guildId, {
+                    channelsIds: draft.channelsIds.filter(Boolean),
+                    webhooks: draft.webhooks.filter(w => w.url.trim()),
+                    accessMode: draft.accessMode,
+                    schema: {title: draft.title, description: draft.description, fields: draft.fields},
+                });
+                onCreated();
+                return;
+            }
             await createForm({
                 serverId: draft.serverId,
                 channelsIds: draft.channelsIds.filter(Boolean),
@@ -166,7 +187,14 @@ export default function FormWizard({onClose, onCreated}: Props) {
                             )}
                             {step === 3 && (
                                 <div className="flex-1 min-h-0 overflow-y-auto p-6">
-                                    <StepServerSettings draft={draft} onChange={updateDraft}/>
+                                    <StepServerSettings draft={draft} onChange={updateDraft} lockServer={!!guildId}/>
+                                    {guildId && (
+                                        <div className="mt-6">
+                                            <p className="mb-2 text-sm font-medium text-[#1E1E24]">{t("access.title")}</p>
+                                            <AccessModeSelector value={draft.accessMode}
+                                                                onChange={accessMode => updateDraft({accessMode})}/>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                             {step === 4 && (
@@ -188,6 +216,15 @@ export default function FormWizard({onClose, onCreated}: Props) {
                     </button>
 
                     <div className="flex items-center gap-3">
+                        {draft.fields.length > 0 && (
+                            <button
+                                onClick={() => setPreviewOpen(true)}
+                                className="flex items-center gap-1.5 rounded-xl border border-[#E4E4E7] px-3 py-2 text-sm text-[#55555F] transition-colors hover:border-[#D4D4D9] hover:text-[#1E1E24]"
+                            >
+                                <FiEye size={13}/>
+                                {t("preview.open")}
+                            </button>
+                        )}
                         {error && (
                             <div className="flex items-center gap-1.5 text-xs text-[#B56A65]">
                                 <FiAlertCircle size={12}/>
@@ -208,12 +245,18 @@ export default function FormWizard({onClose, onCreated}: Props) {
                                 disabled={submitting || !canProceed(3, draft)}
                                 className="rounded-xl bg-[#3730A3] px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-[#2D2682] disabled:cursor-not-allowed disabled:opacity-40"
                             >
-                                {submitting ? t("wizard.creating") : t("wizard.create")}
+                                {submitting ? t("wizard.creating") : guildId ? t("wizard.createDraft") : t("wizard.create")}
                             </button>
                         )}
                     </div>
                 </div>
             </motion.div>
+            <AnimatePresence>
+                {previewOpen && (
+                    <FormPreviewModal title={draft.title} description={draft.description} fields={draft.fields}
+                                      onClose={() => setPreviewOpen(false)}/>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

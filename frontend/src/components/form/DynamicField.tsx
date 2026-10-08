@@ -4,6 +4,8 @@ import SelectField from "./fields/SelectField";
 import MultiSelectField from "./fields/MultiSelectField";
 import RadioField from "./fields/RadioField";
 import CheckboxField from "./fields/CheckboxField";
+import RatingField from "./fields/RatingField";
+import SectionBreak from "./fields/SectionBreak";
 
 interface Props {
     field: FormField;
@@ -67,6 +69,18 @@ export default function DynamicField({field, value, onChange, onBlur, error}: Pr
                     error={error}
                 />
             );
+        case "RATING":
+            return (
+                <RatingField
+                    field={field}
+                    value={typeof value === "number" ? value : undefined}
+                    onChange={v => onChange(field.id, v)}
+                    onBlur={handleBlur}
+                    error={error}
+                />
+            );
+        case "SECTION_BREAK":
+            return <SectionBreak field={field}/>;
         case "CHECKBOX":
         case "BOOLEAN":
             return (
