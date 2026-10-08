@@ -114,4 +114,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @since v.0.1
      */
     List<User> findAllByDiscordUsernameContainingIgnoreCase(String username);
+
+    /**
+     * Batch lookup by Discord ID — e.g. usernames for a page of submissions.
+     *
+     * @param discordIds the Discord IDs
+     * @return the users that exist among them
+     * @since v.0.1
+     */
+    List<User> findAllByDiscordIdIn(java.util.Collection<Long> discordIds);
 }

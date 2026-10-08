@@ -100,6 +100,17 @@ public class Submission {
     private String idempotencyKey;
 
     /**
+     * Optimistic-lock version — concurrent moderation decisions on the same
+     * submission make the later write fail instead of silently overwriting.
+     * Left {@code null} on new rows on purpose: Spring Data treats a null
+     * version as "new" (persist, not merge); Hibernate then sets it to 0.
+     *
+     * @since v.0.1
+     */
+    @Version
+    private Long version;
+
+    /**
      * The timestamp when the submission was created.
      * Automatically set to the current time and immutable.
      *

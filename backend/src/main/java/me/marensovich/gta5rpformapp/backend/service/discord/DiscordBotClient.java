@@ -14,7 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -170,6 +172,42 @@ public class DiscordBotClient {
             log.warn("Failed to fetch member {} of guild {}: {}", userId, guildId, e.getMessage());
             return Optional.empty();
         }
+    }
+
+    /**
+     * Names and colours of a guild's roles, from the bot's cache — to show
+     * a member's cached role IDs ({@code GuildMembership.discordRoles}) as
+     * readable chips.
+     *
+     * @param guildId the Discord guild snowflake ID
+     * @return role ID → role info, empty if unavailable
+     * @since v.0.1
+     */
+    public Map<Long, DiscordRole> fetchRoles(Long guildId) {
+        if (jda == null) return Map.of();
+        try {
+            Guild guild = jda.getGuildById(guildId);
+            if (guild == null) return Map.of();
+            Map<Long, DiscordRole> roles = new HashMap<>();
+            for (Role role : guild.getRoles()) {
+                roles.put(role.getIdLong(), new DiscordRole(role.getId(), role.getName(), role.getColors().getPrimaryRaw()));
+            }
+            return roles;
+        } catch (Exception e) {
+            log.warn("Failed to fetch roles of guild {}: {}", guildId, e.getMessage());
+            return Map.of();
+        }
+    }
+
+    /**
+     * A guild role as shown in the UI.
+     *
+     * @param id    the role ID as a string
+     * @param name  the role's name
+     * @param color the role's colour as 0xRRGGBB ({@code 0x1FFFFFFF} = default/none)
+     * @since v.0.1
+     */
+    public record DiscordRole(String id, String name, int color) {
     }
 
     /**

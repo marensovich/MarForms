@@ -116,6 +116,13 @@ public enum AuditAction {
     SUBMISSION_DELETED,
 
     /**
+     * A moderator approved, rejected or requested revision of a submission.
+     *
+     * @since v.0.1
+     */
+    SUBMISSION_DECIDED,
+
+    /**
      * Role created event.
      * <p>
      * Logged when a new role is created.

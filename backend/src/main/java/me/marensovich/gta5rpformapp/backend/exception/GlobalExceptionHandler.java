@@ -2,6 +2,7 @@ package me.marensovich.gta5rpformapp.backend.exception;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -127,6 +128,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleDataIntegrity(DataIntegrityViolationException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Map.of("error", "This request conflicts with an existing record — please retry"));
+    }
+
+    /**
+     * Handles a lost optimistic-lock race — e.g. two moderators deciding on
+     * the same submission at the same moment (task #53).
+     *
+     * @param ex the locking failure
+     * @return 409 (Conflict) asking the client to reload
+     * @since v.0.1
+     */
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<Map<String, String>> handleOptimisticLock(ObjectOptimisticLockingFailureException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("error", "Someone else just updated this — reload and try again"));
     }
 
     /**

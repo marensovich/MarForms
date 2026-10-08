@@ -67,6 +67,16 @@ public interface FormRepository extends JpaRepository<Form, UUID> {
     boolean existsBySlug(String slug);
 
     /**
+     * IDs of a guild's forms — to scope submission queries to one guild.
+     *
+     * @param serverId the Discord guild snowflake ID
+     * @return the guild's form IDs
+     * @since v.0.1
+     */
+    @org.springframework.data.jpa.repository.Query("select f.id from Form f where f.serverId = :serverId")
+    java.util.List<UUID> findIdsByServerId(@org.springframework.data.repository.query.Param("serverId") Long serverId);
+
+    /**
      * Looks a form up by its public slug.
      *
      * @param slug the slug

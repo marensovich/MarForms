@@ -5,7 +5,9 @@ import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.config.security.CustomUserDetails;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmissionDto;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmitFormRequest;
+import me.marensovich.gta5rpformapp.backend.data.forms.SubmissionStatus;
 import me.marensovich.gta5rpformapp.backend.service.FormService;
+import me.marensovich.gta5rpformapp.backend.service.ModerationService;
 import me.marensovich.gta5rpformapp.backend.service.SubmissionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +37,7 @@ public class SubmissionController {
 
     private final SubmissionService submissionService;
     private final FormService formService;
+    private final ModerationService moderationService;
 
     /**
      * Submits a response to a form.
@@ -78,7 +81,11 @@ public class SubmissionController {
      */
     @PreAuthorize("hasAuthority('RESPONSES_MANAGE') or @guildAccess.hasRoleForForm(#formId, 'MODERATOR')")
     @GetMapping
-    public Page<SubmissionDto> list(@PathVariable UUID formId, Pageable pageable) {
-        return submissionService.listByForm(formId, pageable).map(SubmissionDto::from);
+    public Page<SubmissionDto> list(@PathVariable UUID formId,
+                                    @RequestParam(required = false) SubmissionStatus status,
+                                    @RequestParam(required = false) String query,
+                                    Pageable pageable) {
+        formService.getById(formId);
+        return moderationService.search(new ModerationService.Filters(null, formId, status, query), pageable);
     }
 }

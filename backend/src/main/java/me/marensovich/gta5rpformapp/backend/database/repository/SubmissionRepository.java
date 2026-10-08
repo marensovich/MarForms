@@ -5,6 +5,7 @@ import me.marensovich.gta5rpformapp.backend.dto.submission.UserSubmissionCountDt
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -23,7 +24,7 @@ import java.util.UUID;
  * @since v.0.1
  */
 @Repository
-public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
+public interface SubmissionRepository extends JpaRepository<Submission, UUID>, JpaSpecificationExecutor<Submission> {
 
     /**
      * Retrieves a paginated list of all submissions for a specific form.

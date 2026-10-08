@@ -25,6 +25,8 @@ import java.util.UUID;
  * @param moderatorDiscordId who made the last decision (serialized as string), if any
  * @param moderatorComment   the moderator's comment, if any
  * @param decidedAt          when the last decision was made, if any
+ * @param discordUsername    the author's username, when the caller looked it up
+ * @param formTitle          the form's title, when the caller looked it up
  * @author marensovich
  * @version v.0.1
  * @since v.0.1
@@ -40,7 +42,9 @@ public record SubmissionDto(
         @JsonSerialize(using = ToStringSerializer.class)
         Long moderatorDiscordId,
         String moderatorComment,
-        LocalDateTime decidedAt
+        LocalDateTime decidedAt,
+        String discordUsername,
+        String formTitle
 ) {
     /**
      * Converts a {@link Submission} entity to a {@link SubmissionDto}.
@@ -50,6 +54,20 @@ public record SubmissionDto(
      * @since v.0.1
      */
     public static SubmissionDto from(Submission submission) {
+        return from(submission, null, null);
+    }
+
+    /**
+     * Converts a {@link Submission}, including the author's username and the
+     * form's title (moderation lists show both).
+     *
+     * @param submission      the submission entity to convert
+     * @param discordUsername the author's username, may be {@code null}
+     * @param formTitle       the form's title, may be {@code null}
+     * @return the DTO
+     * @since v.0.1
+     */
+    public static SubmissionDto from(Submission submission, String discordUsername, String formTitle) {
         return new SubmissionDto(
                 submission.getId(),
                 submission.getFormId(),
@@ -59,7 +77,9 @@ public record SubmissionDto(
                 submission.getStatus(),
                 submission.getModeratorDiscordId(),
                 submission.getModeratorComment(),
-                submission.getDecidedAt()
+                submission.getDecidedAt(),
+                discordUsername,
+                formTitle
         );
     }
 }
