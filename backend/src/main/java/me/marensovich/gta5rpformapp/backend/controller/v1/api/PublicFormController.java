@@ -19,6 +19,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+import java.util.UUID;
+
 /**
  * The respondent-facing form API, addressed by public slug (E1.2).
  * <p>
@@ -33,7 +36,7 @@ import org.springframework.web.bind.annotation.*;
  * @since v.0.1
  */
 @RestController
-@RequestMapping("/api/v1/public/forms/{slug}")
+@RequestMapping("/api/v1/public")
 @RequiredArgsConstructor
 public class PublicFormController {
 
@@ -52,7 +55,7 @@ public class PublicFormController {
      * @throws NotFoundException if no published-at-some-point form has this slug
      * @since v.0.1
      */
-    @GetMapping
+    @GetMapping("/forms/{slug}")
     public PublicFormDto get(@PathVariable String slug, @AuthenticationPrincipal CustomUserDetails principal) {
         Form form = findVisible(slug);
         String guildName = guildRepository.findById(form.getServerId()).map(Guild::getName).orElse(null);
@@ -73,7 +76,7 @@ public class PublicFormController {
      * @return the receipt for the stored submission
      * @since v.0.1
      */
-    @PostMapping("/submissions")
+    @PostMapping("/forms/{slug}/submissions")
     public ResponseEntity<SubmissionReceiptDto> submit(
             @PathVariable String slug,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
@@ -85,6 +88,23 @@ public class PublicFormController {
                 request.answers(), idempotencyKey);
         return ResponseEntity.status(result.created() ? HttpStatus.CREATED : HttpStatus.OK)
                 .body(SubmissionReceiptDto.from(result.submission()));
+    }
+
+    /**
+     * Resolves an old by-ID form link ({@code /forms/{id}}) to its public
+     * slug, so the client can redirect without needing a session.
+     *
+     * @param formId the form's ID
+     * @return {@code {"slug": "..."}}
+     * @throws NotFoundException if the form doesn't exist, is a draft or has no slug
+     * @since v.0.1
+     */
+    @GetMapping("/form-links/{formId}")
+    public Map<String, String> resolveLink(@PathVariable UUID formId) {
+        return formRepository.findById(formId)
+                .filter(f -> f.getStatus() != FormStatus.DRAFT && f.getSlug() != null)
+                .map(f -> Map.of("slug", f.getSlug()))
+                .orElseThrow(() -> new NotFoundException("Form not found"));
     }
 
     private Form findVisible(String slug) {

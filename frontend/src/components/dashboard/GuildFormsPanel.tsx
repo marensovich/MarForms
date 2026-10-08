@@ -23,13 +23,13 @@ const STATUS_COLOR: Record<FormStatus, "default" | "green" | "orange" | "red"> =
     ARCHIVED: "red",
 };
 
-function CopyLink({formId}: { formId: string }) {
+function CopyLink({slug}: { slug: string }) {
     const {t} = useTranslation();
     const [copied, setCopied] = useState(false);
     return (
         <ActionBtn
             onClick={() => {
-                navigator.clipboard.writeText(`${window.location.origin}/forms/${formId}`).then(() => {
+                navigator.clipboard.writeText(`${window.location.origin}/f/${slug}`).then(() => {
                     setCopied(true);
                     setTimeout(() => setCopied(false), 1500);
                 });
@@ -192,7 +192,7 @@ export default function GuildFormsPanel({guild, onBack}: { guild: MyGuild; onBac
                                     <td className="px-5 py-3 text-right tabular-nums text-[#55555F]">{f.submissionCount}</td>
                                     <td className="px-5 py-3">
                                         <div className="flex items-center justify-end gap-1">
-                                            {status === "PUBLISHED" && <CopyLink formId={f.id}/>}
+                                            {status === "PUBLISHED" && f.slug && <CopyLink slug={f.slug}/>}
                                             {isOwner && (
                                                 <>
                                                     {status !== "ARCHIVED" && (

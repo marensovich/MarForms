@@ -105,6 +105,16 @@ Lifecycle: `DRAFT` → `PUBLISHED` (gets a permanent public slug) →
 `/api/v1/guilds/{guildId}/forms`; the older `/api/v1/forms` endpoints are
 kept for platform admins.
 
+Respondents use `/api/v1/public/forms/{slug}` (no session needed; never
+returns webhooks). Access modes (`FormAccessService`):
+- `OPEN` — anyone, no login required. If the respondent *is* logged in,
+  their Discord ID is still recorded. This is **not** the Stage 2
+  `ANONYMOUS` mode (E2.3), where identity is deliberately never stored.
+- `AUTHENTICATED` — Discord login and membership of the form's server.
+
+Submissions carry an `Idempotency-Key` header; a retried request with
+the same key returns the original submission instead of a duplicate.
+
 ## Billing groundwork
 
 `guilds.plan_tier` (`PlanTier`, always `FREE` for now) is the billing hook.

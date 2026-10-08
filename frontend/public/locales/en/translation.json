@@ -146,6 +146,8 @@
     "footer": "Powered by MarForms · Your data is transmitted securely",
     "submissionError": "Something went wrong. Please try again.",
     "success": {
+      "statusLabel": "Status",
+      "statusPending": "Under review",
       "title": "Response submitted!",
       "description": "Your response to \"{{formTitle}}\" has been recorded and sent to the server.",
       "closeNote": "You can now close this tab. Thank you for your submission."

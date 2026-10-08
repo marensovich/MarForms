@@ -3,6 +3,7 @@ import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import AuthCallback from "./pages/AuthCallback";
 import FormGatePage from "./pages/FormGatePage";
+import PublicFormPage from "./pages/PublicFormPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardPage from "./pages/DashboardPage";
 import BannedScreen from "./components/BannedScreen.tsx";
@@ -22,6 +23,7 @@ export default function App() {
             <Route path="/login" element={<LoginPage/>}/>
             <Route path="/auth" element={<AuthCallback/>}/>
             <Route path="/forms/:formId" element={<FormGatePage/>}/>
+            <Route path="/f/:slug" element={<PublicFormPage/>}/>
 
             <Route element={<ProtectedRoute/>}>
                 <Route path="/dashboard" element={<DashboardPage/>}/>

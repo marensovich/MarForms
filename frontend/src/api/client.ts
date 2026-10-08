@@ -30,6 +30,7 @@ interface RequestOptions {
     method?: "GET" | "POST" | "PUT" | "DELETE";
     body?: unknown;
     signal?: AbortSignal;
+    headers?: Record<string, string>;
 }
 
 export async function apiRequest<T>(
@@ -44,6 +45,7 @@ export async function apiRequest<T>(
         headers: {
             "Content-Type": "application/json",
             ...(token ? {Authorization: `Bearer ${token}`} : {}),
+            ...(options.headers ?? {}),
         },
         body: options.body ? JSON.stringify(options.body) : undefined,
         signal: options.signal,

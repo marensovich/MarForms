@@ -1,11 +1,23 @@
-import {useMemo, useState} from "react";
+import {useMemo, useRef, useState} from "react";
 import {AnimatePresence, motion} from "framer-motion";
 import {useTranslation} from "react-i18next";
 import i18n from "../../i18n";
 import {type FieldType, type FormAnswers, type FormDefinition, type FormField, isInputField} from "../../types/forms";
 import {DEFAULT_RATING_SCALE} from "./fields/RatingField";
-import {submitForm} from "../../api/forms";
+import {submitForm, submitPublicForm} from "../../api/forms";
 import {ApiError} from "../../api/client";
+import {describeApiError} from "../../api/errors";
+
+/** Per-field errors from a 400 response ({"fields": {fieldId: message}}), if any. */
+function fieldErrorsOf(err: unknown): Record<string, string> | null {
+    if (!(err instanceof ApiError) || err.status !== 400) return null;
+    try {
+        const fields = JSON.parse(err.message)?.fields;
+        return fields && typeof fields === "object" && Object.keys(fields).length ? fields : null;
+    } catch {
+        return null;
+    }
+}
 import DynamicField from "./DynamicField";
 import {
     FiAlertCircle,
@@ -86,7 +98,7 @@ function requiredMessage(type: FieldType): string {
 // Default constraints when the form creator leaves min/max unset
 const FIELD_DEFAULT_MAX: Partial<Record<FieldType, number>> = {
     TEXT: 255,
-    TEXTAREA: 2_147_483_647, // Java Integer.MAX_VALUE — backend TEXT column limit
+    TEXTAREA: 10_000, // same default as the backend's SubmissionAnswerValidator
     NUMBER: Number.MAX_SAFE_INTEGER,
 };
 const FIELD_DEFAULT_MIN: Partial<Record<FieldType, number>> = {
@@ -262,7 +274,11 @@ function SuccessScreen({title}: { title: string }) {
                     <p className="mt-2.5 text-sm leading-relaxed text-[#6B6B76]">
                         {t("form.success.description", {formTitle: title})}
                     </p>
-                    <div className="mt-6 w-full rounded-xl border border-[#E4E4E7] bg-[#FAFAFB] px-4 py-3">
+                    <div className="mt-6 flex w-full items-center justify-between rounded-xl border border-[#EFDFC0] bg-[#FBF3E4] px-4 py-3">
+                        <span className="text-xs text-[#92702A]">{t("form.success.statusLabel")}</span>
+                        <span className="text-xs font-semibold text-[#92702A]">{t("form.success.statusPending")}</span>
+                    </div>
+                    <div className="mt-3 w-full rounded-xl border border-[#E4E4E7] bg-[#FAFAFB] px-4 py-3">
                         <p className="text-xs text-[#8B8B96]">
                             {t("form.success.closeNote")}
                         </p>
@@ -437,6 +453,12 @@ export default function FormRenderer({form, preview = false}: Props) {
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const [submitStatus, setSubmitStatus] = useState<SubmitStatus>("idle");
     const [submitError, setSubmitError] = useState<string | null>(null);
+    // One key per filled-in form, reused on every retry: if a response is
+    // lost (network drop) and the user presses Submit again, the server
+    // returns the original submission instead of storing a duplicate (#51).
+    const idempotencyKey = useRef<string>(crypto.randomUUID());
+    // Guards against a double click landing before the "submitting" state renders.
+    const inFlight = useRef(false);
 
     const requiredFields = useMemo(
         () => form.schema.fields.filter(f => f.required && isInputField(f)),
@@ -500,16 +522,25 @@ export default function FormRenderer({form, preview = false}: Props) {
             document.getElementById(`field-${firstErrorId}`)?.scrollIntoView({behavior: "smooth", block: "center"});
             return;
         }
-        if (preview) return;
+        if (preview || inFlight.current) return;
+        inFlight.current = true;
         setSubmitStatus("submitting");
         setSubmitError(null);
         try {
-            await submitForm(form.id, answers);
+            if (form.slug) await submitPublicForm(form.slug, answers, idempotencyKey.current);
+            else await submitForm(form.id, answers, idempotencyKey.current);
             setSubmitStatus("success");
         } catch (err) {
-            const message = err instanceof ApiError ? err.message : t("form.submissionError");
-            setSubmitError(message);
+            const serverFieldErrors = fieldErrorsOf(err);
+            if (serverFieldErrors) {
+                setErrors(serverFieldErrors);
+                const firstId = Object.keys(serverFieldErrors)[0];
+                document.getElementById(`field-${firstId}`)?.scrollIntoView({behavior: "smooth", block: "center"});
+            }
+            setSubmitError(describeApiError(err, t("form.submissionError")));
             setSubmitStatus("error");
+        } finally {
+            inFlight.current = false;
         }
     };
 

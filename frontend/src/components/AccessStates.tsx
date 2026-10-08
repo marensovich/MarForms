@@ -7,6 +7,8 @@ import {BsDiscord} from "react-icons/bs";
 
 interface Props {
     formId?: string;
+    /** Where to come back after login; defaults to the by-ID form link. */
+    redirectPath?: string;
 }
 
 type AccentColor = "indigo" | "amber" | "slate" | "blue" | "red";
@@ -84,10 +86,11 @@ function StateLayout({
     );
 }
 
-export function NotAuthenticatedState({formId}: Props) {
+export function NotAuthenticatedState({formId, redirectPath}: Props) {
     const {t} = useTranslation();
     const handleLogin = () => {
-        if (formId) saveRedirectPath(`/forms/${formId}`);
+        if (redirectPath) saveRedirectPath(redirectPath);
+        else if (formId) saveRedirectPath(`/forms/${formId}`);
         loginWithDiscord();
     };
 
@@ -136,7 +139,7 @@ export function NotInGuildState() {
     );
 }
 
-export function FormInactiveState() {
+export function FormInactiveState({reason}: { reason?: string | null }) {
     const {t} = useTranslation();
     return (
         <StateLayout
@@ -147,7 +150,7 @@ export function FormInactiveState() {
             badge={t("accessStates.formInactive.badge")}
         >
             <div className="rounded-xl border border-[#E4E4E7] bg-[#F7F7F8] px-4 py-3 text-sm text-[#6B6B76]">
-                {t("accessStates.formInactive.hint")}
+                {reason ?? t("accessStates.formInactive.hint")}
             </div>
         </StateLayout>
     );

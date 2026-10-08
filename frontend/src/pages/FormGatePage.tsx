@@ -1,39 +1,33 @@
-import {useParams} from "react-router-dom";
+import {useEffect, useState} from "react";
+import {Navigate, useParams} from "react-router-dom";
 import {useTranslation} from "react-i18next";
-import {useFormAccess} from "../hooks/useFormAccess";
+import {resolveFormLink} from "../api/forms";
+import {ApiError} from "../api/client";
 import LoadingScreen from "../components/LoadingScreen";
-import {
-    FormErrorState,
-    FormInactiveState,
-    FormNotFoundState,
-    NotAuthenticatedState,
-    NotInGuildState,
-} from "../components/AccessStates";
-import FormRenderer from "../components/form/FormRenderer";
+import {FormErrorState, FormNotFoundState} from "../components/AccessStates";
 
+/**
+ * Old by-ID links (`/forms/{id}`) — still shared in Discord from before
+ * slugs existed. Resolves the form's slug and redirects to `/f/{slug}`,
+ * which handles access, closed forms and login.
+ */
 export default function FormGatePage() {
     const {t} = useTranslation();
-    const {formId} = useParams<{ formId: string }>();
-    const {status, form} = useFormAccess(formId ?? "");
+    const {formId = ""} = useParams<{ formId: string }>();
+    const [result, setResult] = useState<{ slug?: string; failed?: "not_found" | "error" } | null>(null);
 
-    switch (status) {
-        case "loading":
-            return <LoadingScreen label={t("formGate.checkingAccess")}/>;
-        case "not_authenticated":
-            return <NotAuthenticatedState formId={formId}/>;
-        case "not_in_guild":
-            return <NotInGuildState/>;
-        case "form_inactive":
-            return <FormInactiveState/>;
-        case "not_found":
-            return <FormNotFoundState/>;
-        case "error":
-            return <FormErrorState/>;
-        case "granted":
-            return form ? (
-                <FormRenderer form={form}/>
-            ) : (
-                <LoadingScreen label={t("formGate.loadingForm")}/>
-            );
-    }
+    useEffect(() => {
+        const controller = new AbortController();
+        resolveFormLink(formId, controller.signal)
+            .then(({slug}) => setResult({slug}))
+            .catch(err => {
+                if (err instanceof DOMException && err.name === "AbortError") return;
+                setResult({failed: err instanceof ApiError && err.status === 404 ? "not_found" : "error"});
+            });
+        return () => controller.abort();
+    }, [formId]);
+
+    if (!result) return <LoadingScreen label={t("formGate.loadingForm")}/>;
+    if (result.slug) return <Navigate to={`/f/${result.slug}`} replace/>;
+    return result.failed === "not_found" ? <FormNotFoundState/> : <FormErrorState/>;
 }
