@@ -2,6 +2,7 @@ package me.marensovich.gta5rpformapp.backend.dto.submission;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import me.marensovich.gta5rpformapp.backend.data.forms.SubmissionStatus;
 import me.marensovich.gta5rpformapp.backend.database.entity.Submission;
 
 import java.time.LocalDateTime;
@@ -20,6 +21,10 @@ import java.util.UUID;
  * @param discordId the Discord ID of the user who submitted the form (serialized as string)
  * @param createdAt the timestamp when the submission was created
  * @param answers   the submitted answers as a key-value map
+ * @param status    the moderation status
+ * @param moderatorDiscordId who made the last decision (serialized as string), if any
+ * @param moderatorComment   the moderator's comment, if any
+ * @param decidedAt          when the last decision was made, if any
  * @author marensovich
  * @version v.0.1
  * @since v.0.1
@@ -30,7 +35,12 @@ public record SubmissionDto(
         @JsonSerialize(using = ToStringSerializer.class)
         Long discordId,
         LocalDateTime createdAt,
-        Map<String, Object> answers
+        Map<String, Object> answers,
+        SubmissionStatus status,
+        @JsonSerialize(using = ToStringSerializer.class)
+        Long moderatorDiscordId,
+        String moderatorComment,
+        LocalDateTime decidedAt
 ) {
     /**
      * Converts a {@link Submission} entity to a {@link SubmissionDto}.
@@ -45,7 +55,11 @@ public record SubmissionDto(
                 submission.getFormId(),
                 submission.getDiscordId(),
                 submission.getCreatedAt(),
-                submission.getAnswers()
+                submission.getAnswers(),
+                submission.getStatus(),
+                submission.getModeratorDiscordId(),
+                submission.getModeratorComment(),
+                submission.getDecidedAt()
         );
     }
 }

@@ -2,9 +2,17 @@ package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
+import me.marensovich.gta5rpformapp.backend.data.forms.FormStatus;
 import me.marensovich.gta5rpformapp.backend.data.forms.WebhookConfig;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import me.marensovich.gta5rpformapp.backend.database.entity.Submission;
+import me.marensovich.gta5rpformapp.backend.database.entity.User;
+import me.marensovich.gta5rpformapp.backend.exception.InvalidStateException;
+import me.marensovich.gta5rpformapp.backend.exception.LoginRequiredException;
+import me.marensovich.gta5rpformapp.backend.service.forms.FormAccessService;
+import me.marensovich.gta5rpformapp.backend.service.forms.SubmissionAnswerValidator;
+import org.springframework.lang.Nullable;
+import org.springframework.security.access.AccessDeniedException;
 import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.UserRepository;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmitFormRequest;
@@ -17,6 +25,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,50 +55,137 @@ public class SubmissionService {
     private final WebhookService webhookService;
     private final AuditLogService auditLogService;
     private final OutboundJobService outboundJobService;
+    private final FormAccessService formAccessService;
 
     /**
-     * Submits a response to a form.
-     * <p>
-     * Validates that the form is active, saves the submission, and enqueues
-     * webhook-notification jobs for it (one per configured webhook — see
-     * {@code WebhookDeliveryProcessor}) in the same transaction as the save,
-     * so a submission is never persisted without its notifications durably
-     * queued. Delivery itself happens out-of-band; this method never makes a
-     * Discord API call.
-     * </p>
+     * Submits a response to a form, by form ID and submitter Discord ID —
+     * a convenience wrapper over {@link #submit(Form, User, Map, String)}
+     * (no idempotency key), which documents every check applied.
      *
      * @param formId    the UUID of the form being submitted
-     * @param discordId the Discord ID of the user submitting the form
+     * @param discordId the Discord ID of the user submitting the form, may be {@code null}
      * @param request   the {@link SubmitFormRequest} containing the form answers
      * @return the created {@link Submission} entity
-     * @throws IllegalArgumentException if the form is not active
      * @since v.0.1
      */
     @Transactional
     public Submission submit(UUID formId, Long discordId, SubmitFormRequest request) {
         Form form = formService.getById(formId);
-        if (!form.isAcceptingSubmissions()) {
-            throw new IllegalArgumentException("This form is not accepting submissions");
+        User user = discordId == null ? null : userRepository.findByDiscordId(discordId).orElse(null);
+        return submit(form, user, request.answers(), null).submission();
+    }
+
+    /**
+     * Result of {@link #submit(Form, User, Map, String)}.
+     *
+     * @param submission the stored submission
+     * @param created    {@code false} if this was a replay of an earlier
+     *                   request with the same idempotency key
+     * @since v.0.1
+     */
+    public record SubmitResult(Submission submission, boolean created) {
+    }
+
+    /**
+     * The single submission intake path (task #49), used by both the public
+     * slug endpoint and the legacy one. In order:
+     * <ol>
+     *     <li><b>Idempotency</b> — a known {@code idempotencyKey} returns the
+     *     submission it created, without creating another (product spec раздел 8).</li>
+     *     <li><b>Form state</b> — published and inside its opening window,
+     *     otherwise a readable 409 ({@link InvalidStateException}).</li>
+     *     <li><b>Access</b> — {@link FormAccessService}: 401 if login is
+     *     required, 403 if not a member of the form's guild.</li>
+     *     <li><b>Per-user limit</b> — {@code submissionLimitPerUser}, counted
+     *     per Discord account (can't apply to logged-out OPEN respondents).</li>
+     *     <li><b>Answers</b> — {@link SubmissionAnswerValidator}: 400 with an
+     *     error per field; only the cleaned answers are stored.</li>
+     * </ol>
+     * Then the submission is saved and its webhook deliveries are enqueued in
+     * the same transaction, so a submission is never persisted without its
+     * notifications durably queued. Delivery itself happens out-of-band; this
+     * method never makes a Discord API call.
+     *
+     * @param form           the form being submitted
+     * @param user           the respondent, or {@code null} if not logged in
+     * @param answers        raw answers keyed by field id
+     * @param idempotencyKey client-generated key, may be {@code null}
+     * @return the stored submission, and whether it was created by this call
+     * @since v.0.1
+     */
+    @Transactional
+    public SubmitResult submit(Form form, @Nullable User user, Map<String, Object> answers,
+                               @Nullable String idempotencyKey) {
+        String key = idempotencyKey == null || idempotencyKey.isBlank() ? null : idempotencyKey.trim();
+        if (key != null) {
+            var existing = submissionRepository.findByIdempotencyKey(key);
+            if (existing.isPresent()) {
+                if (!existing.get().getFormId().equals(form.getId())) {
+                    throw new InvalidStateException("This idempotency key was already used for another form");
+                }
+                return new SubmitResult(existing.get(), false);
+            }
         }
+
+        String notAccepting = notAcceptingReason(form);
+        if (notAccepting != null) throw new InvalidStateException(notAccepting);
+
+        switch (formAccessService.check(form, user)) {
+            case LOGIN_REQUIRED -> throw new LoginRequiredException("Log in with Discord to fill in this form");
+            case NOT_IN_GUILD -> throw new AccessDeniedException("You must be a member of this server to fill in this form");
+            case GRANTED -> {
+            }
+        }
+
+        Long discordId = user != null ? user.getDiscordId() : null;
+        if (form.getSubmissionLimitPerUser() != null && discordId != null
+                && submissionRepository.countByFormIdAndDiscordId(form.getId(), discordId) >= form.getSubmissionLimitPerUser()) {
+            throw new InvalidStateException(form.getSubmissionLimitPerUser() == 1
+                    ? "You have already submitted this form"
+                    : "You have reached the limit of " + form.getSubmissionLimitPerUser() + " submissions for this form");
+        }
+
+        Map<String, Object> clean = SubmissionAnswerValidator.validate(form.getSchema(), answers);
+
         Submission submission = new Submission();
-        submission.setFormId(formId);
+        submission.setFormId(form.getId());
         submission.setDiscordId(discordId);
-        submission.setAnswers(request.answers());
+        submission.setAnswers(clean);
+        submission.setIdempotencyKey(key);
         Submission saved = submissionRepository.save(submission);
 
-        String discordUsername = userRepository.findByDiscordId(discordId)
-                .map(me.marensovich.gta5rpformapp.backend.database.entity.User::getDiscordUsername)
-                .orElse(null);
-
+        String discordUsername = user != null ? user.getDiscordUsername() : null;
         enqueueWebhookDeliveries(form, saved, discordUsername, discordId);
 
         auditLogService.log(AuditAction.SUBMISSION_CREATED,
                 discordId, discordUsername,
                 saved.getId().toString(), form.getSchema().getTitle(),
-                "Form: " + form.getSchema().getTitle() + " (" + formId + ")\nSubmission ID: " + saved.getId());
+                "Form: " + form.getSchema().getTitle() + " (" + form.getId() + ")\nSubmission ID: " + saved.getId());
 
-        return saved;
+        return new SubmitResult(saved, true);
     }
+
+    /**
+     * Why a form doesn't accept submissions right now, in words a respondent
+     * understands — or {@code null} if it does.
+     *
+     * @param form the form
+     * @return the reason, or {@code null} if submissions are accepted
+     * @since v.0.1
+     */
+    public static @Nullable String notAcceptingReason(Form form) {
+        if (form.isAcceptingSubmissions()) return null;
+        LocalDateTime now = LocalDateTime.now();
+        if (form.getStatus() == FormStatus.PUBLISHED && form.getOpensAt() != null && now.isBefore(form.getOpensAt())) {
+            return "This form opens on " + form.getOpensAt().format(DISPLAY_TIME);
+        }
+        if (form.getStatus() == FormStatus.PUBLISHED && form.getClosesAt() != null && now.isAfter(form.getClosesAt())) {
+            return "This form closed on " + form.getClosesAt().format(DISPLAY_TIME);
+        }
+        return "This form is closed and no longer accepts submissions";
+    }
+
+    private static final DateTimeFormatter DISPLAY_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     private void enqueueWebhookDeliveries(Form form, Submission submission, String discordUsername, Long discordId) {
         if (form.getWebhooks() == null) return;

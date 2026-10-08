@@ -7,6 +7,7 @@ import me.marensovich.gta5rpformapp.backend.database.entity.Submission;
 import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.UserRepository;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmitFormRequest;
+import me.marensovich.gta5rpformapp.backend.service.forms.FormAccessService;
 import me.marensovich.gta5rpformapp.backend.service.jobs.OutboundJobService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,10 +37,13 @@ class SubmissionServiceTest {
     private AuditLogService auditLogService;
     @Mock
     private OutboundJobService outboundJobService;
+    @Mock
+    private FormAccessService formAccessService;
 
     private SubmissionService service() {
         return new SubmissionService(
-                submissionRepository, userRepository, formService, webhookService, auditLogService, outboundJobService);
+                submissionRepository, userRepository, formService, webhookService, auditLogService, outboundJobService,
+                formAccessService);
     }
 
     private Form activeFormWithWebhooks(WebhookConfig... webhooks) {
@@ -64,6 +68,7 @@ class SubmissionServiceTest {
         Form form = activeFormWithWebhooks(webhook("https://discord.com/api/webhooks/1/a"),
                 webhook("https://discord.com/api/webhooks/2/b"));
         when(formService.getById(form.getId())).thenReturn(form);
+        when(formAccessService.check(any(), any())).thenReturn(FormAccessService.Access.GRANTED);
         when(submissionRepository.save(any(Submission.class))).thenAnswer(inv -> {
             Submission s = inv.getArgument(0);
             s.setId(UUID.randomUUID());
@@ -83,6 +88,7 @@ class SubmissionServiceTest {
         invalid.setInvalid(true);
         Form form = activeFormWithWebhooks(invalid, webhook("https://discord.com/api/webhooks/2/b"));
         when(formService.getById(form.getId())).thenReturn(form);
+        when(formAccessService.check(any(), any())).thenReturn(FormAccessService.Access.GRANTED);
         when(submissionRepository.save(any(Submission.class))).thenAnswer(inv -> {
             Submission s = inv.getArgument(0);
             s.setId(UUID.randomUUID());
@@ -99,6 +105,7 @@ class SubmissionServiceTest {
     void enqueuesNothingWhenTheFormHasNoWebhooks() {
         Form form = activeFormWithWebhooks();
         when(formService.getById(form.getId())).thenReturn(form);
+        when(formAccessService.check(any(), any())).thenReturn(FormAccessService.Access.GRANTED);
         when(submissionRepository.save(any(Submission.class))).thenAnswer(inv -> {
             Submission s = inv.getArgument(0);
             s.setId(UUID.randomUUID());
@@ -118,8 +125,8 @@ class SubmissionServiceTest {
 
         try {
             service().submit(form.getId(), 123L, new SubmitFormRequest(Map.of()));
-            org.junit.jupiter.api.Assertions.fail("expected IllegalArgumentException");
-        } catch (IllegalArgumentException expected) {
+            org.junit.jupiter.api.Assertions.fail("expected InvalidStateException");
+        } catch (me.marensovich.gta5rpformapp.backend.exception.InvalidStateException expected) {
             // expected
         }
 

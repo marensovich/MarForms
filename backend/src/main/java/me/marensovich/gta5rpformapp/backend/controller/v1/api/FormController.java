@@ -6,7 +6,17 @@ import me.marensovich.gta5rpformapp.backend.dto.form.CreateFormRequest;
 import me.marensovich.gta5rpformapp.backend.dto.form.FormResponseDto;
 import me.marensovich.gta5rpformapp.backend.dto.form.FormSummaryDto;
 import me.marensovich.gta5rpformapp.backend.dto.form.UpdateFormRequest;
+import me.marensovich.gta5rpformapp.backend.config.security.CustomUserDetails;
+import me.marensovich.gta5rpformapp.backend.config.security.GuildAccessGuard;
+import me.marensovich.gta5rpformapp.backend.data.forms.FormStatus;
+import me.marensovich.gta5rpformapp.backend.database.entity.Form;
+import me.marensovich.gta5rpformapp.backend.dto.form.PublicFormDto;
+import me.marensovich.gta5rpformapp.backend.exception.NotFoundException;
 import me.marensovich.gta5rpformapp.backend.service.FormService;
+import me.marensovich.gta5rpformapp.backend.service.SubmissionService;
+import me.marensovich.gta5rpformapp.backend.service.forms.FormAccessService;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -34,22 +44,36 @@ import java.util.UUID;
 public class FormController {
 
     private final FormService formService;
+    private final GuildAccessGuard guildAccessGuard;
+    private final FormAccessService formAccessService;
 
     /**
-     * Retrieves a form by its ID for rendering on the form-filling page.
+     * Retrieves a form by its ID.
      * <p>
-     * This is a public endpoint that returns the form schema without performing
-     * access or guild membership checks. Access control is delegated to the
-     * client-side and validated at submission time.
+     * Managers of the form (platform admins with {@code FORMS_MANAGE}, or a
+     * moderator/owner of its guild) get the full {@link FormResponseDto},
+     * webhooks included, for the editor. Everyone else gets only the
+     * {@link PublicFormDto} — the webhook URLs embed secret tokens and must
+     * never reach respondents. Drafts are 404 for non-managers.
      * </p>
      *
-     * @param formId the UUID of the form to retrieve
-     * @return a {@link FormResponseDto} containing the form data and schema
+     * @param formId         the UUID of the form to retrieve
+     * @param authentication the caller
+     * @param principal      the logged-in user, for the public view's access check
+     * @return the full or the public view of the form
      * @since v.0.1
      */
     @GetMapping("/{formId}")
-    public FormResponseDto get(@PathVariable UUID formId) {
-        return FormResponseDto.from(formService.getById(formId));
+    public Object get(@PathVariable UUID formId, Authentication authentication,
+                      @AuthenticationPrincipal CustomUserDetails principal) {
+        Form form = formService.getById(formId);
+        boolean manager = authentication != null && (
+                authentication.getAuthorities().stream().anyMatch(a -> "FORMS_MANAGE".equals(a.getAuthority()))
+                        || guildAccessGuard.hasRoleForForm(formId, "MODERATOR"));
+        if (manager) return FormResponseDto.from(form);
+        if (form.getStatus() == FormStatus.DRAFT) throw new NotFoundException("Form not found: " + formId);
+        return PublicFormDto.from(form, SubmissionService.notAcceptingReason(form), null,
+                formAccessService.check(form, principal != null ? principal.getUser() : null));
     }
 
     /**

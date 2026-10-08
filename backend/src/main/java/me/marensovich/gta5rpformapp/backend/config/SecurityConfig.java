@@ -76,6 +76,10 @@ public class SecurityConfig {
                         .requestMatchers("/oauth2/**", "/login/**").permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/settings/public").permitAll()
+                        // Respondent-facing form API: OPEN forms work without a
+                        // session; access to others is decided per form by
+                        // FormAccessService (401/403), not by this filter.
+                        .requestMatchers("/api/v1/public/**").permitAll()
                         // Discord redirects the browser here directly after a bot
                         // install — no Authorization header to check; the acting
                         // user is instead identified via the signed `state` param.

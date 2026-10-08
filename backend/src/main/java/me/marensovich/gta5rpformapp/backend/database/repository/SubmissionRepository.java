@@ -51,6 +51,26 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
     long countByFormId(UUID formId);
 
     /**
+     * How many times one respondent submitted one form — for
+     * {@code Form#submissionLimitPerUser}.
+     *
+     * @param formId    the form
+     * @param discordId the respondent's Discord ID
+     * @return the submission count
+     * @since v.0.1
+     */
+    long countByFormIdAndDiscordId(UUID formId, Long discordId);
+
+    /**
+     * Finds the submission an idempotency key already produced.
+     *
+     * @param idempotencyKey the client-supplied key
+     * @return the submission, if any
+     * @since v.0.1
+     */
+    java.util.Optional<Submission> findByIdempotencyKey(String idempotencyKey);
+
+    /**
      * Retrieves a paginated list of submissions made by a specific user.
      *
      * @param discordId the Discord ID of the user

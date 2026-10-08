@@ -2,10 +2,8 @@ package me.marensovich.gta5rpformapp.backend.controller.v1.api;
 
 import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.config.security.CustomUserDetails;
-import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.service.FormService;
-import me.marensovich.gta5rpformapp.backend.service.GuildMembershipService;
-import me.marensovich.gta5rpformapp.backend.service.UserService;
+import me.marensovich.gta5rpformapp.backend.service.forms.FormAccessService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,8 +16,9 @@ import java.util.UUID;
 /**
  * REST controller for checking form access permissions.
  * <p>
- * Provides an endpoint to verify whether the authenticated user has access
- * to a specific form based on their Discord server membership.
+ * Kept for older clients — the public form endpoint
+ * ({@code GET /api/v1/public/forms/{slug}}) already reports the same
+ * answer as {@code viewerAccess}. Both delegate to {@link FormAccessService}.
  * </p>
  *
  * @author marensovich
@@ -32,20 +31,14 @@ import java.util.UUID;
 public class FormAccessController {
 
     private final FormService formService;
-    private final GuildMembershipService guildMembershipService;
-    private final UserService userService;
+    private final FormAccessService formAccessService;
 
     /**
      * Checks if the authenticated user has access to the specified form.
-     * <p>
-     * Determines access by verifying that the user is a member of the Discord
-     * server (guild) associated with the form.
-     * </p>
      *
      * @param formId    the UUID of the form to check
      * @param principal the currently authenticated user details
-     * @return a {@link Map} containing a boolean value under the key "hasAccess",
-     * indicating whether the user has access to the form
+     * @return {@code {"hasAccess": boolean}}
      * @since v.0.1
      */
     @GetMapping
@@ -54,22 +47,7 @@ public class FormAccessController {
             @AuthenticationPrincipal CustomUserDetails principal
     ) {
         var form = formService.getById(formId);
-        var user = principal.getUser();
-        boolean hasAccess = user.isMemberOfGuild(form.getServerId());
-
-        // The guild list is a login-time snapshot — the user may have joined
-        // the server since. Re-check with their stored Discord token (#31).
-        if (!hasAccess && userService.resyncGuildsWithStoredToken(user)) {
-            hasAccess = user.isMemberOfGuild(form.getServerId());
-        }
-
-        if (hasAccess) {
-            guildMembershipService.ensureMembership(
-                    principal.getDiscordId(), form.getServerId(), GuildRole.RESPONDENT);
-            // Cached for future role gating (#10); refreshed only once the TTL has lapsed.
-            guildMembershipService.syncDiscordRolesIfStale(principal.getDiscordId(), form.getServerId());
-        }
-
-        return Map.of("hasAccess", hasAccess);
+        var access = formAccessService.check(form, principal != null ? principal.getUser() : null);
+        return Map.of("hasAccess", access == FormAccessService.Access.GRANTED);
     }
 }

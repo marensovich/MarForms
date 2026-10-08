@@ -1,5 +1,6 @@
 package me.marensovich.gta5rpformapp.backend.exception;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -98,6 +99,34 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleInvalidState(InvalidStateException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Map.of("error", ex.getMessage()));
+    }
+
+    /**
+     * Handles {@link LoginRequiredException}.
+     *
+     * @param ex the exception containing the error message
+     * @return 401 (Unauthorized) with the error message
+     * @since v.0.1
+     */
+    @ExceptionHandler(LoginRequiredException.class)
+    public ResponseEntity<Map<String, String>> handleLoginRequired(LoginRequiredException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    /**
+     * Handles a unique-constraint race — e.g. two identical submissions with
+     * the same idempotency key arriving at the same instant. The client's
+     * retry then finds the stored row and gets it back normally.
+     *
+     * @param ex the integrity violation
+     * @return 409 (Conflict) with a generic message
+     * @since v.0.1
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, String>> handleDataIntegrity(DataIntegrityViolationException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("error", "This request conflicts with an existing record — please retry"));
     }
 
     /**

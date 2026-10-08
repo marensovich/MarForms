@@ -2,6 +2,7 @@ package me.marensovich.gta5rpformapp.backend.database.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import me.marensovich.gta5rpformapp.backend.data.forms.SubmissionStatus;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -50,13 +51,53 @@ public class Submission {
     /**
      * The Discord ID of the user who submitted the form.
      * <p>
-     * Identifies the submitter across the system.
+     * Identifies the submitter across the system. {@code null} when an
+     * {@code OPEN} form was filled in without logging in.
      * </p>
      *
      * @since v.0.1
      */
-    @Column(nullable = false)
     private Long discordId;
+
+    /**
+     * Moderation state.
+     *
+     * @since v.0.1
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private SubmissionStatus status = SubmissionStatus.PENDING;
+
+    /**
+     * Discord ID of the moderator who made the last decision.
+     *
+     * @since v.0.1
+     */
+    private Long moderatorDiscordId;
+
+    /**
+     * The moderator's comment on the decision (e.g. what to fix).
+     *
+     * @since v.0.1
+     */
+    @Column(columnDefinition = "TEXT")
+    private String moderatorComment;
+
+    /**
+     * When the last decision was made.
+     *
+     * @since v.0.1
+     */
+    private LocalDateTime decidedAt;
+
+    /**
+     * Client-supplied {@code Idempotency-Key} — a retried submit with the
+     * same key returns this submission instead of creating another.
+     *
+     * @since v.0.1
+     */
+    @Column(unique = true, length = 100)
+    private String idempotencyKey;
 
     /**
      * The timestamp when the submission was created.

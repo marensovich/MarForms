@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.config.security.CustomUserDetails;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmissionDto;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmitFormRequest;
+import me.marensovich.gta5rpformapp.backend.service.FormService;
 import me.marensovich.gta5rpformapp.backend.service.SubmissionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +34,7 @@ import java.util.UUID;
 public class SubmissionController {
 
     private final SubmissionService submissionService;
+    private final FormService formService;
 
     /**
      * Submits a response to a form.
@@ -51,11 +53,16 @@ public class SubmissionController {
     @PostMapping
     public ResponseEntity<SubmissionDto> submit(
             @PathVariable UUID formId,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @Valid @RequestBody SubmitFormRequest request,
             @AuthenticationPrincipal CustomUserDetails principal
     ) {
-        var submission = submissionService.submit(formId, principal.getDiscordId(), request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(SubmissionDto.from(submission));
+        // Same intake path (state, access, limit, answer validation,
+        // idempotency) as the public slug endpoint.
+        var result = submissionService.submit(formService.getById(formId),
+                principal != null ? principal.getUser() : null, request.answers(), idempotencyKey);
+        return ResponseEntity.status(result.created() ? HttpStatus.CREATED : HttpStatus.OK)
+                .body(SubmissionDto.from(result.submission()));
     }
 
     /**
