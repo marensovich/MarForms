@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -84,4 +85,13 @@ public interface FormRepository extends JpaRepository<Form, UUID> {
      * @since v.0.1
      */
     Optional<Form> findBySlug(String slug);
+
+    /**
+     * Every form not in the given status (the webhook health check skips archived forms).
+     *
+     * @param status the status to exclude
+     * @return the matching forms
+     * @since v.0.1
+     */
+    List<Form> findAllByStatusNot(FormStatus status);
 }

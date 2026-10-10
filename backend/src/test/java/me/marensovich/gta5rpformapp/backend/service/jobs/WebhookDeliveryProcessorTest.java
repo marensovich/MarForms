@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormSchema;
 import me.marensovich.gta5rpformapp.backend.data.forms.WebhookConfig;
+import me.marensovich.gta5rpformapp.backend.data.forms.WebhookHealth;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import me.marensovich.gta5rpformapp.backend.database.entity.OutboundJob;
 import me.marensovich.gta5rpformapp.backend.database.repository.OutboundJobRepository;
@@ -209,5 +210,28 @@ class WebhookDeliveryProcessorTest {
         runDueJob(job);
 
         verify(outboundJobService).reschedule(eq(job.getId()), any(LocalDateTime.class), eq("connection reset"));
+    }
+
+    @Test
+    void aFailedDeliveryDegradesTheWebhookAndTheNextSuccessRestoresIt() {
+        UUID formId = UUID.randomUUID();
+        WebhookConfig webhook = new WebhookConfig();
+        webhook.setUrl("https://discord.com/api/webhooks/1/tok");
+        Form form = formWithWebhook(formId, webhook);
+        var payload = new WebhookDeliveryPayload(formId, UUID.randomUUID(), webhook.getUrl(), Map.of(), null, null);
+
+        when(formService.getById(formId)).thenReturn(form);
+        when(webhookService.deliverToWebhook(any(), any(), any(), any(), any(), any()))
+                .thenThrow(new RuntimeException("connection reset"));
+        runDueJob(jobFor(payload));
+        verify(formService).updateWebhookHealth(formId, webhook.getUrl(), WebhookHealth.DEGRADED,
+                WebhookHealth.REASON_DELIVERY_FAILING, "connection reset");
+
+        webhook.setHealth(WebhookHealth.DEGRADED);
+        webhook.setHealthReason(WebhookHealth.REASON_DELIVERY_FAILING);
+        org.mockito.Mockito.reset(webhookService);
+        when(webhookService.deliverToWebhook(any(), any(), any(), any(), any(), any())).thenReturn(null);
+        runDueJob(jobFor(payload));
+        verify(formService).updateWebhookHealth(formId, webhook.getUrl(), WebhookHealth.HEALTHY, null, null);
     }
 }

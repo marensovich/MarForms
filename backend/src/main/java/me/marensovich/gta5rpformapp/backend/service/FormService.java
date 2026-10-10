@@ -7,6 +7,7 @@ import me.marensovich.gta5rpformapp.backend.data.forms.FormField;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormSchema;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormStatus;
 import me.marensovich.gta5rpformapp.backend.data.forms.WebhookConfig;
+import me.marensovich.gta5rpformapp.backend.data.forms.WebhookHealth;
 import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import me.marensovich.gta5rpformapp.backend.database.repository.FormRepository;
@@ -25,6 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -486,15 +488,39 @@ public class FormService {
      */
     @Transactional
     public void markWebhookInvalid(UUID formId, String webhookUrl, String error) {
+        updateWebhookHealth(formId, webhookUrl, WebhookHealth.INVALID, WebhookHealth.REASON_WEBHOOK_DELETED, error);
+    }
+
+    /**
+     * Records a webhook's notification status (E2.4, #74), from delivery
+     * results or the background health check. Saves only on a change of
+     * status or reason, so routine confirmations don't rewrite the form.
+     * A no-op if the form or that webhook no longer exists.
+     *
+     * @param formId     the form the webhook belongs to
+     * @param webhookUrl identifies which webhook
+     * @param health     its new status
+     * @param reason     a {@code WebhookHealth.REASON_*} code, {@code null} when healthy
+     * @param error      a short description, kept for diagnosis, may be {@code null}
+     * @since v.0.1
+     */
+    @Transactional
+    public void updateWebhookHealth(UUID formId, String webhookUrl, WebhookHealth health,
+                                    String reason, String error) {
         formRepository.findById(formId).ifPresent(form -> {
             if (form.getWebhooks() == null) return;
             boolean changed = false;
             for (WebhookConfig webhook : form.getWebhooks()) {
-                if (webhookUrl.equals(webhook.getUrl())) {
-                    webhook.setInvalid(true);
-                    webhook.setLastError(error);
-                    changed = true;
+                if (!webhookUrl.equals(webhook.getUrl())) continue;
+                if (webhook.effectiveHealth() == health && java.util.Objects.equals(webhook.getHealthReason(), reason)) {
+                    continue;
                 }
+                webhook.setHealth(health);
+                webhook.setHealthReason(reason);
+                webhook.setHealthCheckedAt(LocalDateTime.now().toString());
+                webhook.setInvalid(health == WebhookHealth.INVALID ? Boolean.TRUE : null);
+                if (error != null) webhook.setLastError(error);
+                changed = true;
             }
             if (changed) formRepository.save(form);
         });

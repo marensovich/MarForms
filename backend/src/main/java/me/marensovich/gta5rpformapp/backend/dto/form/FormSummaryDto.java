@@ -1,5 +1,7 @@
 package me.marensovich.gta5rpformapp.backend.dto.form;
 
+import me.marensovich.gta5rpformapp.backend.data.forms.WebhookConfig;
+import me.marensovich.gta5rpformapp.backend.data.forms.WebhookHealth;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormAccessMode;
@@ -28,6 +30,8 @@ import java.util.UUID;
  * @param slug            the public URL slug, {@code null} until first published
  * @param fieldCount      number of fields in the form
  * @param updatedAt       when the form was last modified
+ * @param notificationHealth the worst status among the form's webhooks
+ *                        ({@code null} if it has none), E2.4
  * @author marensovich
  * @version v.0.1
  * @since v.0.1
@@ -44,7 +48,8 @@ public record FormSummaryDto(
         FormAccessMode accessMode,
         String slug,
         int fieldCount,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        WebhookHealth notificationHealth
 ) {
     public static FormSummaryDto from(Form form, long submissionCount) {
         return new FormSummaryDto(
@@ -59,7 +64,11 @@ public record FormSummaryDto(
                 form.getSlug(),
                 form.getSchema() != null && form.getSchema().getFields() != null
                         ? form.getSchema().getFields().size() : 0,
-                form.getUpdatedAt()
+                form.getUpdatedAt(),
+                form.getWebhooks() == null ? null : form.getWebhooks().stream()
+                        .filter(w -> w.getUrl() != null && !w.getUrl().isBlank())
+                        .map(WebhookConfig::effectiveHealth)
+                        .reduce(null, WebhookHealth::worst)
         );
     }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.marensovich.gta5rpformapp.backend.data.forms.WebhookConfig;
+import me.marensovich.gta5rpformapp.backend.data.forms.WebhookHealth;
 import me.marensovich.gta5rpformapp.backend.data.jobs.OutboundJobStatus;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import me.marensovich.gta5rpformapp.backend.database.entity.OutboundJob;
@@ -109,6 +110,11 @@ public class WebhookDeliveryProcessor {
                 submissionService.recordWebhookMessageId(payload.submissionId(), payload.webhookUrl(), messageId);
             }
             outboundJobService.markSucceeded(job.getId());
+            // A delivery got through: clear a delivery-failure status, but not one
+            // the health check set (lost channel access may not stop delivery).
+            if (WebhookHealth.REASON_DELIVERY_FAILING.equals(webhook.getHealthReason())) {
+                formService.updateWebhookHealth(payload.formId(), payload.webhookUrl(), WebhookHealth.HEALTHY, null, null);
+            }
         } catch (HttpClientErrorException.TooManyRequests e) {
             long retryAfterSeconds = parseRetryAfter(e);
             log.info("Webhook {} rate-limited — retrying in {}s", payload.webhookUrl(), retryAfterSeconds);
@@ -124,6 +130,10 @@ public class WebhookDeliveryProcessor {
             log.warn("Webhook delivery failed [{}], retrying in {}s: {}",
                     payload.webhookUrl(), backoffSeconds, e.getMessage());
             outboundJobService.reschedule(job.getId(), LocalDateTime.now().plusSeconds(backoffSeconds), e.getMessage());
+            if (webhook.effectiveHealth() == WebhookHealth.HEALTHY) {
+                formService.updateWebhookHealth(payload.formId(), payload.webhookUrl(), WebhookHealth.DEGRADED,
+                        WebhookHealth.REASON_DELIVERY_FAILING, e.getMessage());
+            }
         }
     }
 

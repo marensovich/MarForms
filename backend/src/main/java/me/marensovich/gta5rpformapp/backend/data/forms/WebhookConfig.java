@@ -165,8 +165,8 @@ public class WebhookConfig {
      * deleted directly on Discord, outside this app). Delivery is skipped
      * for a webhook marked invalid rather than retried forever.
      * <p>
-     * System-managed — no UI sets this deliberately yet (that's Stage 2,
-     * E2.4), but it round-trips through the same JSON as every other field
+     * System-managed, kept in sync with {@link #health} ({@code INVALID}).
+     * It round-trips through the same JSON as every other field
      * here since {@code Form.webhooks} is a single JSON column with no
      * separate internal-vs-public projection. One consequence, treated as
      * intentional rather than a bug: editing and re-saving a form's webhooks
@@ -181,9 +181,45 @@ public class WebhookConfig {
     private Boolean invalid;
 
     /**
-     * Why this webhook was marked {@link #invalid}, kept for diagnosis.
+     * The last error seen for this webhook (delivery or health check),
+     * kept for diagnosis.
      *
      * @since v.0.1
      */
     private String lastError;
+
+    /**
+     * Whether notifications are getting through (E2.4). System-managed,
+     * like {@link #invalid}: {@code null} means nothing known to be wrong.
+     *
+     * @since v.0.1
+     */
+    private WebhookHealth health;
+
+    /**
+     * Why {@link #health} is what it is, one of the {@code WebhookHealth.REASON_*}
+     * codes, or {@code null} when healthy.
+     *
+     * @since v.0.1
+     */
+    private String healthReason;
+
+    /**
+     * When {@link #health} last changed or was confirmed, ISO-8601.
+     *
+     * @since v.0.1
+     */
+    private String healthCheckedAt;
+
+    /**
+     * The effective status, also honouring {@link #invalid} on webhooks
+     * written before {@link #health} existed.
+     *
+     * @return never {@code null}
+     * @since v.0.1
+     */
+    public WebhookHealth effectiveHealth() {
+        if (Boolean.TRUE.equals(invalid)) return WebhookHealth.INVALID;
+        return health != null ? health : WebhookHealth.HEALTHY;
+    }
 }

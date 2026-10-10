@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.Webhook;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -196,6 +197,51 @@ public class DiscordBotClient {
         } catch (Exception e) {
             log.warn("Failed to fetch roles of guild {}: {}", guildId, e.getMessage());
             return Map.of();
+        }
+    }
+
+    /**
+     * What the bot can do in a webhook's channel (E2.4, #73).
+     */
+    public enum ChannelAccess {
+        /** The bot sees the channel and may manage its webhooks. */
+        OK,
+        /** No bot session in this environment: nothing can be concluded. */
+        UNKNOWN,
+        /** The bot isn't on the guild (kicked, or the guild is gone). */
+        NOT_IN_GUILD,
+        /** The channel is gone, or the bot can't see it. */
+        CHANNEL_UNAVAILABLE,
+        /** The bot sees the channel but lacks {@code MANAGE_WEBHOOKS} there. */
+        MISSING_PERMISSIONS
+    }
+
+    /**
+     * Checks the bot's access to one channel, from its Gateway-fed cache: a
+     * lost {@code MANAGE_WEBHOOKS} on that channel is caught without the bot
+     * having been removed from the server.
+     *
+     * @param guildId   the Discord guild snowflake ID
+     * @param channelId the channel's snowflake ID
+     * @return the bot's access
+     * @since v.0.1
+     */
+    public ChannelAccess checkChannelAccess(Long guildId, Long channelId) {
+        if (jda == null) return ChannelAccess.UNKNOWN;
+        try {
+            Guild guild = jda.getGuildById(guildId);
+            if (guild == null) return ChannelAccess.NOT_IN_GUILD;
+            GuildChannel channel = guild.getGuildChannelById(channelId);
+            Member self = guild.getSelfMember();
+            if (channel == null || !self.hasPermission(channel, Permission.VIEW_CHANNEL)) {
+                return ChannelAccess.CHANNEL_UNAVAILABLE;
+            }
+            return self.hasPermission(channel, Permission.MANAGE_WEBHOOKS)
+                    ? ChannelAccess.OK
+                    : ChannelAccess.MISSING_PERMISSIONS;
+        } catch (Exception e) {
+            log.warn("Failed to check access to channel {} of guild {}: {}", channelId, guildId, e.getMessage());
+            return ChannelAccess.UNKNOWN;
         }
     }
 
