@@ -1,4 +1,4 @@
-import {apiRequest} from "./client";
+import {API, ApiError, apiRequest} from "./client";
 import type {PageResponse} from "./dashboard";
 import type {FormAnswers, FormSchema} from "../types/forms";
 
@@ -41,6 +41,7 @@ export interface SubmissionDetail {
     formId: string;
     schema: FormSchema;
     author: SubmissionAuthor | null;
+    files?: SubmissionFile[];
 }
 
 export interface ModerationFilters {
@@ -121,4 +122,32 @@ export function getGuildAuditLog(
     if (filters.action) p.set("action", filters.action);
     if (filters.actorId) p.set("actorId", filters.actorId);
     return apiRequest(`/guilds/${guildId}/audit-log?${p}`);
+}
+
+export interface SubmissionFile {
+    id: string;
+    fieldId: string;
+    name: string;
+    contentType: string | null;
+    size: number;
+}
+
+/**
+ * Downloads an attachment. The API needs the JWT header, which a plain link
+ * can't send, so the file is fetched and handed to the browser as a blob.
+ */
+export async function downloadSubmissionFile(file: SubmissionFile): Promise<void> {
+    const token = localStorage.getItem("jwt");
+    const response = await fetch(`${API}/api/v1/files/${file.id}`, {
+        headers: token ? {Authorization: `Bearer ${token}`} : {},
+    });
+    if (!response.ok) throw new ApiError(response.status, await response.text().catch(() => "Download failed"));
+    const url = URL.createObjectURL(await response.blob());
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = file.name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10_000);
 }

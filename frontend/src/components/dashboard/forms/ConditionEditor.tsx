@@ -8,7 +8,7 @@ const CHOICE_TYPES = ["SELECT", "MULTI_SELECT", "RADIO", "CHECKBOX"];
 function operatorsFor(field: FormField): ConditionOperator[] {
     const hasOptions = CHOICE_TYPES.includes(field.type) && (field.options?.length ?? 0) > 0;
     if (hasOptions) return ["EQUALS", "NOT_EQUALS", "NOT_EMPTY", "EMPTY"];
-    if (field.type === "BOOLEAN" || field.type === "CHECKBOX") return ["NOT_EMPTY", "EMPTY"];
+    if (field.type === "BOOLEAN" || field.type === "CHECKBOX" || field.type === "FILE_UPLOAD") return ["NOT_EMPTY", "EMPTY"];
     if (field.type === "NUMBER" || field.type === "RATING") {
         return ["EQUALS", "NOT_EQUALS", "GREATER_THAN", "LESS_THAN", "NOT_EMPTY", "EMPTY"];
     }
@@ -16,6 +16,7 @@ function operatorsFor(field: FormField): ConditionOperator[] {
 }
 
 function operatorLabelKey(op: ConditionOperator, controller: FormField): string {
+    if (controller.type === "FILE_UPLOAD") return `wizard.fields.condition.operators.file.${op}`;
     if (controller.type === "BOOLEAN" || (controller.type === "CHECKBOX" && !(controller.options?.length))) {
         return `wizard.fields.condition.operators.checkbox.${op}`;
     }

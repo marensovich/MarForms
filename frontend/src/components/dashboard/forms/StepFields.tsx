@@ -16,13 +16,14 @@ import {
     FiList,
     FiLock,
     FiMail,
-    FiPhone,
-    FiPlus,
-    FiToggleLeft,
-    FiTrash2,
     FiMenu,
     FiMinus,
+    FiPaperclip,
+    FiPhone,
+    FiPlus,
     FiStar,
+    FiToggleLeft,
+    FiTrash2,
     FiType,
 } from "react-icons/fi";
 import {
@@ -46,10 +47,11 @@ import type {FieldType, FormField} from "../../../types/forms";
 import {DEFAULT_RATING_SCALE} from "../../form/fields/RatingField";
 import type {FormDraft} from "./FormWizard";
 import ConditionEditor from "./ConditionEditor";
+import FileFieldSettings from "./FileFieldSettings";
 
 // ── Type metadata ──────────────────────────────────────────────────────────
 
-type TypeGroup = "text" | "choice" | "datetime" | "layout";
+type TypeGroup = "text" | "choice" | "datetime" | "files" | "layout";
 
 interface TypeMeta {
     icon: React.ElementType;
@@ -172,6 +174,13 @@ const TYPE_META: Record<FieldType, TypeMeta> = {
         group: "choice",
         iconCls: "text-[#92702A] bg-[#FBF3E4]"
     },
+    FILE_UPLOAD: {
+        icon: FiPaperclip,
+        labelKey: "wizard.fields.types.FILE_UPLOAD.label",
+        descKey: "wizard.fields.types.FILE_UPLOAD.desc",
+        group: "files",
+        iconCls: "text-[#31578F] bg-[#EAF1FB]"
+    },
     SECTION_BREAK: {
         icon: FiMinus,
         labelKey: "wizard.fields.types.SECTION_BREAK.label",
@@ -185,6 +194,7 @@ const TYPE_GROUPS: { id: TypeGroup; labelKey: string; types: FieldType[] }[] = [
     {id: "text", labelKey: "wizard.fields.groups.text", types: ["TEXT", "TEXTAREA", "NUMBER", "EMAIL", "URL", "PHONE"]},
     {id: "choice", labelKey: "wizard.fields.groups.choice", types: ["SELECT", "MULTI_SELECT", "RADIO", "CHECKBOX", "BOOLEAN", "RATING"]},
     {id: "datetime", labelKey: "wizard.fields.groups.datetime", types: ["DATE", "TIME", "DATETIME"]},
+    {id: "files", labelKey: "wizard.fields.groups.files", types: ["FILE_UPLOAD"]},
     {id: "layout", labelKey: "wizard.fields.groups.layout", types: ["SECTION_BREAK"]},
 ];
 
@@ -822,6 +832,9 @@ function FieldEditor({field, allFields, onUpdate, onDelete, onDuplicate}: FieldE
                                 </p>
                             </div>
                         )}
+
+                        {/* File limits (E3.2) */}
+                        {field.type === "FILE_UPLOAD" && <FileFieldSettings field={field} onUpdate={onUpdate}/>}
 
                         {/* Rating scale */}
                         {isRating && (

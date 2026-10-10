@@ -7,6 +7,7 @@ import CheckboxField from "./fields/CheckboxField";
 import CheckboxGroupField from "./fields/CheckboxGroupField";
 import RatingField from "./fields/RatingField";
 import SectionBreak from "./fields/SectionBreak";
+import FileUploadField from "./fields/FileUploadField";
 
 interface Props {
     field: FormField;
@@ -82,6 +83,16 @@ export default function DynamicField({field, value, onChange, onBlur, error}: Pr
             );
         case "SECTION_BREAK":
             return <SectionBreak field={field}/>;
+        case "FILE_UPLOAD":
+            return (
+                <FileUploadField
+                    field={field}
+                    value={typeof value === "string" ? value : ""}
+                    onChange={onChangeStr}
+                    onBlur={handleBlur}
+                    error={error}
+                />
+            );
         case "CHECKBOX":
             // With options it's a checkbox group (what the builder configures);
             // without, a single tick box, as older forms used it.

@@ -15,7 +15,8 @@ export type FieldType =
     | "TIME"
     | "DATETIME"
     | "RATING"
-    | "SECTION_BREAK";
+    | "SECTION_BREAK"
+    | "FILE_UPLOAD";
 
 /** Not an input: a heading + text that splits a form into sections. */
 export const isInputField = (field: { type: FieldType }) => field.type !== "SECTION_BREAK";
@@ -39,6 +40,10 @@ export interface FormField {
     min?: number;
     placeholder?: string;
     description?: string;
+    /** FILE_UPLOAD: allowed extensions without the dot; empty = platform defaults. */
+    allowedExtensions?: string[];
+    /** FILE_UPLOAD: size limit in MB (platform max 25, default 10). */
+    maxFileSizeMb?: number;
     /** Show only when another field's answer matches (E3.1); absent = always. */
     condition?: FieldCondition | null;
 }

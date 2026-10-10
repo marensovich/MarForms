@@ -1,5 +1,5 @@
 // src/api/forms.ts
-import {apiRequest} from "./client";
+import {API, ApiError, apiRequest} from "./client";
 import type {FormAccessMode, FormAnswers, FormDefinition, FormSchema, FormStatus} from "../types/forms";
 
 export type ViewerAccess = "GRANTED" | "LOGIN_REQUIRED" | "NOT_IN_GUILD" | "BANNED";
@@ -83,4 +83,48 @@ export function submitForm(
         body: {answers},
         headers: idempotencyKey ? {"Idempotency-Key": idempotencyKey} : undefined,
     });
+}
+
+/** An uploaded file; its id is the FILE_UPLOAD field's answer (E3.2). */
+export interface UploadedFile {
+    id: string;
+    fieldId: string;
+    name: string;
+    contentType: string | null;
+    size: number;
+}
+
+/**
+ * Uploads a file for a FILE_UPLOAD field while the form is being filled in.
+ * XMLHttpRequest rather than fetch: fetch can't report upload progress.
+ */
+export function uploadFormFile(
+    slug: string,
+    fieldId: string,
+    file: File,
+    onProgress: (fraction: number) => void
+): {promise: Promise<UploadedFile>; abort: () => void} {
+    const xhr = new XMLHttpRequest();
+    const promise = new Promise<UploadedFile>((resolve, reject) => {
+        xhr.open("POST", `${API}/api/v1/public/forms/${encodeURIComponent(slug)}/files`);
+        const token = localStorage.getItem("jwt");
+        if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+        xhr.upload.onprogress = e => {
+            if (e.lengthComputable) onProgress(e.loaded / e.total);
+        };
+        xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                resolve(JSON.parse(xhr.responseText) as UploadedFile);
+            } else {
+                reject(new ApiError(xhr.status, xhr.responseText || "Upload failed"));
+            }
+        };
+        xhr.onerror = () => reject(new ApiError(0, "Network error"));
+        xhr.onabort = () => reject(new DOMException("Upload aborted", "AbortError"));
+        const body = new FormData();
+        body.append("fieldId", fieldId);
+        body.append("file", file);
+        xhr.send(body);
+    });
+    return {promise, abort: () => xhr.abort()};
 }

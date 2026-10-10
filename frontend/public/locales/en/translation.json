@@ -103,6 +103,16 @@
     "footer": "MarForms · Discord Application System · Form links only"
   },
   "form": {
+    "file": {
+      "choose": "Choose a file",
+      "uploading": "Uploading…",
+      "remove": "Remove file",
+      "failed": "Couldn't upload the file",
+      "wrongType": "Allowed file types: {{types}}",
+      "tooLarge": "The file is larger than {{max}} MB",
+      "limits": "{{types}} · up to {{max}} MB",
+      "previewDisabled": "Uploads are disabled in preview"
+    },
     "anonymousNote": "This is an anonymous form: your Discord account is not stored with your answers.",
     "previewSubmitDisabled": "Preview — submitting is disabled",
     "validation": {
@@ -622,6 +632,11 @@
     },
     "next": "Next",
     "fields": {
+      "file": {
+        "extensions": "Allowed file types",
+        "extensionsHint": "Comma-separated, e.g. pdf, png, jpg. Empty uses a standard set. Executables are never accepted.",
+        "maxSize": "Maximum size, MB (up to {{max}})"
+      },
       "condition": {
         "section": "Display logic",
         "toggle": "Show only if…",
@@ -638,6 +653,10 @@
           "NOT_EMPTY": "is filled in",
           "GREATER_THAN": "is greater than",
           "LESS_THAN": "is less than",
+          "file": {
+            "NOT_EMPTY": "has a file",
+            "EMPTY": "has no file"
+          },
           "checkbox": {
             "NOT_EMPTY": "is ticked",
             "EMPTY": "is not ticked"
@@ -707,6 +726,7 @@
       "types": {
         "RATING": {"label":"Rating","desc":"Stars from 1 to N"},
         "SECTION_BREAK": {"label":"Section","desc":"Heading that splits the form"},
+        "FILE_UPLOAD": {"label":"File","desc":"An attachment: document, screenshot"},
         "TEXT": {"label": "Short Text", "desc": "Single-line, up to 255 chars"},
         "TEXTAREA": {"label": "Long Text", "desc": "Multi-line paragraph answer"},
         "NUMBER": {"label": "Number", "desc": "Integer or decimal with validation"},
@@ -724,6 +744,7 @@
         "DATETIME": {"label": "Date & Time", "desc": "Combined date and time picker"}
       },
       "groups": {
+        "files": "Files",
         "layout": "Layout",
         "text": "Text Fields",
         "choice": "Choice Fields",
@@ -971,6 +992,8 @@
       "REJECTED": "Reject"
     },
     "card": {
+      "download": "Download",
+      "downloadFailed": "Failed, retry",
       "title": "Submission",
       "loadError": "Couldn't load the submission",
       "decideError": "Couldn't save the decision",

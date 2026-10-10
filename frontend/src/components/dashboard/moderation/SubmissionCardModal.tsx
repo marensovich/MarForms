@@ -1,18 +1,21 @@
 import {useEffect, useState} from "react";
 import {useTranslation} from "react-i18next";
-import {FiCheck, FiCornerUpLeft, FiStar, FiX} from "react-icons/fi";
+import {FiCheck, FiCornerUpLeft, FiDownload, FiFile, FiStar, FiX} from "react-icons/fi";
 import {
     decideSubmission,
     type DecisionStatus,
+    downloadSubmissionFile,
     getSubmissionDetail,
     type ModerationSubmission,
     type SubmissionDetail,
+    type SubmissionFile,
 } from "../../../api/moderation";
 import {ApiError} from "../../../api/client";
 import {describeApiError} from "../../../api/errors";
 import type {FormField} from "../../../types/forms";
 import {Modal, TabSkeleton} from "../shared";
 import {SubmissionStatusBadge} from "./SubmissionStatusBadge";
+import {formatBytes} from "../../form/fields/fileRules";
 
 function formatAnswer(field: FormField | undefined, value: unknown, t: (k: string) => string): string {
     if (value === null || value === undefined || value === "") return "—";
@@ -34,6 +37,35 @@ function Rating({value, max}: { value: number; max: number }) {
             ))}
             <span className="ml-1.5 text-xs text-[#6B6B76]">{value}/{max}</span>
         </span>
+    );
+}
+
+function Attachment({file}: { file: SubmissionFile | undefined }) {
+    const {t} = useTranslation();
+    const [busy, setBusy] = useState(false);
+    const [failed, setFailed] = useState(false);
+    if (!file) return <p className="text-sm text-[#8B8B96]">—</p>;
+    return (
+        <div className="flex items-center gap-3">
+            <FiFile size={15} className="flex-shrink-0 text-[#6B6B76]"/>
+            <div className="min-w-0 flex-1">
+                <p className="truncate text-sm text-[#1E1E24]">{file.name}</p>
+                <p className="text-xs text-[#8B8B96]">{formatBytes(file.size)}</p>
+            </div>
+            <button
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                    setBusy(true);
+                    setFailed(false);
+                    downloadSubmissionFile(file).catch(() => setFailed(true)).finally(() => setBusy(false));
+                }}
+                className="flex items-center gap-1.5 rounded-lg border border-[#E4E4E7] px-3 py-1.5 text-xs text-[#55555F] transition-colors hover:text-[#1E1E24] disabled:opacity-50"
+            >
+                <FiDownload size={12}/>
+                {failed ? t("moderation.card.downloadFailed") : t("moderation.card.download")}
+            </button>
+        </div>
     );
 }
 
@@ -200,6 +232,8 @@ export default function SubmissionCardModal({submissionId, onClose, onDecided}: 
                                     <p className="mb-1 text-xs font-medium text-[#6B6B76]">{field.label}</p>
                                     {field.type === "RATING" && typeof value === "number" ? (
                                         <Rating value={value} max={field.max ?? 5}/>
+                                    ) : field.type === "FILE_UPLOAD" ? (
+                                        <Attachment file={detail.files?.find(fl => fl.fieldId === field.id && fl.id === value)}/>
                                     ) : (
                                         <p className="whitespace-pre-wrap break-words text-sm text-[#1E1E24]">
                                             {formatAnswer(field, value, t)}

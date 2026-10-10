@@ -7,6 +7,7 @@ import {DEFAULT_RATING_SCALE} from "./fields/RatingField";
 import {submitForm, submitPublicForm} from "../../api/forms";
 import {getAnonymousToken} from "../../auth/anonymousToken";
 import {visibleFieldIds} from "./conditions";
+import {UploadContext} from "./fields/uploadContext";
 import {ApiError} from "../../api/client";
 import {describeApiError} from "../../api/errors";
 
@@ -37,6 +38,7 @@ import {
     FiLink,
     FiList,
     FiMail,
+    FiPaperclip,
     FiPhone,
     FiSend,
     FiShield,
@@ -212,6 +214,7 @@ const TYPE_ICON: Partial<Record<FieldType, React.ElementType>> = {
     TIME: FiClock,
     DATETIME: FiCalendar,
     RATING: FiStar,
+    FILE_UPLOAD: FiPaperclip,
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -473,6 +476,7 @@ export default function FormRenderer({form, preview = false}: Props) {
 
     // Branching (E3.1): fields hidden by their condition are not shown,
     // required, validated or sent.
+    const uploadContext = useMemo(() => ({slug: form.slug ?? null, preview}), [form.slug, preview]);
     const visibleIds = useMemo(() => visibleFieldIds(form.schema.fields, answers), [form.schema.fields, answers]);
     const visibleFields = useMemo(
         () => form.schema.fields.filter(f => visibleIds.has(f.id)),
@@ -649,13 +653,15 @@ export default function FormRenderer({form, preview = false}: Props) {
                                                 className="absolute -left-5 top-0.5 hidden h-4 w-4 items-center justify-center rounded text-[9px] font-bold text-[#C7C7CE] sm:flex">
                                                 {idx + 1}
                                             </div>
-                                            <DynamicField
-                                                field={field}
-                                                value={answers[field.id]}
-                                                onChange={handleChange}
-                                                onBlur={handleBlur}
-                                                error={errors[field.id]}
-                                            />
+                                            <UploadContext.Provider value={uploadContext}>
+                                                <DynamicField
+                                                    field={field}
+                                                    value={answers[field.id]}
+                                                    onChange={handleChange}
+                                                    onBlur={handleBlur}
+                                                    error={errors[field.id]}
+                                                />
+                                            </UploadContext.Provider>
                                         </motion.div>
                                     ))}
                                 </AnimatePresence>
