@@ -87,4 +87,13 @@ export interface WebhookConfig {
     imageUrl?: string;
     // Embed: fields display
     fieldsInline?: boolean;
+    // System-managed delivery status (E2.4)
+    invalid?: boolean | null;
+    lastError?: string | null;
+    health?: WebhookHealth | null;
+    healthReason?: string | null;
+    healthCheckedAt?: string | null;
 }
+
+/** Whether a webhook's notifications are getting through (E2.4). */
+export type WebhookHealth = "HEALTHY" | "DEGRADED" | "INVALID";

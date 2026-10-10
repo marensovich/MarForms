@@ -17,6 +17,7 @@ import {
 import type {FormDraft} from "./FormWizard";
 import type {WebhookConfig} from "../../../types/forms";
 import {type DiscordChannel, createGuildWebhook, getGuildChannels} from "../../../api/dashboard";
+import WebhookHealthNotice from "./WebhookHealthNotice";
 
 interface Props {
     draft: FormDraft;
@@ -96,6 +97,9 @@ function Field({label, hint, children}: { label: string; hint?: string; children
 
 // ── Webhook card ───────────────────────────────────────────────────────────────
 
+// A new URL is a different webhook: its old delivery status no longer applies.
+const CLEARED_HEALTH: Partial<WebhookConfig> = {invalid: null, health: null, healthReason: null, lastError: null};
+
 function WebhookCard({wh, guildId, channels, channelsLoading, onUpdate, onDelete}: {
     wh: WebhookConfig;
     guildId: string;
@@ -119,7 +123,7 @@ function WebhookCard({wh, guildId, channels, channelsLoading, onUpdate, onDelete
         setCreateError(null);
         try {
             const {url} = await createGuildWebhook(guildId, selectedChannel);
-            onUpdate({url});
+            onUpdate({url, ...CLEARED_HEALTH});
         } catch (e) {
             setCreateError(e instanceof Error ? e.message : t("wizard.webhooks.createFailed"));
         } finally {
@@ -140,7 +144,9 @@ function WebhookCard({wh, guildId, channels, channelsLoading, onUpdate, onDelete
     const str = (v: string | undefined) => v ?? "";
 
     return (
-        <div className="rounded-xl border border-[#E4E4E7] bg-white">
+        <div className="overflow-hidden rounded-xl border border-[#E4E4E7] bg-white">
+            <WebhookHealthNotice webhook={wh}/>
+
             {/* Create-from-channel row (bot-managed) */}
             {guildId && (
                 <div className="flex flex-wrap items-center gap-2 border-b border-[#E4E4E7] bg-[#FAFAFB] px-4 py-3">
@@ -189,7 +195,7 @@ function WebhookCard({wh, guildId, channels, channelsLoading, onUpdate, onDelete
                     <input
                         type="url"
                         value={wh.url}
-                        onChange={e => onUpdate({url: e.target.value})}
+                        onChange={e => onUpdate({url: e.target.value, ...CLEARED_HEALTH})}
                         placeholder={t("wizard.webhooks.urlPlaceholder")}
                         className={inputCls(!urlValid && wh.url.length > 0)}
                     />

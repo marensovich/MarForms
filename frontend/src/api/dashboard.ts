@@ -1,5 +1,5 @@
 import {apiRequest} from "./client";
-import type {FormAccessMode, FormAnswers, FormDefinition, FormStatus, WebhookConfig} from "../types/forms";
+import type {FormAccessMode, FormAnswers, FormDefinition, FormStatus, WebhookConfig, WebhookHealth} from "../types/forms";
 
 export interface DashboardForm {
     id: string;
@@ -13,6 +13,8 @@ export interface DashboardForm {
     slug?: string | null;
     fieldCount?: number;
     updatedAt?: string;
+    /** Worst status among the form's webhooks; null if it has none. */
+    notificationHealth?: WebhookHealth | null;
 }
 
 // ── Guild-scoped forms (owner panel) ───────────────────────────────────────

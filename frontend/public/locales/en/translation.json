@@ -952,5 +952,22 @@
     "addError": "Couldn't ban the user",
     "removeError": "Couldn't lift the ban",
     "meta": "{{date}} · by {{by}}"
+  },
+  "webhookHealth": {
+    "HEALTHY": "Notifications working",
+    "DEGRADED": "Notifications may not arrive",
+    "INVALID": "Notifications are not arriving",
+    "reasons": {
+      "DELIVERY_FAILING": "Discord is rejecting messages from this webhook; retrying. Responses are still being collected.",
+      "WEBHOOK_DELETED": "The webhook was deleted on Discord (or its token was reset). Responses are collected, but no notifications are sent: create the webhook again.",
+      "BOT_NOT_IN_GUILD": "The bot is not on this webhook's server. Responses are collected; add the bot back to manage notifications.",
+      "CHANNEL_UNAVAILABLE": "The bot can no longer see the webhook's channel (deleted or hidden). Responses are still collected.",
+      "MISSING_PERMISSIONS": "The bot lost Manage Webhooks in the channel. Responses are collected; restore the permission so notifications don't stop."
+    },
+    "panelAlert": {
+      "title_one": "{{count}} form has a notification problem",
+      "title_other": "{{count}} forms have notification problems",
+      "body": "Discord notifications may not arrive, but responses are still being collected. See the form's Webhooks tab for details."
+    }
   }
 }

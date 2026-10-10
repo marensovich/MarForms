@@ -1,7 +1,7 @@
 import {useCallback, useEffect, useState} from "react";
 import {AnimatePresence} from "framer-motion";
 import {useTranslation} from "react-i18next";
-import {FiArchive, FiArrowLeft, FiCheck, FiEdit3, FiFileText, FiLink, FiSend, FiSlash, FiTrash2} from "react-icons/fi";
+import {FiAlertTriangle, FiArchive, FiArrowLeft, FiCheck, FiEdit3, FiFileText, FiLink, FiSend, FiSlash, FiTrash2} from "react-icons/fi";
 import {
     type DashboardForm,
     deleteGuildForm,
@@ -90,6 +90,9 @@ export default function GuildFormsPanel({guild, onBack}: { guild: MyGuild; onBac
         };
     }, [guild.guildId, includeArchived, t]);
 
+    const brokenNotifications = forms.filter(f => f.status !== "ARCHIVED"
+        && f.notificationHealth && f.notificationHealth !== "HEALTHY").length;
+
     const run = async (form: DashboardForm, action: () => Promise<unknown>) => {
         setBusyId(form.id);
         setError(null);
@@ -149,6 +152,16 @@ export default function GuildFormsPanel({guild, onBack}: { guild: MyGuild; onBac
                 </div>
             </div>
 
+            {brokenNotifications > 0 && (
+                <div className="mb-4 flex gap-2 rounded-lg border border-[#EFDFC0] bg-[#FBF3E4] px-3 py-2.5 text-xs text-[#92702A]">
+                    <FiAlertTriangle size={14} className="mt-0.5 flex-shrink-0"/>
+                    <div>
+                        <p className="font-medium">{t("webhookHealth.panelAlert.title", {count: brokenNotifications})}</p>
+                        <p className="mt-0.5">{t("webhookHealth.panelAlert.body")}</p>
+                    </div>
+                </div>
+            )}
+
             {error && (
                 <div className="mb-4 rounded-lg border border-[#EAD4D3] bg-[#F7EEEE] px-3 py-2 text-xs text-[#8B4A46]">
                     {error}
@@ -178,7 +191,15 @@ export default function GuildFormsPanel({guild, onBack}: { guild: MyGuild; onBac
                             return (
                                 <tr key={f.id} className="border-b border-[#F0F0F2] last:border-0">
                                     <td className="px-5 py-3">
-                                        <p className="font-medium text-[#1E1E24]">{f.title}</p>
+                                        <p className="flex items-center gap-1.5 font-medium text-[#1E1E24]">
+                                            {f.title}
+                                            {f.notificationHealth && f.notificationHealth !== "HEALTHY" && (
+                                                <span title={t(`webhookHealth.${f.notificationHealth}`)}
+                                                      className={f.notificationHealth === "INVALID" ? "text-[#B56A65]" : "text-[#C99A3E]"}>
+                                                    <FiAlertTriangle size={13}/>
+                                                </span>
+                                            )}
+                                        </p>
                                         <p className="text-xs text-[#8B8B96]">
                                             {t("guildForms.fieldCount", {count: f.fieldCount ?? 0})}
                                         </p>
