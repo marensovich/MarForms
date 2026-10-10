@@ -2,9 +2,12 @@ package me.marensovich.gta5rpformapp.backend.database.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -116,6 +119,31 @@ public class AuditLog {
      */
     @Column(columnDefinition = "TEXT")
     private String details;
+
+    /**
+     * The guild the action happened on, for moderator actions an owner
+     * reviews (E2.5); {@code null} for platform-level entries.
+     *
+     * @since v.0.1
+     */
+    @Column(name = "guild_id")
+    private Long guildId;
+
+    /**
+     * What {@link #targetId} refers to: {@code SUBMISSION}, {@code USER}, ...
+     *
+     * @since v.0.1
+     */
+    @Column(name = "target_type", length = 30)
+    private String targetType;
+
+    /**
+     * Structured details (e.g. old and new status, comment, reason).
+     *
+     * @since v.0.1
+     */
+    @JdbcTypeCode(SqlTypes.JSON)
+    private Map<String, Object> metadata;
 
     /**
      * The timestamp when the action was performed.

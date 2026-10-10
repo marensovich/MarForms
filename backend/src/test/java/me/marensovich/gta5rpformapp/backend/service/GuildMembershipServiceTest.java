@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -16,6 +17,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({GuildService.class, GuildMembershipService.class, DiscordBotClient.class})
 class GuildMembershipServiceTest {
+
+    // Audit entries are covered by GuildAuditControllerTest.
+    @MockitoBean
+    private AuditLogService auditLogService;
 
     @Autowired
     private UserRepository userRepository;

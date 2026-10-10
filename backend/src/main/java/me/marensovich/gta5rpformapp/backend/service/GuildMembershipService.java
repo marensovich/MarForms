@@ -1,6 +1,7 @@
 package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.RequiredArgsConstructor;
+import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
 import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.database.entity.Guild;
 import me.marensovich.gta5rpformapp.backend.database.entity.GuildMembership;
@@ -39,6 +40,7 @@ public class GuildMembershipService {
 
     private final GuildMembershipRepository guildMembershipRepository;
     private final GuildService guildService;
+    private final AuditLogService auditLogService;
     private final UserRepository userRepository;
     private final DiscordBotClient discordBotClient;
 
@@ -148,6 +150,8 @@ public class GuildMembershipService {
         if (membership.getRole() != GuildRole.MODERATOR) {
             membership.setRole(GuildRole.MODERATOR);
             membership = guildMembershipRepository.save(membership);
+            auditLogService.logGuildAction(guildDiscordId, AuditAction.MODERATOR_ADDED, "USER",
+                    user.getDiscordId().toString(), user.getDiscordUsername(), null, null);
         }
         return ModeratorDto.from(membership);
     }
@@ -169,6 +173,8 @@ public class GuildMembershipService {
                 .orElseThrow(() -> new NotFoundException("User " + userDiscordId + " is not a moderator of this server"));
         membership.setRole(GuildRole.RESPONDENT);
         guildMembershipRepository.save(membership);
+        auditLogService.logGuildAction(guildDiscordId, AuditAction.MODERATOR_REMOVED, "USER",
+                userDiscordId.toString(), membership.getUser().getDiscordUsername(), null, null);
     }
 
     private User resolveUser(AddModeratorRequest request) {

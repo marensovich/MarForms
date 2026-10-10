@@ -26,6 +26,10 @@ import static org.mockito.Mockito.*;
 @TestPropertySource(properties = "app.discord.member-roles-ttl=PT5M")
 class GuildMembershipRoleSyncTest {
 
+    // Audit entries are covered by GuildAuditControllerTest.
+    @MockitoBean
+    private AuditLogService auditLogService;
+
     private static final long USER = 5001L;
     private static final long GUILD = 6001L;
 

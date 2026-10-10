@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -204,8 +205,16 @@ public class ModerationService {
         submission.setDecidedAt(LocalDateTime.now());
         Submission saved = submissionRepository.saveAndFlush(submission);
 
-        String title = formRepository.findById(saved.getFormId()).map(f -> f.getSchema().getTitle()).orElse(null);
-        auditLogService.logByCurrentUser(AuditAction.SUBMISSION_DECIDED, saved.getId().toString(), title,
+        Form form = formRepository.findById(saved.getFormId()).orElse(null);
+        String title = form != null ? form.getSchema().getTitle() : null;
+        Map<String, Object> metadata = new LinkedHashMap<>();
+        metadata.put("formId", saved.getFormId().toString());
+        metadata.put("from", old.name());
+        metadata.put("to", saved.getStatus().name());
+        if (comment != null) metadata.put("comment", comment);
+        if (saved.getDiscordId() != null) metadata.put("authorDiscordId", saved.getDiscordId().toString());
+        auditLogService.logGuildAction(form != null ? form.getServerId() : null, AuditAction.SUBMISSION_DECIDED,
+                "SUBMISSION", saved.getId().toString(), title, metadata,
                 "Status: " + old + " → " + saved.getStatus() + (comment != null ? "\nComment: " + comment : ""));
 
         String username = saved.getDiscordId() == null ? null

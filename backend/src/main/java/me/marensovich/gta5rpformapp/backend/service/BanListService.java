@@ -1,6 +1,7 @@
 package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.RequiredArgsConstructor;
+import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
 import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.database.entity.BanListEntry;
 import me.marensovich.gta5rpformapp.backend.database.entity.User;
@@ -38,6 +39,7 @@ public class BanListService {
     private final GuildMembershipRepository guildMembershipRepository;
     private final UserRepository userRepository;
     private final GuildService guildService;
+    private final AuditLogService auditLogService;
 
     /**
      * Whether a user is banned from a guild's forms.
@@ -108,7 +110,11 @@ public class BanListService {
         entry.setBannedBy(actorId);
         entry.setReason(request.reason() == null || request.reason().isBlank() ? null : request.reason().trim());
         entry = banListRepository.save(entry);
-        return toDto(entry, usernames(Set.of(target, actorId)));
+        BanDto dto = toDto(entry, usernames(Set.of(target, actorId)));
+        auditLogService.logGuildAction(guildId, AuditAction.GUILD_BAN_ADDED, "USER", target.toString(),
+                dto.username(), entry.getReason() != null ? Map.of("reason", entry.getReason()) : null,
+                entry.getReason() != null ? "Reason: " + entry.getReason() : null);
+        return dto;
     }
 
     /**
@@ -124,6 +130,8 @@ public class BanListService {
         BanListEntry entry = banListRepository.findByGuildIdAndDiscordId(guildId, discordId)
                 .orElseThrow(() -> new NotFoundException("User " + discordId + " is not banned on this server"));
         banListRepository.delete(entry);
+        auditLogService.logGuildAction(guildId, AuditAction.GUILD_BAN_REMOVED, "USER", discordId.toString(),
+                usernames(Set.of(discordId)).get(discordId), null, null);
     }
 
     private Long resolveDiscordId(BanRequest request) {

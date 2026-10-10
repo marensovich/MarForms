@@ -8,6 +8,7 @@ import me.marensovich.gta5rpformapp.backend.database.entity.AuditLog;
 import me.marensovich.gta5rpformapp.backend.database.repository.AuditLogRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -78,6 +79,51 @@ public class AuditLogService {
     public void logByCurrentUser(AuditAction action,
                                  String targetId, String targetName, String details) {
         log(action, currentActorId(), currentActorUsername(), targetId, targetName, details);
+    }
+
+    /**
+     * Records a moderator action on a guild (E2.5): what its owner reviews
+     * on the server's audit screen. The actor is the current user. Always
+     * stored, whatever the platform's enabled-actions setting says (that
+     * filter is for the platform journal); forwarded to the platform's
+     * log webhook only if the action is enabled there.
+     *
+     * @param guildId    the Discord guild snowflake ID
+     * @param action     what happened
+     * @param targetType what the target is ({@code SUBMISSION}, {@code USER})
+     * @param targetId   the target's ID
+     * @param targetName a readable name for the target, may be {@code null}
+     * @param metadata   structured details, may be {@code null}
+     * @param details    human-readable details, may be {@code null}
+     * @since v.0.1
+     */
+    public void logGuildAction(Long guildId, AuditAction action, String targetType, String targetId,
+                               String targetName, Map<String, Object> metadata, String details) {
+        AuditLog entry = buildEntry(action, currentActorId(), currentActorUsername(), targetId, targetName, details);
+        entry.setGuildId(guildId);
+        entry.setTargetType(targetType);
+        entry.setMetadata(metadata);
+        auditLogRepository.save(entry);
+        if (isActionEnabled(action)) dispatchAsync(entry);
+    }
+
+    /**
+     * A guild's audit log, newest first (E2.5).
+     *
+     * @param guildId        the Discord guild snowflake ID
+     * @param action         optional filter by action
+     * @param actorDiscordId optional filter by who acted
+     * @param pageable       pagination
+     * @return the matching entries
+     * @since v.0.1
+     */
+    public Page<AuditLog> listForGuild(Long guildId, AuditAction action, Long actorDiscordId, Pageable pageable) {
+        Specification<AuditLog> spec = (root, query, cb) -> cb.equal(root.get("guildId"), guildId);
+        if (action != null) spec = spec.and((root, query, cb) -> cb.equal(root.get("action"), action));
+        if (actorDiscordId != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("actorDiscordId"), actorDiscordId));
+        }
+        return auditLogRepository.findAll(spec, pageable);
     }
 
     // ── Query ───────────────────────────────────────────────────────────────
@@ -295,6 +341,10 @@ public class AuditLogService {
             case ROLE_UPDATED -> "🔵 Role Updated";
             case ROLE_DELETED -> "🔴 Role Deleted";
             case SETTINGS_UPDATED -> "🟡 Settings Updated";
+            case MODERATOR_ADDED -> "🟢 Moderator Added";
+            case MODERATOR_REMOVED -> "🔴 Moderator Removed";
+            case GUILD_BAN_ADDED -> "🔴 Server Ban Added";
+            case GUILD_BAN_REMOVED -> "🟢 Server Ban Removed";
         };
     }
 
@@ -307,8 +357,8 @@ public class AuditLogService {
      */
     private int actionColor(AuditAction action) {
         return switch (action) {
-            case USER_UNBANNED, FORM_CREATED, SUBMISSION_CREATED, ROLE_CREATED -> 0x57F287;
-            case USER_BANNED, FORM_DELETED, SUBMISSION_DELETED, ROLE_DELETED -> 0xED4245;
+            case USER_UNBANNED, FORM_CREATED, SUBMISSION_CREATED, ROLE_CREATED, MODERATOR_ADDED, GUILD_BAN_REMOVED -> 0x57F287;
+            case USER_BANNED, FORM_DELETED, SUBMISSION_DELETED, ROLE_DELETED, MODERATOR_REMOVED, GUILD_BAN_ADDED -> 0xED4245;
             case USER_LOGIN, FORM_UPDATED, ROLE_UPDATED -> 0x5865F2;
             case USER_ROLES_UPDATED, SETTINGS_UPDATED -> 0xFEE75C;
             case SUBMISSION_DECIDED -> 0xEB459E;

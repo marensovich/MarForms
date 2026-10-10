@@ -160,5 +160,17 @@ public enum AuditAction {
      *
      * @since v.0.1
      */
-    SETTINGS_UPDATED
+    SETTINGS_UPDATED,
+
+    /** A user was made a moderator of a guild (guild-scoped, E2.5). */
+    MODERATOR_ADDED,
+
+    /** A guild moderator was demoted back to respondent (guild-scoped, E2.5). */
+    MODERATOR_REMOVED,
+
+    /** A user was put on a guild's ban list (guild-scoped, E2.5). */
+    GUILD_BAN_ADDED,
+
+    /** A user was taken off a guild's ban list (guild-scoped, E2.5). */
+    GUILD_BAN_REMOVED
 }
