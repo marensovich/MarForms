@@ -7,6 +7,7 @@ import me.marensovich.gta5rpformapp.backend.database.entity.Submission;
 import me.marensovich.gta5rpformapp.backend.database.entity.User;
 import me.marensovich.gta5rpformapp.backend.database.repository.FormRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.GuildMembershipRepository;
+import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionFileRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,12 +40,14 @@ class GuildAccessGuardTest {
     private FormRepository formRepository;
     @Mock
     private SubmissionRepository submissionRepository;
+    @Mock
+    private SubmissionFileRepository submissionFileRepository;
 
     private GuildAccessGuard guard;
 
     @BeforeEach
     void setUp() {
-        guard = new GuildAccessGuard(guildMembershipRepository, formRepository, submissionRepository);
+        guard = new GuildAccessGuard(guildMembershipRepository, formRepository, submissionRepository, submissionFileRepository);
         User user = new User();
         user.setId(USER_ID);
         user.setDiscordId(42L);

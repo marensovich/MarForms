@@ -36,3 +36,6 @@ out/
 ### VS Code ###
 .vscode/
 .env
+
+### Uploaded files (app.files.dir) ###
+data/

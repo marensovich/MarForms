@@ -105,6 +105,22 @@ public class FormField {
     private FieldCondition condition;
 
     /**
+     * {@code FILE_UPLOAD} only: allowed extensions without the dot
+     * ({@code ["pdf", "png"]}); empty means {@code FileRules.DEFAULT_EXTENSIONS}.
+     *
+     * @since v.0.1
+     */
+    private List<String> allowedExtensions;
+
+    /**
+     * {@code FILE_UPLOAD} only: size limit in MB, up to
+     * {@code FileRules.MAX_SIZE_MB}; {@code null} means {@code FileRules.DEFAULT_SIZE_MB}.
+     *
+     * @since v.0.1
+     */
+    private Integer maxFileSizeMb;
+
+    /**
      * Enumeration of all supported field input types.
      * <p>
      * Each type corresponds to a specific input control and validation strategy.
@@ -183,7 +199,9 @@ public class FormField {
          * ({@code description}) that splits a long form into sections.
          * Never required, never has an answer.
          */
-        SECTION_BREAK;
+        SECTION_BREAK,
+        /** A file attachment (E3.2); the answer is the uploaded file's ID. */
+        FILE_UPLOAD;
 
         /**
          * Whether a respondent answers this field at all.

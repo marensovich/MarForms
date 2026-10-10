@@ -7,6 +7,7 @@ import me.marensovich.gta5rpformapp.backend.database.entity.Submission;
 import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.UserRepository;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmitFormRequest;
+import me.marensovich.gta5rpformapp.backend.service.files.FileService;
 import me.marensovich.gta5rpformapp.backend.service.forms.FormAccessService;
 import me.marensovich.gta5rpformapp.backend.service.jobs.OutboundJobService;
 import org.junit.jupiter.api.Test;
@@ -39,11 +40,13 @@ class SubmissionServiceTest {
     private OutboundJobService outboundJobService;
     @Mock
     private FormAccessService formAccessService;
+    @Mock
+    private FileService fileService;
 
     private SubmissionService service() {
         return new SubmissionService(
                 submissionRepository, userRepository, formService, webhookService, auditLogService, outboundJobService,
-                formAccessService);
+                formAccessService, fileService);
     }
 
     private Form activeFormWithWebhooks(WebhookConfig... webhooks) {

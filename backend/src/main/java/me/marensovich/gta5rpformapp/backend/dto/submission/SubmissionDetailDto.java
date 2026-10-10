@@ -17,6 +17,7 @@ import java.util.UUID;
  * @param formId     the form's ID
  * @param schema     the form's schema
  * @param author     the author's profile, {@code null} for a logged-out OPEN respondent
+ * @param files      the submission's attachments (E3.2)
  * @author marensovich
  * @version v.0.1
  * @since v.0.1
@@ -25,7 +26,8 @@ public record SubmissionDetailDto(
         SubmissionDto submission,
         UUID formId,
         FormSchema schema,
-        Author author
+        Author author,
+        List<SubmissionFileDto> files
 ) {
     /**
      * The submission's author as known to this guild.

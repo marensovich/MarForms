@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.database.repository.FormRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.GuildMembershipRepository;
+import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionFileRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -46,6 +47,7 @@ public class GuildAccessGuard {
     private final GuildMembershipRepository guildMembershipRepository;
     private final FormRepository formRepository;
     private final SubmissionRepository submissionRepository;
+    private final SubmissionFileRepository submissionFileRepository;
 
     /**
      * Whether the current user holds at least {@code minimumRole} on a guild.
@@ -93,6 +95,23 @@ public class GuildAccessGuard {
         if (submissionId == null) return false;
         return submissionRepository.findById(submissionId)
                 .map(submission -> hasRoleForForm(submission.getFormId(), minimumRole))
+                .orElse(false);
+    }
+
+    /**
+     * Same as {@link #hasRole}, for an uploaded file: only files already
+     * attached to a submission, via that submission's form (E3.2).
+     *
+     * @param fileId      the file's ID
+     * @param minimumRole the required role name
+     * @return {@code true} if access is granted; {@code false} if the file doesn't exist or is unattached
+     * @since v.0.1
+     */
+    public boolean hasRoleForFile(UUID fileId, String minimumRole) {
+        if (fileId == null) return false;
+        return submissionFileRepository.findById(fileId)
+                .filter(file -> file.getSubmissionId() != null)
+                .map(file -> hasRoleForForm(file.getFormId(), minimumRole))
                 .orElse(false);
     }
 

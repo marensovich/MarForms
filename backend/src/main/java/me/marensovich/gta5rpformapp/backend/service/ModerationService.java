@@ -14,8 +14,10 @@ import me.marensovich.gta5rpformapp.backend.dto.submission.DecisionRequest;
 import me.marensovich.gta5rpformapp.backend.dto.submission.MySubmissionDto;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmissionDetailDto;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmissionDto;
+import me.marensovich.gta5rpformapp.backend.dto.submission.SubmissionFileDto;
 import me.marensovich.gta5rpformapp.backend.exception.NotFoundException;
 import me.marensovich.gta5rpformapp.backend.service.discord.DiscordBotClient;
+import me.marensovich.gta5rpformapp.backend.service.files.FileService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -55,6 +57,7 @@ public class ModerationService {
     private final UserRepository userRepository;
     private final GuildMembershipRepository guildMembershipRepository;
     private final DiscordBotClient discordBotClient;
+    private final FileService fileService;
     private final AuditLogService auditLogService;
 
     /**
@@ -167,7 +170,8 @@ public class ModerationService {
 
         String username = author != null ? author.username() : null;
         return new SubmissionDetailDto(SubmissionDto.from(submission, username, form.getSchema().getTitle()),
-                form.getId(), form.getSchema(), author);
+                form.getId(), form.getSchema(), author,
+                fileService.forSubmission(submission.getId()).stream().map(SubmissionFileDto::from).toList());
     }
 
     /**

@@ -5,6 +5,7 @@ import me.marensovich.gta5rpformapp.backend.data.forms.FormField;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormField.FieldType;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormSchema;
 import me.marensovich.gta5rpformapp.backend.exception.FieldValidationException;
+import me.marensovich.gta5rpformapp.backend.service.files.FileRules;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,6 +28,8 @@ import java.util.Set;
  *     <li>{@code RATING}'s {@code max} (scale size) is 2–10;</li>
  *     <li>{@code min} ≤ {@code max} whenever both are set, and neither is negative for text lengths;</li>
  *     <li>a {@code SECTION_BREAK} can't be required;</li>
+ *     <li>a {@code FILE_UPLOAD}'s size limit is within the platform cap and its
+ *     extensions are plausible and not executable;</li>
  *     <li>a {@code condition} (E3.1) points at another existing input field,
  *     with a value that makes sense for it, and conditions never form a cycle.</li>
  * </ul>
@@ -185,6 +188,22 @@ public final class FormSchemaValidator {
         }
         if (field.getMin() != null && field.getMax() != null && field.getMin() > field.getMax()) {
             errors.put(path + ".min", "Min can't be greater than max");
+        }
+        if (type == FieldType.FILE_UPLOAD) {
+            if (field.getMaxFileSizeMb() != null
+                    && (field.getMaxFileSizeMb() < 1 || field.getMaxFileSizeMb() > FileRules.MAX_SIZE_MB)) {
+                errors.put(path + ".maxFileSizeMb", "File size limit must be between 1 and " + FileRules.MAX_SIZE_MB + " MB");
+            }
+            if (field.getAllowedExtensions() != null) {
+                for (String raw : field.getAllowedExtensions()) {
+                    String ext = FileRules.normalizeExtension(raw);
+                    if (ext == null) {
+                        errors.put(path + ".allowedExtensions", "Not a file extension: " + raw);
+                    } else if (FileRules.BLOCKED_EXTENSIONS.contains(ext)) {
+                        errors.put(path + ".allowedExtensions", "." + ext + " files can't be accepted");
+                    }
+                }
+            }
         }
     }
 }

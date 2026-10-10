@@ -11,6 +11,8 @@ import me.marensovich.gta5rpformapp.backend.database.entity.User;
 import me.marensovich.gta5rpformapp.backend.exception.InvalidStateException;
 import me.marensovich.gta5rpformapp.backend.exception.FormAccessDeniedException;
 import me.marensovich.gta5rpformapp.backend.exception.LoginRequiredException;
+import me.marensovich.gta5rpformapp.backend.database.entity.SubmissionFile;
+import me.marensovich.gta5rpformapp.backend.service.files.FileService;
 import me.marensovich.gta5rpformapp.backend.service.forms.FormAccessService;
 import me.marensovich.gta5rpformapp.backend.service.forms.SubmissionAnswerValidator;
 import org.springframework.lang.Nullable;
@@ -29,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -57,6 +60,7 @@ public class SubmissionService {
     private final AuditLogService auditLogService;
     private final OutboundJobService outboundJobService;
     private final FormAccessService formAccessService;
+    private final FileService fileService;
 
     /**
      * Submits a response to a form, by form ID and submitter Discord ID —
@@ -161,6 +165,7 @@ public class SubmissionService {
         }
 
         Map<String, Object> clean = SubmissionAnswerValidator.validate(form.getSchema(), answers);
+        List<SubmissionFile> files = fileService.resolveAnswerFiles(form, clean);
 
         Submission submission = new Submission();
         submission.setFormId(form.getId());
@@ -169,9 +174,10 @@ public class SubmissionService {
         submission.setIdempotencyKey(key);
         submission.setAnonymousToken(tokenHash);
         Submission saved = submissionRepository.save(submission);
+        fileService.attach(files, saved.getId());
 
         String discordUsername = author != null ? author.getDiscordUsername() : null;
-        enqueueWebhookDeliveries(form, saved, discordUsername, discordId);
+        enqueueWebhookDeliveries(form, saved, withFileNames(clean, files), discordUsername, discordId);
 
         auditLogService.log(AuditAction.SUBMISSION_CREATED,
                 discordId, discordUsername,
@@ -221,7 +227,18 @@ public class SubmissionService {
 
     private static final DateTimeFormatter DISPLAY_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-    private void enqueueWebhookDeliveries(Form form, Submission submission, String discordUsername, Long discordId) {
+    /** Answers for notifications: a file answer shows the file's name, not its ID. */
+    private static Map<String, Object> withFileNames(Map<String, Object> answers, List<SubmissionFile> files) {
+        if (files.isEmpty()) return answers;
+        Map<String, Object> display = new LinkedHashMap<>(answers);
+        for (SubmissionFile file : files) {
+            display.put(file.getFieldId(), "📎 " + file.getOriginalName());
+        }
+        return display;
+    }
+
+    private void enqueueWebhookDeliveries(Form form, Submission submission, Map<String, Object> answers,
+                                          String discordUsername, Long discordId) {
         if (form.getWebhooks() == null) return;
         for (WebhookConfig webhook : form.getWebhooks()) {
             if (webhook.getUrl() == null || webhook.getUrl().isBlank()) continue;
@@ -229,7 +246,7 @@ public class SubmissionService {
 
             var payload = new WebhookDeliveryPayload(
                     form.getId(), submission.getId(), webhook.getUrl(),
-                    submission.getAnswers(), discordUsername, discordId);
+                    answers, discordUsername, discordId);
             outboundJobService.enqueue(OutboundJobService.JOB_TYPE_WEBHOOK_DELIVERY, payload);
         }
     }
@@ -355,6 +372,7 @@ public class SubmissionService {
         Submission submission = submissionRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Submission not found: " + id));
         webhookService.deleteMessages(submission.getWebhookMessageIds());
+        fileService.deleteForSubmission(id);
         submissionRepository.delete(submission);
         auditLogService.logByCurrentUser(AuditAction.SUBMISSION_DELETED,
                 id.toString(), "Submission by discordId=" + submission.getDiscordId(), null);

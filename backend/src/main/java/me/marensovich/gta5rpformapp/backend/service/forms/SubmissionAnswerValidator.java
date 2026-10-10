@@ -150,6 +150,8 @@ public final class SubmissionAnswerValidator {
                 yield n != null && n == Math.floor(n) && n >= 1 && n <= scale ? null : "Must be between 1 and " + scale;
             }
             case SECTION_BREAK -> null;
+            // The uploaded file itself is checked (form, field, unused) by FileService on submit.
+            case FILE_UPLOAD -> value instanceof String s && isUuid(s.trim()) ? null : "Upload the file again";
         };
     }
 
@@ -160,9 +162,18 @@ public final class SubmissionAnswerValidator {
                 yield n == Math.floor(n) && !Double.isInfinite(n) ? (Object) (long) n : (Object) n;
             }
             case RATING -> toNumber(value).intValue();
-            case TEXT, TEXTAREA, EMAIL, PHONE, URL -> ((String) value).trim();
+            case TEXT, TEXTAREA, EMAIL, PHONE, URL, FILE_UPLOAD -> ((String) value).trim();
             default -> value;
         };
+    }
+
+    private static boolean isUuid(String s) {
+        try {
+            java.util.UUID.fromString(s);
+            return s.length() == 36;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 
     private static Double toNumber(Object value) {

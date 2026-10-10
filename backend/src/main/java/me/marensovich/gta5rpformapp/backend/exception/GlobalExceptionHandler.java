@@ -1,6 +1,7 @@
 package me.marensovich.gta5rpformapp.backend.exception;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import me.marensovich.gta5rpformapp.backend.service.files.FileRules;
 import org.springframework.http.HttpStatus;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +9,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -50,6 +52,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleAccessDenied(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(Map.of("error", "You don't have permission to perform this action"));
+    }
+
+    /**
+     * Handles an upload above the multipart cap: the request never reached
+     * the per-field size check, so say what the platform limit is.
+     *
+     * @param ex the exception
+     * @return a {@link ResponseEntity} with status 413 (Payload Too Large)
+     * @since v.0.1
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, String>> handleUploadTooLarge(MaxUploadSizeExceededException ex) {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(Map.of("error", "The file is larger than " + FileRules.MAX_SIZE_MB + " MB"));
     }
 
     /**

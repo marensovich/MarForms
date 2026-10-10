@@ -1,5 +1,6 @@
 package me.marensovich.gta5rpformapp.backend.controller.v1.api;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.config.security.CustomUserDetails;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormStatus;
@@ -8,16 +9,19 @@ import me.marensovich.gta5rpformapp.backend.database.entity.Guild;
 import me.marensovich.gta5rpformapp.backend.database.repository.FormRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.GuildRepository;
 import me.marensovich.gta5rpformapp.backend.dto.form.PublicFormDto;
+import me.marensovich.gta5rpformapp.backend.dto.submission.SubmissionFileDto;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmissionReceiptDto;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmitFormRequest;
 import me.marensovich.gta5rpformapp.backend.exception.NotFoundException;
-import me.marensovich.gta5rpformapp.backend.service.SubmissionService;
+import me.marensovich.gta5rpformapp.backend.service.files.FileService;
 import me.marensovich.gta5rpformapp.backend.service.forms.FormAccessService;
-import jakarta.validation.Valid;
+import me.marensovich.gta5rpformapp.backend.service.SubmissionService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 import java.util.UUID;
@@ -44,6 +48,7 @@ public class PublicFormController {
     private final GuildRepository guildRepository;
     private final FormAccessService formAccessService;
     private final SubmissionService submissionService;
+    private final FileService fileService;
 
     /**
      * The form as a respondent sees it (task #48), plus whether the current
@@ -90,6 +95,30 @@ public class PublicFormController {
                 request.answers(), idempotencyKey, anonymousToken);
         return ResponseEntity.status(result.created() ? HttpStatus.CREATED : HttpStatus.OK)
                 .body(SubmissionReceiptDto.from(result.submission()));
+    }
+
+    /**
+     * Uploads a file for a {@code FILE_UPLOAD} field while the form is being
+     * filled in (E3.2, ADR 0003); the returned {@code id} is that field's
+     * answer on submit. Same access rules as submitting.
+     *
+     * @param slug      the public slug
+     * @param fieldId   the field the file is for
+     * @param file      the file
+     * @param principal the logged-in user, or {@code null}
+     * @return the stored file
+     * @since v.0.1
+     */
+    @PostMapping(value = "/forms/{slug}/files", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<SubmissionFileDto> upload(
+            @PathVariable String slug,
+            @RequestParam("fieldId") String fieldId,
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal CustomUserDetails principal
+    ) {
+        Form form = findVisible(slug);
+        var stored = fileService.upload(form, fieldId, file, principal != null ? principal.getUser() : null);
+        return ResponseEntity.status(HttpStatus.CREATED).body(SubmissionFileDto.from(stored));
     }
 
     /**
