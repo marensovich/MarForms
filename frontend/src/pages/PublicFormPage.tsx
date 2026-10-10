@@ -10,7 +10,7 @@ import {
     FormInactiveState,
     FormNotFoundState,
     NotAuthenticatedState,
-    NotInGuildState,
+    BannedState, NotInGuildState,
 } from "../components/AccessStates";
 import FormRenderer from "../components/form/FormRenderer";
 import type {FormDefinition} from "../types/forms";
@@ -56,6 +56,7 @@ export default function PublicFormPage() {
     if (!form.acceptingSubmissions) return <FormInactiveState reason={form.notAcceptingReason}/>;
     if (form.viewerAccess === "LOGIN_REQUIRED") return <NotAuthenticatedState redirectPath={`/f/${form.slug}`}/>;
     if (form.viewerAccess === "NOT_IN_GUILD") return <NotInGuildState/>;
+    if (form.viewerAccess === "BANNED") return <BannedState/>;
 
     const definition: FormDefinition = {
         id: form.id,

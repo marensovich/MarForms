@@ -2,7 +2,7 @@
 import {apiRequest} from "./client";
 import type {FormAccessMode, FormAnswers, FormDefinition, FormSchema, FormStatus} from "../types/forms";
 
-export type ViewerAccess = "GRANTED" | "LOGIN_REQUIRED" | "NOT_IN_GUILD";
+export type ViewerAccess = "GRANTED" | "LOGIN_REQUIRED" | "NOT_IN_GUILD" | "BANNED";
 
 /** What a respondent may see of a form — never webhooks or channels. */
 export interface PublicForm {

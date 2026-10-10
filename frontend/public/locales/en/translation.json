@@ -53,6 +53,11 @@
       "signIn": "Sign in with Discord",
       "redirectNote": "You'll be redirected back to this form after signing in"
     },
+    "banned": {
+      "badge": "Access denied",
+      "title": "You can't fill in this server's forms",
+      "description": "The server's moderators have restricted your access to its forms. If you think this is a mistake, contact the server staff."
+    },
     "notInGuild": {
       "badge": "Access restricted",
       "title": "Server membership required",
@@ -920,5 +925,18 @@
       "lastDecision": "Last decision: {{date}} by moderator {{moderator}}",
       "commentPlaceholder": "Comment for the author (optional)"
     }
+  },
+  "bans": {
+    "title": "Ban list",
+    "placeholder": "Discord ID or username",
+    "reasonPlaceholder": "Reason (visible to moderators only)",
+    "add": "Ban",
+    "remove": "Unban",
+    "hint": "A banned user can't open or submit this server's forms. The owner and moderators can't be banned. Someone who has never signed in to MarForms can be banned by Discord ID.",
+    "empty": "The ban list is empty",
+    "loadError": "Couldn't load the ban list",
+    "addError": "Couldn't ban the user",
+    "removeError": "Couldn't lift the ban",
+    "meta": "{{date}} · by {{by}}"
   }
 }

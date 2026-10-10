@@ -1,10 +1,11 @@
 import {useEffect, useState} from "react";
 import {AnimatePresence} from "framer-motion";
 import {useTranslation} from "react-i18next";
-import {FiChevronRight, FiExternalLink, FiInbox, FiServer, FiUsers} from "react-icons/fi";
+import {FiChevronRight, FiExternalLink, FiInbox, FiServer, FiSlash, FiUsers} from "react-icons/fi";
 import {getGuildConnectUrl, getMyGuilds, type MyGuild} from "../../api/dashboard";
 import {ActionBtn, Badge, EmptyState, TabSkeleton} from "./shared";
 import ModeratorsModal from "./ModeratorsModal";
+import BansModal from "./BansModal";
 import GuildFormsPanel from "./GuildFormsPanel";
 import GuildModerationPanel from "./moderation/GuildModerationPanel";
 
@@ -20,6 +21,7 @@ export default function ServersTab() {
     const [moderatorsGuild, setModeratorsGuild] = useState<MyGuild | null>(null);
     const [openGuild, setOpenGuild] = useState<MyGuild | null>(null);
     const [moderationGuild, setModerationGuild] = useState<MyGuild | null>(null);
+    const [bansGuild, setBansGuild] = useState<MyGuild | null>(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -113,6 +115,9 @@ export default function ServersTab() {
                                             <FiInbox size={11} className="mr-1 inline"/>
                                             {t("moderation.open")}
                                         </ActionBtn>
+                                        <ActionBtn variant="danger" onClick={() => setBansGuild(g)} title={t("bans.title")}>
+                                            <FiSlash size={11} className="inline"/>
+                                        </ActionBtn>
                                         <ActionBtn onClick={() => setOpenGuild(g)}>
                                             {t("servers.openForms")}
                                             <FiChevronRight size={11} className="ml-1 inline"/>
@@ -130,6 +135,7 @@ export default function ServersTab() {
                 {moderatorsGuild && (
                     <ModeratorsModal guild={moderatorsGuild} onClose={() => setModeratorsGuild(null)}/>
                 )}
+                {bansGuild && <BansModal guild={bansGuild} onClose={() => setBansGuild(null)}/>}
             </AnimatePresence>
         </div>
     );

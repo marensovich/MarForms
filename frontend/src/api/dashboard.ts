@@ -147,6 +147,30 @@ export function removeGuildModerator(guildId: string, discordId: string): Promis
     return apiRequest(`/guilds/${guildId}/moderators/${discordId}`, {method: "DELETE"});
 }
 
+export interface GuildBan {
+    discordId: string;
+    username: string | null;
+    reason: string | null;
+    bannedBy: string | null;
+    bannedByUsername: string | null;
+    createdAt: string;
+}
+
+export function getGuildBans(guildId: string): Promise<GuildBan[]> {
+    return apiRequest(`/guilds/${guildId}/bans`);
+}
+
+export function banGuildUser(
+    guildId: string,
+    payload: { discordId?: string; username?: string; reason?: string }
+): Promise<GuildBan> {
+    return apiRequest(`/guilds/${guildId}/bans`, {method: "POST", body: payload});
+}
+
+export function unbanGuildUser(guildId: string, discordId: string): Promise<void> {
+    return apiRequest(`/guilds/${guildId}/bans/${discordId}`, {method: "DELETE"});
+}
+
 export interface DiscordChannel {
     id: string;
     name: string;
