@@ -16,6 +16,7 @@ import type {FormStatus} from "../../types/forms";
 import {ActionBtn, Badge, ConfirmModal, EmptyState, TabSkeleton} from "./shared";
 import FormWizard from "./forms/FormWizard";
 import FormEditModal from "./forms/FormEditModal";
+import PlanUsage from "./PlanUsage";
 
 const STATUS_COLOR: Record<FormStatus, "default" | "green" | "orange" | "red"> = {
     DRAFT: "default",
@@ -152,6 +153,8 @@ export default function GuildFormsPanel({guild, onBack}: { guild: MyGuild; onBac
                     )}
                 </div>
             </div>
+
+            {isOwner && <PlanUsage guildId={guild.guildId} refreshKey={forms}/>}
 
             {brokenNotifications > 0 && (
                 <div className="mb-4 flex gap-2 rounded-lg border border-[#EFDFC0] bg-[#FBF3E4] px-3 py-2.5 text-xs text-[#92702A]">

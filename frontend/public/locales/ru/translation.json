@@ -1072,5 +1072,20 @@
     "reason": "Причина: {{reason}}",
     "comment": "Комментарий: {{comment}}",
     "unknownActor": "Система"
+  },
+  "planUsage": {
+    "title": "Тариф и лимиты",
+    "plans": {
+      "FREE": "Бесплатный",
+      "PRO": "Pro"
+    },
+    "metrics": {
+      "ACTIVE_FORMS": "Формы (без архива)",
+      "SUBMISSIONS_PER_MONTH": "Заявки в этом месяце",
+      "MODERATORS": "Модераторы"
+    },
+    "unlimited": "Без ограничений",
+    "atLimit": "Лимит тарифа достигнут",
+    "submissionsOver": "Лимит превышен — формы продолжают принимать заявки"
   }
 }

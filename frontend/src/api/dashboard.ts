@@ -323,3 +323,15 @@ export function deleteSubmission(id: string): Promise<void> {
 export function exportFormCsv(formId: string): Promise<void> {
     return downloadFile(`/forms/${formId}/export?format=csv`, "submissions.csv");
 }
+
+export type PlanMetric = "ACTIVE_FORMS" | "SUBMISSIONS_PER_MONTH" | "MODERATORS";
+
+export interface GuildUsage {
+    plan: string;
+    usage: { metric: PlanMetric; used: number; limit: number | null }[];
+}
+
+/** A guild's plan and its usage against each limit (owner only, E4.1). */
+export function getGuildUsage(guildId: string): Promise<GuildUsage> {
+    return apiRequest(`/guilds/${guildId}/usage`);
+}

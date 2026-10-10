@@ -1060,5 +1060,20 @@
     "reason": "Reason: {{reason}}",
     "comment": "Comment: {{comment}}",
     "unknownActor": "System"
+  },
+  "planUsage": {
+    "title": "Plan and limits",
+    "plans": {
+      "FREE": "Free",
+      "PRO": "Pro"
+    },
+    "metrics": {
+      "ACTIVE_FORMS": "Forms (not archived)",
+      "SUBMISSIONS_PER_MONTH": "Submissions this month",
+      "MODERATORS": "Moderators"
+    },
+    "unlimited": "Unlimited",
+    "atLimit": "Plan limit reached",
+    "submissionsOver": "Over the limit: forms keep accepting submissions"
   }
 }
