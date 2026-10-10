@@ -100,6 +100,16 @@ public class Submission {
     private String idempotencyKey;
 
     /**
+     * On an {@code ANONYMOUS} form: SHA-256 of the form ID and the browser's
+     * random token (hex). Lets the per-user limit count one browser's
+     * submissions without identifying anyone or linking forms (E2.3).
+     *
+     * @since v.0.1
+     */
+    @Column(name = "anonymous_token", length = 64)
+    private String anonymousToken;
+
+    /**
      * Optimistic-lock version — concurrent moderation decisions on the same
      * submission make the later write fail instead of silently overwriting.
      * Left {@code null} on new rows on purpose: Spring Data treats a null

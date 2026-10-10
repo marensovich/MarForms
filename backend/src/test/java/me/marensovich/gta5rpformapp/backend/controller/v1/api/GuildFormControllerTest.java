@@ -215,12 +215,16 @@ class GuildFormControllerTest {
     }
 
     @Test
-    void stage2AccessModesAreRejected() throws Exception {
+    void roleGatedIsNotAvailableYetButAnonymousIs() throws Exception {
         String formId = createDraft(GUILD);
 
         mvc.perform(as(owner, put("/api/v1/guilds/{g}/forms/{f}/settings", GUILD, formId))
-                        .content("{\"accessMode\": \"ANONYMOUS\"}"))
+                        .content("{\"accessMode\": \"ROLE_GATED\"}"))
                 .andExpect(status().isBadRequest());
+        mvc.perform(as(owner, put("/api/v1/guilds/{g}/forms/{f}/settings", GUILD, formId))
+                        .content("{\"accessMode\": \"ANONYMOUS\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessMode").value("ANONYMOUS"));
         mvc.perform(as(owner, put("/api/v1/guilds/{g}/forms/{f}/settings", GUILD, formId))
                         .content("{\"accessMode\": \"OPEN\", \"submissionLimitPerUser\": 1}"))
                 .andExpect(status().isOk())

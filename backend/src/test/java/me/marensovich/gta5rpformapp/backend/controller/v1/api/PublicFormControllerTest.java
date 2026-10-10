@@ -208,4 +208,46 @@ class PublicFormControllerTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error").value("You have already submitted this form"));
     }
+
+    @Test
+    void anAnonymousFormNeverRecordsWhoSubmitted() throws Exception {
+        form("anon", FormAccessMode.ANONYMOUS, FormStatus.PUBLISHED);
+        User outsider = user(15L, false);
+
+        mvc.perform(get("/api/v1/public/forms/{s}", "anon"))
+                .andExpect(jsonPath("$.viewerAccess").value("GRANTED"));
+        mvc.perform(submit("anon")).andExpect(status().isCreated());
+
+        // Logged in and not even a member: still accepted, still not recorded.
+        String body = mvc.perform(as(outsider, submit("anon")))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        UUID id = UUID.fromString(objectMapper.readTree(body).get("id").asText());
+        assertThat(submissionRepository.findById(id).orElseThrow().getDiscordId()).isNull();
+    }
+
+    @Test
+    void anAnonymousFormLimitsPerBrowserToken() throws Exception {
+        Form f = form("anon-once", FormAccessMode.ANONYMOUS, FormStatus.PUBLISHED);
+        f.setSubmissionLimitPerUser(1);
+        formRepository.save(f);
+        String browserA = "a".repeat(32);
+
+        mvc.perform(submit("anon-once")).andExpect(status().isBadRequest());
+        mvc.perform(submit("anon-once").header("Anonymous-Token", "short")).andExpect(status().isBadRequest());
+
+        mvc.perform(submit("anon-once").header("Anonymous-Token", browserA).header("Idempotency-Key", "k-anon-1"))
+                .andExpect(status().isCreated());
+        // A retry of the same request is the same submission, not a limit hit.
+        mvc.perform(submit("anon-once").header("Anonymous-Token", browserA).header("Idempotency-Key", "k-anon-1"))
+                .andExpect(status().isOk());
+        mvc.perform(submit("anon-once").header("Anonymous-Token", browserA))
+                .andExpect(status().isConflict());
+        mvc.perform(submit("anon-once").header("Anonymous-Token", "b".repeat(32)))
+                .andExpect(status().isCreated());
+
+        // Only a per-form hash is stored, never the token itself.
+        assertThat(submissionRepository.findAll().stream().filter(s -> s.getFormId().equals(f.getId())).toList()).extracting(s -> s.getAnonymousToken())
+                .doesNotContainNull().doesNotContain(browserA).allMatch(t -> t.length() == 64);
+    }
 }

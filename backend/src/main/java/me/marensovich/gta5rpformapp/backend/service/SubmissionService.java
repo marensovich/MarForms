@@ -2,6 +2,7 @@ package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
+import me.marensovich.gta5rpformapp.backend.data.forms.FormAccessMode;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormStatus;
 import me.marensovich.gta5rpformapp.backend.data.forms.WebhookConfig;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
@@ -72,7 +73,7 @@ public class SubmissionService {
     public Submission submit(UUID formId, Long discordId, SubmitFormRequest request) {
         Form form = formService.getById(formId);
         User user = discordId == null ? null : userRepository.findByDiscordId(discordId).orElse(null);
-        return submit(form, user, request.answers(), null).submission();
+        return submit(form, user, request.answers(), null, null).submission();
     }
 
     /**
@@ -97,7 +98,8 @@ public class SubmissionService {
      *     <li><b>Access</b> — {@link FormAccessService}: 401 if login is
      *     required, 403 if not a member of the form's guild or on its ban list.</li>
      *     <li><b>Per-user limit</b> — {@code submissionLimitPerUser}, counted
-     *     per Discord account (can't apply to logged-out OPEN respondents).</li>
+     *     per Discord account (can't apply to logged-out OPEN respondents), or
+     *     per browser on an ANONYMOUS form, via {@code anonymousToken}.</li>
      *     <li><b>Answers</b> — {@link SubmissionAnswerValidator}: 400 with an
      *     error per field; only the cleaned answers are stored.</li>
      * </ol>
@@ -110,12 +112,14 @@ public class SubmissionService {
      * @param user           the respondent, or {@code null} if not logged in
      * @param answers        raw answers keyed by field id
      * @param idempotencyKey client-generated key, may be {@code null}
+     * @param anonymousToken the browser's random token, used only on ANONYMOUS
+     *                       forms (required there if the form has a per-user limit)
      * @return the stored submission, and whether it was created by this call
      * @since v.0.1
      */
     @Transactional
     public SubmitResult submit(Form form, @Nullable User user, Map<String, Object> answers,
-                               @Nullable String idempotencyKey) {
+                               @Nullable String idempotencyKey, @Nullable String anonymousToken) {
         String key = idempotencyKey == null || idempotencyKey.isBlank() ? null : idempotencyKey.trim();
         if (key != null) {
             var existing = submissionRepository.findByIdempotencyKey(key);
@@ -138,9 +142,19 @@ public class SubmissionService {
             }
         }
 
-        Long discordId = user != null ? user.getDiscordId() : null;
-        if (form.getSubmissionLimitPerUser() != null && discordId != null
-                && submissionRepository.countByFormIdAndDiscordId(form.getId(), discordId) >= form.getSubmissionLimitPerUser()) {
+        // Anonymous forms never record who submitted, even if they are logged in.
+        boolean anonymous = form.getAccessMode() == FormAccessMode.ANONYMOUS;
+        User author = anonymous ? null : user;
+        Long discordId = author != null ? author.getDiscordId() : null;
+        String tokenHash = anonymous ? hashAnonymousToken(form, anonymousToken) : null;
+        if (anonymous && tokenHash == null && form.getSubmissionLimitPerUser() != null) {
+            throw new IllegalArgumentException("Missing or invalid Anonymous-Token header");
+        }
+        long previous = discordId != null ? submissionRepository.countByFormIdAndDiscordId(form.getId(), discordId)
+                : tokenHash != null ? submissionRepository.countByFormIdAndAnonymousToken(form.getId(), tokenHash)
+                : 0;
+        if (form.getSubmissionLimitPerUser() != null && (discordId != null || tokenHash != null)
+                && previous >= form.getSubmissionLimitPerUser()) {
             throw new InvalidStateException(form.getSubmissionLimitPerUser() == 1
                     ? "You have already submitted this form"
                     : "You have reached the limit of " + form.getSubmissionLimitPerUser() + " submissions for this form");
@@ -153,9 +167,10 @@ public class SubmissionService {
         submission.setDiscordId(discordId);
         submission.setAnswers(clean);
         submission.setIdempotencyKey(key);
+        submission.setAnonymousToken(tokenHash);
         Submission saved = submissionRepository.save(submission);
 
-        String discordUsername = user != null ? user.getDiscordUsername() : null;
+        String discordUsername = author != null ? author.getDiscordUsername() : null;
         enqueueWebhookDeliveries(form, saved, discordUsername, discordId);
 
         auditLogService.log(AuditAction.SUBMISSION_CREATED,
@@ -184,6 +199,24 @@ public class SubmissionService {
             return "This form closed on " + form.getClosesAt().format(DISPLAY_TIME);
         }
         return "This form is closed and no longer accepts submissions";
+    }
+
+    /**
+     * SHA-256 of the form ID and the browser's token, hex, or {@code null}
+     * if no usable token was sent. Salting with the form ID keeps one
+     * browser's submissions to different forms unlinkable.
+     */
+    private static @Nullable String hashAnonymousToken(Form form, @Nullable String token) {
+        if (token == null) return null;
+        String t = token.trim();
+        if (t.length() < 16 || t.length() > 128) return null;
+        try {
+            byte[] digest = java.security.MessageDigest.getInstance("SHA-256")
+                    .digest((form.getId() + ":" + t).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            return java.util.HexFormat.of().formatHex(digest);
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private static final DateTimeFormatter DISPLAY_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");

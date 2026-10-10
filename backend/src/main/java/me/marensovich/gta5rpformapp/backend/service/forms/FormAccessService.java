@@ -22,8 +22,10 @@ import org.springframework.stereotype.Service;
  *     must be a member of the form's guild. A failed membership check
  *     re-syncs the user's guild list with their stored Discord token first
  *     (they may have joined since logging in, #31).</li>
+ *     <li>{@code ANONYMOUS}: anyone; nothing about the viewer is looked at
+ *     or recorded (E2.3), so no ban or membership checks either.</li>
  * </ul>
- * In either mode a logged-in user on the guild's ban list is refused
+ * In the other modes a logged-in user on the guild's ban list is refused
  * ({@code BANNED}, E2.2) before anything else is checked.
  * On success for a logged-in user, the {@code RESPONDENT} membership is
  * upserted and their Discord roles refreshed if stale (#34).
@@ -59,6 +61,9 @@ public class FormAccessService {
      * @since v.0.1
      */
     public Access check(Form form, @Nullable User user) {
+        if (form.getAccessMode() == FormAccessMode.ANONYMOUS) {
+            return Access.GRANTED;
+        }
         if (user == null) {
             return form.getAccessMode() == FormAccessMode.OPEN ? Access.GRANTED : Access.LOGIN_REQUIRED;
         }

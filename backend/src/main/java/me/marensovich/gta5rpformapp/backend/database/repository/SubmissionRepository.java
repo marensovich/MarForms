@@ -62,6 +62,8 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID>, J
      */
     long countByFormIdAndDiscordId(UUID formId, Long discordId);
 
+    long countByFormIdAndAnonymousToken(UUID formId, String anonymousToken);
+
     /**
      * Finds the submission an idempotency key already produced.
      *

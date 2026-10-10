@@ -63,7 +63,7 @@ public class SubmissionController {
         // Same intake path (state, access, limit, answer validation,
         // idempotency) as the public slug endpoint.
         var result = submissionService.submit(formService.getById(formId),
-                principal != null ? principal.getUser() : null, request.answers(), idempotencyKey);
+                principal != null ? principal.getUser() : null, request.answers(), idempotencyKey, null);
         return ResponseEntity.status(result.created() ? HttpStatus.CREATED : HttpStatus.OK)
                 .body(SubmissionDto.from(result.submission()));
     }

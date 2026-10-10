@@ -71,6 +71,7 @@ public class PublicFormController {
      *
      * @param slug           the public slug
      * @param idempotencyKey the client-generated key, optional
+     * @param anonymousToken a random per-browser token, used by ANONYMOUS forms only
      * @param request        the answers
      * @param principal      the logged-in user, or {@code null}
      * @return the receipt for the stored submission
@@ -80,12 +81,13 @@ public class PublicFormController {
     public ResponseEntity<SubmissionReceiptDto> submit(
             @PathVariable String slug,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @RequestHeader(value = "Anonymous-Token", required = false) String anonymousToken,
             @Valid @RequestBody SubmitFormRequest request,
             @AuthenticationPrincipal CustomUserDetails principal
     ) {
         Form form = findVisible(slug);
         var result = submissionService.submit(form, principal != null ? principal.getUser() : null,
-                request.answers(), idempotencyKey);
+                request.answers(), idempotencyKey, anonymousToken);
         return ResponseEntity.status(result.created() ? HttpStatus.CREATED : HttpStatus.OK)
                 .body(SubmissionReceiptDto.from(result.submission()));
     }
