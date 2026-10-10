@@ -4,6 +4,7 @@ import me.marensovich.gta5rpformapp.backend.database.entity.Submission;
 import me.marensovich.gta5rpformapp.backend.dto.submission.UserSubmissionCountDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -38,6 +39,17 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID>, J
      * @since v.0.1
      */
     Page<Submission> findAllByFormId(UUID formId, Pageable pageable);
+
+    /**
+     * A form's submissions one slice at a time, without the count query a
+     * {@link Page} needs: for streaming exports (E3.3).
+     *
+     * @param formId   the form
+     * @param pageable which slice
+     * @return the slice
+     * @since v.0.1
+     */
+    Slice<Submission> readAllByFormId(UUID formId, Pageable pageable);
 
     /**
      * Counts the total number of submissions for a specific form.

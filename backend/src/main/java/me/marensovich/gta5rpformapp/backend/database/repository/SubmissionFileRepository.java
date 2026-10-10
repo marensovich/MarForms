@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -13,6 +14,8 @@ import java.util.UUID;
 public interface SubmissionFileRepository extends JpaRepository<SubmissionFile, UUID> {
 
     List<SubmissionFile> findAllBySubmissionId(UUID submissionId);
+
+    List<SubmissionFile> findAllBySubmissionIdIn(Collection<UUID> submissionIds);
 
     List<SubmissionFile> findAllBySubmissionIdIsNullAndCreatedAtBefore(LocalDateTime cutoff);
 
