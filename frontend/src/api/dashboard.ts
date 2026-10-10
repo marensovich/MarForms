@@ -335,3 +335,29 @@ export interface GuildUsage {
 export function getGuildUsage(guildId: string): Promise<GuildUsage> {
     return apiRequest(`/guilds/${guildId}/usage`);
 }
+
+export interface BillingStatus {
+    workspaceId: string;
+    guildCount: number;
+    plan: string;
+    /** Stripe's subscription status, "none" if never subscribed */
+    status: string;
+    currentPeriodEnd: string | null;
+    cancelAtPeriodEnd: boolean;
+    billingEnabled: boolean;
+    availablePlans: string[];
+}
+
+export function getGuildBilling(guildId: string): Promise<BillingStatus> {
+    return apiRequest(`/guilds/${guildId}/billing`);
+}
+
+/** Starts Stripe Checkout; returns the URL to send the owner to. */
+export function startCheckout(guildId: string, plan: string): Promise<{ url: string }> {
+    return apiRequest(`/guilds/${guildId}/billing/checkout`, {method: "POST", body: {plan}});
+}
+
+/** Opens the Stripe Billing Portal; returns its URL. */
+export function openBillingPortal(guildId: string): Promise<{ url: string }> {
+    return apiRequest(`/guilds/${guildId}/billing/portal`, {method: "POST"});
+}

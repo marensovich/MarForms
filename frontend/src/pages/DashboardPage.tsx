@@ -53,7 +53,10 @@ function Initials({name}: { name: string }) {
 export default function DashboardPage() {
     const {user} = useAuth();
     const {t} = useTranslation();
-    const [selectedTab, setSelectedTab] = useState<Tab | null>(null);
+    // Returning from Stripe Checkout lands on the servers tab, where billing reopens.
+    const [selectedTab, setSelectedTab] = useState<Tab | null>(
+        () => new URLSearchParams(window.location.search).has("billing") ? "servers" : null
+    );
     // null = still loading. Owners/moderators of a server get into the
     // dashboard even without the global DASHBOARD_ACCESS permission.
     const [hasGuildStaffRole, setHasGuildStaffRole] = useState<boolean | null>(null);

@@ -1075,5 +1075,35 @@
     "unlimited": "Unlimited",
     "atLimit": "Plan limit reached",
     "submissionsOver": "Over the limit: forms keep accepting submissions"
+  },
+  "billing": {
+    "title": "Subscription",
+    "loadError": "Couldn't load the subscription",
+    "actionError": "Couldn't open the payment page",
+    "currentPlan": "Current plan",
+    "coversServers_one": "Covers {{count}} server",
+    "coversServers_other": "Covers {{count}} servers",
+    "status": {
+      "active": "Active",
+      "trialing": "Trial",
+      "past_due": "Payment due",
+      "canceled": "Cancelled",
+      "incomplete": "Incomplete",
+      "incomplete_expired": "Expired",
+      "unpaid": "Unpaid"
+    },
+    "renewsOn": "Renews on {{date}}",
+    "endsOn": "Cancelled: active until {{date}}, then the free plan",
+    "pastDue": "A payment failed. Stripe will retry; update your card in subscription management to keep the plan.",
+    "notConfigured": "Payments are not set up on this MarForms server yet.",
+    "manage": "Manage subscription (Stripe)",
+    "subscribe": "Subscribe",
+    "history": "Payment details and history",
+    "planDesc": {
+      "PRO": "Higher limits for the server"
+    },
+    "checkoutSuccess": "Payment received. The plan updates within a few seconds: reopen this window if it has not changed yet.",
+    "checkoutCancelled": "Checkout cancelled, nothing was charged.",
+    "stripeNote": "Payment, plan changes and cancellation happen on secure Stripe pages. A cancelled plan stays active until the end of the paid period."
   }
 }

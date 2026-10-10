@@ -1,11 +1,12 @@
 import {useEffect, useState} from "react";
 import {AnimatePresence} from "framer-motion";
 import {useTranslation} from "react-i18next";
-import {FiChevronRight, FiExternalLink, FiInbox, FiList, FiServer, FiSlash, FiUsers} from "react-icons/fi";
+import {FiChevronRight, FiCreditCard, FiExternalLink, FiInbox, FiList, FiServer, FiSlash, FiUsers} from "react-icons/fi";
 import {getGuildConnectUrl, getMyGuilds, type MyGuild} from "../../api/dashboard";
 import {ActionBtn, Badge, EmptyState, TabSkeleton} from "./shared";
 import ModeratorsModal from "./ModeratorsModal";
 import BansModal from "./BansModal";
+import BillingModal from "./BillingModal";
 import GuildFormsPanel from "./GuildFormsPanel";
 import GuildModerationPanel from "./moderation/GuildModerationPanel";
 import GuildAuditPanel from "./moderation/GuildAuditPanel";
@@ -24,12 +25,25 @@ export default function ServersTab() {
     const [moderationGuild, setModerationGuild] = useState<MyGuild | null>(null);
     const [bansGuild, setBansGuild] = useState<MyGuild | null>(null);
     const [auditGuild, setAuditGuild] = useState<MyGuild | null>(null);
+    const [billingGuild, setBillingGuild] = useState<MyGuild | null>(null);
+    const [checkoutResult, setCheckoutResult] = useState<"success" | "cancel" | null>(null);
 
     useEffect(() => {
         let cancelled = false;
         getMyGuilds()
             .then(list => {
-                if (!cancelled) setGuilds(list.filter(g => g.role !== "RESPONDENT"));
+                if (cancelled) return;
+                const staffGuilds = list.filter(g => g.role !== "RESPONDENT");
+                setGuilds(staffGuilds);
+                // Back from Stripe Checkout: reopen that server's billing with the outcome.
+                const params = new URLSearchParams(window.location.search);
+                const returning = staffGuilds.find(g => g.guildId === params.get("billing") && g.role === "OWNER");
+                if (returning) {
+                    const result = params.get("checkout");
+                    setCheckoutResult(result === "success" || result === "cancel" ? result : null);
+                    setBillingGuild(returning);
+                    window.history.replaceState(null, "", window.location.pathname);
+                }
             })
             .finally(() => {
                 if (!cancelled) setLoading(false);
@@ -122,6 +136,14 @@ export default function ServersTab() {
                                             {t("moderation.open")}
                                         </ActionBtn>
                                         {g.role === "OWNER" && (
+                                            <ActionBtn onClick={() => {
+                                                setCheckoutResult(null);
+                                                setBillingGuild(g);
+                                            }} title={t("billing.title")}>
+                                                <FiCreditCard size={11} className="inline"/>
+                                            </ActionBtn>
+                                        )}
+                                        {g.role === "OWNER" && (
                                             <ActionBtn onClick={() => setAuditGuild(g)} title={t("guildAudit.open")}>
                                                 <FiList size={11} className="inline"/>
                                             </ActionBtn>
@@ -147,6 +169,10 @@ export default function ServersTab() {
                     <ModeratorsModal guild={moderatorsGuild} onClose={() => setModeratorsGuild(null)}/>
                 )}
                 {bansGuild && <BansModal guild={bansGuild} onClose={() => setBansGuild(null)}/>}
+                {billingGuild && (
+                    <BillingModal guild={billingGuild} checkoutResult={checkoutResult}
+                                  onClose={() => setBillingGuild(null)}/>
+                )}
             </AnimatePresence>
         </div>
     );
