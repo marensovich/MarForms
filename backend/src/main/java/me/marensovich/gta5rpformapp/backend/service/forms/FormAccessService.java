@@ -5,6 +5,7 @@ import me.marensovich.gta5rpformapp.backend.data.forms.FormAccessMode;
 import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import me.marensovich.gta5rpformapp.backend.database.entity.User;
+import me.marensovich.gta5rpformapp.backend.service.BanListService;
 import me.marensovich.gta5rpformapp.backend.service.GuildMembershipService;
 import me.marensovich.gta5rpformapp.backend.service.UserService;
 import org.springframework.lang.Nullable;
@@ -22,6 +23,8 @@ import org.springframework.stereotype.Service;
  *     re-syncs the user's guild list with their stored Discord token first
  *     (they may have joined since logging in, #31).</li>
  * </ul>
+ * In either mode a logged-in user on the guild's ban list is refused
+ * ({@code BANNED}, E2.2) before anything else is checked.
  * On success for a logged-in user, the {@code RESPONDENT} membership is
  * upserted and their Discord roles refreshed if stale (#34).
  *
@@ -39,11 +42,13 @@ public class FormAccessService {
     public enum Access {
         GRANTED,
         LOGIN_REQUIRED,
-        NOT_IN_GUILD
+        NOT_IN_GUILD,
+        BANNED
     }
 
     private final UserService userService;
     private final GuildMembershipService guildMembershipService;
+    private final BanListService banListService;
 
     /**
      * Checks whether {@code user} may fill {@code form} in.
@@ -56,6 +61,10 @@ public class FormAccessService {
     public Access check(Form form, @Nullable User user) {
         if (user == null) {
             return form.getAccessMode() == FormAccessMode.OPEN ? Access.GRANTED : Access.LOGIN_REQUIRED;
+        }
+
+        if (banListService.isBanned(form.getServerId(), user.getDiscordId())) {
+            return Access.BANNED;
         }
 
         boolean member = user.isMemberOfGuild(form.getServerId());

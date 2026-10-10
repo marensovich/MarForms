@@ -53,6 +53,19 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles {@link FormAccessDeniedException}: unlike a generic 403, the
+     * respondent is told why (not a member of the server, banned).
+     *
+     * @param ex the exception
+     * @return a {@link ResponseEntity} with status 403 (Forbidden) and the message
+     * @since v.0.1
+     */
+    @ExceptionHandler(FormAccessDeniedException.class)
+    public ResponseEntity<Map<String, String>> handleFormAccessDenied(FormAccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
+    }
+
+    /**
      * Handles {@link MethodArgumentNotValidException} for validation failures.
      * <p>
      * Returns a map of field names to validation error messages.

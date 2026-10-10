@@ -8,11 +8,11 @@ import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import me.marensovich.gta5rpformapp.backend.database.entity.Submission;
 import me.marensovich.gta5rpformapp.backend.database.entity.User;
 import me.marensovich.gta5rpformapp.backend.exception.InvalidStateException;
+import me.marensovich.gta5rpformapp.backend.exception.FormAccessDeniedException;
 import me.marensovich.gta5rpformapp.backend.exception.LoginRequiredException;
 import me.marensovich.gta5rpformapp.backend.service.forms.FormAccessService;
 import me.marensovich.gta5rpformapp.backend.service.forms.SubmissionAnswerValidator;
 import org.springframework.lang.Nullable;
-import org.springframework.security.access.AccessDeniedException;
 import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.UserRepository;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmitFormRequest;
@@ -95,7 +95,7 @@ public class SubmissionService {
      *     <li><b>Form state</b> — published and inside its opening window,
      *     otherwise a readable 409 ({@link InvalidStateException}).</li>
      *     <li><b>Access</b> — {@link FormAccessService}: 401 if login is
-     *     required, 403 if not a member of the form's guild.</li>
+     *     required, 403 if not a member of the form's guild or on its ban list.</li>
      *     <li><b>Per-user limit</b> — {@code submissionLimitPerUser}, counted
      *     per Discord account (can't apply to logged-out OPEN respondents).</li>
      *     <li><b>Answers</b> — {@link SubmissionAnswerValidator}: 400 with an
@@ -132,7 +132,8 @@ public class SubmissionService {
 
         switch (formAccessService.check(form, user)) {
             case LOGIN_REQUIRED -> throw new LoginRequiredException("Log in with Discord to fill in this form");
-            case NOT_IN_GUILD -> throw new AccessDeniedException("You must be a member of this server to fill in this form");
+            case NOT_IN_GUILD -> throw new FormAccessDeniedException("You must be a member of this server to fill in this form");
+            case BANNED -> throw new FormAccessDeniedException("You are banned from submitting forms on this server");
             case GRANTED -> {
             }
         }
