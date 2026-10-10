@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -25,7 +26,8 @@ import java.util.regex.Pattern;
  * length/range limits and allowed options. Returns a <b>cleaned</b> answer
  * map: only the schema's input fields are kept (unknown keys and section
  * breaks are dropped), so nothing unexpected reaches storage, webhooks or
- * moderators.
+ * moderators. Branching (E3.1) is applied too: a field hidden by its
+ * condition is not required and its answer is not kept.
  * </p>
  *
  * @author marensovich
@@ -61,18 +63,32 @@ public final class SubmissionAnswerValidator {
         Map<String, String> errors = new LinkedHashMap<>();
         List<FormField> fields = schema == null || schema.getFields() == null ? List.of() : schema.getFields();
 
+        // First every answer on its own, then which fields the answers show
+        // (E3.1): a hidden field is never required, and its answer is dropped.
+        Map<String, Object> typed = new LinkedHashMap<>();
+        Map<String, String> typeErrors = new LinkedHashMap<>();
         for (FormField field : fields) {
             if (field == null || field.getType() == null || !field.getType().isInput()) continue;
             Object value = raw.get(field.getId());
-            if (isEmpty(value)) {
-                if (field.isRequired()) errors.put(field.getId(), requiredMessage(field.getType()));
-                continue;
-            }
+            if (isEmpty(value)) continue;
             String error = checkType(field, value);
             if (error != null) {
-                errors.put(field.getId(), error);
+                typeErrors.put(field.getId(), error);
             } else {
-                clean.put(field.getId(), normalize(field, value));
+                typed.put(field.getId(), normalize(field, value));
+            }
+        }
+        Set<String> visible = FormConditions.visibleFieldIds(fields, typed);
+
+        for (FormField field : fields) {
+            if (field == null || field.getType() == null || !field.getType().isInput()) continue;
+            if (!visible.contains(field.getId())) continue;
+            if (typeErrors.containsKey(field.getId())) {
+                errors.put(field.getId(), typeErrors.get(field.getId()));
+            } else if (typed.containsKey(field.getId())) {
+                clean.put(field.getId(), typed.get(field.getId()));
+            } else if (field.isRequired()) {
+                errors.put(field.getId(), requiredMessage(field.getType()));
             }
         }
 

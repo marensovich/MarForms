@@ -1,10 +1,12 @@
 package me.marensovich.gta5rpformapp.backend.service.forms;
 
+import me.marensovich.gta5rpformapp.backend.data.forms.FieldCondition;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormField;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormField.FieldType;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormSchema;
 import me.marensovich.gta5rpformapp.backend.exception.FieldValidationException;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -24,7 +26,9 @@ import java.util.Set;
  *     <li>{@code SELECT}, {@code MULTI_SELECT}, {@code RADIO} need at least 2 distinct non-blank options;</li>
  *     <li>{@code RATING}'s {@code max} (scale size) is 2–10;</li>
  *     <li>{@code min} ≤ {@code max} whenever both are set, and neither is negative for text lengths;</li>
- *     <li>a {@code SECTION_BREAK} can't be required.</li>
+ *     <li>a {@code SECTION_BREAK} can't be required;</li>
+ *     <li>a {@code condition} (E3.1) points at another existing input field,
+ *     with a value that makes sense for it, and conditions never form a cycle.</li>
  * </ul>
  * </p>
  *
@@ -74,6 +78,7 @@ public final class FormSchemaValidator {
             }
             validateFieldConfig(field, path, errors);
         }
+        validateConditions(fields, errors);
         if (!errors.isEmpty()) throw new FieldValidationException("Invalid form", errors);
     }
 
@@ -93,6 +98,60 @@ public final class FormSchemaValidator {
             validateFieldConfig(field, "field", errors);
         }
         if (!errors.isEmpty()) throw new FieldValidationException("Invalid field", errors);
+    }
+
+    private static void validateConditions(List<FormField> fields, Map<String, String> errors) {
+        Map<String, FormField> byId = new HashMap<>();
+        for (FormField f : fields) {
+            if (f != null && f.getId() != null) byId.putIfAbsent(f.getId(), f);
+        }
+        for (int i = 0; i < fields.size(); i++) {
+            FormField field = fields.get(i);
+            if (field == null || field.getCondition() == null) continue;
+            String error = conditionError(field, field.getCondition(), byId);
+            if (error != null) errors.put("fields[" + i + "].condition", error);
+        }
+        List<String> cycle = FormConditions.findCycle(fields);
+        if (!cycle.isEmpty()) {
+            int index = 0;
+            for (int i = 0; i < fields.size(); i++) {
+                if (fields.get(i) != null && cycle.getFirst().equals(fields.get(i).getId())) index = i;
+            }
+            String chain = String.join(" → ", cycle.stream()
+                    .map(id -> byId.containsKey(id) && byId.get(id).getLabel() != null ? byId.get(id).getLabel() : id)
+                    .toList());
+            errors.put("fields[" + index + "].condition", "Conditions form a loop: " + chain);
+        }
+    }
+
+    private static String conditionError(FormField field, FieldCondition c, Map<String, FormField> byId) {
+        if (c.getFieldId() == null || c.getFieldId().isBlank()) return "Choose the field this one depends on";
+        if (c.getFieldId().equals(field.getId())) return "A field can't depend on itself";
+        FormField target = byId.get(c.getFieldId());
+        if (target == null) return "Depends on a field that no longer exists: " + c.getFieldId();
+        if (target.getType() == null || !target.getType().isInput()) return "Can't depend on a section break";
+        if (c.getOperator() == null) return "Choose a condition";
+        String value = c.getValue() == null ? "" : c.getValue().trim();
+        if (!c.getOperator().needsValue()) return null;
+        if (value.isEmpty()) return "Enter a value to compare with";
+        if (c.getOperator() == FieldCondition.Operator.GREATER_THAN || c.getOperator() == FieldCondition.Operator.LESS_THAN) {
+            if (target.getType() != FieldType.NUMBER && target.getType() != FieldType.RATING) {
+                return "Only number and rating answers can be compared";
+            }
+            try {
+                Double.parseDouble(value);
+            } catch (NumberFormatException e) {
+                return "Enter a number to compare with";
+            }
+            return null;
+        }
+        boolean exact = c.getOperator() == FieldCondition.Operator.EQUALS
+                || c.getOperator() == FieldCondition.Operator.NOT_EQUALS;
+        List<String> options = target.getOptions() == null ? List.of() : target.getOptions();
+        if (exact && !options.isEmpty() && options.stream().noneMatch(o -> o != null && o.trim().equalsIgnoreCase(value))) {
+            return "\"" + value + "\" is not one of the options of " + target.getLabel();
+        }
+        return null;
     }
 
     private static void validateFieldConfig(FormField field, String path, Map<String, String> errors) {

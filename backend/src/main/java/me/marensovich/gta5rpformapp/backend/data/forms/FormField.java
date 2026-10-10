@@ -96,6 +96,15 @@ public class FormField {
     private String description;
 
     /**
+     * Show this field only when another field's answer matches (E3.1);
+     * {@code null} means always shown. A hidden field is never required
+     * and its answer is not stored.
+     *
+     * @since v.0.1
+     */
+    private FieldCondition condition;
+
+    /**
      * Enumeration of all supported field input types.
      * <p>
      * Each type corresponds to a specific input control and validation strategy.
