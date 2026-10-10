@@ -69,3 +69,31 @@ export async function apiRequest<T>(
 
     return response.json() as Promise<T>;
 }
+
+/**
+ * Downloads a file from an authenticated endpoint. A plain link can't send
+ * the JWT header, so the file is fetched and handed to the browser as a
+ * blob, named from the response's Content-Disposition when present.
+ */
+export async function downloadFile(path: string, fallbackName: string): Promise<void> {
+    const token = localStorage.getItem("jwt");
+    const response = await fetch(`${API}/api/v1${path}`, {
+        headers: token ? {Authorization: `Bearer ${token}`} : {},
+    });
+    if (!response.ok) {
+        throw new ApiError(response.status, await response.text().catch(() => "Download failed"));
+    }
+    const disposition = response.headers.get("Content-Disposition") ?? "";
+    const encoded = /filename\*=UTF-8''([^;]+)/i.exec(disposition)?.[1];
+    const plain = /filename="?([^";]+)"?/i.exec(disposition)?.[1];
+    const name = encoded ? decodeURIComponent(encoded) : plain ?? fallbackName;
+
+    const url = URL.createObjectURL(await response.blob());
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10_000);
+}

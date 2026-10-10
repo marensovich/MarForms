@@ -1,10 +1,11 @@
 import {useCallback, useEffect, useState} from "react";
 import {AnimatePresence} from "framer-motion";
 import {useTranslation} from "react-i18next";
-import {FiAlertTriangle, FiArchive, FiArrowLeft, FiCheck, FiEdit3, FiFileText, FiLink, FiSend, FiSlash, FiTrash2} from "react-icons/fi";
+import {FiAlertTriangle, FiArchive, FiArrowLeft, FiCheck, FiDownload, FiEdit3, FiFileText, FiLink, FiSend, FiSlash, FiTrash2} from "react-icons/fi";
 import {
     type DashboardForm,
     deleteGuildForm,
+    exportFormCsv,
     getGuildForms,
     type MyGuild,
     publishGuildForm,
@@ -216,6 +217,15 @@ export default function GuildFormsPanel({guild, onBack}: { guild: MyGuild; onBac
                                             {status === "PUBLISHED" && f.slug && <CopyLink slug={f.slug}/>}
                                             {isOwner && (
                                                 <>
+                                                    {f.submissionCount > 0 && (
+                                                        <ActionBtn
+                                                            onClick={() => run(f, () => exportFormCsv(f.id))}
+                                                            disabled={busy}
+                                                            title={t("guildForms.exportCsv")}
+                                                        >
+                                                            <FiDownload size={11} className="inline"/>
+                                                        </ActionBtn>
+                                                    )}
                                                     {status !== "ARCHIVED" && (
                                                         <ActionBtn onClick={() => setEditForm(f)} disabled={busy}
                                                                    title={t("common.edit")}>

@@ -935,6 +935,7 @@
     }
   },
   "guildForms": {
+    "exportCsv": "Скачать ответы (CSV)",
     "subtitle_one": "{{count}} форма",
     "subtitle_few": "{{count}} формы",
     "subtitle_many": "{{count}} форм",

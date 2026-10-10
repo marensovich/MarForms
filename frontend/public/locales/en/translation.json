@@ -933,6 +933,7 @@
     }
   },
   "guildForms": {
+    "exportCsv": "Download responses (CSV)",
     "subtitle_one": "{{count}} form",
     "subtitle_other": "{{count}} forms",
     "fieldCount_one": "{{count}} field",

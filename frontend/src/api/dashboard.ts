@@ -1,4 +1,4 @@
-import {apiRequest} from "./client";
+import {apiRequest, downloadFile} from "./client";
 import type {FormAccessMode, FormAnswers, FormDefinition, FormStatus, WebhookConfig, WebhookHealth} from "../types/forms";
 
 export interface DashboardForm {
@@ -318,4 +318,8 @@ export function getUserSubmissionCounts(): Promise<UserSubmissionCount[]> {
 
 export function deleteSubmission(id: string): Promise<void> {
     return apiRequest(`/admin/submissions/${id}`, {method: "DELETE"});
+}
+/** Downloads a form's submissions as CSV (owner only, E3.3). */
+export function exportFormCsv(formId: string): Promise<void> {
+    return downloadFile(`/forms/${formId}/export?format=csv`, "submissions.csv");
 }

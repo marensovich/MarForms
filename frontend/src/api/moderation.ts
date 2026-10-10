@@ -1,4 +1,4 @@
-import {API, ApiError, apiRequest} from "./client";
+import {apiRequest, downloadFile} from "./client";
 import type {PageResponse} from "./dashboard";
 import type {FormAnswers, FormSchema} from "../types/forms";
 
@@ -132,22 +132,7 @@ export interface SubmissionFile {
     size: number;
 }
 
-/**
- * Downloads an attachment. The API needs the JWT header, which a plain link
- * can't send, so the file is fetched and handed to the browser as a blob.
- */
-export async function downloadSubmissionFile(file: SubmissionFile): Promise<void> {
-    const token = localStorage.getItem("jwt");
-    const response = await fetch(`${API}/api/v1/files/${file.id}`, {
-        headers: token ? {Authorization: `Bearer ${token}`} : {},
-    });
-    if (!response.ok) throw new ApiError(response.status, await response.text().catch(() => "Download failed"));
-    const url = URL.createObjectURL(await response.blob());
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = file.name;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 10_000);
+/** Downloads an attachment (moderators only). */
+export function downloadSubmissionFile(file: SubmissionFile): Promise<void> {
+    return downloadFile(`/files/${file.id}`, file.name);
 }
