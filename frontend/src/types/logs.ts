@@ -12,7 +12,11 @@ export type AuditAction =
     | "ROLE_CREATED"
     | "ROLE_UPDATED"
     | "ROLE_DELETED"
-    | "SETTINGS_UPDATED";
+    | "SETTINGS_UPDATED"
+    | "MODERATOR_ADDED"
+    | "MODERATOR_REMOVED"
+    | "GUILD_BAN_ADDED"
+    | "GUILD_BAN_REMOVED";
 
 export interface AuditLogEntry {
     id: string;

@@ -439,6 +439,18 @@
       "SUBMISSION_DELETED": "Submission Deleted",
 
       "SUBMISSION_DECIDED": "Submission Decided",
+
+
+      "MODERATOR_ADDED": "Moderator Added",
+
+
+      "MODERATOR_REMOVED": "Moderator Removed",
+
+
+      "GUILD_BAN_ADDED": "Server Ban Added",
+
+
+      "GUILD_BAN_REMOVED": "Server Ban Removed",
       "ROLE_CREATED": "Role Created",
       "ROLE_UPDATED": "Role Updated",
       "ROLE_DELETED": "Role Deleted",
@@ -551,6 +563,18 @@
         "SUBMISSION_DELETED": "Submission Deleted",
 
         "SUBMISSION_DECIDED": "Submission Decided",
+
+
+        "MODERATOR_ADDED": "Moderator Added",
+
+
+        "MODERATOR_REMOVED": "Moderator Removed",
+
+
+        "GUILD_BAN_ADDED": "Server Ban Added",
+
+
+        "GUILD_BAN_REMOVED": "Server Ban Removed",
         "ROLE_CREATED": "Role Created",
         "ROLE_UPDATED": "Role Updated",
         "ROLE_DELETED": "Role Deleted",
@@ -969,5 +993,26 @@
       "title_other": "{{count}} forms have notification problems",
       "body": "Discord notifications may not arrive, but responses are still being collected. See the form's Webhooks tab for details."
     }
+  },
+  "guildAudit": {
+    "open": "Audit log",
+    "subtitle": "Moderator actions on this server",
+    "empty": "No entries yet",
+    "loadError": "Couldn't load the audit log",
+    "filter": {
+      "allActions": "All actions",
+      "allActors": "All moderators"
+    },
+    "actions": {
+      "SUBMISSION_DECIDED": "Submission decided",
+      "MODERATOR_ADDED": "Moderator added",
+      "MODERATOR_REMOVED": "Moderator removed",
+      "GUILD_BAN_ADDED": "Ban",
+      "GUILD_BAN_REMOVED": "Unban"
+    },
+    "statusChange": "{{from}} → {{to}}",
+    "reason": "Reason: {{reason}}",
+    "comment": "Comment: {{comment}}",
+    "unknownActor": "System"
   }
 }

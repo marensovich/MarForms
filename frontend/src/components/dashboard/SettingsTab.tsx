@@ -36,6 +36,10 @@ const ACTION_META: Record<AuditAction, { dot: string }> = {
     ROLE_UPDATED: {dot: "bg-[#3730A3]"},
     ROLE_DELETED: {dot: "bg-[#B56A65]"},
     SETTINGS_UPDATED: {dot: "bg-[#C99A3E]"},
+    MODERATOR_ADDED: {dot: "bg-[#5C8F6A]"},
+    MODERATOR_REMOVED: {dot: "bg-[#B56A65]"},
+    GUILD_BAN_ADDED: {dot: "bg-[#B56A65]"},
+    GUILD_BAN_REMOVED: {dot: "bg-[#5C8F6A]"},
 };
 
 const ACTION_GROUPS: { label: string; actions: AuditAction[] }[] = [
@@ -44,6 +48,7 @@ const ACTION_GROUPS: { label: string; actions: AuditAction[] }[] = [
     {label: "Forms", actions: ["FORM_CREATED", "FORM_UPDATED", "FORM_DELETED"]},
     {label: "Submissions", actions: ["SUBMISSION_CREATED", "SUBMISSION_DELETED", "SUBMISSION_DECIDED"]},
     {label: "Roles", actions: ["ROLE_CREATED", "ROLE_UPDATED", "ROLE_DELETED"]},
+    {label: "Server moderation", actions: ["MODERATOR_ADDED", "MODERATOR_REMOVED", "GUILD_BAN_ADDED", "GUILD_BAN_REMOVED"]},
     {label: "System", actions: ["SETTINGS_UPDATED"]},
 ];
 

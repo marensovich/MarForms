@@ -439,6 +439,18 @@
       "SUBMISSION_DELETED": "Ответ удалён",
 
       "SUBMISSION_DECIDED": "Решение по заявке",
+
+
+      "MODERATOR_ADDED": "Назначен модератор",
+
+
+      "MODERATOR_REMOVED": "Снят модератор",
+
+
+      "GUILD_BAN_ADDED": "Бан на сервере",
+
+
+      "GUILD_BAN_REMOVED": "Снят бан на сервере",
       "ROLE_CREATED": "Роль создана",
       "ROLE_UPDATED": "Роль обновлена",
       "ROLE_DELETED": "Роль удалена",
@@ -552,6 +564,18 @@
         "SUBMISSION_DELETED": "Ответ удалён",
 
         "SUBMISSION_DECIDED": "Решение по заявке",
+
+
+        "MODERATOR_ADDED": "Назначен модератор",
+
+
+        "MODERATOR_REMOVED": "Снят модератор",
+
+
+        "GUILD_BAN_ADDED": "Бан на сервере",
+
+
+        "GUILD_BAN_REMOVED": "Снят бан на сервере",
         "ROLE_CREATED": "Роль создана",
         "ROLE_UPDATED": "Роль обновлена",
         "ROLE_DELETED": "Роль удалена",
@@ -981,5 +1005,26 @@
       "title_other": "У {{count}} форм проблемы с уведомлениями",
       "body": "Уведомления в Discord могут не приходить, но ответы продолжают собираться. Подробности — во вкладке «Вебхуки» формы."
     }
+  },
+  "guildAudit": {
+    "open": "Журнал",
+    "subtitle": "Действия модераторов на сервере",
+    "empty": "Записей пока нет",
+    "loadError": "Не удалось загрузить журнал",
+    "filter": {
+      "allActions": "Все действия",
+      "allActors": "Все модераторы"
+    },
+    "actions": {
+      "SUBMISSION_DECIDED": "Решение по заявке",
+      "MODERATOR_ADDED": "Назначен модератор",
+      "MODERATOR_REMOVED": "Снят модератор",
+      "GUILD_BAN_ADDED": "Бан",
+      "GUILD_BAN_REMOVED": "Разбан"
+    },
+    "statusChange": "{{from}} → {{to}}",
+    "reason": "Причина: {{reason}}",
+    "comment": "Комментарий: {{comment}}",
+    "unknownActor": "Система"
   }
 }

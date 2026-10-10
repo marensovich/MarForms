@@ -93,3 +93,32 @@ export interface MySubmission {
 export function getMySubmissions(page = 0, size = 20): Promise<PageResponse<MySubmission>> {
     return apiRequest(`/me/submissions?page=${page}&size=${size}`);
 }
+
+export type GuildAuditAction =
+    | "SUBMISSION_DECIDED"
+    | "MODERATOR_ADDED"
+    | "MODERATOR_REMOVED"
+    | "GUILD_BAN_ADDED"
+    | "GUILD_BAN_REMOVED";
+
+export interface GuildAuditEntry {
+    id: string;
+    action: GuildAuditAction;
+    actorDiscordId: string | null;
+    actorUsername: string | null;
+    targetType: string | null;
+    targetId: string | null;
+    targetName: string | null;
+    metadata: Record<string, string> | null;
+    createdAt: string;
+}
+
+export function getGuildAuditLog(
+    guildId: string,
+    filters: { action?: GuildAuditAction; actorId?: string; page?: number; size?: number }
+): Promise<PageResponse<GuildAuditEntry>> {
+    const p = new URLSearchParams({page: String(filters.page ?? 0), size: String(filters.size ?? 30)});
+    if (filters.action) p.set("action", filters.action);
+    if (filters.actorId) p.set("actorId", filters.actorId);
+    return apiRequest(`/guilds/${guildId}/audit-log?${p}`);
+}

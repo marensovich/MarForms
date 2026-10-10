@@ -123,6 +123,34 @@ const ACTION_META: Record<AuditAction, ActionMeta> = {
         border: "border-[#EFDFC0]",
         dot: "bg-[#C99A3E]"
     },
+    MODERATOR_ADDED: {
+        label: "Moderator Added",
+        bg: "bg-[#EEF4EE]",
+        text: "text-[#3F6B4A]",
+        border: "border-[#D7E8D9]",
+        dot: "bg-[#5C8F6A]"
+    },
+    MODERATOR_REMOVED: {
+        label: "Moderator Removed",
+        bg: "bg-[#F7EEEE]",
+        text: "text-[#8B4A46]",
+        border: "border-[#EAD4D3]",
+        dot: "bg-[#B56A65]"
+    },
+    GUILD_BAN_ADDED: {
+        label: "Server Ban Added",
+        bg: "bg-[#F7EEEE]",
+        text: "text-[#8B4A46]",
+        border: "border-[#EAD4D3]",
+        dot: "bg-[#B56A65]"
+    },
+    GUILD_BAN_REMOVED: {
+        label: "Server Ban Removed",
+        bg: "bg-[#EEF4EE]",
+        text: "text-[#3F6B4A]",
+        border: "border-[#D7E8D9]",
+        dot: "bg-[#5C8F6A]"
+    },
 };
 
 const ALL_ACTIONS = Object.keys(ACTION_META) as AuditAction[];
