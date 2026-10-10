@@ -144,7 +144,11 @@ public class ModerationService {
         SubmissionDetailDto.Author author = null;
         if (submission.getDiscordId() != null) {
             Long discordId = submission.getDiscordId();
-            String username = userRepository.findByDiscordId(discordId).map(User::getDiscordUsername).orElse(null);
+            User authorUser = userRepository.findByDiscordId(discordId).orElse(null);
+            String username = authorUser != null ? authorUser.getDiscordUsername() : null;
+            String avatarUrl = authorUser != null && authorUser.getDiscordAvatar() != null
+                    ? "https://cdn.discordapp.com/avatars/" + discordId + "/" + authorUser.getDiscordAvatar() + ".png?size=128"
+                    : null;
             var membership = guildMembershipRepository
                     .findByUser_DiscordIdAndGuild_DiscordGuildId(discordId, form.getServerId());
             List<Long> roleIds = membership.map(m -> m.getDiscordRoles()).orElse(null);
@@ -155,7 +159,7 @@ public class ModerationService {
                         .map(id -> known.getOrDefault(id, new DiscordBotClient.DiscordRole(String.valueOf(id), null, 0)))
                         .toList();
             }
-            author = new SubmissionDetailDto.Author(discordId, username, roles,
+            author = new SubmissionDetailDto.Author(discordId, username, avatarUrl, roles,
                     membership.map(m -> m.getDiscordRolesSyncedAt()).orElse(null),
                     submissionRepository.countByFormIdAndDiscordId(form.getId(), discordId));
         }

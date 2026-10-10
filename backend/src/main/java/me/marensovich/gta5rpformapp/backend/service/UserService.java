@@ -64,6 +64,28 @@ public class UserService {
     }
 
     /**
+     * Updates the user's Discord username and avatar hash from fresh OAuth
+     * data, saving only if something changed.
+     *
+     * @param user     the user
+     * @param username their current Discord username (ignored if blank)
+     * @param avatar   their current avatar hash, {@code null} for the default avatar
+     * @since v.0.1
+     */
+    public void refreshProfile(User user, String username, String avatar) {
+        boolean changed = false;
+        if (username != null && !username.isBlank() && !username.equals(user.getDiscordUsername())) {
+            user.setDiscordUsername(username);
+            changed = true;
+        }
+        if (!java.util.Objects.equals(avatar, user.getDiscordAvatar())) {
+            user.setDiscordAvatar(avatar);
+            changed = true;
+        }
+        if (changed) userRepository.save(user);
+    }
+
+    /**
      * Retrieves a paginated list of all users with optional search and role filters.
      * <p>
      * Supports filtering by:

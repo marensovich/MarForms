@@ -57,6 +57,15 @@ public class User {
     private String discordUsername;
 
     /**
+     * Discord avatar hash, refreshed on each OAuth login; {@code null} if the
+     * user has the default avatar or never logged in via OAuth.
+     *
+     * @since v.0.1
+     */
+    @Column(name = "discord_avatar", length = 64)
+    private String discordAvatar;
+
+    /**
      * The set of roles assigned to the user.
      * <p>
      * Fetched eagerly to ensure roles and their permissions are available

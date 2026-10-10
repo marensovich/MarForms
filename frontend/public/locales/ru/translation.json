@@ -879,5 +879,56 @@
       "CLOSED": "Закрыта",
       "ARCHIVED": "В архиве"
     }
+  },
+  "moderation": {
+    "open": "Заявки",
+    "subtitle_one": "{{count}} заявка",
+    "subtitle_few": "{{count}} заявки",
+    "subtitle_many": "{{count}} заявок",
+    "subtitle_other": "{{count}} заявки",
+    "refresh": "Обновить",
+    "loadError": "Не удалось загрузить заявки",
+    "empty": "Заявок с такими фильтрами нет",
+    "unknownUser": "Неизвестный пользователь",
+    "anonymous": "Без входа",
+    "filter": {
+      "allStatuses": "Все",
+      "allForms": "Все формы",
+      "searchPlaceholder": "Ник или Discord ID"
+    },
+    "columns": {
+      "author": "Автор",
+      "form": "Форма",
+      "submitted": "Отправлена",
+      "status": "Статус"
+    },
+    "status": {
+      "PENDING": "На рассмотрении",
+      "APPROVED": "Принята",
+      "REJECTED": "Отклонена",
+      "NEEDS_REVISION": "На доработке"
+    },
+    "decide": {
+      "APPROVED": "Принять",
+      "NEEDS_REVISION": "На доработку",
+      "REJECTED": "Отклонить"
+    },
+    "card": {
+      "title": "Заявка",
+      "loadError": "Не удалось загрузить заявку",
+      "decideError": "Не удалось сохранить решение",
+      "conflict": "Другой модератор уже принял решение — показано актуальное состояние.",
+      "yes": "Да",
+      "no": "Нет",
+      "noRoles": "Роли на сервере неизвестны",
+      "anonymous": "Заявка отправлена без входа — автор неизвестен",
+      "submissionCount_one": "{{count}} заявка в эту форму",
+      "submissionCount_few": "{{count}} заявки в эту форму",
+      "submissionCount_many": "{{count}} заявок в эту форму",
+      "submissionCount_other": "{{count}} заявки в эту форму",
+      "removedField": "поле удалено из формы",
+      "lastDecision": "Последнее решение: {{date}}, модератор {{moderator}}",
+      "commentPlaceholder": "Комментарий для автора (необязательно)"
+    }
   }
 }

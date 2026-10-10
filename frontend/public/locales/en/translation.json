@@ -873,5 +873,52 @@
       "CLOSED": "Closed",
       "ARCHIVED": "Archived"
     }
+  },
+  "moderation": {
+    "open": "Submissions",
+    "subtitle_one": "{{count}} submission",
+    "subtitle_other": "{{count}} submissions",
+    "refresh": "Refresh",
+    "loadError": "Couldn't load submissions",
+    "empty": "No submissions match these filters",
+    "unknownUser": "Unknown user",
+    "anonymous": "Not signed in",
+    "filter": {
+      "allStatuses": "All",
+      "allForms": "All forms",
+      "searchPlaceholder": "Username or Discord ID"
+    },
+    "columns": {
+      "author": "Author",
+      "form": "Form",
+      "submitted": "Submitted",
+      "status": "Status"
+    },
+    "status": {
+      "PENDING": "Pending",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected",
+      "NEEDS_REVISION": "Needs revision"
+    },
+    "decide": {
+      "APPROVED": "Approve",
+      "NEEDS_REVISION": "Request revision",
+      "REJECTED": "Reject"
+    },
+    "card": {
+      "title": "Submission",
+      "loadError": "Couldn't load the submission",
+      "decideError": "Couldn't save the decision",
+      "conflict": "Another moderator decided first — showing the current state.",
+      "yes": "Yes",
+      "no": "No",
+      "noRoles": "Server roles unknown",
+      "anonymous": "Submitted without signing in — author unknown",
+      "submissionCount_one": "{{count}} submission to this form",
+      "submissionCount_other": "{{count}} submissions to this form",
+      "removedField": "field removed from the form",
+      "lastDecision": "Last decision: {{date}} by moderator {{moderator}}",
+      "commentPlaceholder": "Comment for the author (optional)"
+    }
   }
 }

@@ -74,6 +74,7 @@ class ModerationControllerTest {
         moderator = user(1L, "mod");
         membership(moderator, guild, GuildRole.MODERATOR);
         alice = user(2L, "alice");
+        alice.setDiscordAvatar("abc123");
         membership(alice, guild, GuildRole.RESPONDENT);
         bob = user(3L, "bob");
 
@@ -201,6 +202,7 @@ class ModerationControllerTest {
                 .andExpect(jsonPath("$.submission.answers.q").value("a"))
                 .andExpect(jsonPath("$.schema.title").value("Application"))
                 .andExpect(jsonPath("$.author.username").value("alice"))
+                .andExpect(jsonPath("$.author.avatarUrl").value("https://cdn.discordapp.com/avatars/2/abc123.png?size=128"))
                 .andExpect(jsonPath("$.author.submissionCount").value(1));
     }
 

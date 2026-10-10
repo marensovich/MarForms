@@ -1,11 +1,12 @@
 import {useEffect, useState} from "react";
 import {AnimatePresence} from "framer-motion";
 import {useTranslation} from "react-i18next";
-import {FiChevronRight, FiExternalLink, FiServer, FiUsers} from "react-icons/fi";
+import {FiChevronRight, FiExternalLink, FiInbox, FiServer, FiUsers} from "react-icons/fi";
 import {getGuildConnectUrl, getMyGuilds, type MyGuild} from "../../api/dashboard";
 import {ActionBtn, Badge, EmptyState, TabSkeleton} from "./shared";
 import ModeratorsModal from "./ModeratorsModal";
 import GuildFormsPanel from "./GuildFormsPanel";
+import GuildModerationPanel from "./moderation/GuildModerationPanel";
 
 /**
  * The servers the current user owns or moderates — the entry point of the
@@ -18,6 +19,7 @@ export default function ServersTab() {
     const [connecting, setConnecting] = useState(false);
     const [moderatorsGuild, setModeratorsGuild] = useState<MyGuild | null>(null);
     const [openGuild, setOpenGuild] = useState<MyGuild | null>(null);
+    const [moderationGuild, setModerationGuild] = useState<MyGuild | null>(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -42,6 +44,10 @@ export default function ServersTab() {
             setConnecting(false);
         }
     };
+
+    if (moderationGuild) {
+        return <GuildModerationPanel guild={moderationGuild} onBack={() => setModerationGuild(null)}/>;
+    }
 
     if (openGuild) {
         return <GuildFormsPanel guild={openGuild} onBack={() => setOpenGuild(null)}/>;
@@ -103,6 +109,10 @@ export default function ServersTab() {
                                                 {t("moderators.manage")}
                                             </ActionBtn>
                                         )}
+                                        <ActionBtn variant="primary" onClick={() => setModerationGuild(g)}>
+                                            <FiInbox size={11} className="mr-1 inline"/>
+                                            {t("moderation.open")}
+                                        </ActionBtn>
                                         <ActionBtn onClick={() => setOpenGuild(g)}>
                                             {t("servers.openForms")}
                                             <FiChevronRight size={11} className="ml-1 inline"/>

@@ -67,6 +67,7 @@ public class AuthService {
         String username = oauthUser.getAttribute("username");
 
         User user = userService.findOrCreateDiscordUser(discordId, username);
+        userService.refreshProfile(user, username, oauthUser.getAttribute("avatar"));
 
         if (tokens != null) {
             discordTokenService.store(user.getId(), tokens.accessToken(), tokens.refreshToken(),

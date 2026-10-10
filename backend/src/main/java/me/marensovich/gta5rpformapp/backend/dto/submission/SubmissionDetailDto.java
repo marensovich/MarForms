@@ -32,6 +32,7 @@ public record SubmissionDetailDto(
      *
      * @param discordId       Discord ID (serialized as string)
      * @param username        Discord username, if they have logged in to MarForms
+     * @param avatarUrl       Discord avatar URL, {@code null} if unknown or the default avatar
      * @param discordRoles    their roles on the guild (cached, see GuildMembership), named via the bot
      * @param rolesSyncedAt   when that role cache was refreshed, if ever
      * @param submissionCount how many submissions they made to this form
@@ -40,6 +41,7 @@ public record SubmissionDetailDto(
             @JsonSerialize(using = ToStringSerializer.class)
             Long discordId,
             String username,
+            String avatarUrl,
             List<DiscordBotClient.DiscordRole> discordRoles,
             LocalDateTime rolesSyncedAt,
             long submissionCount
