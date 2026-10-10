@@ -431,6 +431,8 @@
       "FORM_DELETED": "Form Deleted",
       "SUBMISSION_CREATED": "Submission Created",
       "SUBMISSION_DELETED": "Submission Deleted",
+
+      "SUBMISSION_DECIDED": "Submission Decided",
       "ROLE_CREATED": "Role Created",
       "ROLE_UPDATED": "Role Updated",
       "ROLE_DELETED": "Role Deleted",
@@ -541,6 +543,8 @@
         "FORM_DELETED": "Form Deleted",
         "SUBMISSION_CREATED": "Submission Created",
         "SUBMISSION_DELETED": "Submission Deleted",
+
+        "SUBMISSION_DECIDED": "Submission Decided",
         "ROLE_CREATED": "Role Created",
         "ROLE_UPDATED": "Role Updated",
         "ROLE_DELETED": "Role Deleted",

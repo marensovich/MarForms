@@ -431,6 +431,8 @@
       "FORM_DELETED": "Форма удалена",
       "SUBMISSION_CREATED": "Ответ создан",
       "SUBMISSION_DELETED": "Ответ удалён",
+
+      "SUBMISSION_DECIDED": "Решение по заявке",
       "ROLE_CREATED": "Роль создана",
       "ROLE_UPDATED": "Роль обновлена",
       "ROLE_DELETED": "Роль удалена",
@@ -542,6 +544,8 @@
         "FORM_DELETED": "Форма удалена",
         "SUBMISSION_CREATED": "Ответ создан",
         "SUBMISSION_DELETED": "Ответ удалён",
+
+        "SUBMISSION_DECIDED": "Решение по заявке",
         "ROLE_CREATED": "Роль создана",
         "ROLE_UPDATED": "Роль обновлена",
         "ROLE_DELETED": "Роль удалена",

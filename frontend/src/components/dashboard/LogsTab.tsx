@@ -88,6 +88,13 @@ const ACTION_META: Record<AuditAction, ActionMeta> = {
         border: "border-[#EAD4D3]",
         dot: "bg-[#B56A65]"
     },
+    SUBMISSION_DECIDED: {
+        label: "Submission Decided",
+        bg: "bg-[#F6EEF6]",
+        text: "text-[#7A3F7A]",
+        border: "border-[#EAD6EA]",
+        dot: "bg-[#A35FA3]"
+    },
     ROLE_CREATED: {
         label: "Role Created",
         bg: "bg-[#EEF4EE]",
