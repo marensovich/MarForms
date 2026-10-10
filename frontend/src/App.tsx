@@ -6,6 +6,7 @@ import FormGatePage from "./pages/FormGatePage";
 import PublicFormPage from "./pages/PublicFormPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardPage from "./pages/DashboardPage";
+import MySubmissionsPage from "./pages/MySubmissionsPage";
 import BannedScreen from "./components/BannedScreen.tsx";
 import {useAuth} from "./hooks/useAuth.ts";
 
@@ -27,6 +28,7 @@ export default function App() {
 
             <Route element={<ProtectedRoute/>}>
                 <Route path="/dashboard" element={<DashboardPage/>}/>
+                <Route path="/me/submissions" element={<MySubmissionsPage/>}/>
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace/>}/>

@@ -5,7 +5,9 @@ import i18n from "../../i18n";
 import {type FieldType, type FormAnswers, type FormDefinition, type FormField, isInputField} from "../../types/forms";
 import {DEFAULT_RATING_SCALE} from "./fields/RatingField";
 import {submitForm, submitPublicForm} from "../../api/forms";
+import {Link} from "react-router-dom";
 import {getAnonymousToken} from "../../auth/anonymousToken";
+import {useAuth} from "../../hooks/useAuth";
 import {visibleFieldIds} from "./conditions";
 import {UploadContext} from "./fields/uploadContext";
 import {ApiError} from "../../api/client";
@@ -257,6 +259,7 @@ function ProgressBar({pct}: { pct: number }) {
 
 function SuccessScreen({title}: { title: string }) {
     const {t} = useTranslation();
+    const {user} = useAuth();
     return (
         <div
             className="relative flex min-h-screen w-full items-center justify-center bg-[#F7F7F8] px-4">
@@ -289,6 +292,12 @@ function SuccessScreen({title}: { title: string }) {
                             {t("form.success.closeNote")}
                         </p>
                     </div>
+                    {user && (
+                        <Link to="/me/submissions"
+                              className="mt-4 text-sm font-medium text-[#3730A3] hover:text-[#2D2682]">
+                            {t("form.success.mySubmissions")}
+                        </Link>
+                    )}
                 </div>
             </motion.div>
         </div>

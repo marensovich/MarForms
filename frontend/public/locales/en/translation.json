@@ -84,6 +84,7 @@
     }
   },
   "landing": {
+    "mySubmissions": "My submissions",
     "subtitle": "Moderated application forms for your Discord community.",
     "directLinkTitle": "You need a direct link",
     "directLinkDesc": "MarForms doesn't have a public form directory. You need a direct link to access a specific form — ask staff in your Discord server.",
@@ -162,6 +163,7 @@
     "footer": "Powered by MarForms · Your data is transmitted securely",
     "submissionError": "Something went wrong. Please try again.",
     "success": {
+      "mySubmissions": "My submissions: status and the moderator's reply",
       "statusLabel": "Status",
       "statusPending": "Under review",
       "title": "Response submitted!",
@@ -1114,5 +1116,15 @@
     "checkoutSuccess": "Payment received. The plan updates within a few seconds: reopen this window if it has not changed yet.",
     "checkoutCancelled": "Checkout cancelled, nothing was charged.",
     "stripeNote": "Payment, plan changes and cancellation happen on secure Stripe pages. A cancelled plan stays active until the end of the paid period."
+  },
+  "mySubmissions": {
+    "title": "My submissions",
+    "subtitle": "The status of your submissions and moderators' comments",
+    "empty": "You haven't submitted anything yet",
+    "loadError": "Couldn't load your submissions",
+    "untitled": "Untitled form",
+    "sent": "Sent {{date}}",
+    "decided": "decided {{date}}",
+    "more": "Show more"
   }
 }

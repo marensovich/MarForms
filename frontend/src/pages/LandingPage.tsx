@@ -1,8 +1,9 @@
 import {useState} from "react";
-import {useNavigate} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import {motion} from "framer-motion";
 import {useTranslation} from "react-i18next";
 import {FiArrowRight, FiFileText, FiLink2, FiShield, FiUsers} from "react-icons/fi";
+import {useAuth} from "../hooks/useAuth";
 
 const COLOR_MAP: Record<string, { bg: string; text: string; border: string }> = {
     indigo: {bg: "bg-[#EEF0FB]", text: "text-[#3730A3]", border: "border-[#E4E4E7]"},
@@ -26,6 +27,7 @@ function extractFormId(input: string): string | null {
 export default function LandingPage() {
     const {t} = useTranslation();
     const navigate = useNavigate();
+    const {user} = useAuth();
     const [link, setLink] = useState("");
     const [error, setError] = useState("");
 
@@ -151,6 +153,12 @@ export default function LandingPage() {
                         })}
                     </div>
                 </div>
+
+                {user && (
+                    <Link to="/me/submissions" className="mt-8 text-sm font-medium text-[#3730A3] hover:text-[#2D2682]">
+                        {t("landing.mySubmissions")}
+                    </Link>
+                )}
 
                 <div className="mt-10 flex items-center gap-3 text-xs text-[#C7C7CE]">
                     {t("landing.footer")}
