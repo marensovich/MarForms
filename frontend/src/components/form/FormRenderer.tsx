@@ -6,6 +6,7 @@ import {type FieldType, type FormAnswers, type FormDefinition, type FormField, i
 import {DEFAULT_RATING_SCALE} from "./fields/RatingField";
 import {submitForm, submitPublicForm} from "../../api/forms";
 import {getAnonymousToken} from "../../auth/anonymousToken";
+import {visibleFieldIds} from "./conditions";
 import {ApiError} from "../../api/client";
 import {describeApiError} from "../../api/errors";
 
@@ -47,11 +48,11 @@ import {
 
 // ── Validation ─────────────────────────────────────────────────────────────
 
-function validate(form: FormDefinition, answers: FormAnswers): Record<string, string> {
+function validate(form: FormDefinition, answers: FormAnswers, visible: Set<string>): Record<string, string> {
     const errors: Record<string, string> = {};
 
     for (const field of form.schema.fields) {
-        if (!isInputField(field)) continue;
+        if (!isInputField(field) || !visible.has(field.id)) continue;
         const val = answers[field.id];
         const str = typeof val === "string" ? val.trim() : String(val ?? "");
         const isEmpty =
@@ -456,6 +457,8 @@ type SubmitStatus = "idle" | "submitting" | "success" | "error";
 export default function FormRenderer({form, preview = false}: Props) {
     const {t} = useTranslation();
     const [answers, setAnswers] = useState<FormAnswers>({});
+    // After the first edit, fields shown by a condition appear without the staggered intro delay.
+    const [hasInteracted, setHasInteracted] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [touched, setTouched] = useState<Set<string>>(new Set());
     const [hasSubmitted, setHasSubmitted] = useState(false);
@@ -468,9 +471,17 @@ export default function FormRenderer({form, preview = false}: Props) {
     // Guards against a double click landing before the "submitting" state renders.
     const inFlight = useRef(false);
 
+    // Branching (E3.1): fields hidden by their condition are not shown,
+    // required, validated or sent.
+    const visibleIds = useMemo(() => visibleFieldIds(form.schema.fields, answers), [form.schema.fields, answers]);
+    const visibleFields = useMemo(
+        () => form.schema.fields.filter(f => visibleIds.has(f.id)),
+        [form.schema.fields, visibleIds]
+    );
+
     const requiredFields = useMemo(
-        () => form.schema.fields.filter(f => f.required && isInputField(f)),
-        [form.schema.fields]
+        () => visibleFields.filter(f => f.required && isInputField(f)),
+        [visibleFields]
     );
 
     const answeredRequired = useMemo(() => {
@@ -507,6 +518,7 @@ export default function FormRenderer({form, preview = false}: Props) {
     };
 
     const handleChange = (fieldId: string, value: FormAnswers[string]) => {
+        setHasInteracted(true);
         setAnswers(prev => ({...prev, [fieldId]: value}));
         // Re-validate live once user has touched the field or already tried to submit
         if (touched.has(fieldId) || hasSubmitted) {
@@ -522,7 +534,7 @@ export default function FormRenderer({form, preview = false}: Props) {
 
     const handleSubmit = async () => {
         setHasSubmitted(true);
-        const validationErrors = validate(form, answers);
+        const validationErrors = validate(form, answers, visibleIds);
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
             // Scroll to first error
@@ -531,13 +543,14 @@ export default function FormRenderer({form, preview = false}: Props) {
             return;
         }
         if (preview || inFlight.current) return;
+        const shownAnswers = Object.fromEntries(Object.entries(answers).filter(([id]) => visibleIds.has(id)));
         inFlight.current = true;
         setSubmitStatus("submitting");
         setSubmitError(null);
         try {
-            if (form.slug) await submitPublicForm(form.slug, answers, idempotencyKey.current,
+            if (form.slug) await submitPublicForm(form.slug, shownAnswers, idempotencyKey.current,
                 form.accessMode === "ANONYMOUS" ? getAnonymousToken() : undefined);
-            else await submitForm(form.id, answers, idempotencyKey.current);
+            else await submitForm(form.id, shownAnswers, idempotencyKey.current);
             setSubmitStatus("success");
         } catch (err) {
             const serverFieldErrors = fieldErrorsOf(err);
@@ -557,7 +570,7 @@ export default function FormRenderer({form, preview = false}: Props) {
         return <SuccessScreen title={form.schema.title}/>;
     }
 
-    const errorCount = Object.keys(errors).length;
+    const errorCount = Object.keys(errors).filter(id => visibleIds.has(id)).length;
 
     return (
         <div className="relative min-h-screen w-full bg-[#F7F7F8]">
@@ -621,13 +634,14 @@ export default function FormRenderer({form, preview = false}: Props) {
                             {/* Fields */}
                             <div className="flex flex-col gap-6">
                                 <AnimatePresence>
-                                    {form.schema.fields.map((field, idx) => (
+                                    {visibleFields.map((field, idx) => (
                                         <motion.div
                                             key={field.id}
                                             id={`field-${field.id}`}
                                             initial={{opacity: 0, y: 8}}
                                             animate={{opacity: 1, y: 0}}
-                                            transition={{delay: idx * 0.04, duration: 0.28}}
+                                            exit={{opacity: 0, y: -4}}
+                                            transition={{delay: hasInteracted ? 0 : idx * 0.04, duration: 0.28}}
                                             className="relative"
                                         >
                                             {/* Field ordinal */}

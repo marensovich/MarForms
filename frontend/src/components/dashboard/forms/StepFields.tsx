@@ -45,6 +45,7 @@ import {CSS, type Transform} from "@dnd-kit/utilities";
 import type {FieldType, FormField} from "../../../types/forms";
 import {DEFAULT_RATING_SCALE} from "../../form/fields/RatingField";
 import type {FormDraft} from "./FormWizard";
+import ConditionEditor from "./ConditionEditor";
 
 // ── Type metadata ──────────────────────────────────────────────────────────
 
@@ -222,7 +223,9 @@ export default function StepFields({draft, onChange}: Props) {
     };
 
     const removeField = (id: string) => {
-        const next = draft.fields.filter(f => f.id !== id);
+        // Conditions pointing at the removed field would no longer validate.
+        const next = draft.fields.filter(f => f.id !== id)
+            .map(f => f.condition?.fieldId === id ? {...f, condition: null} : f);
         setFields(next);
         if (selectedId === id) setSelectedId(next[0]?.id ?? null);
     };
@@ -283,6 +286,7 @@ export default function StepFields({draft, onChange}: Props) {
                     <FieldEditor
                         key={selectedField.id}
                         field={selectedField}
+                        allFields={draft.fields}
                         onUpdate={patch => updateField(selectedField.id, patch)}
                         onDelete={() => removeField(selectedField.id)}
                         onDuplicate={() => duplicateField(selectedField.id)}
@@ -564,12 +568,13 @@ function EmptyEditor({onAddClick, hasFields}: { onAddClick: () => void; hasField
 
 interface FieldEditorProps {
     field: FormField;
+    allFields: FormField[];
     onUpdate: (patch: Partial<FormField>) => void;
     onDelete: () => void;
     onDuplicate: () => void;
 }
 
-function FieldEditor({field, onUpdate, onDelete, onDuplicate}: FieldEditorProps) {
+function FieldEditor({field, allFields, onUpdate, onDelete, onDuplicate}: FieldEditorProps) {
     const {t} = useTranslation();
     const [typePickerOpen, setTypePickerOpen] = useState(false);
 
@@ -871,6 +876,12 @@ function FieldEditor({field, onUpdate, onDelete, onDuplicate}: FieldEditorProps)
                         </div>
                     </label>
                 </EditorSection>}
+
+                {/* ─ Section: Branching (E3.1) ─────────────────────── */}
+                <EditorSection label={t("wizard.fields.condition.section")}>
+                    <ConditionEditor field={field} allFields={allFields}
+                                     onChange={condition => onUpdate({condition})}/>
+                </EditorSection>
             </div>
         </div>
     );

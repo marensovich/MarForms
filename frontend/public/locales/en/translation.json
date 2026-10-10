@@ -622,6 +622,28 @@
     },
     "next": "Next",
     "fields": {
+      "condition": {
+        "section": "Display logic",
+        "toggle": "Show only if…",
+        "noCandidates": "Add other fields to show this one depending on an answer.",
+        "missingField": "Field removed: choose another",
+        "untitled": "Untitled",
+        "valuePlaceholder": "Value",
+        "hint": "A hidden field is never required, and its answer is not stored.",
+        "operators": {
+          "EQUALS": "is",
+          "NOT_EQUALS": "is not",
+          "CONTAINS": "contains",
+          "EMPTY": "is empty",
+          "NOT_EMPTY": "is filled in",
+          "GREATER_THAN": "is greater than",
+          "LESS_THAN": "is less than",
+          "checkbox": {
+            "NOT_EMPTY": "is ticked",
+            "EMPTY": "is not ticked"
+          }
+        }
+      },
       "picker": {
         "title": "Choose field type"
       },

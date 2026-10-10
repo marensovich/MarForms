@@ -39,6 +39,23 @@ export interface FormField {
     min?: number;
     placeholder?: string;
     description?: string;
+    /** Show only when another field's answer matches (E3.1); absent = always. */
+    condition?: FieldCondition | null;
+}
+
+export type ConditionOperator =
+    | "EQUALS"
+    | "NOT_EQUALS"
+    | "CONTAINS"
+    | "EMPTY"
+    | "NOT_EMPTY"
+    | "GREATER_THAN"
+    | "LESS_THAN";
+
+export interface FieldCondition {
+    fieldId: string;
+    operator: ConditionOperator;
+    value?: string | null;
 }
 
 export interface FormSchema {
