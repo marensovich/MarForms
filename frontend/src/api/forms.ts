@@ -44,12 +44,16 @@ export function resolveFormLink(formId: string, signal?: AbortSignal): Promise<{
 export function submitPublicForm(
     slug: string,
     answers: FormAnswers,
-    idempotencyKey: string
+    idempotencyKey: string,
+    anonymousToken?: string
 ): Promise<SubmissionReceipt> {
     return apiRequest<SubmissionReceipt>(`/public/forms/${encodeURIComponent(slug)}/submissions`, {
         method: "POST",
         body: {answers},
-        headers: {"Idempotency-Key": idempotencyKey},
+        headers: {
+            "Idempotency-Key": idempotencyKey,
+            ...(anonymousToken ? {"Anonymous-Token": anonymousToken} : {}),
+        },
     });
 }
 

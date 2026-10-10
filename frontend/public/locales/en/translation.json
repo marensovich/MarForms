@@ -103,6 +103,7 @@
     "footer": "MarForms · Discord Application System · Form links only"
   },
   "form": {
+    "anonymousNote": "This is an anonymous form: your Discord account is not stored with your answers.",
     "previewSubmitDisabled": "Preview — submitting is disabled",
     "validation": {
       "required": "This field is required",
@@ -832,6 +833,19 @@
     "opensAt": "Opens at",
     "closesAt": "Closes at",
     "scheduleHint": "Leave empty to accept submissions as long as the form is published.",
+    "anonymousWarning": {
+      "title": "Turn on anonymous mode?",
+      "lead": "Anonymous mode turns off author verification. It is a deliberate trade-off, not a default.",
+      "points": {
+        "noVerification": "Anyone with the link can fill the form in, with no Discord login and no server membership check.",
+        "noIdentity": "Who submitted is not recorded: moderation cards and notifications won't show an author.",
+        "noBans": "The server's ban list does not apply to an anonymous form.",
+        "limit": "The per-person submission limit is counted per browser and is easy to get around."
+      },
+      "acknowledge": "I understand that submission authors will not be verified or identified",
+      "confirm": "Turn on anonymous mode",
+      "banner": "Anonymous mode: submission authors are not verified or recorded."
+    },
     "modes": {
       "OPEN": {
         "label": "Anyone",
@@ -847,7 +861,7 @@
       },
       "ANONYMOUS": {
         "label": "Anonymous",
-        "desc": "Identity is never recorded."
+        "desc": "No login. The author is never recorded, even if signed in."
       }
     }
   },

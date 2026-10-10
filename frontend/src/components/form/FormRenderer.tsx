@@ -5,6 +5,7 @@ import i18n from "../../i18n";
 import {type FieldType, type FormAnswers, type FormDefinition, type FormField, isInputField} from "../../types/forms";
 import {DEFAULT_RATING_SCALE} from "./fields/RatingField";
 import {submitForm, submitPublicForm} from "../../api/forms";
+import {getAnonymousToken} from "../../auth/anonymousToken";
 import {ApiError} from "../../api/client";
 import {describeApiError} from "../../api/errors";
 
@@ -28,6 +29,7 @@ import {
     FiChevronDown,
     FiCircle,
     FiClock,
+    FiEyeOff,
     FiFileText,
     FiHash,
     FiLayers,
@@ -326,6 +328,12 @@ function FormSidebar({form, progress, answeredRequired, totalRequired}: SidebarP
                 {form.schema.description && (
                     <p className="mt-2 text-sm leading-relaxed text-[#6B6B76]">{form.schema.description}</p>
                 )}
+                {form.accessMode === "ANONYMOUS" && (
+                    <p className="mt-3 flex items-start gap-1.5 rounded-lg border border-[#E4E4E7] bg-[#FAFAFB] px-3 py-2 text-xs text-[#55555F]">
+                        <FiEyeOff size={12} className="mt-0.5 flex-shrink-0"/>
+                        {t("form.anonymousNote")}
+                    </p>
+                )}
             </div>
 
             {/* Divider */}
@@ -527,7 +535,8 @@ export default function FormRenderer({form, preview = false}: Props) {
         setSubmitStatus("submitting");
         setSubmitError(null);
         try {
-            if (form.slug) await submitPublicForm(form.slug, answers, idempotencyKey.current);
+            if (form.slug) await submitPublicForm(form.slug, answers, idempotencyKey.current,
+                form.accessMode === "ANONYMOUS" ? getAnonymousToken() : undefined);
             else await submitForm(form.id, answers, idempotencyKey.current);
             setSubmitStatus("success");
         } catch (err) {
