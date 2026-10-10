@@ -87,6 +87,11 @@ and unauthenticated.
 | `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `DISCORD_REDIRECT_URI` | Discord OAuth2 app (user login) |
 | `DISCORD_BOT_TOKEN` | Bot user token (JDA session) — blank disables bot features |
 | `DISCORD_BOT_INSTALL_REDIRECT_URI` | Callback for the "Add to Discord" install flow |
+| `FILES_DIR` | Where uploaded attachments are stored (default `./data/uploads`; a volume in Docker — back it up) |
+| `STRIPE_SECRET_KEY`, `STRIPE_PRICE_PRO`, `STRIPE_WEBHOOK_SECRET` | Stripe billing; blank disables checkout (see Billing) |
+
+Plan limits are plain properties, not env variables: `app.plans.limits.<TIER>.active-forms`,
+`.submissions-per-month`, `.moderators` (unset = unlimited; nothing is set by default).
 
 ## Tests
 
@@ -111,20 +116,53 @@ returns webhooks). Access modes (`FormAccessService`):
   their Discord ID is still recorded. This is **not** the Stage 2
   `ANONYMOUS` mode (E2.3), where identity is deliberately never stored.
 - `AUTHENTICATED` — Discord login and membership of the form's server.
+- `ANONYMOUS` — no login, and the author is never stored, even if logged in.
+  A random per-browser `Anonymous-Token` header (only a per-form hash is
+  stored) enforces the per-person limit.
+- `ROLE_GATED` — reserved; blocked on open questions 2 and 4.
+
+A guild's ban list (`/api/v1/guilds/{id}/bans`) refuses listed users on
+every mode except `ANONYMOUS`.
+
+Fields can be shown conditionally (`FormField.condition`, evaluated by
+`FormConditions` and mirrored in `frontend/src/components/form/conditions.ts`):
+a hidden field is never required and its answer is dropped.
+
+File attachments (`FILE_UPLOAD`) are uploaded while the form is filled in
+(`POST /api/v1/public/forms/{slug}/files`); the answer is the file id. See
+[`docs/adr/0003-file-storage.md`](../docs/adr/0003-file-storage.md).
 
 Submissions carry an `Idempotency-Key` header; a retried request with
 the same key returns the original submission instead of a duplicate.
 
-## Billing groundwork
+## Moderation
 
-`guilds.plan_tier` (`PlanTier`, always `FREE` for now) is the billing hook.
-Limits are applied per guild, not per form, so `form` has no limit columns.
-Nothing reads `plan_tier` yet — limits and their enforcement are Stage 4
-(E4.1).
+Owners and moderators list and decide on a guild's submissions
+(`/api/v1/guilds/{id}/submissions`, `/api/v1/submissions/{id}/decision`);
+respondents see their own at `/api/v1/me/submissions`. Moderator actions
+(decisions, moderator changes, bans) are recorded in `audit_log` with the
+guild id; the owner reads them at `/api/v1/guilds/{id}/audit-log`. Owners
+export a form's submissions as streamed CSV at
+`/api/v1/forms/{id}/export?format=csv`.
+
+## Billing
+
+See [`docs/adr/0004-billing-per-workspace.md`](../docs/adr/0004-billing-per-workspace.md).
+Subscriptions belong to a workspace; every guild is in exactly one (an
+implicit one of its own until its owner merges servers). Stripe webhooks
+set `guilds.plan_tier`, which `PlanLimitService` reads. Owner actions over
+a limit get a 402; respondents are never blocked.
+
+To try it in Stripe test mode: create a recurring price, set the three
+`STRIPE_*` variables, and forward webhooks locally with
+`stripe listen --forward-to localhost:8090/api/v1/public/billing/stripe/webhook`
+(events: `checkout.session.completed`, `customer.subscription.created`,
+`customer.subscription.updated`, `customer.subscription.deleted`). Enable
+cancellation and plan changes in the Billing Portal settings.
 
 ## Background jobs
 
 See [`docs/adr/0001-background-job-mechanism.md`](../docs/adr/0001-background-job-mechanism.md)
-for the decision on how periodic/queued work (webhook delivery, guild-status
-reconciliation) is handled — a DB-backed outbox table + `@Scheduled` pollers,
-no Redis.
+for the decision on how periodic/queued work (webhook delivery, Stripe
+events, guild-status and webhook-health checks, cleanup of unused uploads)
+is handled — a DB-backed outbox table + `@Scheduled` pollers, no Redis.
