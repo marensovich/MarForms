@@ -19,6 +19,8 @@ import me.marensovich.gta5rpformapp.backend.dto.form.FormSummaryDto;
 import me.marensovich.gta5rpformapp.backend.dto.form.UpdateFormRequest;
 import me.marensovich.gta5rpformapp.backend.exception.InvalidStateException;
 import me.marensovich.gta5rpformapp.backend.exception.NotFoundException;
+import me.marensovich.gta5rpformapp.backend.service.billing.PlanLimitService;
+import me.marensovich.gta5rpformapp.backend.service.billing.PlanMetric;
 import me.marensovich.gta5rpformapp.backend.service.forms.FormSchemaValidator;
 import me.marensovich.gta5rpformapp.backend.service.forms.SlugGenerator;
 import org.springframework.data.domain.Page;
@@ -70,6 +72,7 @@ public class FormService {
     private final SubmissionRepository submissionRepository;
     private final AuditLogService auditLogService;
     private final GuildMembershipService guildMembershipService;
+    private final PlanLimitService planLimitService;
 
     // ── Lookup ──────────────────────────────────────────────────────────────
 
@@ -171,6 +174,7 @@ public class FormService {
      */
     @Transactional
     public Form createInGuild(Long guildId, CreateGuildFormRequest request) {
+        planLimitService.requireRoomFor(guildId, PlanMetric.ACTIVE_FORMS);
         Form form = newForm(guildId, request.schema(), request.channelsIds(), request.webhooks(), request.accessMode());
         return saveNew(form);
     }
@@ -363,6 +367,7 @@ public class FormService {
         }
         FormStatus old = form.getStatus();
         if (old == target) return form;
+        if (old == FormStatus.ARCHIVED) planLimitService.requireRoomFor(form.getServerId(), PlanMetric.ACTIVE_FORMS);
         form.setStatus(target);
         Form saved = formRepository.save(form);
         logStatusChange(saved, old);

@@ -21,6 +21,8 @@ class GuildMembershipServiceTest {
     // Audit entries are covered by GuildAuditControllerTest.
     @MockitoBean
     private AuditLogService auditLogService;
+    @MockitoBean
+    private me.marensovich.gta5rpformapp.backend.service.billing.PlanLimitService planLimitService;
 
     @Autowired
     private UserRepository userRepository;

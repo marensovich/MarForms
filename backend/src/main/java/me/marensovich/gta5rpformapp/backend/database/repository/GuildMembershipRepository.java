@@ -60,4 +60,6 @@ public interface GuildMembershipRepository extends JpaRepository<GuildMembership
      * @since v.0.1
      */
     List<GuildMembership> findAllByGuild_DiscordGuildIdAndRole(Long guildId, GuildRole role);
+
+    long countByGuild_DiscordGuildIdAndRole(Long guildId, GuildRole role);
 }

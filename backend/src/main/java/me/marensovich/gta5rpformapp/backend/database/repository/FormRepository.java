@@ -94,4 +94,12 @@ public interface FormRepository extends JpaRepository<Form, UUID> {
      * @since v.0.1
      */
     List<Form> findAllByStatusNot(FormStatus status);
+
+    /**
+     * @param serverId the Discord guild snowflake ID
+     * @param status   the status not counted
+     * @return how many of the guild's forms are not in that status
+     * @since v.0.1
+     */
+    long countByServerIdAndStatusNot(Long serverId, FormStatus status);
 }

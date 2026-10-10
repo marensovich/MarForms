@@ -29,6 +29,8 @@ class GuildMembershipRoleSyncTest {
     // Audit entries are covered by GuildAuditControllerTest.
     @MockitoBean
     private AuditLogService auditLogService;
+    @MockitoBean
+    private me.marensovich.gta5rpformapp.backend.service.billing.PlanLimitService planLimitService;
 
     private static final long USER = 5001L;
     private static final long GUILD = 6001L;

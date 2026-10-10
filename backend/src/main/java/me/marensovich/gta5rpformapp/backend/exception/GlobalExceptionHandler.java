@@ -69,6 +69,24 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles {@link PlanLimitExceededException}: an owner action over the
+     * guild's plan limit (E4.1). 402 with the metric, limit and plan.
+     *
+     * @param ex the exception
+     * @return a {@link ResponseEntity} with status 402 (Payment Required)
+     * @since v.0.1
+     */
+    @ExceptionHandler(PlanLimitExceededException.class)
+    public ResponseEntity<Map<String, Object>> handlePlanLimit(PlanLimitExceededException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("error", ex.getMessage());
+        body.put("metric", ex.getMetric().name());
+        body.put("limit", ex.getLimit());
+        body.put("plan", ex.getPlan().name());
+        return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED).body(body);
+    }
+
+    /**
      * Handles {@link FormAccessDeniedException}: unlike a generic 403, the
      * respondent is told why (not a member of the server, banned).
      *

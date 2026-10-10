@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -75,6 +76,17 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID>, J
     long countByFormIdAndDiscordId(UUID formId, Long discordId);
 
     long countByFormIdAndAnonymousToken(UUID formId, String anonymousToken);
+
+    /**
+     * Submissions to any of these forms since a moment: the monthly plan
+     * metric (E4.1).
+     *
+     * @param formIds the forms
+     * @param since   from when, inclusive
+     * @return how many
+     * @since v.0.1
+     */
+    long countByFormIdInAndCreatedAtGreaterThanEqual(Collection<UUID> formIds, LocalDateTime since);
 
     /**
      * Finds the submission an idempotency key already produced.

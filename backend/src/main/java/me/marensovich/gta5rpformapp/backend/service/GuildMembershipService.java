@@ -9,6 +9,8 @@ import me.marensovich.gta5rpformapp.backend.database.entity.User;
 import me.marensovich.gta5rpformapp.backend.database.repository.GuildMembershipRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.UserRepository;
 import me.marensovich.gta5rpformapp.backend.exception.NotFoundException;
+import me.marensovich.gta5rpformapp.backend.service.billing.PlanLimitService;
+import me.marensovich.gta5rpformapp.backend.service.billing.PlanMetric;
 import me.marensovich.gta5rpformapp.backend.service.discord.DiscordBotClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -41,6 +43,7 @@ public class GuildMembershipService {
     private final GuildMembershipRepository guildMembershipRepository;
     private final GuildService guildService;
     private final AuditLogService auditLogService;
+    private final PlanLimitService planLimitService;
     private final UserRepository userRepository;
     private final DiscordBotClient discordBotClient;
 
@@ -148,6 +151,7 @@ public class GuildMembershipService {
             membership.setGuild(guild);
         }
         if (membership.getRole() != GuildRole.MODERATOR) {
+            planLimitService.requireRoomFor(guildDiscordId, PlanMetric.MODERATORS);
             membership.setRole(GuildRole.MODERATOR);
             membership = guildMembershipRepository.save(membership);
             auditLogService.logGuildAction(guildDiscordId, AuditAction.MODERATOR_ADDED, "USER",
