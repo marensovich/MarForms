@@ -4,6 +4,7 @@ import {FiCheckCircle, FiCreditCard, FiExternalLink} from "react-icons/fi";
 import {type BillingStatus, getGuildBilling, type MyGuild, openBillingPortal, startCheckout} from "../../api/dashboard";
 import {describeApiError} from "../../api/errors";
 import {Badge, Modal} from "./shared";
+import SharedServers from "./SharedServers";
 
 const PAID = new Set(["active", "trialing", "past_due"]);
 
@@ -12,8 +13,10 @@ const PAID = new Set(["active", "trialing", "past_due"]);
  * status, Stripe Checkout to subscribe, the Billing Portal to change or
  * cancel. Payment itself happens on Stripe's pages.
  */
-export default function BillingModal({guild, onClose, checkoutResult}: {
+export default function BillingModal({guild, ownedGuilds, onClose, checkoutResult}: {
     guild: MyGuild;
+    /** Every server the owner owns, to share the subscription with (E4.3). */
+    ownedGuilds: MyGuild[];
     onClose: () => void;
     /** Set when Stripe sent the owner back here after checkout. */
     checkoutResult?: "success" | "cancel" | null;
@@ -147,6 +150,10 @@ export default function BillingModal({guild, onClose, checkoutResult}: {
                             )}
                         </div>
                     )}
+                    {(ownedGuilds.length > 1 || billing.guildCount > 1) && (
+                        <SharedServers guild={guild} billing={billing} ownedGuilds={ownedGuilds} onChanged={setBilling}/>
+                    )}
+
                     <p className="text-[11px] text-[#8B8B96]">{t("billing.stripeNote")}</p>
                 </div>
             )}

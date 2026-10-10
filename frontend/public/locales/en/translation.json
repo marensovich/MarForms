@@ -1077,6 +1077,15 @@
     "submissionsOver": "Over the limit: forms keep accepting submissions"
   },
   "billing": {
+    "shared": {
+      "title": "Servers in this subscription",
+      "hint": "One subscription can cover several of your servers: each gets the plan's limits. A detached server goes back to the free plan.",
+      "thisServer": "(this one)",
+      "detach": "Detach",
+      "choose": "Add one of your servers…",
+      "add": "Add",
+      "error": "Couldn't change the subscription's servers"
+    },
     "title": "Subscription",
     "loadError": "Couldn't load the subscription",
     "actionError": "Couldn't open the payment page",

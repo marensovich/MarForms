@@ -171,6 +171,7 @@ export default function ServersTab() {
                 {bansGuild && <BansModal guild={bansGuild} onClose={() => setBansGuild(null)}/>}
                 {billingGuild && (
                     <BillingModal guild={billingGuild} checkoutResult={checkoutResult}
+                                  ownedGuilds={guilds.filter(g => g.role === "OWNER")}
                                   onClose={() => setBillingGuild(null)}/>
                 )}
             </AnimatePresence>

@@ -339,6 +339,7 @@ export function getGuildUsage(guildId: string): Promise<GuildUsage> {
 export interface BillingStatus {
     workspaceId: string;
     guildCount: number;
+    guilds: { guildId: string; name: string }[];
     plan: string;
     /** Stripe's subscription status, "none" if never subscribed */
     status: string;
@@ -360,4 +361,14 @@ export function startCheckout(guildId: string, plan: string): Promise<{ url: str
 /** Opens the Stripe Billing Portal; returns its URL. */
 export function openBillingPortal(guildId: string): Promise<{ url: string }> {
     return apiRequest(`/guilds/${guildId}/billing/portal`, {method: "POST"});
+}
+
+/** Puts a server under another server's subscription (E4.3); the caller owns both. */
+export function joinWorkspace(guildId: string, targetGuildId: string): Promise<BillingStatus> {
+    return apiRequest(`/guilds/${guildId}/workspace/join`, {method: "POST", body: {targetGuildId}});
+}
+
+/** Takes a server out of a shared subscription, back to the free plan. */
+export function leaveWorkspace(guildId: string): Promise<BillingStatus> {
+    return apiRequest(`/guilds/${guildId}/workspace/leave`, {method: "POST"});
 }
