@@ -3,12 +3,15 @@ package me.marensovich.gta5rpformapp.backend.service.billing;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.marensovich.gta5rpformapp.backend.data.guilds.PlanTier;
 import me.marensovich.gta5rpformapp.backend.database.entity.StripeEvent;
 import me.marensovich.gta5rpformapp.backend.database.entity.Subscription;
 import me.marensovich.gta5rpformapp.backend.database.entity.Workspace;
+import me.marensovich.gta5rpformapp.backend.database.repository.GuildRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.StripeEventRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.SubscriptionRepository;
 import me.marensovich.gta5rpformapp.backend.exception.InvalidStateException;
@@ -54,7 +57,7 @@ public class BillingService {
             "customer.subscription.created",
             "customer.subscription.updated",
             "customer.subscription.deleted");
-    private static final Set<String> PAID_STATUSES = Set.of("active", "trialing", "past_due");
+    private static final Set<String> PAID_STATUSES = WorkspaceService.LIVE_STATUSES;
 
     private final StripeProperties stripe;
     private final StripeClient stripeClient;
@@ -63,6 +66,7 @@ public class BillingService {
     private final StripeEventRepository stripeEventRepository;
     private final OutboundJobService outboundJobService;
     private final ObjectMapper objectMapper;
+    private final GuildRepository guildRepository;
 
     @Value("${app.frontend-url:http://localhost:5173}")
     private String frontendUrl;
@@ -72,6 +76,7 @@ public class BillingService {
      *
      * @param workspaceId       the guild's workspace
      * @param guildCount        how many guilds the subscription covers
+     * @param guilds            those guilds, for the merged billing screen (E4.3)
      * @param plan              the workspace's current tier
      * @param status            Stripe's subscription status, {@code none} if never subscribed
      * @param currentPeriodEnd  end of the paid period, if subscribed
@@ -79,9 +84,18 @@ public class BillingService {
      * @param billingEnabled    whether checkout is configured on this server
      * @param availablePlans    the tiers that can be bought
      */
-    public record BillingStatus(UUID workspaceId, int guildCount, PlanTier plan, String status,
+    public record BillingStatus(UUID workspaceId, int guildCount, List<GuildRef> guilds, PlanTier plan, String status,
                                 LocalDateTime currentPeriodEnd, boolean cancelAtPeriodEnd,
                                 boolean billingEnabled, List<PlanTier> availablePlans) {
+    }
+
+    /**
+     * A guild in a workspace.
+     *
+     * @param guildId the Discord guild ID (serialized as string)
+     * @param name    its name
+     */
+    public record GuildRef(@JsonSerialize(using = ToStringSerializer.class) Long guildId, String name) {
     }
 
     /**
@@ -95,7 +109,10 @@ public class BillingService {
         Optional<Subscription> sub = subscriptionRepository.findByWorkspaceId(workspace.getId());
         PlanTier plan = sub.filter(s -> PAID_STATUSES.contains(s.getStatus())).map(Subscription::getPlanTier)
                 .orElse(PlanTier.FREE);
-        return new BillingStatus(workspace.getId(), workspaceService.guildIds(workspace.getId()).size(), plan,
+        List<GuildRef> guilds = workspaceService.guildIds(workspace.getId()).stream()
+                .map(id -> new GuildRef(id, guildRepository.findById(id).map(g -> g.getName()).orElse(String.valueOf(id))))
+                .toList();
+        return new BillingStatus(workspace.getId(), guilds.size(), guilds, plan,
                 sub.map(Subscription::getStatus).orElse("none"),
                 sub.map(Subscription::getCurrentPeriodEnd).orElse(null),
                 sub.map(Subscription::isCancelAtPeriodEnd).orElse(false),

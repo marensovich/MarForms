@@ -1,10 +1,13 @@
 package me.marensovich.gta5rpformapp.backend.controller.v1.api;
 
 import lombok.RequiredArgsConstructor;
+import me.marensovich.gta5rpformapp.backend.config.security.CustomUserDetails;
 import me.marensovich.gta5rpformapp.backend.data.guilds.PlanTier;
 import me.marensovich.gta5rpformapp.backend.service.billing.BillingService;
+import me.marensovich.gta5rpformapp.backend.service.billing.WorkspaceService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,8 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 /**
- * Subscriptions (E4.2): status, Stripe Checkout and Billing Portal for a
- * guild's owner, and Stripe's webhook endpoint.
+ * Subscriptions (E4.2/E4.3): status, Stripe Checkout and Billing Portal for
+ * a guild's owner, sharing one subscription between servers, and Stripe's
+ * webhook endpoint.
  *
  * @author marensovich
  * @version v.0.1
@@ -27,6 +31,7 @@ import java.util.Map;
 public class BillingController {
 
     private final BillingService billingService;
+    private final WorkspaceService workspaceService;
 
     /**
      * A plan to buy.
@@ -53,6 +58,49 @@ public class BillingController {
     @PostMapping("/api/v1/guilds/{guildId}/billing/portal")
     public Map<String, String> portal(@PathVariable Long guildId) {
         return Map.of("url", billingService.portal(guildId));
+    }
+
+    /**
+     * Which subscription a server should join.
+     *
+     * @param targetGuildId a server already in that subscription's workspace
+     */
+    public record JoinRequest(Long targetGuildId) {
+    }
+
+    /**
+     * Puts a server under another server's subscription (E4.3, #100): one
+     * owner pays once for several servers. The caller must own both.
+     *
+     * @param guildId   the server that joins
+     * @param request   a server of the workspace to join
+     * @param principal the owner
+     * @return the joined workspace's billing, as seen from the server that joined
+     * @since v.0.1
+     */
+    @PreAuthorize("@guildAccess.hasRole(#guildId, 'OWNER') and #request != null "
+            + "and @guildAccess.hasRole(#request.targetGuildId(), 'OWNER')")
+    @PostMapping("/api/v1/guilds/{guildId}/workspace/join")
+    public BillingService.BillingStatus join(@PathVariable Long guildId, @RequestBody JoinRequest request,
+                                             @AuthenticationPrincipal CustomUserDetails principal) {
+        workspaceService.moveGuild(guildId, workspaceService.forGuild(request.targetGuildId()).getId(),
+                principal.getUser().getId());
+        return billingService.status(guildId);
+    }
+
+    /**
+     * Takes a server out of a shared subscription; it goes back to the free
+     * plan in a workspace of its own.
+     *
+     * @param guildId the server
+     * @return its billing afterwards
+     * @since v.0.1
+     */
+    @PreAuthorize("@guildAccess.hasRole(#guildId, 'OWNER')")
+    @PostMapping("/api/v1/guilds/{guildId}/workspace/leave")
+    public BillingService.BillingStatus leave(@PathVariable Long guildId) {
+        workspaceService.detachGuild(guildId);
+        return billingService.status(guildId);
     }
 
     /**
