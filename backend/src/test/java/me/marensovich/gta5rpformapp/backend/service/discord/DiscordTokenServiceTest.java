@@ -18,6 +18,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,13 +28,15 @@ class DiscordTokenServiceTest {
     private DiscordTokenSetRepository repository;
     @Mock
     private DiscordApiClient discordApiClient;
+    @Mock
+    private jakarta.persistence.EntityManager entityManager;
 
     private final TokenCipher cipher = new TokenCipher("", "test-secret");
     private DiscordTokenService service;
 
     @BeforeEach
     void setUp() {
-        service = new DiscordTokenService(repository, cipher, discordApiClient);
+        service = new DiscordTokenService(repository, cipher, discordApiClient, entityManager);
     }
 
     private DiscordTokenSet storedSet(String access, String refresh, LocalDateTime expiresAt) {
@@ -128,5 +131,25 @@ class DiscordTokenServiceTest {
 
         assertThat(service.getValidAccessToken(1L)).isEmpty();
         verifyNoInteractions(discordApiClient);
+    }
+
+    @Test
+    void aRefreshThatLostTheRaceUsesTheWinnersTokensInsteadOfWipingThem() {
+        DiscordTokenSet stale = storedSet("old-access", "old-refresh", LocalDateTime.now().minusMinutes(5));
+        when(repository.findById(1L)).thenReturn(Optional.of(stale));
+        // Another request refreshed the row meanwhile: the locked re-read sees the rotated pair.
+        String rotatedAccess = cipher.encrypt("new-access");
+        String rotatedRefresh = cipher.encrypt("new-refresh");
+        doAnswer(invocation -> {
+            DiscordTokenSet row = invocation.getArgument(0);
+            row.setAccessTokenEncrypted(rotatedAccess);
+            row.setRefreshTokenEncrypted(rotatedRefresh);
+            row.setExpiresAt(LocalDateTime.now().plusDays(7));
+            return null;
+        }).when(entityManager).refresh(any(DiscordTokenSet.class), eq(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE));
+
+        assertThat(service.getValidAccessToken(1L)).contains("new-access");
+        verifyNoInteractions(discordApiClient);
+        verify(repository, never()).delete(any());
     }
 }

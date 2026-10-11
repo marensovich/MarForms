@@ -1,5 +1,7 @@
 package me.marensovich.gta5rpformapp.backend.service.discord;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.marensovich.gta5rpformapp.backend.database.entity.DiscordTokenSet;
@@ -10,6 +12,7 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -50,6 +53,7 @@ public class DiscordTokenService {
     private final DiscordTokenSetRepository repository;
     private final TokenCipher cipher;
     private final DiscordApiClient discordApiClient;
+    private final EntityManager entityManager;
 
     /**
      * Stores (or replaces) a user's token pair — called on every login.
@@ -103,7 +107,17 @@ public class DiscordTokenService {
      * @since v.0.1
      */
     @Transactional
-    public synchronized Optional<String> refresh(DiscordTokenSet set) {
+    public synchronized Optional<String> refresh(DiscordTokenSet stale) {
+        // Discord rotates refresh tokens: of two refreshes with the same one, the
+        // second is rejected and used to wipe the user's tokens. Re-read the row
+        // under a lock; if someone refreshed it meanwhile, use their result (#103).
+        String seenRefreshToken = stale.getRefreshTokenEncrypted();
+        DiscordTokenSet set = repository.findById(stale.getUserId()).orElse(null);
+        if (set == null) return Optional.empty();
+        entityManager.refresh(set, LockModeType.PESSIMISTIC_WRITE);
+        if (!Objects.equals(set.getRefreshTokenEncrypted(), seenRefreshToken)) {
+            return Optional.of(cipher.decrypt(set.getAccessTokenEncrypted()));
+        }
         if (set.getRefreshTokenEncrypted() == null) {
             log.info("Discord access token for user {} expired and there is no refresh token", set.getUserId());
             return Optional.empty();

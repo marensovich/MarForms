@@ -123,10 +123,18 @@ public class UserService {
      */
     @Transactional
     public User syncGuilds(User user, String discordAccessToken) {
-        Set<Long> guildIds = discordApiClient.fetchUserGuildIds(discordAccessToken);
+        // A failed call (429, outage) keeps the old list and doesn't count as a
+        // sync, so the next request tries again instead of a minute of "you're
+        // not on this server" (#103).
+        Set<Long> guildIds = discordApiClient.fetchUserGuildIds(discordAccessToken).orElse(null);
+        if (guildIds == null) return user;
         user.setGuildIds(guildIds);
-        user.setGuildsSyncedAt(LocalDateTime.now());
-        return userRepository.save(user);
+        // Write onto a freshly read row, not the copy loaded at the start of the
+        // request: saving that would undo a ban or logout made meanwhile (#103).
+        User fresh = userRepository.findById(user.getId()).orElse(user);
+        fresh.setGuildIds(guildIds);
+        fresh.setGuildsSyncedAt(LocalDateTime.now());
+        return userRepository.save(fresh);
     }
 
     /**

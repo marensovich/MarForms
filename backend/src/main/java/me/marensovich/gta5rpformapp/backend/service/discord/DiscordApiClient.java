@@ -16,6 +16,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -54,10 +55,11 @@ public class DiscordApiClient {
      * </p>
      *
      * @param accessToken the user's Discord OAuth2 access token
-     * @return a set of guild (server) IDs, or an empty set if the request fails
+     * @return the guild (server) IDs, or empty if the request failed — which is
+     * not the same as "in no guilds", and must not be stored as such (#103)
      * @since v.0.1
      */
-    public Set<Long> fetchUserGuildIds(String accessToken) {
+    public Optional<Set<Long>> fetchUserGuildIds(String accessToken) {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
@@ -73,15 +75,15 @@ public class DiscordApiClient {
 
             List<DiscordGuild> guilds = response.getBody();
             if (guilds == null) {
-                return Set.of();
+                return Optional.empty();
             }
 
-            return guilds.stream()
+            return Optional.of(guilds.stream()
                     .map(g -> Long.parseLong(g.id()))
-                    .collect(Collectors.toSet());
+                    .collect(Collectors.toSet()));
         } catch (Exception e) {
             log.warn("Failed to fetch Discord guilds for user: {}", e.getMessage());
-            return Set.of();
+            return Optional.empty();
         }
     }
 
