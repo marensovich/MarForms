@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.config.JWT.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -11,6 +12,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
@@ -82,11 +84,19 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/public/**").permitAll()
                         // Discord redirects the browser here directly after a bot
                         // install — no Authorization header to check; the acting
-                        // user is instead identified via the signed `state` param.
+                        // user is identified by the one-time `state` nonce and
+                        // verified through the bot (GuildConnectService).
                         .requestMatchers("/api/v1/guilds/connect/callback").permitAll()
                         .requestMatchers("/api/v1/**").authenticated()
                         .anyRequest().permitAll()
                 )
+
+                // The API answers 401, not a redirect to Discord's login page:
+                // a fetch can't follow that redirect, and the SPA needs to know
+                // the session is gone (#103).
+                .exceptionHandling(ex -> ex.defaultAuthenticationEntryPointFor(
+                        new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+                        request -> request.getRequestURI().startsWith("/api/")))
 
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)

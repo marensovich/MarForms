@@ -2,6 +2,7 @@ package me.marensovich.gta5rpformapp.backend.database.repository;
 
 import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.database.entity.GuildMembership;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -48,6 +49,8 @@ public interface GuildMembershipRepository extends JpaRepository<GuildMembership
      * @return a {@link List} of the user's {@link GuildMembership} rows
      * @since v.0.1
      */
+    // The guild is read after the transaction ends (GuildMembershipDto.from, open-in-view off).
+    @EntityGraph(attributePaths = "guild")
     List<GuildMembership> findAllByUser_Id(Long userId);
 
     /**
