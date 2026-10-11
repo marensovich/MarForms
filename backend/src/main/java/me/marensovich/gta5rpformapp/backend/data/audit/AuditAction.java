@@ -172,5 +172,8 @@ public enum AuditAction {
     GUILD_BAN_ADDED,
 
     /** A user was taken off a guild's ban list (guild-scoped, E2.5). */
-    GUILD_BAN_REMOVED
+    GUILD_BAN_REMOVED,
+
+    /** The bot was installed on a guild and the installer became its owner (security audit, #103). */
+    GUILD_CONNECTED
 }

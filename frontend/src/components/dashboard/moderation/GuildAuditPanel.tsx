@@ -8,6 +8,7 @@ import {Badge, EmptyState, TabSkeleton} from "../shared";
 
 const ACTIONS: GuildAuditAction[] = [
     "SUBMISSION_DECIDED", "MODERATOR_ADDED", "MODERATOR_REMOVED", "GUILD_BAN_ADDED", "GUILD_BAN_REMOVED",
+    "GUILD_CONNECTED",
 ];
 
 const COLOR: Record<GuildAuditAction, "purple" | "green" | "red"> = {
@@ -16,6 +17,7 @@ const COLOR: Record<GuildAuditAction, "purple" | "green" | "red"> = {
     MODERATOR_REMOVED: "red",
     GUILD_BAN_ADDED: "red",
     GUILD_BAN_REMOVED: "green",
+    GUILD_CONNECTED: "purple",
 };
 
 const PAGE_SIZE = 30;

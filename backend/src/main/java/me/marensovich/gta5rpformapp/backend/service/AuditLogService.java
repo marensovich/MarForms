@@ -99,7 +99,20 @@ public class AuditLogService {
      */
     public void logGuildAction(Long guildId, AuditAction action, String targetType, String targetId,
                                String targetName, Map<String, Object> metadata, String details) {
-        AuditLog entry = buildEntry(action, currentActorId(), currentActorUsername(), targetId, targetName, details);
+        logGuildActionAs(currentActorId(), currentActorUsername(), guildId, action, targetType, targetId,
+                targetName, metadata, details);
+    }
+
+    /**
+     * Like {@link #logGuildAction}, for a request with no signed-in user (the
+     * bot-install callback): the actor is given explicitly.
+     *
+     * @since v.0.1
+     */
+    public void logGuildActionAs(Long actorId, String actorUsername, Long guildId, AuditAction action,
+                                 String targetType, String targetId, String targetName,
+                                 Map<String, Object> metadata, String details) {
+        AuditLog entry = buildEntry(action, actorId, actorUsername, targetId, targetName, details);
         entry.setGuildId(guildId);
         entry.setTargetType(targetType);
         entry.setMetadata(metadata);
@@ -345,6 +358,7 @@ public class AuditLogService {
             case MODERATOR_REMOVED -> "🔴 Moderator Removed";
             case GUILD_BAN_ADDED -> "🔴 Server Ban Added";
             case GUILD_BAN_REMOVED -> "🟢 Server Ban Removed";
+            case GUILD_CONNECTED -> "🔗 Server Connected";
         };
     }
 
@@ -357,7 +371,7 @@ public class AuditLogService {
      */
     private int actionColor(AuditAction action) {
         return switch (action) {
-            case USER_UNBANNED, FORM_CREATED, SUBMISSION_CREATED, ROLE_CREATED, MODERATOR_ADDED, GUILD_BAN_REMOVED -> 0x57F287;
+            case USER_UNBANNED, FORM_CREATED, SUBMISSION_CREATED, ROLE_CREATED, MODERATOR_ADDED, GUILD_BAN_REMOVED, GUILD_CONNECTED -> 0x57F287;
             case USER_BANNED, FORM_DELETED, SUBMISSION_DELETED, ROLE_DELETED, MODERATOR_REMOVED, GUILD_BAN_ADDED -> 0xED4245;
             case USER_LOGIN, FORM_UPDATED, ROLE_UPDATED -> 0x5865F2;
             case USER_ROLES_UPDATED, SETTINGS_UPDATED -> 0xFEE75C;

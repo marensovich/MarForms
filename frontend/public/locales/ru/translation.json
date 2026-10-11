@@ -207,6 +207,8 @@
     "connectServer": "Подключить сервер",
     "connectSuccess": "Сервер {{guildId}} подключён — бот установлен.",
     "connectError": "Не удалось подключить сервер. Попробуйте ещё раз.",
+    "connectErrorManager": "Сервер не подключён: подключить его может только владелец или участник с правом «Управлять сервером».",
+    "connectErrorBot": "Сервер не подключён: бот не появился на сервере. Установите бота ещё раз.",
     "guilds": {
       "title": "Подключённые серверы",
       "connected": "Подключён",
@@ -463,6 +465,7 @@
 
 
       "GUILD_BAN_REMOVED": "Снят бан на сервере",
+      "GUILD_CONNECTED": "Сервер подключён",
       "ROLE_CREATED": "Роль создана",
       "ROLE_UPDATED": "Роль обновлена",
       "ROLE_DELETED": "Роль удалена",
@@ -588,6 +591,7 @@
 
 
         "GUILD_BAN_REMOVED": "Снят бан на сервере",
+        "GUILD_CONNECTED": "Сервер подключён",
         "ROLE_CREATED": "Роль создана",
         "ROLE_UPDATED": "Роль обновлена",
         "ROLE_DELETED": "Роль удалена",
@@ -1068,7 +1072,8 @@
       "MODERATOR_ADDED": "Назначен модератор",
       "MODERATOR_REMOVED": "Снят модератор",
       "GUILD_BAN_ADDED": "Бан",
-      "GUILD_BAN_REMOVED": "Разбан"
+      "GUILD_BAN_REMOVED": "Разбан",
+      "GUILD_CONNECTED": "Подключение сервера"
     },
     "statusChange": "{{from}} → {{to}}",
     "reason": "Причина: {{reason}}",

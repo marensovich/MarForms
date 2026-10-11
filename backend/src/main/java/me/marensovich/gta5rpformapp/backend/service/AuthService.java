@@ -80,24 +80,4 @@ public class AuthService {
 
         return jwtUtil.generateToken(user.getDiscordId());
     }
-
-    /**
-     * Authenticates a user manually using Discord ID and username.
-     * <p>
-     * Creates or retrieves the user from the database and generates
-     * a JWT token without OAuth2 flow. Primarily used for development
-     * or fallback authentication.
-     * </p>
-     *
-     * @param discordId the Discord ID of the user
-     * @param username  the Discord username of the user
-     * @return a JWT token for the authenticated user
-     * @since v.0.1
-     */
-    public String loginWithDiscordManual(Long discordId, String username) {
-        User user = userService.findOrCreateDiscordUser(discordId, username);
-        auditLogService.log(AuditAction.USER_LOGIN, user.getDiscordId(), user.getDiscordUsername(),
-                null, null, "via manual auth");
-        return jwtUtil.generateToken(user.getDiscordId());
-    }
 }

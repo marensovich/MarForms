@@ -246,6 +246,47 @@ public class DiscordBotClient {
     }
 
     /**
+     * Whether a user may connect a guild (security audit, #103).
+     */
+    public enum GuildManagerCheck {
+        /** The user owns the guild or has {@code MANAGE_SERVER} there. */
+        MANAGER,
+        /** The user is on the guild without those rights, or isn't on it. */
+        NOT_MANAGER,
+        /** The bot isn't on the guild (yet), or has no session. */
+        BOT_NOT_IN_GUILD
+    }
+
+    /**
+     * Checks, through the bot, that a user owns or manages a guild — the
+     * only proof the bot-install callback accepts that the guild is theirs.
+     *
+     * @param guildId the Discord guild snowflake ID
+     * @param userId  the user's Discord snowflake ID
+     * @return the outcome
+     * @since v.0.1
+     */
+    public GuildManagerCheck checkGuildManager(Long guildId, Long userId) {
+        if (jda == null) return GuildManagerCheck.BOT_NOT_IN_GUILD;
+        Guild guild = jda.getGuildById(guildId);
+        if (guild == null) return GuildManagerCheck.BOT_NOT_IN_GUILD;
+        try {
+            Member member = guild.retrieveMemberById(userId).complete();
+            return member.isOwner() || member.hasPermission(Permission.MANAGE_SERVER)
+                    ? GuildManagerCheck.MANAGER
+                    : GuildManagerCheck.NOT_MANAGER;
+        } catch (ErrorResponseException e) {
+            if (e.getErrorResponse() != ErrorResponse.UNKNOWN_MEMBER) {
+                log.warn("Failed to check member {} of guild {}: {}", userId, guildId, e.getMessage());
+            }
+            return GuildManagerCheck.NOT_MANAGER;
+        } catch (Exception e) {
+            log.warn("Failed to check member {} of guild {}: {}", userId, guildId, e.getMessage());
+            return GuildManagerCheck.NOT_MANAGER;
+        }
+    }
+
+    /**
      * A guild role as shown in the UI.
      *
      * @param id    the role ID as a string

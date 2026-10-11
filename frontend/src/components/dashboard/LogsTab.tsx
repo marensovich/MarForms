@@ -151,6 +151,13 @@ const ACTION_META: Record<AuditAction, ActionMeta> = {
         border: "border-[#D7E8D9]",
         dot: "bg-[#5C8F6A]"
     },
+    GUILD_CONNECTED: {
+        label: "Server Connected",
+        bg: "bg-[#EFEEF9]",
+        text: "text-[#3730A3]",
+        border: "border-[#DCDAF2]",
+        dot: "bg-[#6B63C9]"
+    },
 };
 
 const ALL_ACTIONS = Object.keys(ACTION_META) as AuditAction[];

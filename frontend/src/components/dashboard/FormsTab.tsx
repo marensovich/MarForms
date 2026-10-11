@@ -162,7 +162,7 @@ export default function FormsTab() {
     const [responsesForm, setResponsesForm] = useState<DashboardForm | null>(null);
     const [editForm, setEditForm] = useState<DashboardForm | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<DashboardForm | null>(null);
-    const [connectBanner, setConnectBanner] = useState<{ type: "success" | "error"; guildId?: string } | null>(null);
+    const [connectBanner, setConnectBanner] = useState<{ type: "success" | "error"; guildId?: string; reason?: string } | null>(null);
     const [connecting, setConnecting] = useState(false);
     const [guilds, setGuilds] = useState<MyGuild[]>([]);
     const [guildsLoading, setGuildsLoading] = useState(true);
@@ -188,7 +188,7 @@ export default function FormsTab() {
             setConnectBanner({type: "success", guildId: connectedGuild});
             loadGuilds();
         } else if (connectError) {
-            setConnectBanner({type: "error"});
+            setConnectBanner({type: "error", reason: connectError});
         }
         if (connectedGuild || connectError) {
             params.delete("connectedGuild");
@@ -282,7 +282,9 @@ export default function FormsTab() {
                     <span>
                         {connectBanner.type === "success"
                             ? t("forms.connectSuccess", {guildId: connectBanner.guildId})
-                            : t("forms.connectError")}
+                            : connectBanner.reason === "manager" ? t("forms.connectErrorManager")
+                                : connectBanner.reason === "bot" ? t("forms.connectErrorBot")
+                                    : t("forms.connectError")}
                     </span>
                     <button onClick={() => setConnectBanner(null)} className="flex-shrink-0 opacity-70 hover:opacity-100">
                         <FiX size={14}/>

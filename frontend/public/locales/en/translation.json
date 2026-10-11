@@ -207,6 +207,8 @@
     "connectServer": "Connect a server",
     "connectSuccess": "Server {{guildId}} connected — the bot is now installed there.",
     "connectError": "Could not connect the server. Please try again.",
+    "connectErrorManager": "Server not connected: only its owner or a member with Manage Server can connect it.",
+    "connectErrorBot": "Server not connected: the bot did not join it. Please install the bot again.",
     "guilds": {
       "title": "Connected servers",
       "connected": "Connected",
@@ -463,6 +465,7 @@
 
 
       "GUILD_BAN_REMOVED": "Server Ban Removed",
+      "GUILD_CONNECTED": "Server Connected",
       "ROLE_CREATED": "Role Created",
       "ROLE_UPDATED": "Role Updated",
       "ROLE_DELETED": "Role Deleted",
@@ -587,6 +590,7 @@
 
 
         "GUILD_BAN_REMOVED": "Server Ban Removed",
+        "GUILD_CONNECTED": "Server Connected",
         "ROLE_CREATED": "Role Created",
         "ROLE_UPDATED": "Role Updated",
         "ROLE_DELETED": "Role Deleted",
@@ -1056,7 +1060,8 @@
       "MODERATOR_ADDED": "Moderator added",
       "MODERATOR_REMOVED": "Moderator removed",
       "GUILD_BAN_ADDED": "Ban",
-      "GUILD_BAN_REMOVED": "Unban"
+      "GUILD_BAN_REMOVED": "Unban",
+      "GUILD_CONNECTED": "Server connected"
     },
     "statusChange": "{{from}} → {{to}}",
     "reason": "Reason: {{reason}}",
