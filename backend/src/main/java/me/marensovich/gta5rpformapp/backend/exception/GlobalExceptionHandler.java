@@ -1,6 +1,11 @@
 package me.marensovich.gta5rpformapp.backend.exception;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.mapping.PropertyReferenceException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.ErrorResponse;
 import me.marensovich.gta5rpformapp.backend.service.files.FileRules;
 import org.springframework.http.HttpStatus;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -13,6 +18,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Global exception handler for the application.
@@ -25,6 +31,7 @@ import java.util.Map;
  * @version v.0.1
  * @since v.0.1
  */
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -212,6 +219,46 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("error", ex.getMessage()));
+                .body(Map.of("error", ex.getMessage() != null ? ex.getMessage() : "Invalid request"));
+    }
+
+    /**
+     * Malformed requests the framework rejects: unreadable JSON, a parameter
+     * of the wrong type, an unknown sort property (#103).
+     *
+     * @param ex the exception
+     * @return 400 with a generic message
+     * @since v.0.1
+     */
+    @ExceptionHandler({HttpMessageNotReadableException.class, TypeMismatchException.class,
+            PropertyReferenceException.class})
+    public ResponseEntity<Map<String, String>> handleBadRequest(Exception ex) {
+        String message = ex instanceof PropertyReferenceException p
+                ? "Unknown sort property: " + p.getPropertyName()
+                : "Malformed request";
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", message));
+    }
+
+    /**
+     * Anything else: one JSON shape, 500, and a correlation id that is also
+     * in the log — instead of whatever the container makes of the exception
+     * (#103). Framework exceptions that carry their own status (404 for an
+     * unknown path, 405, missing parameters...) keep it.
+     *
+     * @param ex the exception
+     * @return the error response
+     * @since v.0.1
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleUnexpected(Exception ex) {
+        if (ex instanceof ErrorResponse response) {
+            return ResponseEntity.status(response.getStatusCode())
+                    .body(Map.of("error", response.getBody().getDetail() != null
+                            ? response.getBody().getDetail() : HttpStatus.valueOf(response.getStatusCode().value()).getReasonPhrase()));
+        }
+        String correlationId = UUID.randomUUID().toString();
+        log.error("Unhandled error [{}]", correlationId, ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Something went wrong on our side", "correlationId", correlationId));
     }
 }
