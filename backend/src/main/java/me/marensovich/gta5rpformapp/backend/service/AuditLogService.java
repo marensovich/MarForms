@@ -14,9 +14,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -44,6 +44,7 @@ public class AuditLogService {
     private final AuditLogRepository auditLogRepository;
     private final SettingsService settingsService;
     private final RestTemplate restTemplate;
+    private final ApplicationEventPublisher events;
 
     // ── Public logging API ──────────────────────────────────────────────────
 
@@ -65,7 +66,7 @@ public class AuditLogService {
         if (!isActionEnabled(action)) return;
         AuditLog entry = buildEntry(action, actorId, actorUsername, targetId, targetName, details);
         auditLogRepository.save(entry);
-        dispatchAsync(entry);
+        events.publishEvent(new AuditLogDispatcher.Dispatch(entry));
     }
 
     /**
@@ -119,7 +120,7 @@ public class AuditLogService {
         entry.setTargetType(targetType);
         entry.setMetadata(metadata);
         auditLogRepository.save(entry);
-        if (isActionEnabled(action)) dispatchAsync(entry);
+        if (isActionEnabled(action)) events.publishEvent(new AuditLogDispatcher.Dispatch(entry));
     }
 
     /**
@@ -241,13 +242,15 @@ public class AuditLogService {
     }
 
     /**
-     * Asynchronously dispatches an audit log entry to the configured Discord webhook.
+     * Sends an audit log entry to the configured Discord webhook. Called by
+     * {@link AuditLogDispatcher} off the request thread, after the action's
+     * transaction committed — never inline, so a slow Discord doesn't hold
+     * up the request or its database connection (#103).
      *
      * @param entry the audit log entry to dispatch
      * @since v.0.1
      */
-    @Async
-    protected void dispatchAsync(AuditLog entry) {
+    void dispatch(AuditLog entry) {
         String url = settingsService.get(LOG_WEBHOOK_KEY, null);
         if (url == null || url.isBlank()) return;
         DiscordWebhookUrl webhook = DiscordWebhookUrl.parse(url).orElse(null);
