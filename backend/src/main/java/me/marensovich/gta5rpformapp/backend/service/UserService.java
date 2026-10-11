@@ -1,6 +1,9 @@
 package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.AccessDeniedException;
+import me.marensovich.gta5rpformapp.backend.data.roles.Permission;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
 import me.marensovich.gta5rpformapp.backend.database.entity.Role;
 import me.marensovich.gta5rpformapp.backend.database.entity.User;
@@ -232,6 +235,7 @@ public class UserService {
     @Transactional
     public User ban(Long discordId, BanUserRequest request) {
         User user = getByDiscordId(discordId);
+        requireMayBan(user);
 
         if (request.permanent()) {
             user.setBannedPermanently(true);
@@ -250,6 +254,30 @@ public class UserService {
         auditLogService.logByCurrentUser(AuditAction.USER_BANNED,
                 String.valueOf(discordId), saved.getDiscordUsername(), details);
         return saved;
+    }
+
+    /**
+     * Platform ban hierarchy (#103): nobody bans themselves, and only a
+     * system administrator bans someone who can manage roles or the system —
+     * otherwise a moderator could lock the administrators out, with only the
+     * database to undo it.
+     */
+    private void requireMayBan(User target) {
+        Long actorId = auditLogService.currentActorId();
+        if (actorId != null && actorId.equals(target.getDiscordId())) {
+            throw new IllegalArgumentException("You can't ban yourself");
+        }
+        boolean targetIsAdmin = target.getRoles().stream()
+                .flatMap(role -> role.getPermissions().stream())
+                .anyMatch(p -> p == Permission.ROLES_MANAGE || p == Permission.SYSTEM_ADMIN);
+        if (targetIsAdmin && !currentUserHas(Permission.SYSTEM_ADMIN)) {
+            throw new AccessDeniedException("Only a system administrator can ban an administrator");
+        }
+    }
+
+    private static boolean currentUserHas(Permission permission) {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.getAuthorities().stream().anyMatch(a -> permission.name().equals(a.getAuthority()));
     }
 
     /**
