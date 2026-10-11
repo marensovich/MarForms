@@ -121,6 +121,11 @@ bot session are not shared between instances (ADR 0001).
 instance. Flyway is disabled for tests; Hibernate generates the schema
 from the entities instead, since the migrations use Postgres-only syntax
 (JSONB, etc).
+PostgresIntegrationTest covers that gap with Testcontainers: it runs every
+Flyway migration on a real Postgres, lets Hibernate validate the entities
+against the result, and checks JSONB and row locking. It needs Docker and is
+skipped without it; CI runs it. Tests that must see real transaction
+boundaries (lazy loading, row locks) are not `@Transactional`.
 
 ## Forms
 
