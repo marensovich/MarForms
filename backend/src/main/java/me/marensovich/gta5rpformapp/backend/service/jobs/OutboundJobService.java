@@ -6,10 +6,14 @@ import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.data.jobs.OutboundJobStatus;
 import me.marensovich.gta5rpformapp.backend.database.entity.OutboundJob;
 import me.marensovich.gta5rpformapp.backend.database.repository.OutboundJobRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -27,6 +31,7 @@ import java.util.UUID;
  * @version v.0.1
  * @since v.0.1
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OutboundJobService {
@@ -39,6 +44,9 @@ public class OutboundJobService {
 
     private final OutboundJobRepository outboundJobRepository;
     private final ObjectMapper objectMapper;
+
+    @Value("${app.jobs.retention-days:14}")
+    private long retentionDays = 14;
 
     /**
      * Enqueues a new job, due immediately.
@@ -137,5 +145,20 @@ public class OutboundJobService {
     private String truncate(String s) {
         if (s == null) return null;
         return s.length() > MAX_ERROR_LENGTH ? s.substring(0, MAX_ERROR_LENGTH) : s;
+    }
+
+    /**
+     * Deletes finished jobs after {@code app.jobs.retention-days} (14): their
+     * payloads copy submission answers and usernames, which must not outlive
+     * the submissions themselves (#103). Pending jobs are never touched.
+     *
+     * @since v.0.1
+     */
+    @Scheduled(cron = "0 17 3 * * *")
+    public void deleteOldJobs() {
+        int removed = outboundJobRepository.deleteFinishedBefore(
+                List.of(OutboundJobStatus.SUCCEEDED, OutboundJobStatus.FAILED),
+                LocalDateTime.now().minusDays(retentionDays));
+        if (removed > 0) log.info("Deleted {} finished outbound job(s)", removed);
     }
 }

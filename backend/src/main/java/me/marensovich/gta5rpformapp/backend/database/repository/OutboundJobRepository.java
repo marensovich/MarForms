@@ -3,6 +3,10 @@ package me.marensovich.gta5rpformapp.backend.database.repository;
 import me.marensovich.gta5rpformapp.backend.data.jobs.OutboundJobStatus;
 import me.marensovich.gta5rpformapp.backend.database.entity.OutboundJob;
 import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.Collection;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -38,4 +42,10 @@ public interface OutboundJobRepository extends JpaRepository<OutboundJob, UUID> 
      */
     List<OutboundJob> findTop20ByJobTypeAndStatusAndNextAttemptAtLessThanEqualOrderByNextAttemptAtAsc(
             String jobType, OutboundJobStatus status, LocalDateTime now);
+
+    /** Deletes finished jobs (in the given statuses) last touched before a cutoff. */
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM OutboundJob j WHERE j.status IN :statuses AND j.updatedAt < :cutoff")
+    int deleteFinishedBefore(Collection<OutboundJobStatus> statuses, LocalDateTime cutoff);
 }
