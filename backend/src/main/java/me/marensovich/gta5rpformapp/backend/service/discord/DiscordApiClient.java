@@ -1,6 +1,7 @@
 package me.marensovich.gta5rpformapp.backend.service.discord;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -30,12 +31,13 @@ import java.util.stream.Collectors;
  * @since v.0.1
  */
 @Slf4j
+@RequiredArgsConstructor
 @Component
 public class DiscordApiClient {
 
     private static final String DISCORD_API_BASE = "https://discord.com/api";
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     @Value("${spring.security.oauth2.client.registration.discord.client-id}")
     private String clientId;

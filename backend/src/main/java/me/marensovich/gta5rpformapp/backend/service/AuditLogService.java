@@ -43,7 +43,7 @@ public class AuditLogService {
 
     private final AuditLogRepository auditLogRepository;
     private final SettingsService settingsService;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     // ── Public logging API ──────────────────────────────────────────────────
 

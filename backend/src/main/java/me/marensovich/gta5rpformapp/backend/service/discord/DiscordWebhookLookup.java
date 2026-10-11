@@ -2,6 +2,7 @@ package me.marensovich.gta5rpformapp.backend.service.discord;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
@@ -17,10 +18,11 @@ import org.springframework.web.client.RestTemplate;
  * @since v.0.1
  */
 @Slf4j
+@RequiredArgsConstructor
 @Component
 public class DiscordWebhookLookup {
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     /**
      * Outcome of a lookup.

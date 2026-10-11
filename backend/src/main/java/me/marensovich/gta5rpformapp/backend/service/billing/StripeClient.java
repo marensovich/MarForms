@@ -24,7 +24,7 @@ import org.springframework.web.client.RestTemplate;
 public class StripeClient {
 
     private final StripeProperties properties;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     /**
      * Creates a customer for a workspace.

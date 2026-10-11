@@ -53,7 +53,7 @@ public class WebhookService {
 
     private final SettingsService settingsService;
     private final WebhookUrlCipher webhookUrlCipher;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     /**
      * Delivers a submission notification to a single webhook.
