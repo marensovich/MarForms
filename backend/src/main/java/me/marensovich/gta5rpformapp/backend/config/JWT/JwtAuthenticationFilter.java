@@ -76,6 +76,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             Optional<User> userOpt = userRepository.findByDiscordId(discordId);
 
+            // A token from before the user's last logout (or before versions existed) is dead (#103).
+            Integer version = jwtUtil.getTokenVersion(token);
+            if (userOpt.isPresent() && (version == null || version != userOpt.get().getTokenVersion())) {
+                userOpt = Optional.empty();
+            }
+
             if (userOpt.isPresent()) {
                 User user = userOpt.get();
                 CustomUserDetails userDetails = new CustomUserDetails(user);

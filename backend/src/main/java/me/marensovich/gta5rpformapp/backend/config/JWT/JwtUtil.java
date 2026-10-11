@@ -84,8 +84,22 @@ public class JwtUtil {
      * @since v.0.1
      */
     public String generateToken(Long userId) {
+        return generateToken(userId, 0);
+    }
+
+    /**
+     * Generates a JWT for a user's current token version (see
+     * {@code User#getTokenVersion()}).
+     *
+     * @param userId       the user's Discord ID
+     * @param tokenVersion the user's token version
+     * @return the signed token
+     * @since v.0.1
+     */
+    public String generateToken(Long userId, int tokenVersion) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
+        claims.put("ver", tokenVersion);
         return createToken(claims);
     }
 
@@ -152,6 +166,16 @@ public class JwtUtil {
      */
     public Long getUserIdFromToken(String token) {
         return extractClaim(token, claims -> claims.get("userId", Long.class));
+    }
+
+    /**
+     * @param token a validated token
+     * @return the token version it was issued under, {@code null} for tokens
+     * issued before versions existed
+     * @since v.0.1
+     */
+    public Integer getTokenVersion(String token) {
+        return extractClaim(token, claims -> claims.get("ver", Integer.class));
     }
 
     /**

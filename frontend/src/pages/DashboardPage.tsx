@@ -12,7 +12,7 @@ import FormsTab from "../components/dashboard/FormsTab.tsx";
 import UsersTab from "../components/dashboard/UsersTab.tsx";
 import RolesTab from "../components/dashboard/RolesTab.tsx";
 import ResponsesTab from "../components/dashboard/ResponsesTab.tsx";
-import {FiActivity, FiFileText, FiInbox, FiList, FiServer, FiSettings, FiShield, FiUsers,} from "react-icons/fi";
+import {FiActivity, FiFileText, FiInbox, FiList, FiLogOut, FiServer, FiSettings, FiShield, FiUsers,} from "react-icons/fi";
 import {useTranslation} from "react-i18next";
 
 // `permission: null` = shown to anyone who owns or moderates a server
@@ -51,7 +51,7 @@ function Initials({name}: { name: string }) {
 }
 
 export default function DashboardPage() {
-    const {user} = useAuth();
+    const {user, logout} = useAuth();
     const {t} = useTranslation();
     // Returning from Stripe Checkout lands on the servers tab, where billing reopens.
     const [selectedTab, setSelectedTab] = useState<Tab | null>(
@@ -145,9 +145,14 @@ export default function DashboardPage() {
                                 </p>
                                 <p className="text-[10px] text-[#8B8B96]">{t(adminLevelKey)}</p>
                             </div>
-                            <div
-                                className="h-2 w-2 flex-shrink-0 rounded-full bg-[#5C8F6A]"
-                                title="Online"/>
+                            <button
+                                onClick={logout}
+                                title={t("common.signOut")}
+                                aria-label={t("common.signOut")}
+                                className="flex-shrink-0 rounded-md p-1.5 text-[#8B8B96] transition-colors hover:bg-[#F4F4F5] hover:text-[#1E1E24]"
+                            >
+                                <FiLogOut size={14}/>
+                            </button>
                         </div>
                     </div>
                 </aside>

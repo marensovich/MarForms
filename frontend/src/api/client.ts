@@ -36,6 +36,8 @@ interface RequestOptions {
     body?: unknown;
     signal?: AbortSignal;
     headers?: Record<string, string>;
+    /** "include" to send cookies cross-origin (the sign-in code exchange). */
+    credentials?: RequestCredentials;
 }
 
 export async function apiRequest<T>(
@@ -53,6 +55,7 @@ export async function apiRequest<T>(
         },
         body: options.body ? JSON.stringify(options.body) : undefined,
         signal: options.signal,
+        credentials: options.credentials,
     });
 
     if (response.status === 403) {

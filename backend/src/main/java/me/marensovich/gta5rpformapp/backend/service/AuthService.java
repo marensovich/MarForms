@@ -1,7 +1,6 @@
 package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.RequiredArgsConstructor;
-import me.marensovich.gta5rpformapp.backend.config.JWT.JwtUtil;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
 import me.marensovich.gta5rpformapp.backend.database.entity.User;
 import me.marensovich.gta5rpformapp.backend.service.discord.DiscordTokenService;
@@ -26,7 +25,6 @@ import java.time.LocalDateTime;
 public class AuthService {
 
     private final UserService userService;
-    private final JwtUtil jwtUtil;
     private final DiscordTokenService discordTokenService;
     private final AuditLogService auditLogService;
 
@@ -58,10 +56,11 @@ public class AuthService {
      *
      * @param oauthUser the OAuth2 user data from Discord
      * @param tokens    the user's Discord OAuth2 tokens (may be null)
-     * @return a JWT token for the authenticated user
+     * @return the signed-in user; the session token is handed over through
+     * {@link LoginCodeService}, never in a URL
      * @since v.0.1
      */
-    public String loginWithDiscord(OAuth2User oauthUser, DiscordTokens tokens) {
+    public User loginWithDiscord(OAuth2User oauthUser, DiscordTokens tokens) {
 
         Long discordId = Long.parseLong(oauthUser.getAttribute("id"));
         String username = oauthUser.getAttribute("username");
@@ -78,6 +77,6 @@ public class AuthService {
         auditLogService.log(AuditAction.USER_LOGIN, user.getDiscordId(), user.getDiscordUsername(),
                 null, null, "via Discord OAuth");
 
-        return jwtUtil.generateToken(user.getDiscordId());
+        return user;
     }
 }

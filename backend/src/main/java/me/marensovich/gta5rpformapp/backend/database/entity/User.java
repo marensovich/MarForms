@@ -122,6 +122,15 @@ public class User {
     private boolean bannedPermanently = false;
 
     /**
+     * Version stamped into every JWT issued to this user; bumping it (on
+     * logout) invalidates all tokens issued before (#103).
+     *
+     * @since v.0.1
+     */
+    @Column(name = "token_version", nullable = false)
+    private int tokenVersion = 0;
+
+    /**
      * The timestamp until which the user is temporarily banned.
      * <p>
      * If {@code null} and not permanently banned, the user is not banned.

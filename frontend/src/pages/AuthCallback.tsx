@@ -3,6 +3,7 @@ import {useNavigate, useSearchParams} from "react-router-dom";
 import {useTranslation} from "react-i18next";
 import {useAuth} from "../hooks/useAuth";
 import {consumeRedirectPath} from "../auth/redirectStorage";
+import {exchangeLoginCode} from "../api/auth";
 import LoadingScreen from "../components/LoadingScreen";
 
 export default function AuthCallback() {
@@ -16,18 +17,21 @@ export default function AuthCallback() {
         if (hasRun.current) return;
         hasRun.current = true;
 
-        const token = searchParams.get("token");
+        // The redirect carries a one-time code, never the token itself (#103).
+        const code = searchParams.get("code");
 
-        if (!token) {
+        if (!code) {
             navigate("/login", {replace: true});
             return;
         }
 
-        // login теперь async — ждём /me перед редиректом
-        login(token).then(() => {
-            const redirectPath = consumeRedirectPath();
-            navigate(redirectPath ?? "/", {replace: true});
-        });
+        exchangeLoginCode(code)
+            .then(token => login(token))
+            .then(() => {
+                const redirectPath = consumeRedirectPath();
+                navigate(redirectPath ?? "/", {replace: true});
+            })
+            .catch(() => navigate("/login", {replace: true}));
     }, [searchParams, login, navigate]);
 
     return <LoadingScreen label={t("auth.signingIn")}/>;

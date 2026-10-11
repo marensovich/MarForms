@@ -4,7 +4,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.marensovich.gta5rpformapp.backend.database.entity.User;
 import me.marensovich.gta5rpformapp.backend.service.AuthService;
+import me.marensovich.gta5rpformapp.backend.service.LoginCodeService;
+import org.springframework.http.ResponseCookie;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
@@ -15,8 +18,6 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
@@ -40,6 +41,7 @@ public class OAuthSuccessHandler implements AuthenticationSuccessHandler {
 
     private final AuthService authService;
     private final OAuth2AuthorizedClientService authorizedClientService;
+    private final LoginCodeService loginCodeService;
 
     /**
      * Frontend URL to redirect after successful authentication.
@@ -93,8 +95,18 @@ public class OAuthSuccessHandler implements AuthenticationSuccessHandler {
             }
         }
 
-        String jwt = authService.loginWithDiscord(oauthUser, tokens);
+        User user = authService.loginWithDiscord(oauthUser, tokens);
 
-        response.sendRedirect(frontendUrl + "/auth?token=" + jwt);
+        // No token in the URL (#103): a one-time code, redeemable only together
+        // with this browser-bound cookie, via POST /api/v1/auth/exchange.
+        LoginCodeService.Issued issued = loginCodeService.issue(user.getDiscordId());
+        response.addHeader("Set-Cookie", ResponseCookie.from(AuthCookies.LOGIN_NONCE, issued.nonce())
+                .httpOnly(true)
+                .secure(request.isSecure())
+                .sameSite("Lax")
+                .path("/api/v1/auth")
+                .maxAge(120)
+                .build().toString());
+        response.sendRedirect(frontendUrl + "/auth?code=" + issued.code());
     }
 }

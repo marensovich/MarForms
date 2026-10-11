@@ -8,6 +8,10 @@ import me.marensovich.gta5rpformapp.backend.database.repository.AuditLogReposito
 import me.marensovich.gta5rpformapp.backend.database.repository.GuildMembershipRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.UserRepository;
 import me.marensovich.gta5rpformapp.backend.service.GuildConnectService;
+import me.marensovich.gta5rpformapp.backend.service.LoginCodeService;
+import me.marensovich.gta5rpformapp.backend.config.AuthCookies;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.Cookie;
 import me.marensovich.gta5rpformapp.backend.service.discord.DiscordBotClient;
 import me.marensovich.gta5rpformapp.backend.service.discord.DiscordBotClient.GuildManagerCheck;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +30,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Regression tests for the two critical findings of the security audit
@@ -52,6 +57,10 @@ class AuthSecurityTest {
     private AuditLogRepository auditLogRepository;
     @Autowired
     private GuildConnectService guildConnectService;
+    @Autowired
+    private LoginCodeService loginCodeService;
+    @Autowired
+    private ObjectMapper objectMapper;
     @MockitoBean
     private DiscordBotClient botClient;
 
@@ -124,5 +133,37 @@ class AuthSecurityTest {
     private boolean ownsGuild() {
         return guildMembershipRepository.findByUser_IdAndGuild_DiscordGuildId(installer.getId(), GUILD)
                 .map(m -> m.getRole() == GuildRole.OWNER).orElse(false);
+    }
+
+    @Test
+    void aSignInCodeNeedsItsCookieAndWorksOnce() throws Exception {
+        LoginCodeService.Issued issued = loginCodeService.issue(installer.getDiscordId());
+        String body = "{\"code\":\"" + issued.code() + "\"}";
+
+        // Without the browser-bound cookie (a code handed to someone else): refused, and burnt.
+        mvc.perform(post("/api/v1/auth/exchange").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/v1/auth/exchange").contentType(MediaType.APPLICATION_JSON).content(body)
+                        .cookie(new Cookie(AuthCookies.LOGIN_NONCE, issued.nonce())))
+                .andExpect(status().isUnauthorized());
+
+        LoginCodeService.Issued fresh = loginCodeService.issue(installer.getDiscordId());
+        String token = objectMapper.readTree(mvc.perform(post("/api/v1/auth/exchange")
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"code\":\"" + fresh.code() + "\"}")
+                        .cookie(new Cookie(AuthCookies.LOGIN_NONCE, fresh.nonce())))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString()).get("token").asText();
+        mvc.perform(get("/api/v1/me").header("Authorization", "Bearer " + token)).andExpect(status().isOk());
+    }
+
+    @Test
+    void logoutRevokesEveryTokenIssuedBefore() throws Exception {
+        String token = jwtUtil.generateToken(installer.getDiscordId(), installer.getTokenVersion());
+        mvc.perform(get("/api/v1/me").header("Authorization", "Bearer " + token)).andExpect(status().isOk());
+
+        mvc.perform(post("/api/v1/auth/logout").header("Authorization", "Bearer " + token))
+                .andExpect(status().isNoContent());
+
+        mvc.perform(get("/api/v1/me").header("Authorization", "Bearer " + token)).andExpect(status().isUnauthorized());
     }
 }

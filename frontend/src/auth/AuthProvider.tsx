@@ -5,6 +5,7 @@ import type {AuthUser, JwtPayload} from "../types/auth";
 import {clearToken, decodeToken, getToken, isTokenExpired, setToken as persistToken,} from "./token";
 import {AuthContext} from "./AuthContextDefinition";
 import {fetchMe} from "../api/me";
+import {logoutEverywhere} from "../api/auth";
 import {BanError, type BannedError} from "../api/client.ts";
 
 function isTokenValid(token: string): boolean {
@@ -101,8 +102,11 @@ export function AuthProvider({children}: { children: ReactNode }) {
     );
 
     const logout = useCallback(() => {
-        clearToken();
-        setUser(null);
+        // Revoke server-side too, so a copied token stops working; sign out locally either way.
+        logoutEverywhere().catch(() => undefined).finally(() => {
+            clearToken();
+            setUser(null);
+        });
     }, []);
 
     const value = useMemo(

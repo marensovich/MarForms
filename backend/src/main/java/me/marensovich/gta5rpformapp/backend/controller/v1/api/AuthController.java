@@ -1,10 +1,16 @@
 package me.marensovich.gta5rpformapp.backend.controller.v1.api;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import me.marensovich.gta5rpformapp.backend.config.AuthCookies;
+import me.marensovich.gta5rpformapp.backend.config.security.CustomUserDetails;
+import me.marensovich.gta5rpformapp.backend.service.LoginCodeService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,26 +33,45 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthController {
 
+    private final LoginCodeService loginCodeService;
+
+    /** Body of {@link #exchange}. */
+    public record ExchangeRequest(String code) {
+    }
+
     /**
-     * Logs out the current user by clearing the JWT cookie.
-     * <p>
-     * Creates a new cookie with the same name ("jwt"), sets its max age to 0
-     * (effectively deleting it), and adds it to the response. This clears the
-     * authentication cookie on the client side.
-     * </p>
+     * Exchanges the one-time code from the OAuth redirect for a session token
+     * (#103). Needs the HttpOnly cookie set on that redirect.
      *
-     * @param response the HTTP response used to add the cookie
-     * @return a {@link ResponseEntity} containing a success message
+     * @param request  the code
+     * @param nonce    the browser-binding cookie
+     * @param response used to clear the cookie
+     * @return {@code {"token": ...}}, or 401 for an unknown, used or expired code
+     * @since v.0.1
+     */
+    @PostMapping("/exchange")
+    public ResponseEntity<Map<String, String>> exchange(@RequestBody ExchangeRequest request,
+                                                        @CookieValue(name = AuthCookies.LOGIN_NONCE, required = false) String nonce,
+                                                        HttpServletResponse response) {
+        response.addHeader("Set-Cookie", ResponseCookie.from(AuthCookies.LOGIN_NONCE, "")
+                .httpOnly(true).sameSite("Lax").path("/api/v1/auth").maxAge(0).build().toString());
+        return loginCodeService.exchange(request == null ? null : request.code(), nonce)
+                .map(token -> ResponseEntity.ok(Map.of("token", token)))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "The sign-in link has expired, please sign in again")));
+    }
+
+    /**
+     * Signs the current user out on every device: all tokens issued to them
+     * so far stop working (#103).
+     *
+     * @param principal the signed-in user, if any
+     * @return 204
      * @since v.0.1
      */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletResponse response) {
-        Cookie cookie = new Cookie("jwt", null);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
-        return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Logout Successful!"));
+    public ResponseEntity<Void> logout(@AuthenticationPrincipal CustomUserDetails principal) {
+        if (principal != null) loginCodeService.revokeAllTokens(principal.getUser());
+        return ResponseEntity.noContent().build();
     }
 }

@@ -1,6 +1,7 @@
 package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.extern.slf4j.Slf4j;
+import me.marensovich.gta5rpformapp.backend.config.security.Sha256;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
 import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.database.entity.GuildConnectRequest;
@@ -12,14 +13,8 @@ import me.marensovich.gta5rpformapp.backend.service.discord.DiscordBotClient.Gui
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Base64;
-import java.util.HexFormat;
 import java.util.Map;
 
 /**
@@ -50,7 +45,6 @@ public class GuildConnectService {
     private final DiscordBotClient botClient;
     private final AuditLogService auditLogService;
     private final Duration botJoinWait;
-    private final SecureRandom random = new SecureRandom();
 
     public GuildConnectService(GuildConnectRequestRepository requestRepository, UserRepository userRepository,
                                GuildMembershipService guildMembershipService, GuildService guildService,
@@ -85,12 +79,10 @@ public class GuildConnectService {
      */
     public String start(Long discordId) {
         requestRepository.deleteExpired(LocalDateTime.now());
-        byte[] bytes = new byte[32];
-        random.nextBytes(bytes);
-        String nonce = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+        String nonce = Sha256.randomToken();
 
         GuildConnectRequest request = new GuildConnectRequest();
-        request.setNonceHash(hash(nonce));
+        request.setNonceHash(Sha256.hex(nonce));
         request.setDiscordId(discordId);
         request.setExpiresAt(LocalDateTime.now().plus(REQUEST_TTL));
         requestRepository.save(request);
@@ -107,7 +99,7 @@ public class GuildConnectService {
      */
     public Outcome complete(String state, Long guildId) {
         if (state == null || state.isBlank() || guildId == null) return Outcome.INVALID_STATE;
-        String nonceHash = hash(state);
+        String nonceHash = Sha256.hex(state);
         GuildConnectRequest request = requestRepository.findById(nonceHash).orElse(null);
         // consume() decides the race: of two callbacks with one state, one deletes the row.
         if (request == null || requestRepository.consume(nonceHash) == 0) return Outcome.INVALID_STATE;
@@ -155,15 +147,6 @@ public class GuildConnectService {
                 Thread.currentThread().interrupt();
                 return check;
             }
-        }
-    }
-
-    private static String hash(String nonce) {
-        try {
-            return HexFormat.of().formatHex(
-                    MessageDigest.getInstance("SHA-256").digest(nonce.getBytes(StandardCharsets.UTF_8)));
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException(e);
         }
     }
 }
