@@ -55,6 +55,7 @@ import java.util.stream.Collectors;
 public class SubmissionService {
 
     private final SubmissionRepository submissionRepository;
+    private final me.marensovich.gta5rpformapp.backend.database.repository.FormRepository formRepository;
     private final UserRepository userRepository;
     private final FormService formService;
     private final WebhookService webhookService;
@@ -155,6 +156,11 @@ public class SubmissionService {
         String tokenHash = anonymous ? hashAnonymousToken(form, anonymousToken) : null;
         if (anonymous && tokenHash == null && form.getSubmissionLimitPerUser() != null) {
             throw new IllegalArgumentException("Missing or invalid Anonymous-Token header");
+        }
+        // Two concurrent submissions (two tabs, a script) must not both pass the
+        // count below: with a limit, they queue on the form's row (#103).
+        if (form.getSubmissionLimitPerUser() != null && (discordId != null || tokenHash != null)) {
+            formRepository.lockById(form.getId());
         }
         long previous = discordId != null ? submissionRepository.countByFormIdAndDiscordId(form.getId(), discordId)
                 : tokenHash != null ? submissionRepository.countByFormIdAndAnonymousToken(form.getId(), tokenHash)

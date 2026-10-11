@@ -4,7 +4,10 @@ import me.marensovich.gta5rpformapp.backend.data.forms.FormStatus;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -102,4 +105,12 @@ public interface FormRepository extends JpaRepository<Form, UUID> {
      * @since v.0.1
      */
     long countByServerIdAndStatusNot(Long serverId, FormStatus status);
+
+    /**
+     * Locks a form's row until the transaction ends: serializes the
+     * "count, then insert" of per-user submission limits (#103).
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select f from Form f where f.id = :id")
+    Optional<Form> lockById(UUID id);
 }

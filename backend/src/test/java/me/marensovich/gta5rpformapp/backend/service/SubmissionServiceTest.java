@@ -44,12 +44,14 @@ class SubmissionServiceTest {
     private FormAccessService formAccessService;
     @Mock
     private FileService fileService;
+    @Mock
+    private me.marensovich.gta5rpformapp.backend.database.repository.FormRepository formRepository;
 
     private final WebhookUrlCipher cipher = new WebhookUrlCipher(new TokenCipher("", "test-secret"));
 
     private SubmissionService service() {
         return new SubmissionService(
-                submissionRepository, userRepository, formService, webhookService, auditLogService, outboundJobService,
+                submissionRepository, formRepository, userRepository, formService, webhookService, auditLogService, outboundJobService,
                 formAccessService, fileService, cipher);
     }
 
