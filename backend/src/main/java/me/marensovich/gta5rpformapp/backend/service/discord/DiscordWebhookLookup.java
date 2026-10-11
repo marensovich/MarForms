@@ -75,7 +75,7 @@ public class DiscordWebhookLookup {
         } catch (HttpClientErrorException.NotFound | HttpClientErrorException.Unauthorized e) {
             return Result.of(State.GONE);
         } catch (Exception e) {
-            log.debug("Webhook lookup failed: {}", e.getMessage());
+            log.debug("Webhook lookup failed: {}", WebhookUrlCipher.redact(e.getMessage()));
             return Result.of(State.UNKNOWN);
         }
     }

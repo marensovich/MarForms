@@ -1,5 +1,7 @@
 package me.marensovich.gta5rpformapp.backend.service;
 
+import me.marensovich.gta5rpformapp.backend.service.discord.TokenCipher;
+import me.marensovich.gta5rpformapp.backend.service.discord.WebhookUrlCipher;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormSchema;
 import me.marensovich.gta5rpformapp.backend.data.forms.WebhookConfig;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
@@ -43,10 +45,12 @@ class SubmissionServiceTest {
     @Mock
     private FileService fileService;
 
+    private final WebhookUrlCipher cipher = new WebhookUrlCipher(new TokenCipher("", "test-secret"));
+
     private SubmissionService service() {
         return new SubmissionService(
                 submissionRepository, userRepository, formService, webhookService, auditLogService, outboundJobService,
-                formAccessService, fileService);
+                formAccessService, fileService, cipher);
     }
 
     private Form activeFormWithWebhooks(WebhookConfig... webhooks) {

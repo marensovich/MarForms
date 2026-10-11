@@ -13,6 +13,7 @@ import me.marensovich.gta5rpformapp.backend.exception.NotFoundException;
 import me.marensovich.gta5rpformapp.backend.service.FormService;
 import me.marensovich.gta5rpformapp.backend.service.SubmissionService;
 import me.marensovich.gta5rpformapp.backend.service.WebhookService;
+import me.marensovich.gta5rpformapp.backend.service.discord.WebhookUrlCipher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
@@ -58,6 +59,7 @@ public class WebhookDeliveryProcessor {
     private final WebhookService webhookService;
     private final SubmissionService submissionService;
     private final ObjectMapper objectMapper;
+    private final WebhookUrlCipher webhookUrlCipher;
 
     /**
      * Runs every few seconds — short on purpose, since the DoD for #58 is a
@@ -77,6 +79,9 @@ public class WebhookDeliveryProcessor {
 
     private void processOne(OutboundJob job) {
         WebhookDeliveryPayload payload = objectMapper.convertValue(job.getPayload(), WebhookDeliveryPayload.class);
+        // Sealed when queued; jobs queued before encryption hold the plain URL.
+        String webhookUrl = webhookUrlCipher.open(payload.webhookUrl());
+        String loggedUrl = WebhookUrlCipher.redact(webhookUrl);
 
         Form form;
         try {
@@ -88,17 +93,17 @@ public class WebhookDeliveryProcessor {
         }
 
         WebhookConfig webhook = form.getWebhooks() == null ? null : form.getWebhooks().stream()
-                .filter(w -> payload.webhookUrl().equals(w.getUrl()))
+                .filter(w -> webhookUrl.equals(w.getUrl()))
                 .findFirst().orElse(null);
 
         if (webhook == null) {
             log.info("Webhook {} is no longer configured on form {} — skipping queued delivery",
-                    payload.webhookUrl(), payload.formId());
+                    loggedUrl, payload.formId());
             outboundJobService.markSucceeded(job.getId());
             return;
         }
         if (Boolean.TRUE.equals(webhook.getInvalid())) {
-            log.info("Webhook {} is marked invalid — skipping queued delivery", payload.webhookUrl());
+            log.info("Webhook {} is marked invalid — skipping queued delivery", loggedUrl);
             outboundJobService.markSucceeded(job.getId());
             return;
         }
@@ -107,32 +112,33 @@ public class WebhookDeliveryProcessor {
             String messageId = webhookService.deliverToWebhook(
                     form, webhook, payload.answers(), payload.discordUsername(), payload.discordId(), payload.submissionId());
             if (messageId != null) {
-                submissionService.recordWebhookMessageId(payload.submissionId(), payload.webhookUrl(), messageId);
+                submissionService.recordWebhookMessageId(payload.submissionId(), webhookUrl, messageId);
             }
             outboundJobService.markSucceeded(job.getId());
             // A delivery got through: clear a delivery-failure status, but not one
             // the health check set (lost channel access may not stop delivery).
             if (WebhookHealth.REASON_DELIVERY_FAILING.equals(webhook.getHealthReason())) {
-                formService.updateWebhookHealth(payload.formId(), payload.webhookUrl(), WebhookHealth.HEALTHY, null, null);
+                formService.updateWebhookHealth(payload.formId(), webhookUrl, WebhookHealth.HEALTHY, null, null);
             }
         } catch (HttpClientErrorException.TooManyRequests e) {
             long retryAfterSeconds = parseRetryAfter(e);
-            log.info("Webhook {} rate-limited — retrying in {}s", payload.webhookUrl(), retryAfterSeconds);
+            log.info("Webhook {} rate-limited — retrying in {}s", loggedUrl, retryAfterSeconds);
             outboundJobService.reschedule(job.getId(), LocalDateTime.now().plusSeconds(retryAfterSeconds),
                     "Rate limited (429), Retry-After=" + retryAfterSeconds + "s");
         } catch (HttpClientErrorException.NotFound e) {
-            log.warn("Webhook {} returned 404 — marking invalid", payload.webhookUrl());
-            formService.markWebhookInvalid(payload.formId(), payload.webhookUrl(),
+            log.warn("Webhook {} returned 404 — marking invalid", loggedUrl);
+            formService.markWebhookInvalid(payload.formId(), webhookUrl,
                     "Discord returned 404 for this webhook — it was likely deleted directly on Discord");
             outboundJobService.markFailed(job.getId(), "Webhook not found (404), marked invalid");
         } catch (Exception e) {
             long backoffSeconds = BASE_RETRY_DELAY_SECONDS * (1L << Math.min(job.getAttempts(), MAX_BACKOFF_DOUBLINGS));
             log.warn("Webhook delivery failed [{}], retrying in {}s: {}",
-                    payload.webhookUrl(), backoffSeconds, e.getMessage());
-            outboundJobService.reschedule(job.getId(), LocalDateTime.now().plusSeconds(backoffSeconds), e.getMessage());
+                    loggedUrl, backoffSeconds, WebhookUrlCipher.redact(e.getMessage()));
+            outboundJobService.reschedule(job.getId(), LocalDateTime.now().plusSeconds(backoffSeconds),
+                    WebhookUrlCipher.redact(e.getMessage()));
             if (webhook.effectiveHealth() == WebhookHealth.HEALTHY) {
-                formService.updateWebhookHealth(payload.formId(), payload.webhookUrl(), WebhookHealth.DEGRADED,
-                        WebhookHealth.REASON_DELIVERY_FAILING, e.getMessage());
+                formService.updateWebhookHealth(payload.formId(), webhookUrl, WebhookHealth.DEGRADED,
+                        WebhookHealth.REASON_DELIVERY_FAILING, WebhookUrlCipher.redact(e.getMessage()));
             }
         }
     }

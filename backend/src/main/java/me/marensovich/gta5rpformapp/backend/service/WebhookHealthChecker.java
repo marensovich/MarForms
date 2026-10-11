@@ -9,6 +9,7 @@ import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import me.marensovich.gta5rpformapp.backend.database.repository.FormRepository;
 import me.marensovich.gta5rpformapp.backend.service.discord.DiscordBotClient;
 import me.marensovich.gta5rpformapp.backend.service.discord.DiscordWebhookLookup;
+import me.marensovich.gta5rpformapp.backend.service.discord.WebhookUrlCipher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -64,7 +65,7 @@ public class WebhookHealthChecker {
                 try {
                     check(form, webhook);
                 } catch (Exception e) {
-                    log.warn("Health check of a webhook of form {} failed: {}", form.getId(), e.getMessage());
+                    log.warn("Health check of a webhook of form {} failed: {}", form.getId(), WebhookUrlCipher.redact(e.getMessage()));
                 }
             }
         }

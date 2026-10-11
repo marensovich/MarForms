@@ -2,6 +2,8 @@ package me.marensovich.gta5rpformapp.backend.service.jobs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
+import me.marensovich.gta5rpformapp.backend.service.discord.TokenCipher;
+import me.marensovich.gta5rpformapp.backend.service.discord.WebhookUrlCipher;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormSchema;
 import me.marensovich.gta5rpformapp.backend.data.forms.WebhookConfig;
 import me.marensovich.gta5rpformapp.backend.data.forms.WebhookHealth;
@@ -42,11 +44,13 @@ class WebhookDeliveryProcessorTest {
     @Mock
     private SubmissionService submissionService;
 
+    private final WebhookUrlCipher cipher = new WebhookUrlCipher(new TokenCipher("", "test-secret"));
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private WebhookDeliveryProcessor processor() {
         return new WebhookDeliveryProcessor(
-                outboundJobRepository, outboundJobService, formService, webhookService, submissionService, objectMapper);
+                outboundJobRepository, outboundJobService, formService, webhookService, submissionService, objectMapper, cipher);
     }
 
     private OutboundJob jobFor(WebhookDeliveryPayload payload) {

@@ -12,6 +12,7 @@ import me.marensovich.gta5rpformapp.backend.exception.InvalidStateException;
 import me.marensovich.gta5rpformapp.backend.exception.FormAccessDeniedException;
 import me.marensovich.gta5rpformapp.backend.exception.LoginRequiredException;
 import me.marensovich.gta5rpformapp.backend.database.entity.SubmissionFile;
+import me.marensovich.gta5rpformapp.backend.service.discord.WebhookUrlCipher;
 import me.marensovich.gta5rpformapp.backend.service.files.FileService;
 import me.marensovich.gta5rpformapp.backend.service.forms.FormAccessService;
 import me.marensovich.gta5rpformapp.backend.service.forms.SubmissionAnswerValidator;
@@ -61,6 +62,7 @@ public class SubmissionService {
     private final OutboundJobService outboundJobService;
     private final FormAccessService formAccessService;
     private final FileService fileService;
+    private final WebhookUrlCipher webhookUrlCipher;
 
     /**
      * Submits a response to a form, by form ID and submitter Discord ID —
@@ -245,7 +247,7 @@ public class SubmissionService {
             if (Boolean.TRUE.equals(webhook.getInvalid())) continue;
 
             var payload = new WebhookDeliveryPayload(
-                    form.getId(), submission.getId(), webhook.getUrl(),
+                    form.getId(), submission.getId(), webhookUrlCipher.seal(webhook.getUrl()),
                     answers, discordUsername, discordId);
             outboundJobService.enqueue(OutboundJobService.JOB_TYPE_WEBHOOK_DELIVERY, payload);
         }
@@ -271,7 +273,7 @@ public class SubmissionService {
             Map<String, String> ids = submission.getWebhookMessageIds() != null
                     ? new HashMap<>(submission.getWebhookMessageIds())
                     : new HashMap<>();
-            ids.put(webhookUrl, messageId);
+            ids.put(webhookUrlCipher.seal(webhookUrl), messageId);
             submission.setWebhookMessageIds(ids);
             submissionRepository.save(submission);
         });

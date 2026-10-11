@@ -1,6 +1,7 @@
 package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.RequiredArgsConstructor;
+import me.marensovich.gta5rpformapp.backend.service.discord.WebhookUrlCipher;
 import lombok.extern.slf4j.Slf4j;
 import me.marensovich.gta5rpformapp.backend.data.forms.WebhookConfig;
 import me.marensovich.gta5rpformapp.backend.data.settings.SystemSettings;
@@ -58,6 +59,7 @@ public class WebhookService {
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     private final SettingsService settingsService;
+    private final WebhookUrlCipher webhookUrlCipher;
     private final RestTemplate restTemplate = new RestTemplate();
 
     /**
@@ -102,12 +104,12 @@ public class WebhookService {
         if (webhookMessageIds == null || webhookMessageIds.isEmpty()) return;
 
         for (Map.Entry<String, String> entry : webhookMessageIds.entrySet()) {
-            String webhookUrl = entry.getKey();
+            String webhookUrl = webhookUrlCipher.open(entry.getKey());
             String messageId = entry.getValue();
 
             Matcher matcher = WEBHOOK_URL_PATTERN.matcher(webhookUrl);
             if (!matcher.find()) {
-                log.warn("Cannot parse webhook URL for deletion: {}", webhookUrl);
+                log.warn("Cannot parse webhook URL for deletion: {}", WebhookUrlCipher.redact(webhookUrl));
                 continue;
             }
 
@@ -116,9 +118,10 @@ public class WebhookService {
                     + "/messages/" + messageId;
             try {
                 restTemplate.delete(deleteUrl);
-                log.debug("Deleted Discord message {} from webhook {}", messageId, webhookUrl);
+                log.debug("Deleted Discord message {} from webhook {}", messageId, WebhookUrlCipher.redact(webhookUrl));
             } catch (Exception e) {
-                log.warn("Failed to delete Discord message {} [{}]: {}", messageId, webhookUrl, e.getMessage());
+                log.warn("Failed to delete Discord message {} [{}]: {}", messageId, WebhookUrlCipher.redact(webhookUrl),
+                        WebhookUrlCipher.redact(e.getMessage()));
             }
         }
     }
