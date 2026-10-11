@@ -178,6 +178,22 @@ class GuildFormControllerTest {
     }
 
     @Test
+    void onlyOwnersSeeWebhookTokens() throws Exception {
+        String formId = createDraft(GUILD);
+        mvc.perform(as(owner, put("/api/v1/forms/{f}", formId))
+                        .content("{\"webhooks\": [{\"url\": \"https://discord.com/api/webhooks/77/secret-token\"}]}"))
+                .andExpect(status().isOk());
+
+        mvc.perform(as(owner, get("/api/v1/guilds/{g}/forms/{f}", GUILD, formId)))
+                .andExpect(jsonPath("$.webhooks[0].url").value("https://discord.com/api/webhooks/77/secret-token"));
+        // A moderator sees that a webhook exists, not its token (#103).
+        mvc.perform(as(moderator, get("/api/v1/guilds/{g}/forms/{f}", GUILD, formId)))
+                .andExpect(jsonPath("$.webhooks[0].url").value("https://discord.com/api/webhooks/77/***"));
+        mvc.perform(as(moderator, get("/api/v1/forms/{f}", formId)))
+                .andExpect(jsonPath("$.webhooks[0].url").value("https://discord.com/api/webhooks/77/***"));
+    }
+
+    @Test
     void aFormFromAnotherGuildIsNotFoundEvenForAnOwnerOfBoth() throws Exception {
         String otherForm = createDraft(OTHER_GUILD);
 

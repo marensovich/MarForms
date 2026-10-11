@@ -2,6 +2,8 @@ package me.marensovich.gta5rpformapp.backend.dto.form;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import me.marensovich.gta5rpformapp.backend.service.discord.DiscordWebhookUrl;
+import org.springframework.beans.BeanUtils;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormAccessMode;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormSchema;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormStatus;
@@ -75,5 +77,25 @@ public record FormResponseDto(
                 form.getUpdatedAt(),
                 form.getVersion()
         );
+    }
+
+    /**
+     * The same form with each webhook's token hidden ({@code .../webhooks/<id>/***}),
+     * for viewers who may see the form but not edit it — moderators. A webhook
+     * URL is a credential: whoever holds it can post to the channel, also after
+     * losing their role (#103).
+     *
+     * @return a copy with masked webhook URLs
+     * @since v.0.1
+     */
+    public FormResponseDto withMaskedWebhooks() {
+        List<WebhookConfig> masked = webhooks == null ? null : webhooks.stream().map(webhook -> {
+            WebhookConfig copy = new WebhookConfig();
+            BeanUtils.copyProperties(webhook, copy);
+            copy.setUrl(DiscordWebhookUrl.parse(webhook.getUrl()).map(DiscordWebhookUrl::toString).orElse(null));
+            return copy;
+        }).toList();
+        return new FormResponseDto(id, serverId, channelsIds, schema, masked, active, createdAt, status, accessMode,
+                slug, submissionLimitPerUser, opensAt, closesAt, updatedAt, version);
     }
 }

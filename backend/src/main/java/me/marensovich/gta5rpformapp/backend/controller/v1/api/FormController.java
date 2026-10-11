@@ -67,10 +67,14 @@ public class FormController {
     public Object get(@PathVariable UUID formId, Authentication authentication,
                       @AuthenticationPrincipal CustomUserDetails principal) {
         Form form = formService.getById(formId);
-        boolean manager = authentication != null && (
-                authentication.getAuthorities().stream().anyMatch(a -> "FORMS_MANAGE".equals(a.getAuthority()))
-                        || guildAccessGuard.hasRoleForForm(formId, "MODERATOR"));
-        if (manager) return FormResponseDto.from(form);
+        boolean platformManager = authentication != null
+                && authentication.getAuthorities().stream().anyMatch(a -> "FORMS_MANAGE".equals(a.getAuthority()));
+        boolean manager = authentication != null && (platformManager || guildAccessGuard.hasRoleForForm(formId, "MODERATOR"));
+        if (manager) {
+            // Only those who may edit the form see webhook tokens (#103).
+            FormResponseDto full = FormResponseDto.from(form);
+            return platformManager || guildAccessGuard.hasRoleForForm(formId, "OWNER") ? full : full.withMaskedWebhooks();
+        }
         if (form.getStatus() == FormStatus.DRAFT) throw new NotFoundException("Form not found: " + formId);
         return PublicFormDto.from(form, SubmissionService.notAcceptingReason(form), null,
                 formAccessService.check(form, principal != null ? principal.getUser() : null));

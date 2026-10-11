@@ -39,6 +39,7 @@ import java.util.UUID;
 public class GuildFormController {
 
     private final FormService formService;
+    private final me.marensovich.gta5rpformapp.backend.config.security.GuildAccessGuard guildAccessGuard;
 
     @PreAuthorize("@guildAccess.hasRole(#guildId, 'MODERATOR')")
     @GetMapping
@@ -60,7 +61,9 @@ public class GuildFormController {
     @PreAuthorize("@guildAccess.hasRole(#guildId, 'MODERATOR')")
     @GetMapping("/{formId}")
     public FormResponseDto get(@PathVariable Long guildId, @PathVariable UUID formId) {
-        return FormResponseDto.from(formService.getInGuild(guildId, formId));
+        FormResponseDto full = FormResponseDto.from(formService.getInGuild(guildId, formId));
+        // Moderators see the form, not the webhook tokens (#103).
+        return guildAccessGuard.hasRole(guildId, "OWNER") ? full : full.withMaskedWebhooks();
     }
 
     @PreAuthorize("@guildAccess.hasRole(#guildId, 'OWNER')")
