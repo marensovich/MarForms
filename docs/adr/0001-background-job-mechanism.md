@@ -62,3 +62,12 @@ claims). Neither is a concern at this product's current scale.
   billing webhooks) should default to the same outbox pattern unless a
   specific requirement (e.g. sub-second delivery latency) justifies
   revisiting this decision.
+- **Single instance only (recorded 2026-10-11, security audit #103).** The
+  pollers read due jobs without claiming them (no `FOR UPDATE SKIP LOCKED`
+  or IN_PROGRESS state), the rate limiter keeps its counters in memory, and
+  the JDA bot holds one Gateway session — so a second backend instance would
+  deliver webhooks twice and split the limits. Running more than one needs
+  job claiming (`SELECT ... FOR UPDATE SKIP LOCKED` plus a lease), a shared
+  rate-limit store, and the bot in a single worker.
+- Finished jobs are deleted after `app.jobs.retention-days` (14): payloads
+  copy submission answers.
