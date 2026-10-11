@@ -45,6 +45,8 @@ class GuildFormControllerTest {
     @Autowired
     private MockMvc mvc;
     @Autowired
+    private jakarta.persistence.EntityManager entityManager;
+    @Autowired
     private ObjectMapper objectMapper;
     @Autowired
     private JwtUtil jwtUtil;
@@ -181,6 +183,25 @@ class GuildFormControllerTest {
 
         mvc.perform(as(owner, get("/api/v1/guilds/{g}/forms/{f}", GUILD, otherForm))).andExpect(status().isNotFound());
         mvc.perform(as(owner, delete("/api/v1/guilds/{g}/forms/{f}", GUILD, otherForm))).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void aSaveBasedOnAnOutdatedVersionIsRefusedAndSettingsSaveInTheSameRequest() throws Exception {
+        String formId = createDraft(GUILD);
+        long version = objectMapper.readTree(mvc.perform(as(owner, get("/api/v1/forms/{f}", formId)))
+                .andReturn().getResponse().getContentAsString()).get("version").asLong();
+
+        // One request, one transaction: fields and access settings together (#103).
+        mvc.perform(as(owner, put("/api/v1/forms/{f}", formId)).content(
+                        "{\"version\": " + version + ", \"settings\": {\"accessMode\": \"ANONYMOUS\", \"submissionLimitPerUser\": 2}}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessMode").value("ANONYMOUS"))
+                .andExpect(jsonPath("$.submissionLimitPerUser").value(2));
+        entityManager.flush(); // the version moves on when the change is written
+
+        // A second editor still holding the old version gets a 409 instead of overwriting.
+        mvc.perform(as(owner, put("/api/v1/forms/{f}", formId)).content("{\"version\": " + version + ", \"active\": false}"))
+                .andExpect(status().isConflict());
     }
 
     @Test

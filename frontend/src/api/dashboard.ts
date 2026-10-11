@@ -202,6 +202,10 @@ export interface UpdateFormPayload {
     webhooks?: WebhookConfig[];
     channelsIds?: string[];
     active?: boolean;
+    /** Access settings, saved in the same transaction as the rest. */
+    settings?: FormSettingsPayload;
+    /** The version this edit is based on; the server answers 409 if the form moved on. */
+    version?: number;
 }
 
 export function updateForm(

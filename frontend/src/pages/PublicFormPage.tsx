@@ -61,7 +61,7 @@ export default function PublicFormPage() {
     const definition: FormDefinition = {
         id: form.id,
         slug: form.slug,
-        serverId: 0,
+        serverId: "0",
         channelsIds: [],
         schema: form.schema,
         webhooks: [],

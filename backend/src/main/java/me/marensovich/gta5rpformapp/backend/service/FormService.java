@@ -78,6 +78,7 @@ public class FormService {
     private final AuditLogService auditLogService;
     private final GuildMembershipService guildMembershipService;
     private final PlanLimitService planLimitService;
+    private final org.springframework.transaction.support.TransactionTemplate transactionTemplate;
 
     // ── Lookup ──────────────────────────────────────────────────────────────
 
@@ -233,6 +234,10 @@ public class FormService {
     @Transactional
     public Form update(UUID formId, UpdateFormRequest request) {
         Form form = getById(formId);
+        if (request.version() != null && !request.version().equals(form.getVersion())) {
+            throw new InvalidStateException("This form was changed elsewhere — reload it to see the latest version");
+        }
+        if (request.settings() != null) applySettings(form, request.settings());
 
         String oldTitle = form.getSchema().getTitle();
         FormStatus oldStatus = form.getStatus();
@@ -295,6 +300,14 @@ public class FormService {
     @Transactional
     public Form updateSettings(UUID formId, FormSettingsRequest request) {
         Form form = getById(formId);
+        applySettings(form, request);
+        Form saved = formRepository.save(form);
+        auditLogService.logByCurrentUser(AuditAction.FORM_UPDATED, saved.getId().toString(),
+                saved.getSchema().getTitle(), "Access settings: " + request.accessMode());
+        return saved;
+    }
+
+    private void applySettings(Form form, FormSettingsRequest request) {
         requireAvailable(request.accessMode());
         if (request.opensAt() != null && request.closesAt() != null && !request.closesAt().isAfter(request.opensAt())) {
             throw new IllegalArgumentException("The closing time must be after the opening time");
@@ -303,10 +316,6 @@ public class FormService {
         form.setSubmissionLimitPerUser(request.submissionLimitPerUser());
         form.setOpensAt(request.opensAt());
         form.setClosesAt(request.closesAt());
-        Form saved = formRepository.save(form);
-        auditLogService.logByCurrentUser(AuditAction.FORM_UPDATED, saved.getId().toString(),
-                saved.getSchema().getTitle(), "Access settings: " + request.accessMode());
-        return saved;
     }
 
     /**
@@ -496,7 +505,6 @@ public class FormService {
      * @param error      a short description, kept for later diagnosis
      * @since v.0.1
      */
-    @Transactional
     public void markWebhookInvalid(UUID formId, String webhookUrl, String error) {
         updateWebhookHealth(formId, webhookUrl, WebhookHealth.INVALID, WebhookHealth.REASON_WEBHOOK_DELETED, error);
     }
@@ -514,8 +522,22 @@ public class FormService {
      * @param error      a short description, kept for diagnosis, may be {@code null}
      * @since v.0.1
      */
-    @Transactional
     public void updateWebhookHealth(UUID formId, String webhookUrl, WebhookHealth health,
+                                    String reason, String error) {
+        // A background update must never overwrite an owner's concurrent save
+        // (#103): on a version conflict, re-read and apply again.
+        for (int attempt = 1; ; attempt++) {
+            try {
+                transactionTemplate.executeWithoutResult(status ->
+                        applyWebhookHealth(formId, webhookUrl, health, reason, error));
+                return;
+            } catch (org.springframework.dao.OptimisticLockingFailureException e) {
+                if (attempt == 3) throw e;
+            }
+        }
+    }
+
+    private void applyWebhookHealth(UUID formId, String webhookUrl, WebhookHealth health,
                                     String reason, String error) {
         formRepository.findById(formId).ifPresent(form -> {
             if (form.getWebhooks() == null) return;

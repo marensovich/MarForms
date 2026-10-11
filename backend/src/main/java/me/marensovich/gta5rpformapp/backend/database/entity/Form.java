@@ -169,6 +169,16 @@ public class Form {
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     /**
+     * Optimistic-locking version: a save based on an outdated copy fails
+     * instead of overwriting newer changes (#103).
+     *
+     * @since v.0.1
+     */
+    @Version
+    @Column(nullable = false)
+    private Long version;
+
+    /**
      * Sets the status and keeps the legacy {@link #active} flag in step
      * immediately — not only at flush time — so a DTO built from this
      * entity before the transaction flushes is still consistent.

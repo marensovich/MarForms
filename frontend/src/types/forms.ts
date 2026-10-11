@@ -71,8 +71,9 @@ export interface FormSchema {
 
 export interface FormDefinition {
     id: string;
-    serverId: number;
-    channelsIds: number[];
+    /** Snowflakes arrive as strings: they don't fit a JS number. */
+    serverId: string;
+    channelsIds: string[];
     schema: FormSchema;
     webhooks: WebhookConfig[];
     active: boolean;
@@ -84,6 +85,8 @@ export interface FormDefinition {
     opensAt?: string | null;
     closesAt?: string | null;
     updatedAt?: string;
+    /** Optimistic-locking version; sent back on save. */
+    version?: number;
     createdByDiscordId?: string;
     createdByDiscordUsername?: string;
 }

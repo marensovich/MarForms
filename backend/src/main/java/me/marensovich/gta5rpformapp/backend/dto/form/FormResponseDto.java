@@ -35,7 +35,7 @@ public record FormResponseDto(
         UUID id,
         @JsonSerialize(using = ToStringSerializer.class)
         Long serverId,
-        @JsonSerialize(using = ToStringSerializer.class)
+        @JsonSerialize(contentUsing = ToStringSerializer.class)
         Set<Long> channelsIds,
         FormSchema schema,
         List<WebhookConfig> webhooks,
@@ -47,7 +47,8 @@ public record FormResponseDto(
         Integer submissionLimitPerUser,
         LocalDateTime opensAt,
         LocalDateTime closesAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        Long version
 ) {
     /**
      * Converts a {@link Form} entity to a {@link FormResponseDto}.
@@ -71,7 +72,8 @@ public record FormResponseDto(
                 form.getSubmissionLimitPerUser(),
                 form.getOpensAt(),
                 form.getClosesAt(),
-                form.getUpdatedAt()
+                form.getUpdatedAt(),
+                form.getVersion()
         );
     }
 }

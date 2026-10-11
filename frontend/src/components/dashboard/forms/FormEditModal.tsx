@@ -15,7 +15,7 @@ import {
     FiX,
 } from "react-icons/fi";
 import type {DashboardForm, UpdateFormPayload} from "../../../api/dashboard";
-import {getForm, updateForm, updateGuildFormSettings} from "../../../api/dashboard";
+import {getForm, updateForm} from "../../../api/dashboard";
 import {describeApiError} from "../../../api/errors";
 import type {FormAccessMode, FormDefinition, FormField, WebhookConfig} from "../../../types/forms";
 import StepWebhooks from "./StepWebhooks";
@@ -97,19 +97,22 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
         setError(null);
         setSaved(false);
         try {
+            // One request: fields, webhooks and access settings succeed or fail together,
+            // and a form changed elsewhere since it was opened is refused (409), not overwritten.
             const payload: UpdateFormPayload = {
                 schema: {title: title.trim(), description, fields},
                 webhooks: webhooks.filter(w => w.url.trim()),
+                version: definition.version,
+                ...(accessChanged ? {
+                    settings: {
+                        accessMode: access.accessMode,
+                        submissionLimitPerUser: access.limit ? Number(access.limit) : null,
+                        opensAt: access.opensAt || null,
+                        closesAt: access.closesAt || null,
+                    },
+                } : {}),
             };
-            let updated = await updateForm(form.id, payload);
-            if (accessChanged) {
-                updated = await updateGuildFormSettings(String(definition.serverId), form.id, {
-                    accessMode: access.accessMode,
-                    submissionLimitPerUser: access.limit ? Number(access.limit) : null,
-                    opensAt: access.opensAt || null,
-                    closesAt: access.closesAt || null,
-                });
-            }
+            const updated = await updateForm(form.id, payload);
             setDefinition(updated);
             setAccess(accessOf(updated));
             setSaved(true);

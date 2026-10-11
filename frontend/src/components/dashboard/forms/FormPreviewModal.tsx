@@ -17,7 +17,7 @@ export default function FormPreviewModal({title, description, fields, onClose}: 
     const {t} = useTranslation();
     const form: FormDefinition = {
         id: "preview",
-        serverId: 0,
+        serverId: "0",
         channelsIds: [],
         schema: {title: title || t("preview.untitled"), description, fields},
         webhooks: [],

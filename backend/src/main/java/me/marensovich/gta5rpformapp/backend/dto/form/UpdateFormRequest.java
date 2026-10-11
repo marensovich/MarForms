@@ -18,6 +18,8 @@ import java.util.Set;
  * @param webhooks    the updated list of Discord webhook configurations for notifications (optional)
  * @param schema      the updated JSON schema defining the form structure (optional, validated if provided)
  * @param active      the updated active status of the form (optional)
+ * @param settings    access settings to save in the same transaction (optional)
+ * @param version     the form version the client edited; a mismatch is a 409 (optional)
  * @author marensovich
  * @version v.0.1
  * @since v.0.1
@@ -26,6 +28,8 @@ public record UpdateFormRequest(
         Set<String> channelsIds,
         List<WebhookConfig> webhooks,
         @Valid FormSchema schema,
-        Boolean active
+        Boolean active,
+        @Valid FormSettingsRequest settings,
+        Long version
 ) {
 }
