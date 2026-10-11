@@ -184,6 +184,25 @@ class GuildFormControllerTest {
     }
 
     @Test
+    void webhooksMustBeDiscordWebhooksAndAreStoredCanonically() throws Exception {
+        String formId = createDraft(GUILD);
+
+        // SSRF (#103): a webhook can never point the server at another host.
+        for (String url : new String[]{"http://127.0.0.1:8090/", "http://169.254.169.254/latest/meta-data",
+                "https://discord.com.evil.example/api/webhooks/1/x", "https://discord.com/api/webhooks/1/x?redirect=http://a"}) {
+            mvc.perform(as(owner, put("/api/v1/forms/{f}", formId)).content("{\"webhooks\": [{\"url\": \"" + url + "\"}]}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.fields['webhooks[0].url']").exists());
+        }
+
+        mvc.perform(as(owner, put("/api/v1/forms/{f}", formId))
+                        .content("{\"webhooks\": [{\"url\": \"https://discordapp.com/api/v10/webhooks/123/abc-DEF_9\", \"health\": \"HEALTHY\", \"lastError\": \"spoofed\"}]}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.webhooks[0].url").value("https://discord.com/api/webhooks/123/abc-DEF_9"))
+                .andExpect(jsonPath("$.webhooks[0].lastError").doesNotExist());
+    }
+
+    @Test
     void invalidFieldConfigurationIsRejectedWithPerFieldErrors() throws Exception {
         String formId = createDraft(GUILD);
 

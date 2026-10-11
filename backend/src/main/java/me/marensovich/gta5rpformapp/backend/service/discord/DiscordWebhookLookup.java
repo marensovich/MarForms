@@ -7,8 +7,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Looks a webhook up by its URL ({@code GET /webhooks/{id}/{token}}, no
@@ -21,9 +19,6 @@ import java.util.regex.Pattern;
 @Slf4j
 @Component
 public class DiscordWebhookLookup {
-
-    private static final Pattern WEBHOOK_URL =
-            Pattern.compile("^https://(?:(?:canary|ptb)\\.)?discord(?:app)?\\.com/api(?:/v\\d+)?/webhooks/(\\d+)/([\\w-]+)");
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -65,9 +60,9 @@ public class DiscordWebhookLookup {
      * @since v.0.1
      */
     public Result lookup(String webhookUrl) {
-        Matcher m = webhookUrl == null ? null : WEBHOOK_URL.matcher(webhookUrl.trim());
-        if (m == null || !m.find()) return Result.of(State.NOT_A_DISCORD_WEBHOOK);
-        String url = "https://discord.com/api/v10/webhooks/" + m.group(1) + "/" + m.group(2);
+        DiscordWebhookUrl webhook = DiscordWebhookUrl.parse(webhookUrl).orElse(null);
+        if (webhook == null) return Result.of(State.NOT_A_DISCORD_WEBHOOK);
+        String url = "https://discord.com/api/v10/webhooks/" + webhook.id() + "/" + webhook.token();
         try {
             WebhookInfo info = restTemplate.getForObject(url, WebhookInfo.class);
             if (info == null) return Result.of(State.UNKNOWN);

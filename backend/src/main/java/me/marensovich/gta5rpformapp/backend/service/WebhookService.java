@@ -1,6 +1,7 @@
 package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.RequiredArgsConstructor;
+import me.marensovich.gta5rpformapp.backend.service.discord.DiscordWebhookUrl;
 import me.marensovich.gta5rpformapp.backend.service.discord.WebhookUrlCipher;
 import lombok.extern.slf4j.Slf4j;
 import me.marensovich.gta5rpformapp.backend.data.forms.WebhookConfig;
@@ -17,8 +18,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -48,12 +47,6 @@ import java.util.stream.Collectors;
 public class WebhookService {
 
     private static final int DEFAULT_COLOR = 5793266;
-
-    /**
-     * Matches {@code https://discord.com/api/webhooks/{id}/{token}}
-     */
-    private static final Pattern WEBHOOK_URL_PATTERN =
-            Pattern.compile("https://discord\\.com/api/webhooks/(\\d+)/([^/?]+)");
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
@@ -107,15 +100,13 @@ public class WebhookService {
             String webhookUrl = webhookUrlCipher.open(entry.getKey());
             String messageId = entry.getValue();
 
-            Matcher matcher = WEBHOOK_URL_PATTERN.matcher(webhookUrl);
-            if (!matcher.find()) {
+            DiscordWebhookUrl webhook = DiscordWebhookUrl.parse(webhookUrl).orElse(null);
+            if (webhook == null) {
                 log.warn("Cannot parse webhook URL for deletion: {}", WebhookUrlCipher.redact(webhookUrl));
                 continue;
             }
 
-            String deleteUrl = "https://discord.com/api/webhooks/"
-                    + matcher.group(1) + "/" + matcher.group(2)
-                    + "/messages/" + messageId;
+            String deleteUrl = webhook.messageUrl(messageId);
             try {
                 restTemplate.delete(deleteUrl);
                 log.debug("Deleted Discord message {} from webhook {}", messageId, WebhookUrlCipher.redact(webhookUrl));
@@ -144,7 +135,10 @@ public class WebhookService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        String url = cfg.getUrl() + (cfg.getUrl().contains("?") ? "&wait=true" : "?wait=true");
+        // Rebuilt from id and token: only ever discord.com, whatever is stored (SSRF, #103).
+        DiscordWebhookUrl webhook = DiscordWebhookUrl.parse(cfg.getUrl())
+                .orElseThrow(() -> new NotADiscordWebhookException());
+        String url = webhook.canonical() + "?wait=true";
         ResponseEntity<Map> response = restTemplate.postForEntity(
                 url, new HttpEntity<>(payload, headers), Map.class);
 
@@ -375,5 +369,15 @@ public class WebhookService {
      */
     private boolean hasText(String s) {
         return s != null && !s.isBlank();
+    }
+
+    /**
+     * A stored webhook URL that isn't a Discord webhook: never requested, the
+     * webhook is marked invalid instead (SSRF, #103).
+     */
+    public static class NotADiscordWebhookException extends RuntimeException {
+        public NotADiscordWebhookException() {
+            super("Not a Discord webhook URL");
+        }
     }
 }

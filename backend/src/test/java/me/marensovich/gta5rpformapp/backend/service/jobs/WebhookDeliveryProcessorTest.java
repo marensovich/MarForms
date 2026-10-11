@@ -213,7 +213,7 @@ class WebhookDeliveryProcessorTest {
 
         runDueJob(job);
 
-        verify(outboundJobService).reschedule(eq(job.getId()), any(LocalDateTime.class), eq("connection reset"));
+        verify(outboundJobService).reschedule(eq(job.getId()), any(LocalDateTime.class), eq("Delivery failed (RuntimeException)"));
     }
 
     @Test
@@ -229,7 +229,7 @@ class WebhookDeliveryProcessorTest {
                 .thenThrow(new RuntimeException("connection reset"));
         runDueJob(jobFor(payload));
         verify(formService).updateWebhookHealth(formId, webhook.getUrl(), WebhookHealth.DEGRADED,
-                WebhookHealth.REASON_DELIVERY_FAILING, "connection reset");
+                WebhookHealth.REASON_DELIVERY_FAILING, "Delivery failed (RuntimeException)");
 
         webhook.setHealth(WebhookHealth.DEGRADED);
         webhook.setHealthReason(WebhookHealth.REASON_DELIVERY_FAILING);
@@ -237,5 +237,51 @@ class WebhookDeliveryProcessorTest {
         when(webhookService.deliverToWebhook(any(), any(), any(), any(), any(), any())).thenReturn(null);
         runDueJob(jobFor(payload));
         verify(formService).updateWebhookHealth(formId, webhook.getUrl(), WebhookHealth.HEALTHY, null, null);
+    }
+
+    @Test
+    void aStoredNonDiscordUrlIsMarkedInvalidNotRetried() {
+        UUID formId = UUID.randomUUID();
+        WebhookConfig webhook = new WebhookConfig();
+        webhook.setUrl("http://127.0.0.1:8080/hook");
+        Form form = formWithWebhook(formId, webhook);
+        OutboundJob job = jobFor(new WebhookDeliveryPayload(formId, UUID.randomUUID(), webhook.getUrl(), Map.of(), null, null));
+
+        when(formService.getById(formId)).thenReturn(form);
+        when(webhookService.deliverToWebhook(any(), any(), any(), any(), any(), any()))
+                .thenThrow(new WebhookService.NotADiscordWebhookException());
+
+        runDueJob(job);
+
+        verify(formService).markWebhookInvalid(eq(formId), eq(webhook.getUrl()), any());
+        verify(outboundJobService).markFailed(eq(job.getId()), any());
+        verify(outboundJobService, never()).reschedule(any(), any(), any());
+    }
+
+    @Test
+    void aFailureAfterDeliveryDoesNotSendTheMessageAgain() {
+        UUID formId = UUID.randomUUID();
+        WebhookConfig webhook = new WebhookConfig();
+        webhook.setUrl("https://discord.com/api/webhooks/1/tok");
+        Form form = formWithWebhook(formId, webhook);
+        OutboundJob job = jobFor(new WebhookDeliveryPayload(formId, UUID.randomUUID(), webhook.getUrl(), Map.of(), null, null));
+
+        when(formService.getById(formId)).thenReturn(form);
+        when(webhookService.deliverToWebhook(any(), any(), any(), any(), any(), any())).thenReturn("123");
+        doThrow(new RuntimeException("db down")).when(submissionService).recordWebhookMessageId(any(), any(), any());
+
+        runDueJob(job);
+
+        verify(outboundJobService).markSucceeded(job.getId());
+        verify(outboundJobService, never()).reschedule(any(), any(), any());
+    }
+
+    @Test
+    void storedErrorsNeverEchoAResponseBody() {
+        var http = HttpClientErrorException.create(HttpStatus.BAD_REQUEST, "Bad Request", new HttpHeaders(),
+                "internal secret body".getBytes(), null);
+        org.assertj.core.api.Assertions.assertThat(WebhookDeliveryProcessor.describe(http)).isEqualTo("Discord responded 400");
+        org.assertj.core.api.Assertions.assertThat(WebhookDeliveryProcessor.describe(new IllegalStateException("x")))
+                .isEqualTo("Delivery failed (IllegalStateException)");
     }
 }

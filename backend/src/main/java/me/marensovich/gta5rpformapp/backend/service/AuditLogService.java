@@ -6,6 +6,8 @@ import me.marensovich.gta5rpformapp.backend.config.security.CustomUserDetails;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
 import me.marensovich.gta5rpformapp.backend.database.entity.AuditLog;
 import me.marensovich.gta5rpformapp.backend.database.repository.AuditLogRepository;
+import me.marensovich.gta5rpformapp.backend.service.discord.DiscordWebhookUrl;
+import me.marensovich.gta5rpformapp.backend.service.discord.WebhookUrlCipher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -248,15 +250,20 @@ public class AuditLogService {
     protected void dispatchAsync(AuditLog entry) {
         String url = settingsService.get(LOG_WEBHOOK_KEY, null);
         if (url == null || url.isBlank()) return;
+        DiscordWebhookUrl webhook = DiscordWebhookUrl.parse(url).orElse(null);
+        if (webhook == null) {
+            log.warn("Audit log webhook setting is not a Discord webhook URL — not dispatching");
+            return;
+        }
         try {
             Map<String, Object> payload = new LinkedHashMap<>();
             payload.put("embeds", List.of(buildEmbed(entry)));
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            restTemplate.postForEntity(url, new HttpEntity<>(payload, headers), String.class);
+            restTemplate.postForEntity(webhook.canonical(), new HttpEntity<>(payload, headers), String.class);
         } catch (Exception e) {
-            log.warn("Audit log Discord dispatch failed: {}", e.getMessage());
+            log.warn("Audit log Discord dispatch failed: {}", WebhookUrlCipher.redact(e.getMessage()));
         }
     }
 

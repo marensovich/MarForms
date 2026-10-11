@@ -3,6 +3,8 @@ package me.marensovich.gta5rpformapp.backend.service;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.marensovich.gta5rpformapp.backend.exception.FieldValidationException;
+import me.marensovich.gta5rpformapp.backend.service.discord.DiscordWebhookUrl;
 import me.marensovich.gta5rpformapp.backend.data.settings.SystemSettings;
 import me.marensovich.gta5rpformapp.backend.database.entity.Setting;
 import me.marensovich.gta5rpformapp.backend.database.repository.SettingRepository;
@@ -96,6 +98,11 @@ public class SettingsService {
      */
     @Transactional
     public SystemSettings updateSettings(Map<String, String> updates) {
+        String logWebhook = updates.get(KEY_LOG_WEBHOOK_URL);
+        if (logWebhook != null && !logWebhook.isBlank() && DiscordWebhookUrl.parse(logWebhook).isEmpty()) {
+            throw new FieldValidationException("Invalid settings",
+                    Map.of(KEY_LOG_WEBHOOK_URL, "Must be a Discord webhook URL: https://discord.com/api/webhooks/<id>/<token>"));
+        }
         updates.forEach((key, value) -> {
             Setting setting = settingRepository.findById(key)
                     .orElseGet(() -> new Setting(key, null));

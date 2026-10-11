@@ -23,6 +23,9 @@ import me.marensovich.gta5rpformapp.backend.service.billing.PlanLimitService;
 import me.marensovich.gta5rpformapp.backend.service.billing.PlanMetric;
 import me.marensovich.gta5rpformapp.backend.service.forms.FormSchemaValidator;
 import me.marensovich.gta5rpformapp.backend.service.forms.SlugGenerator;
+import me.marensovich.gta5rpformapp.backend.exception.FieldValidationException;
+import me.marensovich.gta5rpformapp.backend.service.discord.DiscordWebhookUrl;
+import me.marensovich.gta5rpformapp.backend.service.discord.WebhookUrlCipher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -31,6 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -186,7 +191,7 @@ public class FormService {
         form.setServerId(guildId);
         form.setSchema(schema);
         if (channelsIds != null) form.setChannelsIds(parseIds(channelsIds));
-        if (webhooks != null) form.setWebhooks(webhooks);
+        if (webhooks != null) form.setWebhooks(checkedWebhooks(webhooks, List.of()));
         if (accessMode != null) {
             requireAvailable(accessMode);
             form.setAccessMode(accessMode);
@@ -238,7 +243,7 @@ public class FormService {
             form.setChannelsIds(parseIds(request.channelsIds()));
         }
         if (request.webhooks() != null) {
-            form.setWebhooks(request.webhooks());
+            form.setWebhooks(checkedWebhooks(request.webhooks(), form.getWebhooks()));
         }
         if (request.schema() != null) {
             FormSchemaValidator.validate(request.schema());
@@ -524,7 +529,7 @@ public class FormService {
                 webhook.setHealthReason(reason);
                 webhook.setHealthCheckedAt(LocalDateTime.now().toString());
                 webhook.setInvalid(health == WebhookHealth.INVALID ? Boolean.TRUE : null);
-                if (error != null) webhook.setLastError(error);
+                if (error != null) webhook.setLastError(WebhookUrlCipher.redact(error));
                 changed = true;
             }
             if (changed) formRepository.save(form);
@@ -579,6 +584,48 @@ public class FormService {
             if (fields.get(i) != null && fieldId.equals(fields.get(i).getId())) return i;
         }
         throw new NotFoundException("Field not found: " + fieldId);
+    }
+
+    /**
+     * Validates webhooks coming from a client (security audit, #103): every
+     * URL must be a Discord webhook and is stored in its canonical
+     * {@code discord.com} form, so delivery can never be aimed at another
+     * host. The system-managed status fields are never taken from the
+     * client: they carry over from the same webhook as previously saved,
+     * except {@code invalid}, which an owner's save clears (see
+     * {@link WebhookConfig#getInvalid()}).
+     */
+    private static List<WebhookConfig> checkedWebhooks(List<WebhookConfig> incoming, List<WebhookConfig> previous) {
+        Map<String, String> errors = new LinkedHashMap<>();
+        List<WebhookConfig> result = new ArrayList<>();
+        for (int i = 0; i < incoming.size(); i++) {
+            WebhookConfig webhook = incoming.get(i);
+            if (webhook == null) continue;
+            if (webhook.getUrl() != null && !webhook.getUrl().isBlank()) {
+                DiscordWebhookUrl parsed = DiscordWebhookUrl.parse(webhook.getUrl()).orElse(null);
+                if (parsed == null) {
+                    errors.put("webhooks[" + i + "].url", "Must be a Discord webhook URL: https://discord.com/api/webhooks/<id>/<token>");
+                    continue;
+                }
+                webhook.setUrl(parsed.canonical());
+            }
+            WebhookConfig before = previous == null ? null : previous.stream()
+                    .filter(w -> webhook.getUrl() != null && webhook.getUrl().equals(canonicalUrl(w.getUrl())))
+                    .findFirst().orElse(null);
+            boolean keep = before != null && !Boolean.TRUE.equals(before.getInvalid());
+            webhook.setInvalid(null);
+            webhook.setHealth(keep ? before.getHealth() : null);
+            webhook.setHealthReason(keep ? before.getHealthReason() : null);
+            webhook.setHealthCheckedAt(keep ? before.getHealthCheckedAt() : null);
+            webhook.setLastError(keep ? before.getLastError() : null);
+            result.add(webhook);
+        }
+        if (!errors.isEmpty()) throw new FieldValidationException("Invalid webhooks", errors);
+        return result;
+    }
+
+    private static String canonicalUrl(String url) {
+        return DiscordWebhookUrl.parse(url).map(DiscordWebhookUrl::canonical).orElse(url);
     }
 
     private static Set<Long> parseIds(Set<String> ids) {

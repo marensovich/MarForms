@@ -13,10 +13,12 @@ import me.marensovich.gta5rpformapp.backend.exception.NotFoundException;
 import me.marensovich.gta5rpformapp.backend.service.FormService;
 import me.marensovich.gta5rpformapp.backend.service.SubmissionService;
 import me.marensovich.gta5rpformapp.backend.service.WebhookService;
+import me.marensovich.gta5rpformapp.backend.service.discord.DiscordWebhookUrl;
 import me.marensovich.gta5rpformapp.backend.service.discord.WebhookUrlCipher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 
 import java.time.LocalDateTime;
 
@@ -73,7 +75,11 @@ public class WebhookDeliveryProcessor {
         for (OutboundJob job : outboundJobRepository
                 .findTop20ByJobTypeAndStatusAndNextAttemptAtLessThanEqualOrderByNextAttemptAtAsc(
                         OutboundJobService.JOB_TYPE_WEBHOOK_DELIVERY, OutboundJobStatus.PENDING, now)) {
-            processOne(job);
+            try {
+                processOne(job);
+            } catch (Exception e) {
+                log.error("Webhook delivery job {} failed unexpectedly: {}", job.getId(), WebhookUrlCipher.redact(e.getMessage()));
+            }
         }
     }
 
@@ -93,7 +99,7 @@ public class WebhookDeliveryProcessor {
         }
 
         WebhookConfig webhook = form.getWebhooks() == null ? null : form.getWebhooks().stream()
-                .filter(w -> webhookUrl.equals(w.getUrl()))
+                .filter(w -> sameWebhook(webhookUrl, w.getUrl()))
                 .findFirst().orElse(null);
 
         if (webhook == null) {
@@ -108,39 +114,71 @@ public class WebhookDeliveryProcessor {
             return;
         }
 
+        String messageId;
         try {
-            String messageId = webhookService.deliverToWebhook(
+            messageId = webhookService.deliverToWebhook(
                     form, webhook, payload.answers(), payload.discordUsername(), payload.discordId(), payload.submissionId());
-            if (messageId != null) {
-                submissionService.recordWebhookMessageId(payload.submissionId(), webhookUrl, messageId);
-            }
-            outboundJobService.markSucceeded(job.getId());
-            // A delivery got through: clear a delivery-failure status, but not one
-            // the health check set (lost channel access may not stop delivery).
-            if (WebhookHealth.REASON_DELIVERY_FAILING.equals(webhook.getHealthReason())) {
-                formService.updateWebhookHealth(payload.formId(), webhookUrl, WebhookHealth.HEALTHY, null, null);
-            }
+        } catch (WebhookService.NotADiscordWebhookException e) {
+            log.warn("Webhook {} of form {} is not a Discord webhook URL — marking invalid", loggedUrl, payload.formId());
+            formService.markWebhookInvalid(payload.formId(), webhookUrl, "Not a Discord webhook URL");
+            outboundJobService.markFailed(job.getId(), "Not a Discord webhook URL, marked invalid");
+            return;
         } catch (HttpClientErrorException.TooManyRequests e) {
             long retryAfterSeconds = parseRetryAfter(e);
             log.info("Webhook {} rate-limited — retrying in {}s", loggedUrl, retryAfterSeconds);
             outboundJobService.reschedule(job.getId(), LocalDateTime.now().plusSeconds(retryAfterSeconds),
                     "Rate limited (429), Retry-After=" + retryAfterSeconds + "s");
+            return;
         } catch (HttpClientErrorException.NotFound e) {
             log.warn("Webhook {} returned 404 — marking invalid", loggedUrl);
             formService.markWebhookInvalid(payload.formId(), webhookUrl,
                     "Discord returned 404 for this webhook — it was likely deleted directly on Discord");
             outboundJobService.markFailed(job.getId(), "Webhook not found (404), marked invalid");
+            return;
         } catch (Exception e) {
             long backoffSeconds = BASE_RETRY_DELAY_SECONDS * (1L << Math.min(job.getAttempts(), MAX_BACKOFF_DOUBLINGS));
+            String error = describe(e);
             log.warn("Webhook delivery failed [{}], retrying in {}s: {}",
                     loggedUrl, backoffSeconds, WebhookUrlCipher.redact(e.getMessage()));
-            outboundJobService.reschedule(job.getId(), LocalDateTime.now().plusSeconds(backoffSeconds),
-                    WebhookUrlCipher.redact(e.getMessage()));
+            outboundJobService.reschedule(job.getId(), LocalDateTime.now().plusSeconds(backoffSeconds), error);
             if (webhook.effectiveHealth() == WebhookHealth.HEALTHY) {
                 formService.updateWebhookHealth(payload.formId(), webhookUrl, WebhookHealth.DEGRADED,
-                        WebhookHealth.REASON_DELIVERY_FAILING, WebhookUrlCipher.redact(e.getMessage()));
+                        WebhookHealth.REASON_DELIVERY_FAILING, error);
             }
+            return;
         }
+
+        // Delivered. Nothing below may send the message again, so a failure
+        // here is logged and the job still completes (no duplicate posts).
+        outboundJobService.markSucceeded(job.getId());
+        try {
+            if (messageId != null) {
+                submissionService.recordWebhookMessageId(payload.submissionId(), webhookUrl, messageId);
+            }
+            // A delivery got through: clear a delivery-failure status, but not one
+            // the health check set (lost channel access may not stop delivery).
+            if (WebhookHealth.REASON_DELIVERY_FAILING.equals(webhook.getHealthReason())) {
+                formService.updateWebhookHealth(payload.formId(), webhookUrl, WebhookHealth.HEALTHY, null, null);
+            }
+        } catch (Exception e) {
+            log.warn("Webhook {} delivered, but recording it failed: {}", loggedUrl, WebhookUrlCipher.redact(e.getMessage()));
+        }
+    }
+
+    /**
+     * What gets stored and shown to the form's owner about a failure: a status
+     * code or the error type, never a response body or message that could
+     * echo another server's content (#103).
+     */
+    static String describe(Exception e) {
+        if (e instanceof HttpStatusCodeException http) return "Discord responded " + http.getStatusCode().value();
+        return "Delivery failed (" + e.getClass().getSimpleName() + ")";
+    }
+
+    private static boolean sameWebhook(String a, String b) {
+        if (a == null || b == null) return false;
+        return DiscordWebhookUrl.parse(a).map(DiscordWebhookUrl::canonical).orElse(a)
+                .equals(DiscordWebhookUrl.parse(b).map(DiscordWebhookUrl::canonical).orElse(b));
     }
 
     private long parseRetryAfter(HttpClientErrorException.TooManyRequests e) {

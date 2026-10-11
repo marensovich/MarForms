@@ -24,8 +24,9 @@ interface Props {
     onChange: (patch: Partial<FormDraft>) => void;
 }
 
+// Same rule as the server (DiscordWebhookUrl), which rejects anything else.
 const DISCORD_WEBHOOK_RE =
-    /^https:\/\/(discord\.com|discordapp\.com|ptb\.discord\.com|canary\.discord\.com)\/api\/webhooks\/\d+\/.+$/;
+    /^https:\/\/(?:(?:canary|ptb)\.)?discord(?:app)?\.com\/api(?:\/v\d{1,2})?\/webhooks\/\d{1,25}\/[\w-]{1,256}\/?$/;
 
 const COLOR_PRESETS = [
     {label: "Blurple", hex: "#5865F2", value: 5793266},
@@ -115,7 +116,7 @@ function WebhookCard({wh, guildId, channels, channelsLoading, onUpdate, onDelete
     const [creating, setCreating] = useState(false);
     const [createError, setCreateError] = useState<string | null>(null);
 
-    const urlValid = !wh.url || DISCORD_WEBHOOK_RE.test(wh.url);
+    const urlValid = !wh.url || DISCORD_WEBHOOK_RE.test(wh.url.trim());
 
     const handleCreateFromChannel = async () => {
         if (!selectedChannel) return;
