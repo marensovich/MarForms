@@ -54,7 +54,8 @@ JSON request.
 - Submitting attaches the file to the submission. A file must belong to the
   same form and field and not be attached already.
 - Files never attached (abandoned forms, answers hidden by branching) are
-  deleted by a scheduled cleanup after 24 hours.
+  deleted by a scheduled cleanup after 6 hours, and a form may hold at most
+  `app.files.pending-quota-mb` (1 GB) of them at once (security audit, #103).
 
 ### Serving files
 

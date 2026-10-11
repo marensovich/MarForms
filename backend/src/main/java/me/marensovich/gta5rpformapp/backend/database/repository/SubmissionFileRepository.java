@@ -19,6 +19,10 @@ public interface SubmissionFileRepository extends JpaRepository<SubmissionFile, 
 
     List<SubmissionFile> findAllBySubmissionIdIsNullAndCreatedAtBefore(LocalDateTime cutoff);
 
+    /** Bytes of a form's uploads not yet attached to a submission. */
+    @Query("select coalesce(sum(f.sizeBytes), 0) from SubmissionFile f where f.formId = :formId and f.submissionId is null")
+    long pendingBytes(UUID formId);
+
     /**
      * Files attached to a submission that no longer exists (deleted
      * directly, or with its form).

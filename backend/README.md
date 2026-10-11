@@ -88,7 +88,14 @@ and unauthenticated.
 | `DISCORD_BOT_TOKEN` | Bot user token (JDA session) — blank disables bot features |
 | `DISCORD_BOT_INSTALL_REDIRECT_URI` | Callback for the "Add to Discord" install flow |
 | `FILES_DIR` | Where uploaded attachments are stored (default `./data/uploads`; a volume in Docker — back it up) |
+| `SERVER_FORWARD_HEADERS_STRATEGY` | Set to `native` behind a reverse proxy, so rate limits see the client's IP, not the proxy's |
 | `STRIPE_SECRET_KEY`, `STRIPE_PRICE_PRO`, `STRIPE_WEBHOOK_SECRET` | Stripe billing; blank disables checkout (see Billing) |
+
+Rate limits for anonymous endpoints (per client IP and minute) are properties too:
+`app.rate-limit.uploads-per-minute` (30), `.submissions-per-minute` (10),
+`.auth-per-minute` (30), `.public-per-minute` (120); `app.rate-limit.enabled=false`
+turns them off. Outbound HTTP timeouts: `app.http.connect-timeout` (5s),
+`app.http.read-timeout` (10s).
 
 Plan limits are plain properties, not env variables: `app.plans.limits.<TIER>.active-forms`,
 `.submissions-per-month`, `.moderators` (unset = unlimited; nothing is set by default).

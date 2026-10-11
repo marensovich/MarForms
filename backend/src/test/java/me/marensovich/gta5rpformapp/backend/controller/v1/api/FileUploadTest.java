@@ -17,6 +17,7 @@ import me.marensovich.gta5rpformapp.backend.database.repository.GuildRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -63,6 +64,8 @@ class FileUploadTest {
 
     @Autowired
     private MockMvc mvc;
+    @Autowired
+    private me.marensovich.gta5rpformapp.backend.service.files.FileService fileService;
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
@@ -158,6 +161,21 @@ class FileUploadTest {
                         .content("{\"answers\": {\"cv\": \"" + fileId + "\"}}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.fields.cv").value("Upload the file again"));
+    }
+
+    @Test
+    void aFormsPendingUploadsAreCapped() throws Exception {
+        // 1 MB quota: one ~0.6 MB upload fits, the second doesn't (#103).
+        ReflectionTestUtils.setField(fileService, "pendingQuotaMb", 1L);
+        try {
+            upload("cv", "a.txt", new byte[600 * 1024]);
+            mvc.perform(multipart("/api/v1/public/forms/{s}/files", "files-form")
+                            .file(new MockMultipartFile("file", "b.txt", "text/plain", new byte[600 * 1024]))
+                            .param("fieldId", "cv"))
+                    .andExpect(status().isTooManyRequests());
+        } finally {
+            ReflectionTestUtils.setField(fileService, "pendingQuotaMb", 1024L);
+        }
     }
 
     @Test

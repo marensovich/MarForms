@@ -12,11 +12,13 @@ import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionFileRe
 import me.marensovich.gta5rpformapp.backend.exception.FieldValidationException;
 import me.marensovich.gta5rpformapp.backend.exception.FormAccessDeniedException;
 import me.marensovich.gta5rpformapp.backend.exception.InvalidStateException;
+import me.marensovich.gta5rpformapp.backend.exception.TooManyRequestsException;
 import me.marensovich.gta5rpformapp.backend.exception.LoginRequiredException;
 import me.marensovich.gta5rpformapp.backend.exception.NotFoundException;
 import me.marensovich.gta5rpformapp.backend.service.SubmissionService;
 import me.marensovich.gta5rpformapp.backend.service.forms.FormAccessService;
 import org.springframework.lang.Nullable;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,11 +47,15 @@ import java.util.UUID;
 public class FileService {
 
     private static final long MB = 1024L * 1024L;
-    static final long UNATTACHED_TTL_HOURS = 24;
+    static final long UNATTACHED_TTL_HOURS = 6;
 
     private final SubmissionFileRepository fileRepository;
     private final FileStorage storage;
     private final FormAccessService formAccessService;
+
+    /** Cap on a form's uploads not yet part of a submission (#103): one client can't fill the disk. */
+    @Value("${app.files.pending-quota-mb:1024}")
+    private long pendingQuotaMb;
 
     /**
      * Uploads a file for one of a form's {@code FILE_UPLOAD} fields (#85).
@@ -87,6 +93,11 @@ public class FileService {
         List<String> allowed = allowedExtensions(field);
         if (extension.isEmpty() || !allowed.contains(extension) || FileRules.BLOCKED_EXTENSIONS.contains(extension)) {
             throw fieldError(fieldId, "Allowed file types: " + String.join(", ", allowed));
+        }
+
+        if (fileRepository.pendingBytes(form.getId()) + file.getSize() > pendingQuotaMb * MB) {
+            log.warn("Upload quota of form {} reached ({} MB pending)", form.getId(), pendingQuotaMb);
+            throw new TooManyRequestsException("Too many files are waiting to be submitted on this form, try again later");
         }
 
         String key = UUID.randomUUID().toString();

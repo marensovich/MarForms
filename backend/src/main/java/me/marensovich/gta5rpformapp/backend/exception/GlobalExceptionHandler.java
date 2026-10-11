@@ -76,6 +76,11 @@ public class GlobalExceptionHandler {
      * @return a {@link ResponseEntity} with status 402 (Payment Required)
      * @since v.0.1
      */
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<Map<String, Object>> handleTooManyRequests(TooManyRequestsException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(Map.of("error", ex.getMessage()));
+    }
+
     @ExceptionHandler(PlanLimitExceededException.class)
     public ResponseEntity<Map<String, Object>> handlePlanLimit(PlanLimitExceededException ex) {
         Map<String, Object> body = new LinkedHashMap<>();
