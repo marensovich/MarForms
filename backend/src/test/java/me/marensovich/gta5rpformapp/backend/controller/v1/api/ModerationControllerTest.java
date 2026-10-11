@@ -175,6 +175,17 @@ class ModerationControllerTest {
     }
 
     @Test
+    void aDecisionMadeOnAStaleScreenIsRefused() throws Exception {
+        // Both moderators opened the card while it was PENDING; the first decides (#103).
+        mvc.perform(as(moderator, post("/api/v1/submissions/{id}/decision", aliceSubmission.getId()))
+                        .content("{\"status\": \"APPROVED\", \"expectedStatus\": \"PENDING\"}"))
+                .andExpect(status().isOk());
+        mvc.perform(as(moderator, post("/api/v1/submissions/{id}/decision", aliceSubmission.getId()))
+                        .content("{\"status\": \"REJECTED\", \"expectedStatus\": \"PENDING\"}"))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
     void decisionsRecordTheModeratorAndCanBeRevised() throws Exception {
         mvc.perform(as(moderator, post("/api/v1/submissions/{id}/decision", aliceSubmission.getId()))
                         .content("{\"status\": \"NEEDS_REVISION\", \"comment\": \"Add your age\"}"))

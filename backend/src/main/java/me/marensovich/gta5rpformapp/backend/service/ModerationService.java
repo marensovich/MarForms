@@ -15,6 +15,7 @@ import me.marensovich.gta5rpformapp.backend.dto.submission.MySubmissionDto;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmissionDetailDto;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmissionDto;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmissionFileDto;
+import me.marensovich.gta5rpformapp.backend.exception.InvalidStateException;
 import me.marensovich.gta5rpformapp.backend.exception.NotFoundException;
 import me.marensovich.gta5rpformapp.backend.service.discord.DiscordBotClient;
 import me.marensovich.gta5rpformapp.backend.service.files.FileService;
@@ -201,6 +202,9 @@ public class ModerationService {
         }
         Submission submission = get(submissionId);
         SubmissionStatus old = submission.getStatus();
+        if (request.expectedStatus() != null && request.expectedStatus() != old) {
+            throw new InvalidStateException("Another moderator has already decided on this submission (" + old + ")");
+        }
 
         String comment = request.comment() == null || request.comment().isBlank() ? null : request.comment().trim();
         submission.setStatus(request.status());

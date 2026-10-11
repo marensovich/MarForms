@@ -73,11 +73,13 @@ export function getSubmissionDetail(id: string): Promise<SubmissionDetail> {
 export function decideSubmission(
     id: string,
     status: DecisionStatus,
-    comment?: string
+    comment?: string,
+    /** The status on screen: the server refuses (409) if another moderator decided since. */
+    expectedStatus?: string
 ): Promise<ModerationSubmission> {
     return apiRequest(`/submissions/${id}/decision`, {
         method: "POST",
-        body: {status, comment: comment?.trim() || null},
+        body: {status, comment: comment?.trim() || null, expectedStatus: expectedStatus ?? null},
     });
 }
 

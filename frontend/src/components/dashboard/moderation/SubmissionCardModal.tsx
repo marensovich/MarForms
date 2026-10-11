@@ -133,7 +133,7 @@ export default function SubmissionCardModal({submissionId, onClose, onDecided}: 
         setBusy(status);
         setError(null);
         try {
-            const updated = await decideSubmission(detail.submission.id, status, comment);
+            const updated = await decideSubmission(detail.submission.id, status, comment, detail.submission.status);
             setDetail({...detail, submission: {...detail.submission, ...updated}});
             setComment("");
             onDecided(updated);
