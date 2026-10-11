@@ -61,3 +61,18 @@ tasks.named('jar') {
 test {
     useJUnitPlatform()
 }
+
+// `./gradlew bootRun` reads backend/.env (see .env.example), so local runs
+// get the same variables as Docker does from env_file.
+tasks.named('bootRun') {
+    def envFile = file('.env')
+    if (envFile.exists()) {
+        envFile.readLines()
+                .collect { it.trim() }
+                .findAll { it && !it.startsWith('#') && it.contains('=') }
+                .each { line ->
+                    int i = line.indexOf('=')
+                    environment line.substring(0, i).trim(), line.substring(i + 1).trim()
+                }
+    }
+}

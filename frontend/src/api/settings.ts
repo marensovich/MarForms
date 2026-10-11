@@ -1,4 +1,4 @@
-import {apiRequest} from "./client";
+import {API, apiRequest} from "./client";
 
 export interface PublicSettings {
     banMessage: string;
@@ -25,7 +25,7 @@ export interface SystemSettings extends PublicSettings {
 }
 
 export function fetchPublicSettings(): Promise<PublicSettings> {
-    return fetch(`${import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8090"}/api/v1/settings/public`)
+    return fetch(`${API}/api/v1/settings/public`)
         .then(r => r.json());
 }
 

@@ -1,4 +1,9 @@
-export const API = "http://localhost:8090";
+/**
+ * The backend's origin, set at build time (`VITE_API_URL`). Empty means the
+ * same origin as the app — behind a reverse proxy that serves both (see
+ * frontend/nginx.conf).
+ */
+export const API: string = import.meta.env.VITE_API_URL ?? "http://localhost:8090";
 
 export class ApiError extends Error {
     public status: number;
@@ -38,7 +43,6 @@ export async function apiRequest<T>(
     options: RequestOptions = {}
 ): Promise<T> {
     const token = localStorage.getItem("jwt");
-    console.log("apiRequest token:", token ? "present" : "missing", path);
 
     const response = await fetch(`${API}/api/v1${path}`, {
         method: options.method ?? "GET",

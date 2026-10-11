@@ -1,0 +1,49 @@
+# Full stack: Postgres, the backend and the SPA behind nginx on one origin.
+#   cp backend/.env.example .env   # fill in secrets, see backend/README.md
+#   docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+# Put TLS in front of the frontend service (or terminate it in nginx); set
+# FRONTEND_URL, DISCORD_REDIRECT_URI and DISCORD_BOT_INSTALL_REDIRECT_URI to
+# the public https origin.
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${DB_NAME:-marforms}
+      POSTGRES_USER: ${DB_USERNAME:-marforms}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    env_file: .env
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-marforms}
+      DB_DRIVER: org.postgresql.Driver
+      SERVER_FORWARD_HEADERS_STRATEGY: native
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ""
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  uploads:

@@ -100,6 +100,20 @@ turns them off. Outbound HTTP timeouts: `app.http.connect-timeout` (5s),
 Plan limits are plain properties, not env variables: `app.plans.limits.<TIER>.active-forms`,
 `.submissions-per-month`, `.moderators` (unset = unlimited; nothing is set by default).
 
+## Deployment
+
+`docker-compose.prod.yml` (repository root) runs Postgres, this backend and the
+SPA behind nginx on one origin: nginx serves the app, proxies `/api`,
+`/oauth2` and `/login` to the backend, caps request bodies and rate-limits
+the public and sign-in endpoints. The frontend reads the API origin from
+`VITE_API_URL` at build time (empty = same origin); the backend allows
+browser calls from `CORS_ALLOWED_ORIGINS` (comma-separated, defaults to
+`FRONTEND_URL`). `./gradlew bootRun` loads `backend/.env`. CI
+(`.github/workflows/ci.yml`) runs the backend tests and the frontend build.
+
+The app runs as a single instance: the job outbox, rate limits and the JDA
+bot session are not shared between instances (ADR 0001).
+
 ## Tests
 
 `./gradlew test` runs against an in-memory H2 database (see
