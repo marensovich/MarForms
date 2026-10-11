@@ -6,7 +6,7 @@ import {clearToken, decodeToken, getToken, isTokenExpired, setToken as persistTo
 import {AuthContext} from "./AuthContextDefinition";
 import {fetchMe} from "../api/me";
 import {logoutEverywhere} from "../api/auth";
-import {BanError, type BannedError} from "../api/client.ts";
+import {ApiError, BanError, type BannedError} from "../api/client.ts";
 
 function isTokenValid(token: string): boolean {
     const payload = decodeToken<JwtPayload>(token);
@@ -60,8 +60,13 @@ export function AuthProvider({children}: { children: ReactNode }) {
                 setBanData(err.data);
                 return;
             }
-            clearToken();
-            setUser(null);
+            // Only a rejected token ends the session. A network error or a
+            // backend restart (5xx) must not throw everyone out mid-edit (#103);
+            // the next poll tries again.
+            if (err instanceof ApiError && err.status === 401) {
+                clearToken();
+                setUser(null);
+            }
         }
     }, []);
 
@@ -82,7 +87,8 @@ export function AuthProvider({children}: { children: ReactNode }) {
 
     useEffect(() => {
         if (!user) return;
-        if (/^\/forms\//.test(location.pathname)) return;
+        // Not while filling in a form: a public form never needs it.
+        if (/^\/(forms|f)\//.test(location.pathname)) return;
 
         const interval = setInterval(() => {
             loadMe();
