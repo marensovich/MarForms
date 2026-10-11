@@ -1077,7 +1077,9 @@
       "GUILD_BAN_ADDED": "Бан",
       "GUILD_BAN_REMOVED": "Разбан",
       "GUILD_CONNECTED": "Подключение сервера",
-      "GUILD_ROLE_REVOKED": "Отзыв прав"
+      "GUILD_ROLE_REVOKED": "Отзыв прав",
+      "SUBMISSION_DELETED": "Удалена заявка",
+      "FORM_DELETED": "Удалена форма"
     },
     "statusChange": "{{from}} → {{to}}",
     "reason": "Причина: {{reason}}",

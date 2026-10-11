@@ -78,6 +78,7 @@ public class FormService {
     private final AuditLogService auditLogService;
     private final GuildMembershipService guildMembershipService;
     private final PlanLimitService planLimitService;
+    private final me.marensovich.gta5rpformapp.backend.service.files.FileService fileService;
     private final org.springframework.transaction.support.TransactionTemplate transactionTemplate;
 
     // ── Lookup ──────────────────────────────────────────────────────────────
@@ -330,8 +331,17 @@ public class FormService {
         Form form = formRepository.findById(formId)
                 .orElseThrow(() -> new NotFoundException("Form not found: " + formId));
         String title = form.getSchema().getTitle();
+        // A deleted form takes its submissions and files with it: nothing of
+        // the respondents' data is left behind out of everyone's reach (#103).
+        fileService.deleteForForm(formId);
+        long removed = submissionRepository.deleteAllByFormId(formId);
         formRepository.delete(form);
-        auditLogService.logByCurrentUser(AuditAction.FORM_DELETED, formId.toString(), title, null);
+        if (form.getServerId() != null) {
+            auditLogService.logGuildAction(form.getServerId(), AuditAction.FORM_DELETED, "FORM", formId.toString(),
+                    title, java.util.Map.of("submissions", removed), null);
+        } else {
+            auditLogService.logByCurrentUser(AuditAction.FORM_DELETED, formId.toString(), title, null);
+        }
     }
 
     // ── Lifecycle ───────────────────────────────────────────────────────────

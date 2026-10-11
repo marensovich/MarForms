@@ -102,7 +102,9 @@ export type GuildAuditAction =
     | "GUILD_BAN_ADDED"
     | "GUILD_BAN_REMOVED"
     | "GUILD_CONNECTED"
-    | "GUILD_ROLE_REVOKED";
+    | "GUILD_ROLE_REVOKED"
+    | "SUBMISSION_DELETED"
+    | "FORM_DELETED";
 
 export interface GuildAuditEntry {
     id: string;

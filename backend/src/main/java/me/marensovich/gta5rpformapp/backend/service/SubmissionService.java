@@ -367,8 +367,9 @@ public class SubmissionService {
     /**
      * Deletes a submission by its ID.
      * <p>
-     * Also deletes the corresponding Discord messages that were posted via webhooks
-     * when this submission was created.
+     * Its files and the Discord messages its webhooks posted are removed too,
+     * once the deletion is committed. The deletion is recorded in the form's
+     * guild audit log, where the owner sees it (#103).
      * </p>
      *
      * @param id the UUID of the submission to delete
@@ -379,10 +380,19 @@ public class SubmissionService {
     public void delete(UUID id) {
         Submission submission = submissionRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Submission not found: " + id));
-        webhookService.deleteMessages(submission.getWebhookMessageIds());
         fileService.deleteForSubmission(id);
         submissionRepository.delete(submission);
-        auditLogService.logByCurrentUser(AuditAction.SUBMISSION_DELETED,
-                id.toString(), "Submission by discordId=" + submission.getDiscordId(), null);
+        Map<String, String> messages = submission.getWebhookMessageIds() == null ? Map.of()
+                : Map.copyOf(submission.getWebhookMessageIds());
+        AfterCommit.run(() -> webhookService.deleteMessages(messages));
+
+        Long guildId = formRepository.findById(submission.getFormId()).map(Form::getServerId).orElse(null);
+        String details = "Submission by " + (submission.getDiscordId() != null ? "discordId=" + submission.getDiscordId() : "an anonymous respondent");
+        if (guildId != null) {
+            auditLogService.logGuildAction(guildId, AuditAction.SUBMISSION_DELETED, "SUBMISSION", id.toString(),
+                    null, Map.of("formId", submission.getFormId().toString()), details);
+        } else {
+            auditLogService.logByCurrentUser(AuditAction.SUBMISSION_DELETED, id.toString(), details, null);
+        }
     }
 }

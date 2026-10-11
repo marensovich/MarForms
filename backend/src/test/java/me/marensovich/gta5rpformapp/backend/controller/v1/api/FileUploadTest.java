@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -72,6 +73,14 @@ class FileUploadTest {
     private JwtUtil jwtUtil;
     @Autowired
     private FormRepository formRepository;
+    @Autowired
+    private me.marensovich.gta5rpformapp.backend.service.FormService formService;
+    @Autowired
+    private me.marensovich.gta5rpformapp.backend.database.repository.SubmissionRepository submissionRepository;
+    @Autowired
+    private me.marensovich.gta5rpformapp.backend.database.repository.SubmissionFileRepository submissionFileRepository;
+    @Autowired
+    private me.marensovich.gta5rpformapp.backend.database.repository.AuditLogRepository auditLogRepository;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -161,6 +170,30 @@ class FileUploadTest {
                         .content("{\"answers\": {\"cv\": \"" + fileId + "\"}}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.fields.cv").value("Upload the file again"));
+    }
+
+    @Test
+    void deletingASubmissionOrAFormTakesItsFilesAlongAndIsAudited() throws Exception {
+        String fileId = objectMapper.readTree(upload("cv", "a.txt", new byte[]{1})).get("id").asText();
+        String submissionId = objectMapper.readTree(submit(fileId)).get("id").asText();
+
+        // A moderator deletes it: the owner sees that in the guild audit log (#103).
+        mvc.perform(delete("/api/v1/admin/submissions/{id}", submissionId)
+                        .header("Authorization", "Bearer " + jwtUtil.generateToken(moderator.getDiscordId())))
+                .andExpect(status().is2xxSuccessful());
+        org.assertj.core.api.Assertions.assertThat(submissionFileRepository.findById(java.util.UUID.fromString(fileId))).isEmpty();
+        org.assertj.core.api.Assertions.assertThat(auditLogRepository.findAll()).anyMatch(entry ->
+                entry.getAction() == me.marensovich.gta5rpformapp.backend.data.audit.AuditAction.SUBMISSION_DELETED
+                        && Long.valueOf(GUILD).equals(entry.getGuildId()));
+
+        // Deleting the form removes its remaining submissions and files.
+        String secondFile = objectMapper.readTree(upload("cv", "b.txt", new byte[]{2})).get("id").asText();
+        submit(secondFile);
+        upload("cv", "pending.txt", new byte[]{3});
+        java.util.UUID formId = formRepository.findBySlug("files-form").orElseThrow().getId();
+        formService.delete(formId);
+        org.assertj.core.api.Assertions.assertThat(submissionRepository.countByFormId(formId)).isZero();
+        org.assertj.core.api.Assertions.assertThat(submissionFileRepository.findAllByFormId(formId)).isEmpty();
     }
 
     @Test

@@ -1065,7 +1065,9 @@
       "GUILD_BAN_ADDED": "Ban",
       "GUILD_BAN_REMOVED": "Unban",
       "GUILD_CONNECTED": "Server connected",
-      "GUILD_ROLE_REVOKED": "Role revoked"
+      "GUILD_ROLE_REVOKED": "Role revoked",
+      "SUBMISSION_DELETED": "Submission deleted",
+      "FORM_DELETED": "Form deleted"
     },
     "statusChange": "{{from}} → {{to}}",
     "reason": "Reason: {{reason}}",

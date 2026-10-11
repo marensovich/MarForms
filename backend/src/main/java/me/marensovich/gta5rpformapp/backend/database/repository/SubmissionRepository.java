@@ -41,6 +41,11 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID>, J
      */
     Page<Submission> findAllByFormId(UUID formId, Pageable pageable);
 
+    /** Deletes all of a form's submissions (the form is being deleted). */
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("DELETE FROM Submission s WHERE s.formId = :formId")
+    int deleteAllByFormId(UUID formId);
+
     /**
      * A form's submissions one slice at a time, without the count query a
      * {@link Page} needs: for streaming exports (E3.3).

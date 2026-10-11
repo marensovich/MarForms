@@ -16,6 +16,7 @@ import me.marensovich.gta5rpformapp.backend.exception.TooManyRequestsException;
 import me.marensovich.gta5rpformapp.backend.exception.LoginRequiredException;
 import me.marensovich.gta5rpformapp.backend.exception.NotFoundException;
 import me.marensovich.gta5rpformapp.backend.service.SubmissionService;
+import me.marensovich.gta5rpformapp.backend.service.AfterCommit;
 import me.marensovich.gta5rpformapp.backend.service.forms.FormAccessService;
 import org.springframework.lang.Nullable;
 import org.springframework.beans.factory.annotation.Value;
@@ -215,7 +216,37 @@ public class FileService {
      */
     @Transactional
     public void deleteForSubmission(UUID submissionId) {
-        fileRepository.findAllBySubmissionId(submissionId).forEach(this::remove);
+        removeAfterCommit(fileRepository.findAllBySubmissionId(submissionId));
+    }
+
+    /**
+     * Deletes every file uploaded to a form, attached or not (the form is
+     * being deleted).
+     *
+     * @param formId the form
+     * @since v.0.1
+     */
+    @Transactional
+    public void deleteForForm(UUID formId) {
+        removeAfterCommit(fileRepository.findAllByFormId(formId));
+    }
+
+    /**
+     * Rows go now, with the caller's transaction; the stored bytes only after
+     * it commits — a rolled-back delete must not leave rows pointing at
+     * nothing (#103).
+     */
+    private void removeAfterCommit(List<SubmissionFile> files) {
+        if (files.isEmpty()) return;
+        fileRepository.deleteAll(files);
+        List<String> keys = files.stream().map(SubmissionFile::getStorageKey).toList();
+        AfterCommit.run(() -> keys.forEach(key -> {
+            try {
+                storage.delete(key);
+            } catch (IOException e) {
+                log.warn("Failed to delete stored file {}: {}", key, e.getMessage());
+            }
+        }));
     }
 
     /**

@@ -15,6 +15,8 @@ public interface SubmissionFileRepository extends JpaRepository<SubmissionFile, 
 
     List<SubmissionFile> findAllBySubmissionId(UUID submissionId);
 
+    List<SubmissionFile> findAllByFormId(UUID formId);
+
     List<SubmissionFile> findAllBySubmissionIdIn(Collection<UUID> submissionIds);
 
     List<SubmissionFile> findAllBySubmissionIdIsNullAndCreatedAtBefore(LocalDateTime cutoff);
