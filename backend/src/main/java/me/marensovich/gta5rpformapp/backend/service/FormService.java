@@ -8,7 +8,6 @@ import me.marensovich.gta5rpformapp.backend.data.forms.FormSchema;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormStatus;
 import me.marensovich.gta5rpformapp.backend.data.forms.WebhookConfig;
 import me.marensovich.gta5rpformapp.backend.data.forms.WebhookHealth;
-import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import me.marensovich.gta5rpformapp.backend.database.repository.FormRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionRepository;
@@ -76,7 +75,6 @@ public class FormService {
     private final FormRepository formRepository;
     private final SubmissionRepository submissionRepository;
     private final AuditLogService auditLogService;
-    private final GuildMembershipService guildMembershipService;
     private final PlanLimitService planLimitService;
     private final me.marensovich.gta5rpformapp.backend.service.files.FileService fileService;
     private final org.springframework.transaction.support.TransactionTemplate transactionTemplate;
@@ -163,7 +161,10 @@ public class FormService {
      */
     @Transactional
     public Form create(CreateFormRequest request) {
-        Form form = newForm(Long.parseUnsignedLong(request.serverId()), request.schema(),
+        Long guildId = Long.parseUnsignedLong(request.serverId());
+        // Published straight away, so it counts against the plan like any active form (#103).
+        planLimitService.requireRoomFor(guildId, PlanMetric.ACTIVE_FORMS);
+        Form form = newForm(guildId, request.schema(),
                 request.channelsIds(), request.webhooks(), null);
         requirePublishable(form);
         assignSlugIfMissing(form);
@@ -203,14 +204,9 @@ public class FormService {
 
     private Form saveNew(Form form) {
         Form saved = formRepository.save(form);
-
-        Long actorId = auditLogService.currentActorId();
-        if (actorId != null) {
-            // Whoever creates a form for this guild is acting as its owner —
-            // see GuildMembershipService for the upgrade-only semantics
-            // (never downgrades an existing role).
-            guildMembershipService.ensureMembership(actorId, saved.getServerId(), GuildRole.OWNER);
-        }
+        // Creating a form grants nothing (#103): guild ownership comes only from a
+        // bot install verified through Discord (GuildConnectService). Platform
+        // staff creating a form for a guild manage it through FORMS_MANAGE.
 
         auditLogService.logByCurrentUser(AuditAction.FORM_CREATED,
                 saved.getId().toString(), saved.getSchema().getTitle(),

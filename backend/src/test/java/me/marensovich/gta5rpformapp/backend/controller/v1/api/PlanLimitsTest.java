@@ -132,6 +132,10 @@ class PlanLimitsTest {
                 .andExpect(jsonPath("$.metric").value("ACTIVE_FORMS"))
                 .andExpect(jsonPath("$.limit").value(1))
                 .andExpect(jsonPath("$.plan").value("FREE"));
+        // The legacy endpoint publishes immediately and is held to the same limit (#103).
+        mvc.perform(asOwner(post("/api/v1/forms")).content(
+                        "{\"serverId\": \"" + GUILD + "\", \"schema\": {\"title\": \"Legacy\", \"fields\": [{\"id\": \"a\", \"type\": \"TEXT\", \"label\": \"A\"}]}}"))
+                .andExpect(status().isPaymentRequired());
 
         mvc.perform(asOwner(post("/api/v1/guilds/{g}/moderators", GUILD)).content("{\"discordId\": \"3\"}"))
                 .andExpect(status().isPaymentRequired())
