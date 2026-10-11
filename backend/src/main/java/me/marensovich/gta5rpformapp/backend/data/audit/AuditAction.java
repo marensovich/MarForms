@@ -175,5 +175,11 @@ public enum AuditAction {
     GUILD_BAN_REMOVED,
 
     /** The bot was installed on a guild and the installer became its owner (security audit, #103). */
-    GUILD_CONNECTED
+    GUILD_CONNECTED,
+
+    /**
+     * Discord no longer confirms a member's OWNER/MODERATOR role (left the
+     * server, or an owner lost Manage Server), so it was revoked (#103).
+     */
+    GUILD_ROLE_REVOKED
 }

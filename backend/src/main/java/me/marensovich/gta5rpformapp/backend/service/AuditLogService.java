@@ -369,6 +369,7 @@ public class AuditLogService {
             case GUILD_BAN_ADDED -> "🔴 Server Ban Added";
             case GUILD_BAN_REMOVED -> "🟢 Server Ban Removed";
             case GUILD_CONNECTED -> "🔗 Server Connected";
+            case GUILD_ROLE_REVOKED -> "🔴 Server Role Revoked";
         };
     }
 
@@ -382,7 +383,7 @@ public class AuditLogService {
     private int actionColor(AuditAction action) {
         return switch (action) {
             case USER_UNBANNED, FORM_CREATED, SUBMISSION_CREATED, ROLE_CREATED, MODERATOR_ADDED, GUILD_BAN_REMOVED, GUILD_CONNECTED -> 0x57F287;
-            case USER_BANNED, FORM_DELETED, SUBMISSION_DELETED, ROLE_DELETED, MODERATOR_REMOVED, GUILD_BAN_ADDED -> 0xED4245;
+            case USER_BANNED, FORM_DELETED, SUBMISSION_DELETED, ROLE_DELETED, MODERATOR_REMOVED, GUILD_BAN_ADDED, GUILD_ROLE_REVOKED -> 0xED4245;
             case USER_LOGIN, FORM_UPDATED, ROLE_UPDATED -> 0x5865F2;
             case USER_ROLES_UPDATED, SETTINGS_UPDATED -> 0xFEE75C;
             case SUBMISSION_DECIDED -> 0xEB459E;

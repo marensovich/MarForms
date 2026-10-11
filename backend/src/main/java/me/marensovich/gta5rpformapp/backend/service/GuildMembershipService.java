@@ -1,6 +1,7 @@
 package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
 import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.database.entity.Guild;
@@ -36,6 +37,7 @@ import java.util.Optional;
  * @version v.0.1
  * @since v.0.1
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class GuildMembershipService {
@@ -50,6 +52,9 @@ public class GuildMembershipService {
     /**
      * How long cached Discord roles are trusted before being re-fetched.
      */
+    @Value("${app.discord.staff-check-ttl:PT10M}")
+    private Duration staffCheckTtl = Duration.ofMinutes(10);
+
     @Value("${app.discord.member-roles-ttl:PT5M}")
     private Duration memberRolesTtl = Duration.ofMinutes(5);
 
@@ -245,5 +250,44 @@ public class GuildMembershipService {
                             })
                             .orElse(membership);
                 });
+    }
+
+    /**
+     * Re-checks an {@code OWNER} or {@code MODERATOR} row against Discord when
+     * the last check is older than {@code app.discord.staff-check-ttl}
+     * (security audit, #103). An owner must still own the server or have
+     * Manage Server on it, a moderator must still be on it; otherwise the row
+     * drops to {@code RESPONDENT} and the revocation is audited. When the bot
+     * can't tell (no session, Discord down), the role is kept — an outage
+     * must not lock owners out.
+     *
+     * @param membership the row to check; other roles are returned as is
+     * @return the row, possibly demoted
+     * @since v.0.1
+     */
+    @Transactional
+    public GuildMembership verifyStaffIfStale(GuildMembership membership) {
+        GuildRole role = membership.getRole();
+        if (role != GuildRole.OWNER && role != GuildRole.MODERATOR) return membership;
+        LocalDateTime verifiedAt = membership.getStaffVerifiedAt();
+        if (verifiedAt != null && verifiedAt.isAfter(LocalDateTime.now().minus(staffCheckTtl))) return membership;
+
+        Long guildId = membership.getGuild().getDiscordGuildId();
+        Long userId = membership.getUser().getDiscordId();
+        DiscordBotClient.MemberStatus status = discordBotClient.memberStatus(guildId, userId);
+        if (status == DiscordBotClient.MemberStatus.UNKNOWN) return membership;
+
+        boolean holds = role == GuildRole.OWNER
+                ? status == DiscordBotClient.MemberStatus.MANAGER
+                : status != DiscordBotClient.MemberStatus.NOT_MEMBER;
+        if (!holds) {
+            membership.setRole(GuildRole.RESPONDENT);
+            log.warn("Discord no longer confirms {} of user {} on guild {} ({}) — revoked", role, userId, guildId, status);
+            auditLogService.logGuildActionAs(null, "Discord check", guildId, AuditAction.GUILD_ROLE_REVOKED, "USER",
+                    userId.toString(), membership.getUser().getDiscordUsername(),
+                    java.util.Map.of("role", role.name(), "discordStatus", status.name()), null);
+        }
+        membership.setStaffVerifiedAt(LocalDateTime.now());
+        return guildMembershipRepository.save(membership);
     }
 }

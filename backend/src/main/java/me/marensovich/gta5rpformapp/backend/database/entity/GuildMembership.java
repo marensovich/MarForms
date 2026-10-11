@@ -88,6 +88,15 @@ public class GuildMembership {
     private LocalDateTime discordRolesSyncedAt;
 
     /**
+     * When Discord last confirmed this {@code OWNER}/{@code MODERATOR} row
+     * still holds (see {@code GuildMembershipService#verifyStaffIfStale}).
+     * {@code null} until the first check.
+     *
+     * @since v.0.1
+     */
+    private LocalDateTime staffVerifiedAt;
+
+    /**
      * When this membership row was first created.
      *
      * @since v.0.1

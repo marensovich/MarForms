@@ -466,6 +466,7 @@
 
       "GUILD_BAN_REMOVED": "Снят бан на сервере",
       "GUILD_CONNECTED": "Сервер подключён",
+      "GUILD_ROLE_REVOKED": "Права на сервере отозваны",
       "ROLE_CREATED": "Роль создана",
       "ROLE_UPDATED": "Роль обновлена",
       "ROLE_DELETED": "Роль удалена",
@@ -592,6 +593,7 @@
 
         "GUILD_BAN_REMOVED": "Снят бан на сервере",
         "GUILD_CONNECTED": "Сервер подключён",
+        "GUILD_ROLE_REVOKED": "Права на сервере отозваны",
         "ROLE_CREATED": "Роль создана",
         "ROLE_UPDATED": "Роль обновлена",
         "ROLE_DELETED": "Роль удалена",
@@ -1073,7 +1075,8 @@
       "MODERATOR_REMOVED": "Снят модератор",
       "GUILD_BAN_ADDED": "Бан",
       "GUILD_BAN_REMOVED": "Разбан",
-      "GUILD_CONNECTED": "Подключение сервера"
+      "GUILD_CONNECTED": "Подключение сервера",
+      "GUILD_ROLE_REVOKED": "Отзыв прав"
     },
     "statusChange": "{{from}} → {{to}}",
     "reason": "Причина: {{reason}}",

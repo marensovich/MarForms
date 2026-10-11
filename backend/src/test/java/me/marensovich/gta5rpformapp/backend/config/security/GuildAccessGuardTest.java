@@ -42,12 +42,17 @@ class GuildAccessGuardTest {
     private SubmissionRepository submissionRepository;
     @Mock
     private SubmissionFileRepository submissionFileRepository;
+    @Mock
+    private me.marensovich.gta5rpformapp.backend.service.GuildMembershipService guildMembershipService;
 
     private GuildAccessGuard guard;
 
     @BeforeEach
     void setUp() {
-        guard = new GuildAccessGuard(guildMembershipRepository, formRepository, submissionRepository, submissionFileRepository);
+        guard = new GuildAccessGuard(guildMembershipRepository, formRepository, submissionRepository, submissionFileRepository,
+                guildMembershipService);
+        lenient().when(guildMembershipService.verifyStaffIfStale(org.mockito.ArgumentMatchers.any()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
         User user = new User();
         user.setId(USER_ID);
         user.setDiscordId(42L);

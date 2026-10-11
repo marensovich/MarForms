@@ -17,7 +17,8 @@ export type AuditAction =
     | "MODERATOR_REMOVED"
     | "GUILD_BAN_ADDED"
     | "GUILD_BAN_REMOVED"
-    | "GUILD_CONNECTED";
+    | "GUILD_CONNECTED"
+    | "GUILD_ROLE_REVOKED";
 
 export interface AuditLogEntry {
     id: string;

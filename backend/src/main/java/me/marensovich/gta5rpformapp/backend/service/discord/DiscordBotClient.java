@@ -267,22 +267,53 @@ public class DiscordBotClient {
      * @since v.0.1
      */
     public GuildManagerCheck checkGuildManager(Long guildId, Long userId) {
-        if (jda == null) return GuildManagerCheck.BOT_NOT_IN_GUILD;
+        return switch (memberStatus(guildId, userId)) {
+            case MANAGER -> GuildManagerCheck.MANAGER;
+            case MEMBER, NOT_MEMBER -> GuildManagerCheck.NOT_MANAGER;
+            case UNKNOWN -> jda != null && jda.getGuildById(guildId) != null
+                    ? GuildManagerCheck.NOT_MANAGER
+                    : GuildManagerCheck.BOT_NOT_IN_GUILD;
+        };
+    }
+
+    /**
+     * A user's standing on a guild, as far as the bot can tell.
+     */
+    public enum MemberStatus {
+        /** Owns the guild or has {@code MANAGE_SERVER}. */
+        MANAGER,
+        /** On the guild without those rights. */
+        MEMBER,
+        /** Discord says the user isn't on the guild. */
+        NOT_MEMBER,
+        /** No bot session, the bot isn't on the guild, or Discord failed: nothing can be concluded. */
+        UNKNOWN
+    }
+
+    /**
+     * Looks a user up on a guild through the bot.
+     *
+     * @param guildId the Discord guild snowflake ID
+     * @param userId  the user's Discord snowflake ID
+     * @return the user's standing, {@link MemberStatus#UNKNOWN} when it can't be told
+     * @since v.0.1
+     */
+    public MemberStatus memberStatus(Long guildId, Long userId) {
+        if (jda == null) return MemberStatus.UNKNOWN;
         Guild guild = jda.getGuildById(guildId);
-        if (guild == null) return GuildManagerCheck.BOT_NOT_IN_GUILD;
+        if (guild == null) return MemberStatus.UNKNOWN;
         try {
             Member member = guild.retrieveMemberById(userId).complete();
             return member.isOwner() || member.hasPermission(Permission.MANAGE_SERVER)
-                    ? GuildManagerCheck.MANAGER
-                    : GuildManagerCheck.NOT_MANAGER;
+                    ? MemberStatus.MANAGER
+                    : MemberStatus.MEMBER;
         } catch (ErrorResponseException e) {
-            if (e.getErrorResponse() != ErrorResponse.UNKNOWN_MEMBER) {
-                log.warn("Failed to check member {} of guild {}: {}", userId, guildId, e.getMessage());
-            }
-            return GuildManagerCheck.NOT_MANAGER;
+            if (e.getErrorResponse() == ErrorResponse.UNKNOWN_MEMBER) return MemberStatus.NOT_MEMBER;
+            log.warn("Failed to check member {} of guild {}: {}", userId, guildId, e.getMessage());
+            return MemberStatus.UNKNOWN;
         } catch (Exception e) {
             log.warn("Failed to check member {} of guild {}: {}", userId, guildId, e.getMessage());
-            return GuildManagerCheck.NOT_MANAGER;
+            return MemberStatus.UNKNOWN;
         }
     }
 

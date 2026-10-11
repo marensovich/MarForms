@@ -6,6 +6,7 @@ import me.marensovich.gta5rpformapp.backend.database.repository.FormRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.GuildMembershipRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionFileRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionRepository;
+import me.marensovich.gta5rpformapp.backend.service.GuildMembershipService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -48,6 +49,7 @@ public class GuildAccessGuard {
     private final FormRepository formRepository;
     private final SubmissionRepository submissionRepository;
     private final SubmissionFileRepository submissionFileRepository;
+    private final GuildMembershipService guildMembershipService;
 
     /**
      * Whether the current user holds at least {@code minimumRole} on a guild.
@@ -64,6 +66,9 @@ public class GuildAccessGuard {
         if (userId == null || guild == null) return false;
         GuildRole required = GuildRole.valueOf(minimumRole);
         return guildMembershipRepository.findByUser_IdAndGuild_DiscordGuildId(userId, guild)
+                // Staff rights are re-confirmed with Discord on use (TTL-cached, #103).
+                .map(membership -> required == GuildRole.RESPONDENT ? membership
+                        : guildMembershipService.verifyStaffIfStale(membership))
                 .map(membership -> satisfies(membership.getRole(), required))
                 .orElse(false);
     }

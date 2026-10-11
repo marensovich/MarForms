@@ -466,6 +466,7 @@
 
       "GUILD_BAN_REMOVED": "Server Ban Removed",
       "GUILD_CONNECTED": "Server Connected",
+      "GUILD_ROLE_REVOKED": "Server Role Revoked",
       "ROLE_CREATED": "Role Created",
       "ROLE_UPDATED": "Role Updated",
       "ROLE_DELETED": "Role Deleted",
@@ -591,6 +592,7 @@
 
         "GUILD_BAN_REMOVED": "Server Ban Removed",
         "GUILD_CONNECTED": "Server Connected",
+        "GUILD_ROLE_REVOKED": "Server Role Revoked",
         "ROLE_CREATED": "Role Created",
         "ROLE_UPDATED": "Role Updated",
         "ROLE_DELETED": "Role Deleted",
@@ -1061,7 +1063,8 @@
       "MODERATOR_REMOVED": "Moderator removed",
       "GUILD_BAN_ADDED": "Ban",
       "GUILD_BAN_REMOVED": "Unban",
-      "GUILD_CONNECTED": "Server connected"
+      "GUILD_CONNECTED": "Server connected",
+      "GUILD_ROLE_REVOKED": "Role revoked"
     },
     "statusChange": "{{from}} → {{to}}",
     "reason": "Reason: {{reason}}",

@@ -158,6 +158,13 @@ const ACTION_META: Record<AuditAction, ActionMeta> = {
         border: "border-[#DCDAF2]",
         dot: "bg-[#6B63C9]"
     },
+    GUILD_ROLE_REVOKED: {
+        label: "Server Role Revoked",
+        bg: "bg-[#F7EEEE]",
+        text: "text-[#8B4A46]",
+        border: "border-[#EAD4D3]",
+        dot: "bg-[#B5524C]"
+    },
 };
 
 const ALL_ACTIONS = Object.keys(ACTION_META) as AuditAction[];
