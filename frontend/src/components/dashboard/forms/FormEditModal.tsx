@@ -21,6 +21,7 @@ import type {FormAccessMode, FormDefinition, FormField, WebhookConfig} from "../
 import StepWebhooks from "./StepWebhooks";
 import StepFields from "./StepFields";
 import AccessModeSelector from "./AccessModeSelector";
+import RoleGateEditor from "./RoleGateEditor";
 import FormPreviewModal from "./FormPreviewModal";
 
 interface Props {
@@ -36,6 +37,8 @@ interface AccessSettings {
     limit: string;
     opensAt: string;
     closesAt: string;
+    allowedRoleIds: string[];
+    deniedRoleIds: string[];
 }
 
 function inputCls(error?: boolean) {
@@ -55,6 +58,8 @@ function accessOf(def: FormDefinition): AccessSettings {
         limit: def.submissionLimitPerUser ? String(def.submissionLimitPerUser) : "",
         opensAt: toLocalInput(def.opensAt),
         closesAt: toLocalInput(def.closesAt),
+        allowedRoleIds: def.allowedRoleIds ?? [],
+        deniedRoleIds: def.deniedRoleIds ?? [],
     };
 }
 
@@ -109,6 +114,8 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
                         submissionLimitPerUser: access.limit ? Number(access.limit) : null,
                         opensAt: access.opensAt || null,
                         closesAt: access.closesAt || null,
+                        allowedRoleIds: access.allowedRoleIds,
+                        deniedRoleIds: access.deniedRoleIds,
                     },
                 } : {}),
             };
@@ -249,6 +256,8 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
                                         channelsIds: [],
                                         webhooks,
                                         accessMode: access?.accessMode ?? "AUTHENTICATED",
+                                        allowedRoleIds: [],
+                                        deniedRoleIds: [],
                                     }}
                                     onChange={patch => {
                                         if (patch.fields !== undefined) setFields(patch.fields);
@@ -264,6 +273,11 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
                                             value={access.accessMode}
                                             onChange={accessMode => setAccess({...access, accessMode})}
                                         />
+                                        {access.accessMode === "ROLE_GATED" && definition && (
+                                            <RoleGateEditor guildId={String(definition.serverId)}
+                                                            value={{allowedRoleIds: access.allowedRoleIds, deniedRoleIds: access.deniedRoleIds}}
+                                                            onChange={roles => setAccess({...access, ...roles})}/>
+                                        )}
                                     </div>
                                     <label className="flex flex-col gap-1.5">
                                         <span className="text-xs font-medium text-[#6B6B76]">{t("access.limit")}</span>
@@ -310,6 +324,8 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
                                         channelsIds: [],
                                         webhooks,
                                         accessMode: access?.accessMode ?? "AUTHENTICATED",
+                                        allowedRoleIds: [],
+                                        deniedRoleIds: [],
                                     }}
                                     onChange={patch => {
                                         if (patch.webhooks !== undefined) setWebhooks(patch.webhooks);

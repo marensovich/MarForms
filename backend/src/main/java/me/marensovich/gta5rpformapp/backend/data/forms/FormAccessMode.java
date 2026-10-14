@@ -9,7 +9,9 @@ package me.marensovich.gta5rpformapp.backend.data.forms;
  *     <li>{@link #AUTHENTICATED} — Discord login required, and the
  *     respondent must be a member of the form's guild (the original
  *     behaviour, and the default).</li>
- *     <li>{@link #ROLE_GATED} — reserved for Stage 2 (E2.1, RoleGate).</li>
+ *     <li>{@link #ROLE_GATED} — as {@link #AUTHENTICATED}, plus the form's
+ *     RoleGate: the respondent needs one of the allowed Discord roles (if
+ *     any are set) and none of the denied ones; deny wins (E2.1).</li>
  *     <li>{@link #ANONYMOUS} — no login, and identity is deliberately never
  *     recorded, even for a logged-in respondent (E2.3, spec раздел 5.6).</li>
  * </ul>
@@ -20,15 +22,5 @@ public enum FormAccessMode {
     OPEN,
     AUTHENTICATED,
     ROLE_GATED,
-    ANONYMOUS;
-
-    /**
-     * Whether this mode can be selected yet — {@link #ROLE_GATED} exists in
-     * the schema so the UI can show it, but has no logic behind it.
-     *
-     * @return {@code false} only for {@link #ROLE_GATED}
-     */
-    public boolean isAvailable() {
-        return this != ROLE_GATED;
-    }
+    ANONYMOUS
 }

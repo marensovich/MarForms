@@ -271,12 +271,9 @@ class GuildFormControllerTest {
     }
 
     @Test
-    void roleGatedIsNotAvailableYetButAnonymousIs() throws Exception {
+    void accessModesIncludingAnonymous() throws Exception {
         String formId = createDraft(GUILD);
 
-        mvc.perform(as(owner, put("/api/v1/guilds/{g}/forms/{f}/settings", GUILD, formId))
-                        .content("{\"accessMode\": \"ROLE_GATED\"}"))
-                .andExpect(status().isBadRequest());
         mvc.perform(as(owner, put("/api/v1/guilds/{g}/forms/{f}/settings", GUILD, formId))
                         .content("{\"accessMode\": \"ANONYMOUS\"}"))
                 .andExpect(status().isOk())
@@ -286,6 +283,24 @@ class GuildFormControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessMode").value("OPEN"))
                 .andExpect(jsonPath("$.submissionLimitPerUser").value(1));
+    }
+
+    @Test
+    void roleGatedNeedsARuleAndARoleCantBeBothAllowedAndDenied() throws Exception {
+        String formId = createDraft(GUILD);
+
+        mvc.perform(as(owner, put("/api/v1/guilds/{g}/forms/{f}/settings", GUILD, formId))
+                        .content("{\"accessMode\": \"ROLE_GATED\"}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(as(owner, put("/api/v1/guilds/{g}/forms/{f}/settings", GUILD, formId))
+                        .content("{\"accessMode\": \"ROLE_GATED\", \"allowedRoleIds\": [\"11\"], \"deniedRoleIds\": [\"11\"]}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(as(owner, put("/api/v1/guilds/{g}/forms/{f}/settings", GUILD, formId))
+                        .content("{\"accessMode\": \"ROLE_GATED\", \"allowedRoleIds\": [\"1234567890123456789\"], \"deniedRoleIds\": [\"22\"]}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessMode").value("ROLE_GATED"))
+                .andExpect(jsonPath("$.allowedRoleIds[0]").value("1234567890123456789"))
+                .andExpect(jsonPath("$.deniedRoleIds[0]").value("22"));
     }
 
     @Test

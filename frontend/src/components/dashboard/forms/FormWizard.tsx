@@ -9,6 +9,7 @@ import StepServerSettings from "./StepServerSettings";
 import StepWebhooks from "./StepWebhooks";
 import {createForm, createGuildForm} from "../../../api/dashboard";
 import AccessModeSelector from "./AccessModeSelector";
+import RoleGateEditor from "./RoleGateEditor";
 import FormPreviewModal from "./FormPreviewModal";
 
 interface Props {
@@ -30,6 +31,8 @@ export interface FormDraft {
     channelsIds: string[];
     webhooks: WebhookConfig[];
     accessMode: FormAccessMode;
+    allowedRoleIds: string[];
+    deniedRoleIds: string[];
 }
 
 const STEPS = [
@@ -47,12 +50,19 @@ const EMPTY_DRAFT: FormDraft = {
     channelsIds: [],
     webhooks: [],
     accessMode: "AUTHENTICATED",
+    allowedRoleIds: [],
+    deniedRoleIds: [],
 };
+
+/** A ROLE_GATED form needs at least one rule; the server refuses it otherwise. */
+function roleGateIncomplete(draft: FormDraft): boolean {
+    return draft.accessMode === "ROLE_GATED" && draft.allowedRoleIds.length === 0 && draft.deniedRoleIds.length === 0;
+}
 
 function canProceed(step: number, draft: FormDraft): boolean {
     if (step === 1) return draft.title.trim().length > 0;
     if (step === 2) return draft.fields.length > 0;
-    if (step === 3) return draft.serverId.trim().length > 0;
+    if (step === 3) return draft.serverId.trim().length > 0 && !roleGateIncomplete(draft);
     return true;
 }
 
@@ -85,6 +95,8 @@ export default function FormWizard({onClose, onCreated, guildId}: Props) {
                     channelsIds: draft.channelsIds.filter(Boolean),
                     webhooks: draft.webhooks.filter(w => w.url.trim()),
                     accessMode: draft.accessMode,
+                    allowedRoleIds: draft.allowedRoleIds,
+                    deniedRoleIds: draft.deniedRoleIds,
                     schema: {title: draft.title, description: draft.description, fields: draft.fields},
                 });
                 onCreated();
@@ -193,6 +205,11 @@ export default function FormWizard({onClose, onCreated, guildId}: Props) {
                                             <p className="mb-2 text-sm font-medium text-[#1E1E24]">{t("access.title")}</p>
                                             <AccessModeSelector value={draft.accessMode}
                                                                 onChange={accessMode => updateDraft({accessMode})}/>
+                                            {draft.accessMode === "ROLE_GATED" && (
+                                                <RoleGateEditor guildId={guildId}
+                                                                value={{allowedRoleIds: draft.allowedRoleIds, deniedRoleIds: draft.deniedRoleIds}}
+                                                                onChange={updateDraft}/>
+                                            )}
                                         </div>
                                     )}
                                 </div>

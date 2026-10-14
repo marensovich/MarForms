@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * REST controller for guild-scoped Discord data used by the form builder.
@@ -53,6 +55,25 @@ public class GuildController {
     public List<DiscordChannelDto> channels(@PathVariable Long guildId) {
         return discordBotClient.fetchTextChannels(guildId).stream()
                 .map(DiscordChannelDto::from)
+                .toList();
+    }
+
+    /**
+     * Lists a guild's Discord roles for the RoleGate picker (E2.1, #66),
+     * without {@code @everyone} (its ID is the guild's: every member has it,
+     * so it gates nothing). Empty if the bot can't see the guild.
+     *
+     * @param guildId the Discord guild snowflake ID
+     * @return the guild's roles, sorted by name
+     * @since v.0.1
+     */
+    @PreAuthorize("hasAuthority('FORMS_MANAGE') or @guildAccess.hasRole(#guildId, 'OWNER')")
+    @GetMapping("/roles")
+    public List<DiscordBotClient.DiscordRole> roles(@PathVariable Long guildId) {
+        return discordBotClient.fetchRoles(guildId).entrySet().stream()
+                .filter(entry -> !entry.getKey().equals(guildId))
+                .map(Map.Entry::getValue)
+                .sorted(Comparator.comparing(DiscordBotClient.DiscordRole::name, String.CASE_INSENSITIVE_ORDER))
                 .toList();
     }
 

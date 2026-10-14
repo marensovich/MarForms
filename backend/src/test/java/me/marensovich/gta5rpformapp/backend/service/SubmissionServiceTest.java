@@ -77,7 +77,6 @@ class SubmissionServiceTest {
         Form form = activeFormWithWebhooks(webhook("https://discord.com/api/webhooks/1/a"),
                 webhook("https://discord.com/api/webhooks/2/b"));
         when(formService.getById(form.getId())).thenReturn(form);
-        when(formAccessService.check(any(), any())).thenReturn(FormAccessService.Access.GRANTED);
         when(submissionRepository.save(any(Submission.class))).thenAnswer(inv -> {
             Submission s = inv.getArgument(0);
             s.setId(UUID.randomUUID());
@@ -97,7 +96,6 @@ class SubmissionServiceTest {
         invalid.setInvalid(true);
         Form form = activeFormWithWebhooks(invalid, webhook("https://discord.com/api/webhooks/2/b"));
         when(formService.getById(form.getId())).thenReturn(form);
-        when(formAccessService.check(any(), any())).thenReturn(FormAccessService.Access.GRANTED);
         when(submissionRepository.save(any(Submission.class))).thenAnswer(inv -> {
             Submission s = inv.getArgument(0);
             s.setId(UUID.randomUUID());
@@ -114,7 +112,6 @@ class SubmissionServiceTest {
     void enqueuesNothingWhenTheFormHasNoWebhooks() {
         Form form = activeFormWithWebhooks();
         when(formService.getById(form.getId())).thenReturn(form);
-        when(formAccessService.check(any(), any())).thenReturn(FormAccessService.Access.GRANTED);
         when(submissionRepository.save(any(Submission.class))).thenAnswer(inv -> {
             Submission s = inv.getArgument(0);
             s.setId(UUID.randomUUID());

@@ -9,8 +9,6 @@ import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import me.marensovich.gta5rpformapp.backend.database.entity.Submission;
 import me.marensovich.gta5rpformapp.backend.database.entity.User;
 import me.marensovich.gta5rpformapp.backend.exception.InvalidStateException;
-import me.marensovich.gta5rpformapp.backend.exception.FormAccessDeniedException;
-import me.marensovich.gta5rpformapp.backend.exception.LoginRequiredException;
 import me.marensovich.gta5rpformapp.backend.database.entity.SubmissionFile;
 import me.marensovich.gta5rpformapp.backend.service.discord.WebhookUrlCipher;
 import me.marensovich.gta5rpformapp.backend.service.files.FileService;
@@ -141,13 +139,7 @@ public class SubmissionService {
         String notAccepting = notAcceptingReason(form);
         if (notAccepting != null) throw new InvalidStateException(notAccepting);
 
-        switch (formAccessService.check(form, user)) {
-            case LOGIN_REQUIRED -> throw new LoginRequiredException("Log in with Discord to fill in this form");
-            case NOT_IN_GUILD -> throw new FormAccessDeniedException("You must be a member of this server to fill in this form");
-            case BANNED -> throw new FormAccessDeniedException("You are banned from submitting forms on this server");
-            case GRANTED -> {
-            }
-        }
+        formAccessService.requireAccess(form, user);
 
         // Anonymous forms never record who submitted, even if they are logged in.
         boolean anonymous = form.getAccessMode() == FormAccessMode.ANONYMOUS;

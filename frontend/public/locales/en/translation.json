@@ -17,7 +17,8 @@
     "inactive": "Inactive",
     "unknown": "Unknown",
     "confirm": "Confirm",
-    "clearFilters": "Clear filters"
+    "clearFilters": "Clear filters",
+    "remove": "Remove"
   },
   "nav": {
     "servers": "Servers",
@@ -82,6 +83,21 @@
       "title": "Something went wrong",
       "description": "We couldn't load this form due to a server error. This is likely a temporary issue — please try again in a moment.",
       "tryAgain": "Try again"
+    },
+    "roleGate": {
+      "badge": "Access restricted",
+      "ROLE_REQUIRED": {
+        "title": "This form needs a Discord role",
+        "description": "Only members with certain roles on this Discord server can fill in this form, and you don't have any of them. If you think you should, ask the server staff."
+      },
+      "ROLE_DENIED": {
+        "title": "Your roles don't allow this form",
+        "description": "One of your roles on this Discord server is not allowed to fill in this form. If you think this is a mistake, contact the server staff."
+      },
+      "ROLES_UNAVAILABLE": {
+        "title": "We couldn't check your roles",
+        "description": "This form depends on your Discord roles, and we couldn't read them right now. Try again in a few minutes."
+      }
     }
   },
   "landing": {
@@ -452,19 +468,10 @@
       "FORM_DELETED": "Form Deleted",
       "SUBMISSION_CREATED": "Submission Created",
       "SUBMISSION_DELETED": "Submission Deleted",
-
       "SUBMISSION_DECIDED": "Submission Decided",
-
-
       "MODERATOR_ADDED": "Moderator Added",
-
-
       "MODERATOR_REMOVED": "Moderator Removed",
-
-
       "GUILD_BAN_ADDED": "Server Ban Added",
-
-
       "GUILD_BAN_REMOVED": "Server Ban Removed",
       "GUILD_CONNECTED": "Server Connected",
       "GUILD_ROLE_REVOKED": "Server Role Revoked",
@@ -578,19 +585,10 @@
         "FORM_DELETED": "Form Deleted",
         "SUBMISSION_CREATED": "Submission Created",
         "SUBMISSION_DELETED": "Submission Deleted",
-
         "SUBMISSION_DECIDED": "Submission Decided",
-
-
         "MODERATOR_ADDED": "Moderator Added",
-
-
         "MODERATOR_REMOVED": "Moderator Removed",
-
-
         "GUILD_BAN_ADDED": "Server Ban Added",
-
-
         "GUILD_BAN_REMOVED": "Server Ban Removed",
         "GUILD_CONNECTED": "Server Connected",
         "GUILD_ROLE_REVOKED": "Server Role Revoked",
@@ -733,24 +731,78 @@
         "optionPlaceholder": "Option {{n}}"
       },
       "types": {
-        "RATING": {"label":"Rating","desc":"Stars from 1 to N"},
-        "SECTION_BREAK": {"label":"Section","desc":"Heading that splits the form"},
-        "FILE_UPLOAD": {"label":"File","desc":"An attachment: document, screenshot"},
-        "TEXT": {"label": "Short Text", "desc": "Single-line, up to 255 chars"},
-        "TEXTAREA": {"label": "Long Text", "desc": "Multi-line paragraph answer"},
-        "NUMBER": {"label": "Number", "desc": "Integer or decimal with validation"},
-        "EMAIL": {"label": "Email", "desc": "Email address with format check"},
-        "PASSWORD": {"label": "Password", "desc": "Masked single-line input"},
-        "URL": {"label": "URL", "desc": "Web address (https://...)"},
-        "PHONE": {"label": "Phone", "desc": "Phone number"},
-        "SELECT": {"label": "Dropdown", "desc": "Pick one from a dropdown list"},
-        "MULTI_SELECT": {"label": "Multi-select", "desc": "Pick multiple from a dropdown"},
-        "RADIO": {"label": "Radio", "desc": "Single choice, all options visible"},
-        "CHECKBOX": {"label": "Checkboxes", "desc": "Multiple choices, all visible"},
-        "BOOLEAN": {"label": "Toggle", "desc": "Simple Yes / No switch"},
-        "DATE": {"label": "Date", "desc": "Date picker"},
-        "TIME": {"label": "Time", "desc": "Time picker"},
-        "DATETIME": {"label": "Date & Time", "desc": "Combined date and time picker"}
+        "RATING": {
+          "label": "Rating",
+          "desc": "Stars from 1 to N"
+        },
+        "SECTION_BREAK": {
+          "label": "Section",
+          "desc": "Heading that splits the form"
+        },
+        "FILE_UPLOAD": {
+          "label": "File",
+          "desc": "An attachment: document, screenshot"
+        },
+        "TEXT": {
+          "label": "Short Text",
+          "desc": "Single-line, up to 255 chars"
+        },
+        "TEXTAREA": {
+          "label": "Long Text",
+          "desc": "Multi-line paragraph answer"
+        },
+        "NUMBER": {
+          "label": "Number",
+          "desc": "Integer or decimal with validation"
+        },
+        "EMAIL": {
+          "label": "Email",
+          "desc": "Email address with format check"
+        },
+        "PASSWORD": {
+          "label": "Password",
+          "desc": "Masked single-line input"
+        },
+        "URL": {
+          "label": "URL",
+          "desc": "Web address (https://...)"
+        },
+        "PHONE": {
+          "label": "Phone",
+          "desc": "Phone number"
+        },
+        "SELECT": {
+          "label": "Dropdown",
+          "desc": "Pick one from a dropdown list"
+        },
+        "MULTI_SELECT": {
+          "label": "Multi-select",
+          "desc": "Pick multiple from a dropdown"
+        },
+        "RADIO": {
+          "label": "Radio",
+          "desc": "Single choice, all options visible"
+        },
+        "CHECKBOX": {
+          "label": "Checkboxes",
+          "desc": "Multiple choices, all visible"
+        },
+        "BOOLEAN": {
+          "label": "Toggle",
+          "desc": "Simple Yes / No switch"
+        },
+        "DATE": {
+          "label": "Date",
+          "desc": "Date picker"
+        },
+        "TIME": {
+          "label": "Time",
+          "desc": "Time picker"
+        },
+        "DATETIME": {
+          "label": "Date & Time",
+          "desc": "Combined date and time picker"
+        }
       },
       "groups": {
         "files": "Files",
@@ -939,6 +991,18 @@
         "label": "Anonymous",
         "desc": "No login. The author is never recorded, even if signed in."
       }
+    },
+    "roleGate": {
+      "title": "Discord roles",
+      "hint": "Deny wins: a member with any denied role is refused, even if they also have an allowed role.",
+      "allowed": "Allowed roles",
+      "allowedHint": "A member needs at least one of these. Leave empty to let in every member except denied roles.",
+      "denied": "Denied roles",
+      "deniedHint": "A member with any of these roles can't fill in the form.",
+      "add": "Add role",
+      "none": "No roles selected",
+      "loadFailed": "Couldn't load the server's roles — is the bot on the server?",
+      "needOne": "Pick at least one allowed or denied role."
     }
   },
   "guildForms": {

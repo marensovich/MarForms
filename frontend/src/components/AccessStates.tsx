@@ -2,7 +2,7 @@ import {motion} from "framer-motion";
 import {useTranslation} from "react-i18next";
 import {loginWithDiscord} from "../api/auth";
 import {saveRedirectPath} from "../auth/redirectStorage";
-import {FiAlertTriangle, FiArchive, FiArrowRight, FiLock, FiLogIn, FiRefreshCw, FiSearch, FiSlash,} from "react-icons/fi";
+import {FiAlertTriangle, FiArchive, FiArrowRight, FiLock, FiLogIn, FiRefreshCw, FiSearch, FiShield, FiSlash,} from "react-icons/fi";
 import {BsDiscord} from "react-icons/bs";
 
 interface Props {
@@ -148,6 +148,24 @@ export function BannedState() {
             title={t("accessStates.banned.title")}
             description={t("accessStates.banned.description")}
             badge={t("accessStates.banned.badge")}
+        />
+    );
+}
+
+/**
+ * A role-gated form refused the viewer (E2.1, #65): explains why instead of
+ * a bare 403 — a missing role, a denied role, or roles that couldn't be read.
+ */
+export function RoleGateState({reason}: { reason: "ROLE_REQUIRED" | "ROLE_DENIED" | "ROLES_UNAVAILABLE" }) {
+    const {t} = useTranslation();
+    const unavailable = reason === "ROLES_UNAVAILABLE";
+    return (
+        <StateLayout
+            icon={unavailable ? <FiRefreshCw size={28}/> : <FiShield size={28}/>}
+            accent={unavailable ? "amber" : "red"}
+            title={t(`accessStates.roleGate.${reason}.title`)}
+            description={t(`accessStates.roleGate.${reason}.description`)}
+            badge={t("accessStates.roleGate.badge")}
         />
     );
 }

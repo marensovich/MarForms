@@ -71,6 +71,8 @@ import java.util.stream.Collectors;
 public class FormService {
 
     private static final int SLUG_ATTEMPTS = 10;
+    /** Upper bound of each RoleGate list — Discord itself caps a guild at 250 roles. */
+    private static final int MAX_ROLE_GATE_ROLES = 50;
 
     private final FormRepository formRepository;
     private final SubmissionRepository submissionRepository;
@@ -184,6 +186,7 @@ public class FormService {
     public Form createInGuild(Long guildId, CreateGuildFormRequest request) {
         planLimitService.requireRoomFor(guildId, PlanMetric.ACTIVE_FORMS);
         Form form = newForm(guildId, request.schema(), request.channelsIds(), request.webhooks(), request.accessMode());
+        applyRoleGate(form, request.allowedRoleIds(), request.deniedRoleIds());
         return saveNew(form);
     }
 
@@ -195,10 +198,7 @@ public class FormService {
         form.setSchema(schema);
         if (channelsIds != null) form.setChannelsIds(parseIds(channelsIds));
         if (webhooks != null) form.setWebhooks(checkedWebhooks(webhooks, List.of()));
-        if (accessMode != null) {
-            requireAvailable(accessMode);
-            form.setAccessMode(accessMode);
-        }
+        if (accessMode != null) form.setAccessMode(accessMode);
         return form;
     }
 
@@ -305,7 +305,6 @@ public class FormService {
     }
 
     private void applySettings(Form form, FormSettingsRequest request) {
-        requireAvailable(request.accessMode());
         if (request.opensAt() != null && request.closesAt() != null && !request.closesAt().isAfter(request.opensAt())) {
             throw new IllegalArgumentException("The closing time must be after the opening time");
         }
@@ -313,6 +312,32 @@ public class FormService {
         form.setSubmissionLimitPerUser(request.submissionLimitPerUser());
         form.setOpensAt(request.opensAt());
         form.setClosesAt(request.closesAt());
+        applyRoleGate(form, request.allowedRoleIds(), request.deniedRoleIds());
+    }
+
+    /**
+     * Replaces the RoleGate lists (E2.1) and checks them against the access
+     * mode: a {@code ROLE_GATED} form needs at least one rule — otherwise it
+     * would quietly behave like {@code AUTHENTICATED} — and a role can't be
+     * both allowed and denied. Lists are kept in other modes, so switching
+     * back to {@code ROLE_GATED} restores them.
+     */
+    private static void applyRoleGate(Form form, Set<String> allowed, Set<String> denied) {
+        Set<Long> allowedIds = allowed != null ? parseIds(allowed) : Set.of();
+        Set<Long> deniedIds = denied != null ? parseIds(denied) : Set.of();
+        if (allowedIds.size() > MAX_ROLE_GATE_ROLES || deniedIds.size() > MAX_ROLE_GATE_ROLES) {
+            throw new IllegalArgumentException("At most " + MAX_ROLE_GATE_ROLES + " roles per list");
+        }
+        if (allowedIds.stream().anyMatch(deniedIds::contains)) {
+            throw new IllegalArgumentException("A role can't be both allowed and denied");
+        }
+        if (form.getAccessMode() == FormAccessMode.ROLE_GATED && allowedIds.isEmpty() && deniedIds.isEmpty()) {
+            throw new IllegalArgumentException("Pick at least one allowed or denied role for a role-gated form");
+        }
+        form.getAllowedRoleIds().clear();
+        form.getAllowedRoleIds().addAll(allowedIds);
+        form.getDeniedRoleIds().clear();
+        form.getDeniedRoleIds().addAll(deniedIds);
     }
 
     /**
@@ -592,12 +617,6 @@ public class FormService {
         }
     }
 
-    private static void requireAvailable(FormAccessMode mode) {
-        if (!mode.isAvailable()) {
-            throw new IllegalArgumentException("Access mode " + mode + " is not available yet");
-        }
-    }
-
     private static List<FormField> fieldsOf(Form form) {
         return form.getSchema() == null || form.getSchema().getFields() == null
                 ? List.of() : form.getSchema().getFields();
@@ -657,6 +676,10 @@ public class FormService {
     }
 
     private static Set<Long> parseIds(Set<String> ids) {
-        return ids.stream().map(Long::parseUnsignedLong).collect(Collectors.toSet());
+        try {
+            return ids.stream().map(Long::parseUnsignedLong).collect(Collectors.toSet());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Discord IDs must be numeric");
+        }
     }
 }

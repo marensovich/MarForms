@@ -28,6 +28,8 @@ export interface CreateGuildFormPayload {
     channelsIds?: string[];
     webhooks?: WebhookConfig[];
     accessMode?: FormAccessMode;
+    allowedRoleIds?: string[];
+    deniedRoleIds?: string[];
 }
 
 export function createGuildForm(guildId: string, payload: CreateGuildFormPayload): Promise<FormDefinition> {
@@ -47,6 +49,8 @@ export interface FormSettingsPayload {
     submissionLimitPerUser: number | null;
     opensAt: string | null;
     closesAt: string | null;
+    allowedRoleIds: string[];
+    deniedRoleIds: string[];
 }
 
 export function updateGuildFormSettings(
@@ -180,6 +184,18 @@ export interface DiscordChannel {
 
 export function getGuildChannels(guildId: string): Promise<DiscordChannel[]> {
     return apiRequest(`/guilds/${guildId}/channels`);
+}
+
+export interface DiscordRole {
+    id: string;
+    name: string;
+    /** RGB colour as a number; 0 = no colour. */
+    color: number;
+}
+
+/** The guild's roles for the RoleGate picker, without @everyone. */
+export function getGuildRoles(guildId: string): Promise<DiscordRole[]> {
+    return apiRequest(`/guilds/${guildId}/roles`);
 }
 
 export function createGuildWebhook(

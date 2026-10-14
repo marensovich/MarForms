@@ -16,7 +16,9 @@ import java.util.Set;
  * @param schema      title, description and fields (fields may be empty for a draft)
  * @param channelsIds optional channel restriction
  * @param webhooks    optional notification webhooks
- * @param accessMode  optional; defaults to {@code AUTHENTICATED}
+ * @param accessMode     optional; defaults to {@code AUTHENTICATED}
+ * @param allowedRoleIds RoleGate allow list, Discord role IDs (optional, E2.1)
+ * @param deniedRoleIds  RoleGate deny list, Discord role IDs (optional, E2.1)
  * @author marensovich
  * @version v.0.1
  * @since v.0.1
@@ -25,6 +27,8 @@ public record CreateGuildFormRequest(
         @NotNull @Valid FormSchema schema,
         Set<String> channelsIds,
         List<WebhookConfig> webhooks,
-        FormAccessMode accessMode
+        FormAccessMode accessMode,
+        Set<String> allowedRoleIds,
+        Set<String> deniedRoleIds
 ) {
 }

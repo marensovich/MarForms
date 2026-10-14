@@ -4,12 +4,18 @@ import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormAccessMode;
 import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
+import me.marensovich.gta5rpformapp.backend.database.entity.GuildMembership;
 import me.marensovich.gta5rpformapp.backend.database.entity.User;
+import me.marensovich.gta5rpformapp.backend.exception.FormAccessDeniedException;
+import me.marensovich.gta5rpformapp.backend.exception.LoginRequiredException;
 import me.marensovich.gta5rpformapp.backend.service.BanListService;
 import me.marensovich.gta5rpformapp.backend.service.GuildMembershipService;
 import me.marensovich.gta5rpformapp.backend.service.UserService;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * Decides whether a viewer may fill a form in — shared by the public form
@@ -22,6 +28,12 @@ import org.springframework.stereotype.Service;
  *     must be a member of the form's guild. A failed membership check
  *     re-syncs the user's guild list with their stored Discord token first
  *     (they may have joined since logging in, #31).</li>
+ *     <li>{@code ROLE_GATED}: as {@code AUTHENTICATED}, then the RoleGate
+ *     (E2.1) on the member's Discord roles, refreshed once the TTL has
+ *     lapsed (#64): any denied role refuses ({@code ROLE_DENIED}, deny wins),
+ *     and a non-empty allow list needs one of its roles ({@code ROLE_REQUIRED}).
+ *     If the roles were never fetched and the bot can't fetch them now,
+ *     access is refused ({@code ROLES_UNAVAILABLE}) rather than guessed.</li>
  *     <li>{@code ANONYMOUS}: anyone; nothing about the viewer is looked at
  *     or recorded (E2.3), so no ban or membership checks either.</li>
  * </ul>
@@ -45,7 +57,13 @@ public class FormAccessService {
         GRANTED,
         LOGIN_REQUIRED,
         NOT_IN_GUILD,
-        BANNED
+        BANNED,
+        /** ROLE_GATED: the member has none of the allowed roles. */
+        ROLE_REQUIRED,
+        /** ROLE_GATED: the member has a denied role. */
+        ROLE_DENIED,
+        /** ROLE_GATED: the member's roles couldn't be determined. */
+        ROLES_UNAVAILABLE
     }
 
     private final UserService userService;
@@ -79,10 +97,52 @@ public class FormAccessService {
 
         if (member) {
             guildMembershipService.ensureMembership(user.getDiscordId(), form.getServerId(), GuildRole.RESPONDENT);
-            // Cached for future role gating (#10); refreshed only once the TTL has lapsed.
-            guildMembershipService.syncDiscordRolesIfStale(user.getDiscordId(), form.getServerId());
-            return Access.GRANTED;
+            // Refreshed only once the TTL has lapsed (#64).
+            List<Long> roles = guildMembershipService.syncDiscordRolesIfStale(user.getDiscordId(), form.getServerId())
+                    .map(GuildMembership::getDiscordRoles)
+                    .orElse(null);
+            return form.getAccessMode() == FormAccessMode.ROLE_GATED ? checkRoleGate(form, roles) : Access.GRANTED;
         }
         return form.getAccessMode() == FormAccessMode.OPEN ? Access.GRANTED : Access.NOT_IN_GUILD;
+    }
+
+    /**
+     * Like {@link #check}, but throws unless access is granted — for the
+     * endpoints that accept answers and files.
+     *
+     * @param form the form
+     * @param user the current user, or {@code null} if not logged in
+     * @throws LoginRequiredException     if the form needs a Discord login
+     * @throws FormAccessDeniedException  for any other refusal, with a message
+     *                                    the respondent can act on
+     * @since v.0.1
+     */
+    public void requireAccess(Form form, @Nullable User user) {
+        switch (check(form, user)) {
+            case LOGIN_REQUIRED -> throw new LoginRequiredException("Log in with Discord to fill in this form");
+            case NOT_IN_GUILD -> throw new FormAccessDeniedException("You must be a member of this server to fill in this form");
+            case BANNED -> throw new FormAccessDeniedException("You are banned from submitting forms on this server");
+            case ROLE_REQUIRED -> throw new FormAccessDeniedException("You don't have a Discord role this form requires");
+            case ROLE_DENIED -> throw new FormAccessDeniedException("One of your Discord roles is not allowed to fill in this form");
+            case ROLES_UNAVAILABLE -> throw new FormAccessDeniedException("We couldn't check your Discord roles — try again later");
+            case GRANTED -> {
+            }
+        }
+    }
+
+    /**
+     * Applies a form's RoleGate to a member's Discord roles; deny wins over allow.
+     *
+     * @param form  a ROLE_GATED form
+     * @param roles the member's role IDs, or {@code null} if unknown
+     * @return the outcome
+     * @since v.0.1
+     */
+    static Access checkRoleGate(Form form, @Nullable List<Long> roles) {
+        if (roles == null) return Access.ROLES_UNAVAILABLE;
+        if (roles.stream().anyMatch(form.getDeniedRoleIds()::contains)) return Access.ROLE_DENIED;
+        Set<Long> allowed = form.getAllowedRoleIds();
+        if (!allowed.isEmpty() && roles.stream().noneMatch(allowed::contains)) return Access.ROLE_REQUIRED;
+        return Access.GRANTED;
     }
 }

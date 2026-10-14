@@ -64,6 +64,30 @@ public class Form {
     private Set<Long> channelsIds = new HashSet<>();
 
     /**
+     * RoleGate allow list (E2.1): Discord role IDs of which a respondent needs
+     * at least one. Empty = any member of the server. Applies only while
+     * {@link #accessMode} is {@code ROLE_GATED}.
+     *
+     * @since v.0.1
+     */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "form_allowed_roles", joinColumns = @JoinColumn(name = "form_id"))
+    @Column(name = "discord_role_id")
+    private Set<Long> allowedRoleIds = new HashSet<>();
+
+    /**
+     * RoleGate deny list (E2.1): any of these Discord roles refuses access,
+     * whatever the allow list says (deny wins). Applies only while
+     * {@link #accessMode} is {@code ROLE_GATED}.
+     *
+     * @since v.0.1
+     */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "form_denied_roles", joinColumns = @JoinColumn(name = "form_id"))
+    @Column(name = "discord_role_id")
+    private Set<Long> deniedRoleIds = new HashSet<>();
+
+    /**
      * The JSON schema defining the form structure.
      * <p>
      * Stored as JSON in the database using Hibernate's JSON mapping.

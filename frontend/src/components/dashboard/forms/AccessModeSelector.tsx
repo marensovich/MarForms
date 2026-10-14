@@ -8,9 +8,7 @@ import {Modal} from "../shared";
 const MODES: { mode: FormAccessMode; icon: React.ElementType; available: boolean }[] = [
     {mode: "OPEN", icon: FiGlobe, available: true},
     {mode: "AUTHENTICATED", icon: FiLock, available: true},
-    // Visible but disabled until RoleGate (E2.1) lands, so the UI doesn't
-    // need reworking then.
-    {mode: "ROLE_GATED", icon: FiShield, available: false},
+    {mode: "ROLE_GATED", icon: FiShield, available: true},
     {mode: "ANONYMOUS", icon: FiEyeOff, available: true},
 ];
 

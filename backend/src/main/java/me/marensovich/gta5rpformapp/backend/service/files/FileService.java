@@ -10,10 +10,8 @@ import me.marensovich.gta5rpformapp.backend.database.entity.SubmissionFile;
 import me.marensovich.gta5rpformapp.backend.database.entity.User;
 import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionFileRepository;
 import me.marensovich.gta5rpformapp.backend.exception.FieldValidationException;
-import me.marensovich.gta5rpformapp.backend.exception.FormAccessDeniedException;
 import me.marensovich.gta5rpformapp.backend.exception.InvalidStateException;
 import me.marensovich.gta5rpformapp.backend.exception.TooManyRequestsException;
-import me.marensovich.gta5rpformapp.backend.exception.LoginRequiredException;
 import me.marensovich.gta5rpformapp.backend.exception.NotFoundException;
 import me.marensovich.gta5rpformapp.backend.service.SubmissionService;
 import me.marensovich.gta5rpformapp.backend.service.AfterCommit;
@@ -74,13 +72,7 @@ public class FileService {
     public SubmissionFile upload(Form form, String fieldId, MultipartFile file, @Nullable User user) {
         String notAccepting = SubmissionService.notAcceptingReason(form);
         if (notAccepting != null) throw new InvalidStateException(notAccepting);
-        switch (formAccessService.check(form, user)) {
-            case LOGIN_REQUIRED -> throw new LoginRequiredException("Log in with Discord to fill in this form");
-            case NOT_IN_GUILD -> throw new FormAccessDeniedException("You must be a member of this server to fill in this form");
-            case BANNED -> throw new FormAccessDeniedException("You are banned from submitting forms on this server");
-            case GRANTED -> {
-            }
-        }
+        formAccessService.requireAccess(form, user);
 
         FormField field = fileField(form, fieldId);
         if (file == null || file.isEmpty()) throw fieldError(fieldId, "The file is empty");

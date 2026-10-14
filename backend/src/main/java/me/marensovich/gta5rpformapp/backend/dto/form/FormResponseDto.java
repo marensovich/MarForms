@@ -29,6 +29,8 @@ import java.util.UUID;
  * @param webhooks    the list of Discord webhook configurations for form notifications
  * @param active      indicates whether the form is active and accepting submissions
  * @param createdAt   the timestamp when the form was created
+ * @param allowedRoleIds RoleGate allow list (serialized as strings, E2.1)
+ * @param deniedRoleIds  RoleGate deny list (serialized as strings, E2.1)
  * @author marensovich
  * @version v.0.1
  * @since v.0.1
@@ -50,7 +52,11 @@ public record FormResponseDto(
         LocalDateTime opensAt,
         LocalDateTime closesAt,
         LocalDateTime updatedAt,
-        Long version
+        Long version,
+        @JsonSerialize(contentUsing = ToStringSerializer.class)
+        Set<Long> allowedRoleIds,
+        @JsonSerialize(contentUsing = ToStringSerializer.class)
+        Set<Long> deniedRoleIds
 ) {
     /**
      * Converts a {@link Form} entity to a {@link FormResponseDto}.
@@ -75,7 +81,9 @@ public record FormResponseDto(
                 form.getOpensAt(),
                 form.getClosesAt(),
                 form.getUpdatedAt(),
-                form.getVersion()
+                form.getVersion(),
+                form.getAllowedRoleIds(),
+                form.getDeniedRoleIds()
         );
     }
 
@@ -96,6 +104,6 @@ public record FormResponseDto(
             return copy;
         }).toList();
         return new FormResponseDto(id, serverId, channelsIds, schema, masked, active, createdAt, status, accessMode,
-                slug, submissionLimitPerUser, opensAt, closesAt, updatedAt, version);
+                slug, submissionLimitPerUser, opensAt, closesAt, updatedAt, version, allowedRoleIds, deniedRoleIds);
     }
 }

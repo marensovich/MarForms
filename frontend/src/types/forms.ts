@@ -87,6 +87,10 @@ export interface FormDefinition {
     updatedAt?: string;
     /** Optimistic-locking version; sent back on save. */
     version?: number;
+    /** RoleGate (ROLE_GATED forms): one of these Discord roles is required, if any are set. */
+    allowedRoleIds?: string[];
+    /** RoleGate: any of these Discord roles refuses access; wins over the allow list. */
+    deniedRoleIds?: string[];
     createdByDiscordId?: string;
     createdByDiscordUsername?: string;
 }
