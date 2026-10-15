@@ -1,6 +1,9 @@
 package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.RequiredArgsConstructor;
+import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionRepository;
+import me.marensovich.gta5rpformapp.backend.data.forms.FormField;
+import me.marensovich.gta5rpformapp.backend.data.forms.FormSchema;
 import me.marensovich.gta5rpformapp.backend.service.discord.DiscordWebhookUrl;
 import me.marensovich.gta5rpformapp.backend.service.discord.WebhookUrlCipher;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +57,7 @@ public class WebhookService {
     private final SettingsService settingsService;
     private final WebhookUrlCipher webhookUrlCipher;
     private final RestTemplate restTemplate;
+    private final SubmissionRepository submissionRepository;
 
     /**
      * Delivers a submission notification to a single webhook.
@@ -83,7 +87,11 @@ public class WebhookService {
     public String deliverToWebhook(Form form, WebhookConfig webhook, Map<String, Object> answers,
                                     String discordUsername, Long discordId, UUID submissionId) {
         Map<String, String> vars = buildVars(form, discordId, discordUsername, submissionId);
-        return dispatch(form, answers, discordUsername, webhook, vars);
+        // The questions the submission answered (#117): a delivery retried after
+        // the form was edited still names the fields as they were asked.
+        FormSchema questions = submissionId == null ? form.getSchema()
+                : submissionRepository.findById(submissionId).map(sub -> sub.questions(form)).orElse(form.getSchema());
+        return dispatch(form, questions, answers, discordUsername, webhook, vars);
     }
 
     /**
@@ -118,7 +126,7 @@ public class WebhookService {
     }
 
     @SuppressWarnings("unchecked")
-    private String dispatch(Form form, Map<String, Object> answers,
+    private String dispatch(Form form, FormSchema questions, Map<String, Object> answers,
                             String discordUsername, WebhookConfig cfg,
                             Map<String, String> vars) {
         Map<String, Object> payload = new LinkedHashMap<>();
@@ -127,7 +135,7 @@ public class WebhookService {
         if (hasText(cfg.getAvatarUrl())) payload.put("avatar_url", cfg.getAvatarUrl());
 
         List<Map<String, Object>> embeds = new ArrayList<>();
-        embeds.add(buildFormEmbed(form, answers, discordUsername, cfg, vars));
+        embeds.add(buildFormEmbed(form, questions, answers, discordUsername, cfg, vars));
         Map<String, Object> globalEmbed = buildGlobalEmbed(vars);
         if (globalEmbed != null) embeds.add(globalEmbed);
         payload.put("embeds", embeds);
@@ -152,6 +160,7 @@ public class WebhookService {
      * Builds the per-webhook form-answers embed (first embed).
      *
      * @param form            the submitted form
+     * @param questions       the questions the submission answered
      * @param answers         raw answer map
      * @param discordUsername username of the submitter
      * @param cfg             webhook configuration
@@ -159,7 +168,7 @@ public class WebhookService {
      * @return a {@link Map} representing the Discord embed
      * @since v.0.1
      */
-    private Map<String, Object> buildFormEmbed(Form form, Map<String, Object> answers,
+    private Map<String, Object> buildFormEmbed(Form form, FormSchema questions, Map<String, Object> answers,
                                                String discordUsername, WebhookConfig cfg,
                                                Map<String, String> vars) {
         Map<String, Object> embed = new LinkedHashMap<>();
@@ -185,7 +194,7 @@ public class WebhookService {
 
         boolean inline = Boolean.TRUE.equals(cfg.getFieldsInline());
         List<Map<String, Object>> fields = new ArrayList<>();
-        for (var field : form.getSchema().getFields()) {
+        for (var field : questions == null || questions.getFields() == null ? List.<FormField>of() : questions.getFields()) {
             Object raw = answers.get(field.getId());
             if (raw == null) continue;
             String value = formatValue(raw);

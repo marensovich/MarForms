@@ -3,6 +3,7 @@ package me.marensovich.gta5rpformapp.backend.service.export;
 import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormField;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormField.FieldType;
+import me.marensovich.gta5rpformapp.backend.data.forms.FormSchema;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import me.marensovich.gta5rpformapp.backend.database.entity.Submission;
 import me.marensovich.gta5rpformapp.backend.database.entity.SubmissionFile;
@@ -24,6 +25,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -37,8 +39,10 @@ import java.util.stream.Collectors;
  * Streams: submissions are read a slice at a time and written straight to
  * the response, so memory use doesn't grow with the number of submissions
  * (spec раздел 8). One column per input field of the form as it is now, in
- * form order, after fixed columns (ID, time, status, author); answers to
- * fields since removed are not exported.
+ * form order, after fixed columns (ID, time, status, author); then one per
+ * field that is gone from the form but was asked in earlier submissions
+ * (their question snapshots, #117), headed by the label they had then. A
+ * cell is read by the field as its own submission asked it.
  * </p>
  * <p>
  * UTF-8 with a BOM so Excel detects the encoding. Cells that a spreadsheet
@@ -73,10 +77,7 @@ public class CsvExportService {
      * @since v.0.1
      */
     public void write(Form form, OutputStream out) throws IOException {
-        List<FormField> fields = form.getSchema() == null || form.getSchema().getFields() == null ? List.of()
-                : form.getSchema().getFields().stream()
-                .filter(f -> f != null && f.getType() != null && f.getType().isInput())
-                .toList();
+        List<FormField> fields = columns(form);
 
         Writer writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
         writer.write('﻿');
@@ -104,8 +105,9 @@ public class CsvExportService {
                 row.add(s.getDiscordId() != null ? s.getDiscordId().toString() : "");
                 row.add(s.getDiscordId() != null ? usernames.getOrDefault(s.getDiscordId(), "") : "");
                 Map<String, Object> answers = s.getAnswers() != null ? s.getAnswers() : Map.of();
+                Map<String, FormField> asked = byId(inputFields(s.questions(form)));
                 for (FormField f : fields) {
-                    row.add(cell(f, answers.get(f.getId()), fileNames));
+                    row.add(cell(asked.getOrDefault(f.getId(), f), answers.get(f.getId()), fileNames));
                 }
                 row.add(s.getModeratorComment() != null ? s.getModeratorComment() : "");
                 row.add(s.getDecidedAt() != null ? s.getDecidedAt().format(TIME) : "");
@@ -113,6 +115,38 @@ public class CsvExportService {
             }
             writer.flush();
         } while (slice.hasNext());
+    }
+
+    /**
+     * The form's input fields as they are now, then the ones only earlier
+     * submissions asked, in the order they were first met (oldest first).
+     */
+    private List<FormField> columns(Form form) {
+        Map<String, FormField> columns = new LinkedHashMap<>(byId(inputFields(form.getSchema())));
+        int page = 0;
+        Slice<Submission> slice;
+        do {
+            slice = submissionRepository.readAllByFormId(form.getId(),
+                    PageRequest.of(page++, SLICE_SIZE, Sort.by("createdAt").ascending().and(Sort.by("id"))));
+            for (Submission s : slice.getContent()) {
+                if (s.getSchemaSnapshot() == null) continue;
+                inputFields(s.getSchemaSnapshot()).forEach(f -> columns.putIfAbsent(f.getId(), f));
+            }
+        } while (slice.hasNext());
+        return List.copyOf(columns.values());
+    }
+
+    private static List<FormField> inputFields(FormSchema schema) {
+        if (schema == null || schema.getFields() == null) return List.of();
+        return schema.getFields().stream()
+                .filter(f -> f != null && f.getId() != null && f.getType() != null && f.getType().isInput())
+                .toList();
+    }
+
+    private static Map<String, FormField> byId(List<FormField> fields) {
+        Map<String, FormField> map = new LinkedHashMap<>();
+        fields.forEach(f -> map.putIfAbsent(f.getId(), f));
+        return map;
     }
 
     private static String cell(FormField field, Object value, Map<UUID, String> fileNames) {

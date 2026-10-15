@@ -149,6 +149,30 @@ class CsvExportServiceTest {
     }
 
     @Test
+    void aFieldRemovedFromTheFormStaysAColumnUnderItsOldLabel() throws Exception {
+        // An earlier submission was asked "Discord tag", since removed (#117).
+        FormSchema then = new FormSchema();
+        then.setTitle("Application");
+        then.setFields(new ArrayList<>(List.of(
+                field("nick", FormField.FieldType.TEXT, "Nick, name"),
+                field("tag", FormField.FieldType.TEXT, "Discord tag"))));
+        Submission old = new Submission();
+        old.setFormId(form.getId());
+        old.setDiscordId(3L);
+        old.setAnswers(Map.of("nick", "Old", "tag", "old#0001"));
+        old.setSchemaSnapshot(then);
+        submissionRepository.save(old);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        csvExportService.write(form, out);
+        String[] lines = out.toString(StandardCharsets.UTF_8).substring(1).split("\r\n");
+
+        assertThat(lines[0]).isEqualTo("Submission ID,Submitted at,Status,Discord ID,Username,\"Nick, name\",Roles,18+,Age,"
+                + "Discord tag,Moderator comment,Decided at");
+        assertThat(lines).anyMatch(l -> l.contains(",alice,Old,,,,old#0001,"));
+    }
+
+    @Test
     void onlyTheOwnerMayExport() throws Exception {
         mvc.perform(get("/api/v1/forms/{f}/export", form.getId())
                         .header("Authorization", "Bearer " + jwtUtil.generateToken(moderator.getDiscordId())))
