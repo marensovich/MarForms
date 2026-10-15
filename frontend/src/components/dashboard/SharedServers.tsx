@@ -38,18 +38,18 @@ export default function SharedServers({guild, billing, ownedGuilds, onChanged}: 
     };
 
     return (
-        <div className="rounded-xl border border-[#E4E4E7] p-4">
-            <p className="mb-1 text-sm font-medium text-[#1E1E24]">{t("billing.shared.title")}</p>
-            <p className="mb-3 text-xs text-[#8B8B96]">{t("billing.shared.hint")}</p>
+        <div className="rounded-xl border border-bd p-4">
+            <p className="mb-1 text-sm font-medium text-tx">{t("billing.shared.title")}</p>
+            <p className="mb-3 text-xs text-mu">{t("billing.shared.hint")}</p>
 
-            <ul className="mb-3 divide-y divide-[#F0F0F2] rounded-lg border border-[#E4E4E7]">
+            <ul className="mb-3 divide-y divide-bd rounded-lg border border-bd">
                 {billing.guilds.map(g => (
                     <li key={g.guildId} className="flex items-center justify-between gap-2 px-3 py-2">
-                        <span className="flex min-w-0 items-center gap-2 text-sm text-[#1E1E24]">
-                            <FiServer size={13} className="flex-shrink-0 text-[#8B8B96]"/>
+                        <span className="flex min-w-0 items-center gap-2 text-sm text-tx">
+                            <FiServer size={13} className="flex-shrink-0 text-mu"/>
                             <span className="truncate">{g.name}</span>
                             {g.guildId === guild.guildId && (
-                                <span className="text-[11px] text-[#8B8B96]">{t("billing.shared.thisServer")}</span>
+                                <span className="text-[11px] text-mu">{t("billing.shared.thisServer")}</span>
                             )}
                         </span>
                         {billing.guilds.length > 1 && (
@@ -73,7 +73,7 @@ export default function SharedServers({guild, billing, ownedGuilds, onChanged}: 
                     <select
                         value={adding}
                         onChange={e => setAdding(e.target.value)}
-                        className="flex-1 rounded-lg border border-[#E4E4E7] bg-white px-3 py-2 text-sm text-[#1E1E24] outline-none focus:border-[#3730A3]"
+                        className="flex-1 rounded-lg border border-bd bg-sf px-3 py-2 text-sm text-tx outline-none focus:border-pr"
                     >
                         <option value="">{t("billing.shared.choose")}</option>
                         {candidates.map(g => <option key={g.guildId} value={g.guildId}>{g.guildName}</option>)}
@@ -85,14 +85,14 @@ export default function SharedServers({guild, billing, ownedGuilds, onChanged}: 
                             setAdding("");
                             return getGuildBilling(guild.guildId);
                         })}
-                        className="flex items-center gap-1.5 rounded-lg bg-[#3730A3] px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-[#2D2682] disabled:opacity-40"
+                        className="flex items-center gap-1.5 rounded-lg bg-pr px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-prh disabled:opacity-40"
                     >
                         <FiLink2 size={13}/>
                         {t("billing.shared.add")}
                     </button>
                 </div>
             )}
-            {error && <p className="mt-2 text-xs text-[#8B4A46]">{error}</p>}
+            {error && <p className="mt-2 text-xs text-rdt">{error}</p>}
         </div>
     );
 }

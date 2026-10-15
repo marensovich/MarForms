@@ -57,34 +57,34 @@ export default function BillingModal({guild, ownedGuilds, onClose, checkoutResul
     return (
         <Modal title={t("billing.title")} subtitle={guild.guildName} onClose={onClose} width="max-w-lg">
             {checkoutResult === "success" && (
-                <div className="mb-4 flex gap-2 rounded-lg border border-[#D7E8D9] bg-[#EEF4EE] px-3 py-2 text-xs text-[#3F6B4A]">
+                <div className="mb-4 flex gap-2 rounded-lg border border-gnb bg-gnb px-3 py-2 text-xs text-gnt">
                     <FiCheckCircle size={14} className="mt-0.5 flex-shrink-0"/>
                     {t("billing.checkoutSuccess")}
                 </div>
             )}
             {checkoutResult === "cancel" && (
-                <div className="mb-4 rounded-lg border border-[#E4E4E7] bg-[#FAFAFB] px-3 py-2 text-xs text-[#55555F]">
+                <div className="mb-4 rounded-lg border border-bd bg-bg px-3 py-2 text-xs text-mu">
                     {t("billing.checkoutCancelled")}
                 </div>
             )}
             {error && (
-                <div className="mb-4 rounded-lg border border-[#EAD4D3] bg-[#F7EEEE] px-3 py-2 text-xs text-[#8B4A46]">
+                <div className="mb-4 rounded-lg border border-rdb bg-rdb px-3 py-2 text-xs text-rdt">
                     {error}
                 </div>
             )}
 
             {!billing ? (
-                !error && <p className="text-sm text-[#8B8B96]">{t("common.loading")}</p>
+                !error && <p className="text-sm text-mu">{t("common.loading")}</p>
             ) : (
                 <div className="space-y-4">
-                    <div className="flex items-center justify-between rounded-xl border border-[#E4E4E7] bg-[#FAFAFB] px-4 py-3">
+                    <div className="flex items-center justify-between rounded-xl border border-bd bg-bg px-4 py-3">
                         <div>
-                            <p className="text-xs text-[#8B8B96]">{t("billing.currentPlan")}</p>
-                            <p className="text-lg font-semibold text-[#1E1E24]">
+                            <p className="text-xs text-mu">{t("billing.currentPlan")}</p>
+                            <p className="text-lg font-semibold text-tx">
                                 {t(`planUsage.plans.${billing.plan}`, {defaultValue: billing.plan})}
                             </p>
                             {billing.guildCount > 1 && (
-                                <p className="text-xs text-[#6B6B76]">{t("billing.coversServers", {count: billing.guildCount})}</p>
+                                <p className="text-xs text-mu">{t("billing.coversServers", {count: billing.guildCount})}</p>
                             )}
                         </div>
                         {billing.status !== "none" && (
@@ -96,27 +96,27 @@ export default function BillingModal({guild, ownedGuilds, onClose, checkoutResul
                     </div>
 
                     {subscribed && billing.currentPeriodEnd && (
-                        <p className="text-sm text-[#55555F]">
+                        <p className="text-sm text-mu">
                             {t(billing.cancelAtPeriodEnd ? "billing.endsOn" : "billing.renewsOn", {
                                 date: new Date(billing.currentPeriodEnd).toLocaleDateString(),
                             })}
                         </p>
                     )}
                     {billing.status === "past_due" && (
-                        <p className="rounded-lg border border-[#EFDFC0] bg-[#FBF3E4] px-3 py-2 text-xs text-[#92702A]">
+                        <p className="rounded-lg border border-amb bg-amb px-3 py-2 text-xs text-amt">
                             {t("billing.pastDue")}
                         </p>
                     )}
 
                     {!billing.billingEnabled ? (
-                        <p className="rounded-lg border border-[#E4E4E7] bg-[#FAFAFB] px-3 py-2 text-xs text-[#6B6B76]">
+                        <p className="rounded-lg border border-bd bg-bg px-3 py-2 text-xs text-mu">
                             {t("billing.notConfigured")}
                         </p>
                     ) : subscribed ? (
                         <button
                             onClick={() => go(() => openBillingPortal(guild.guildId))}
                             disabled={busy}
-                            className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#E4E4E7] bg-white px-4 py-2.5 text-sm font-medium text-[#1E1E24] transition-colors hover:border-[#D4D4D9] disabled:opacity-50"
+                            className="flex w-full items-center justify-center gap-2 rounded-lg border border-bd bg-sf px-4 py-2.5 text-sm font-medium text-tx transition-colors hover:border-bd disabled:opacity-50"
                         >
                             <FiExternalLink size={14}/>
                             {t("billing.manage")}
@@ -125,17 +125,17 @@ export default function BillingModal({guild, ownedGuilds, onClose, checkoutResul
                         <div className="space-y-2">
                             {billing.availablePlans.map(plan => (
                                 <div key={plan}
-                                     className="flex items-center justify-between rounded-xl border border-[#D8DCF5] bg-[#EEF0FB] px-4 py-3">
+                                     className="flex items-center justify-between rounded-xl border border-prs bg-prs px-4 py-3">
                                     <div>
-                                        <p className="text-sm font-semibold text-[#1E1E24]">
+                                        <p className="text-sm font-semibold text-tx">
                                             {t(`planUsage.plans.${plan}`, {defaultValue: plan})}
                                         </p>
-                                        <p className="text-xs text-[#55555F]">{t(`billing.planDesc.${plan}`, {defaultValue: ""})}</p>
+                                        <p className="text-xs text-mu">{t(`billing.planDesc.${plan}`, {defaultValue: ""})}</p>
                                     </div>
                                     <button
                                         onClick={() => go(() => startCheckout(guild.guildId, plan))}
                                         disabled={busy}
-                                        className="flex items-center gap-1.5 rounded-lg bg-[#3730A3] px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-[#2D2682] disabled:opacity-50"
+                                        className="flex items-center gap-1.5 rounded-lg bg-pr px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-prh disabled:opacity-50"
                                     >
                                         <FiCreditCard size={14}/>
                                         {t("billing.subscribe")}
@@ -144,7 +144,7 @@ export default function BillingModal({guild, ownedGuilds, onClose, checkoutResul
                             ))}
                             {billing.status !== "none" && (
                                 <button onClick={() => go(() => openBillingPortal(guild.guildId))} disabled={busy}
-                                        className="text-xs text-[#6B6B76] underline hover:text-[#1E1E24]">
+                                        className="text-xs text-mu underline hover:text-tx">
                                     {t("billing.history")}
                                 </button>
                             )}
@@ -154,7 +154,7 @@ export default function BillingModal({guild, ownedGuilds, onClose, checkoutResul
                         <SharedServers guild={guild} billing={billing} ownedGuilds={ownedGuilds} onChanged={setBilling}/>
                     )}
 
-                    <p className="text-[11px] text-[#8B8B96]">{t("billing.stripeNote")}</p>
+                    <p className="text-[11px] text-mu">{t("billing.stripeNote")}</p>
                 </div>
             )}
         </Modal>

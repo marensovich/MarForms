@@ -5,6 +5,9 @@ import App from "./App";
 import "./index.css";
 import "./i18n";
 import LanguageLoader from "./components/LanguageLoader";
+import {watchSystemTheme} from "./theme/theme";
+
+watchSystemTheme();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <BrowserRouter>

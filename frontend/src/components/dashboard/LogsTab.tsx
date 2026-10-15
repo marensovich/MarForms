@@ -27,143 +27,143 @@ interface ActionMeta {
 const ACTION_META: Record<AuditAction, ActionMeta> = {
     USER_LOGIN: {
         label: "Login",
-        bg: "bg-[#EEF0FB]",
-        text: "text-[#3730A3]",
-        border: "border-[#D8DCF5]",
-        dot: "bg-[#3730A3]"
+        bg: "bg-prs",
+        text: "text-prt",
+        border: "border-prs",
+        dot: "bg-pr"
     },
     USER_BANNED: {
         label: "User Banned",
-        bg: "bg-[#F7EEEE]",
-        text: "text-[#8B4A46]",
-        border: "border-[#EAD4D3]",
-        dot: "bg-[#B56A65]"
+        bg: "bg-rdb",
+        text: "text-rdt",
+        border: "border-rdb",
+        dot: "bg-dg"
     },
     USER_UNBANNED: {
         label: "User Unbanned",
-        bg: "bg-[#EEF4EE]",
-        text: "text-[#3F6B4A]",
-        border: "border-[#D7E8D9]",
-        dot: "bg-[#5C8F6A]"
+        bg: "bg-gnb",
+        text: "text-gnt",
+        border: "border-gnb",
+        dot: "bg-ok"
     },
     USER_ROLES_UPDATED: {
         label: "Roles Updated",
-        bg: "bg-[#FBF3E4]",
-        text: "text-[#92702A]",
-        border: "border-[#EFDFC0]",
-        dot: "bg-[#C99A3E]"
+        bg: "bg-amb",
+        text: "text-amt",
+        border: "border-amb",
+        dot: "bg-wr"
     },
     FORM_CREATED: {
         label: "Form Created",
-        bg: "bg-[#EEF4EE]",
-        text: "text-[#3F6B4A]",
-        border: "border-[#D7E8D9]",
-        dot: "bg-[#5C8F6A]"
+        bg: "bg-gnb",
+        text: "text-gnt",
+        border: "border-gnb",
+        dot: "bg-ok"
     },
     FORM_UPDATED: {
         label: "Form Updated",
-        bg: "bg-[#EEF0FB]",
-        text: "text-[#3730A3]",
-        border: "border-[#D8DCF5]",
-        dot: "bg-[#3730A3]"
+        bg: "bg-prs",
+        text: "text-prt",
+        border: "border-prs",
+        dot: "bg-pr"
     },
     FORM_DELETED: {
         label: "Form Deleted",
-        bg: "bg-[#F7EEEE]",
-        text: "text-[#8B4A46]",
-        border: "border-[#EAD4D3]",
-        dot: "bg-[#B56A65]"
+        bg: "bg-rdb",
+        text: "text-rdt",
+        border: "border-rdb",
+        dot: "bg-dg"
     },
     SUBMISSION_CREATED: {
         label: "Submission Created",
-        bg: "bg-[#EEF4EE]",
-        text: "text-[#3F6B4A]",
-        border: "border-[#D7E8D9]",
-        dot: "bg-[#5C8F6A]"
+        bg: "bg-gnb",
+        text: "text-gnt",
+        border: "border-gnb",
+        dot: "bg-ok"
     },
     SUBMISSION_DELETED: {
         label: "Submission Deleted",
-        bg: "bg-[#F7EEEE]",
-        text: "text-[#8B4A46]",
-        border: "border-[#EAD4D3]",
-        dot: "bg-[#B56A65]"
+        bg: "bg-rdb",
+        text: "text-rdt",
+        border: "border-rdb",
+        dot: "bg-dg"
     },
     SUBMISSION_DECIDED: {
         label: "Submission Decided",
-        bg: "bg-[#F6EEF6]",
-        text: "text-[#7A3F7A]",
-        border: "border-[#EAD6EA]",
-        dot: "bg-[#A35FA3]"
+        bg: "bg-prs",
+        text: "text-prt",
+        border: "border-prs",
+        dot: "bg-pr"
     },
     ROLE_CREATED: {
         label: "Role Created",
-        bg: "bg-[#EEF4EE]",
-        text: "text-[#3F6B4A]",
-        border: "border-[#D7E8D9]",
-        dot: "bg-[#5C8F6A]"
+        bg: "bg-gnb",
+        text: "text-gnt",
+        border: "border-gnb",
+        dot: "bg-ok"
     },
     ROLE_UPDATED: {
         label: "Role Updated",
-        bg: "bg-[#EEF0FB]",
-        text: "text-[#3730A3]",
-        border: "border-[#D8DCF5]",
-        dot: "bg-[#3730A3]"
+        bg: "bg-prs",
+        text: "text-prt",
+        border: "border-prs",
+        dot: "bg-pr"
     },
     ROLE_DELETED: {
         label: "Role Deleted",
-        bg: "bg-[#F7EEEE]",
-        text: "text-[#8B4A46]",
-        border: "border-[#EAD4D3]",
-        dot: "bg-[#B56A65]"
+        bg: "bg-rdb",
+        text: "text-rdt",
+        border: "border-rdb",
+        dot: "bg-dg"
     },
     SETTINGS_UPDATED: {
         label: "Settings Updated",
-        bg: "bg-[#FBF3E4]",
-        text: "text-[#92702A]",
-        border: "border-[#EFDFC0]",
-        dot: "bg-[#C99A3E]"
+        bg: "bg-amb",
+        text: "text-amt",
+        border: "border-amb",
+        dot: "bg-wr"
     },
     MODERATOR_ADDED: {
         label: "Moderator Added",
-        bg: "bg-[#EEF4EE]",
-        text: "text-[#3F6B4A]",
-        border: "border-[#D7E8D9]",
-        dot: "bg-[#5C8F6A]"
+        bg: "bg-gnb",
+        text: "text-gnt",
+        border: "border-gnb",
+        dot: "bg-ok"
     },
     MODERATOR_REMOVED: {
         label: "Moderator Removed",
-        bg: "bg-[#F7EEEE]",
-        text: "text-[#8B4A46]",
-        border: "border-[#EAD4D3]",
-        dot: "bg-[#B56A65]"
+        bg: "bg-rdb",
+        text: "text-rdt",
+        border: "border-rdb",
+        dot: "bg-dg"
     },
     GUILD_BAN_ADDED: {
         label: "Server Ban Added",
-        bg: "bg-[#F7EEEE]",
-        text: "text-[#8B4A46]",
-        border: "border-[#EAD4D3]",
-        dot: "bg-[#B56A65]"
+        bg: "bg-rdb",
+        text: "text-rdt",
+        border: "border-rdb",
+        dot: "bg-dg"
     },
     GUILD_BAN_REMOVED: {
         label: "Server Ban Removed",
-        bg: "bg-[#EEF4EE]",
-        text: "text-[#3F6B4A]",
-        border: "border-[#D7E8D9]",
-        dot: "bg-[#5C8F6A]"
+        bg: "bg-gnb",
+        text: "text-gnt",
+        border: "border-gnb",
+        dot: "bg-ok"
     },
     GUILD_CONNECTED: {
         label: "Server Connected",
-        bg: "bg-[#EFEEF9]",
-        text: "text-[#3730A3]",
-        border: "border-[#DCDAF2]",
-        dot: "bg-[#6B63C9]"
+        bg: "bg-prs",
+        text: "text-prt",
+        border: "border-prs",
+        dot: "bg-pr"
     },
     GUILD_ROLE_REVOKED: {
         label: "Server Role Revoked",
-        bg: "bg-[#F7EEEE]",
-        text: "text-[#8B4A46]",
-        border: "border-[#EAD4D3]",
-        dot: "bg-[#B5524C]"
+        bg: "bg-rdb",
+        text: "text-rdt",
+        border: "border-rdb",
+        dot: "bg-dg"
     },
 };
 
@@ -175,7 +175,7 @@ function DiffLine({line}: { line: string }) {
     // Arrow separator is  →  (with spaces)
     const arrowIdx = line.indexOf(" → ");
     if (arrowIdx === -1) {
-        return <p className="text-xs text-[#6B6B76] font-mono">{line}</p>;
+        return <p className="text-xs text-mu font-mono">{line}</p>;
     }
 
     const colonIdx = line.indexOf(": ");
@@ -187,11 +187,11 @@ function DiffLine({line}: { line: string }) {
     return (
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 font-mono text-xs">
             {label && (
-                <span className="text-[#8B8B96] shrink-0">{label}:</span>
+                <span className="text-mu shrink-0">{label}:</span>
             )}
-            <span className="text-[#B56A65] line-through break-all">{before}</span>
-            <span className="text-[#8B8B96] shrink-0">→</span>
-            <span className="text-[#3F6B4A] break-all">{after}</span>
+            <span className="text-rdt line-through break-all">{before}</span>
+            <span className="text-mu shrink-0">→</span>
+            <span className="text-gnt break-all">{after}</span>
         </div>
     );
 }
@@ -199,7 +199,7 @@ function DiffLine({line}: { line: string }) {
 function DiffBlock({details}: { details: string }) {
     const lines = details.split("\n").filter(l => l.trim());
     return (
-        <div className="flex flex-col gap-1.5 rounded-lg border border-[#E4E4E7] bg-[#F7F7F8] px-4 py-3">
+        <div className="flex flex-col gap-1.5 rounded-lg border border-bd bg-s2 px-4 py-3">
             {lines.map((line, i) => <DiffLine key={i} line={line}/>)}
         </div>
     );
@@ -233,16 +233,16 @@ function LogRow({entry}: { entry: AuditLogEntry }) {
     const previewLine = hasDetails ? entry.details!.split("\n")[0].trim() : null;
 
     return (
-        <div className="border-b border-[#F0F0F2] last:border-0">
+        <div className="border-b border-bd last:border-0">
             {/* Main row */}
             <div
-                className={`grid grid-cols-[110px_148px_180px_180px_1fr_28px] items-start gap-3 px-4 py-3 text-sm transition-colors ${hasDetails ? "cursor-pointer hover:bg-[#FAFAFB]" : "hover:bg-[#FAFAFB]"}`}
+                className={`grid grid-cols-[110px_148px_180px_180px_1fr_28px] items-start gap-3 px-4 py-3 text-sm transition-colors ${hasDetails ? "cursor-pointer hover:bg-bg" : "hover:bg-bg"}`}
                 onClick={hasDetails ? () => setOpen(o => !o) : undefined}
             >
                 {/* Timestamp */}
                 <div className="flex flex-col pt-0.5">
-                    <span className="font-mono text-xs text-[#55555F] tabular-nums">{timeStr}</span>
-                    <span className="text-[10px] text-[#8B8B96] tabular-nums">{dateStr}</span>
+                    <span className="font-mono text-xs text-mu tabular-nums">{timeStr}</span>
+                    <span className="text-[10px] text-mu tabular-nums">{dateStr}</span>
                 </div>
 
                 {/* Action */}
@@ -252,33 +252,33 @@ function LogRow({entry}: { entry: AuditLogEntry }) {
 
                 {/* Actor */}
                 <div className="flex flex-col min-w-0 pt-0.5">
-                    <span className="truncate text-xs font-medium text-[#55555F]">
-                        {entry.actorUsername ?? <span className="text-[#C7C7CE]">Unknown</span>}
+                    <span className="truncate text-xs font-medium text-mu">
+                        {entry.actorUsername ?? <span className="text-mu/70">Unknown</span>}
                     </span>
                     {entry.actorDiscordId && (
-                        <span className="truncate font-mono text-[10px] text-[#8B8B96]">{entry.actorDiscordId}</span>
+                        <span className="truncate font-mono text-[10px] text-mu">{entry.actorDiscordId}</span>
                     )}
                 </div>
 
                 {/* Target */}
                 <div className="flex flex-col min-w-0 pt-0.5">
                     {entry.targetName
-                        ? <span className="truncate text-xs text-[#55555F]">{entry.targetName}</span>
+                        ? <span className="truncate text-xs text-mu">{entry.targetName}</span>
                         : entry.targetId
-                            ? <span className="truncate font-mono text-[10px] text-[#8B8B96]">{entry.targetId}</span>
-                            : <span className="text-xs text-[#C7C7CE]">—</span>
+                            ? <span className="truncate font-mono text-[10px] text-mu">{entry.targetId}</span>
+                            : <span className="text-xs text-mu/70">—</span>
                     }
                     {entry.targetName && entry.targetId && (
-                        <span className="truncate font-mono text-[10px] text-[#C7C7CE]">{entry.targetId}</span>
+                        <span className="truncate font-mono text-[10px] text-mu/70">{entry.targetId}</span>
                     )}
                 </div>
 
                 {/* Details preview */}
                 <div className="min-w-0 pt-0.5">
                     {previewLine ? (
-                        <span className="block truncate text-xs text-[#8B8B96]">{previewLine}</span>
+                        <span className="block truncate text-xs text-mu">{previewLine}</span>
                     ) : (
-                        <span className="text-xs text-[#C7C7CE]">—</span>
+                        <span className="text-xs text-mu/70">—</span>
                     )}
                 </div>
 
@@ -287,7 +287,7 @@ function LogRow({entry}: { entry: AuditLogEntry }) {
                     {hasDetails && (
                         <FiChevronDown
                             size={13}
-                            className={`text-[#8B8B96] transition-transform duration-150 ${open ? "rotate-180" : ""}`}
+                            className={`text-mu transition-transform duration-150 ${open ? "rotate-180" : ""}`}
                         />
                     )}
                 </div>
@@ -360,11 +360,11 @@ export default function LogsTab() {
             {/* Header */}
             <div className="flex items-start justify-between">
                 <div>
-                    <h1 className="text-xl font-semibold text-[#1E1E24]">{t("logs.title")}</h1>
-                    <p className="mt-0.5 text-sm text-[#6B6B76]">
+                    <h1 className="text-xl font-semibold text-tx">{t("logs.title")}</h1>
+                    <p className="mt-0.5 text-sm text-mu">
                         {t("logs.subtitle")}
                         {totalElements > 0 && (
-                            <span className="ml-2 text-[#8B8B96]">· {t("logs.entries", {count: totalElements.toLocaleString()})}</span>
+                            <span className="ml-2 text-mu">· {t("logs.entries", {count: totalElements.toLocaleString()})}</span>
                         )}
                     </p>
                 </div>
@@ -375,8 +375,8 @@ export default function LogsTab() {
                         title="Auto-refresh every 10 s"
                         className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
                             autoRefresh
-                                ? "border-[#D7E8D9] bg-[#EEF4EE] text-[#3F6B4A]"
-                                : "border-[#E4E4E7] bg-white text-[#8B8B96] hover:text-[#1E1E24]"
+                                ? "border-gnb bg-gnb text-gnt"
+                                : "border-bd bg-sf text-mu hover:text-tx"
                         }`}
                     >
                         <FiRefreshCw size={12} className={autoRefresh ? "animate-spin" : ""}/>
@@ -384,7 +384,7 @@ export default function LogsTab() {
                     </button>
                     <button
                         onClick={() => load(page, filterAction, filterActor)}
-                        className="flex items-center gap-1.5 rounded-lg border border-[#E4E4E7] bg-white px-3 py-2 text-xs font-medium text-[#8B8B96] transition-colors hover:text-[#1E1E24]"
+                        className="flex items-center gap-1.5 rounded-lg border border-bd bg-sf px-3 py-2 text-xs font-medium text-mu transition-colors hover:text-tx"
                     >
                         <FiRefreshCw size={12}/>
                         {t("logs.refresh")}
@@ -395,15 +395,15 @@ export default function LogsTab() {
             {/* Filters */}
             <div className="flex flex-wrap items-center gap-3">
                 <div
-                    className="flex items-center gap-2 rounded-xl border border-[#E4E4E7] bg-white px-3 py-2">
-                    <FiFilter size={12} className="text-[#8B8B96] shrink-0"/>
+                    className="flex items-center gap-2 rounded-xl border border-bd bg-sf px-3 py-2">
+                    <FiFilter size={12} className="text-mu shrink-0"/>
                     <select
                         value={filterAction}
                         onChange={e => {
                             setFilterAction(e.target.value as AuditAction | "");
                             setPage(0);
                         }}
-                        className="bg-transparent text-sm text-[#55555F] outline-none"
+                        className="bg-transparent text-sm text-mu outline-none"
                     >
                         <option value="">{t("logs.allActions")}</option>
                         {ALL_ACTIONS.map(a => (
@@ -413,40 +413,40 @@ export default function LogsTab() {
                 </div>
 
                 <div
-                    className="flex items-center gap-2 rounded-xl border border-[#E4E4E7] bg-white px-3 py-2">
-                    <FiUser size={12} className="text-[#8B8B96] shrink-0"/>
+                    className="flex items-center gap-2 rounded-xl border border-bd bg-sf px-3 py-2">
+                    <FiUser size={12} className="text-mu shrink-0"/>
                     <input
                         type="text"
                         placeholder={t("logs.discordIdFilter")}
                         value={filterActor}
                         onChange={e => setFilterActor(e.target.value)}
                         onKeyDown={e => e.key === "Enter" && applyActorFilter()}
-                        className="w-40 bg-transparent text-sm text-[#55555F] placeholder-[#C7C7CE] outline-none"
+                        className="w-40 bg-transparent text-sm text-mu placeholder-mu/70 outline-none"
                     />
                     {filterActor && (
                         <button onClick={() => {
                             setFilterActor("");
                             load(page, filterAction, "");
                         }}>
-                            <FiX size={12} className="text-[#8B8B96] hover:text-[#1E1E24]"/>
+                            <FiX size={12} className="text-mu hover:text-tx"/>
                         </button>
                     )}
                 </div>
 
                 {hasFilters && (
-                    <button onClick={clearFilters} className="text-xs text-[#8B8B96] underline hover:text-[#55555F]">
+                    <button onClick={clearFilters} className="text-xs text-mu underline hover:text-mu">
                         {t("logs.clearFilters")}
                     </button>
                 )}
             </div>
 
             {/* Table */}
-            <div className="rounded-xl border border-[#E4E4E7] bg-white overflow-hidden">
+            <div className="rounded-xl border border-bd bg-sf overflow-hidden">
                 {/* Column headers */}
                 <div
-                    className="grid grid-cols-[110px_148px_180px_180px_1fr_28px] gap-3 border-b border-[#E4E4E7] bg-[#FAFAFB] px-4 py-2.5">
+                    className="grid grid-cols-[110px_148px_180px_180px_1fr_28px] gap-3 border-b border-bd bg-bg px-4 py-2.5">
                     {[t("logs.columns.time"), t("logs.columns.action"), t("logs.columns.actor"), t("logs.columns.target"), t("logs.columns.details"), ""].map((h, i) => (
-                        <span key={i} className="text-[10px] font-semibold uppercase tracking-wider text-[#8B8B96]">
+                        <span key={i} className="text-[10px] font-semibold uppercase tracking-wider text-mu">
                             {h}
                         </span>
                     ))}
@@ -455,11 +455,11 @@ export default function LogsTab() {
                 {loading ? (
                     <div className="py-12"><TabSkeleton/></div>
                 ) : entries.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center gap-3 py-20 text-[#C7C7CE]">
+                    <div className="flex flex-col items-center justify-center gap-3 py-20 text-mu/70">
                         <FiAlertOctagon size={30}/>
                         <p className="text-sm">{t("logs.noLogs")}</p>
                         {hasFilters && (
-                            <button onClick={clearFilters} className="text-xs text-[#3730A3] hover:text-[#2D2682]">
+                            <button onClick={clearFilters} className="text-xs text-prt hover:text-prt">
                                 {t("logs.clearFilters")}
                             </button>
                         )}
@@ -476,26 +476,26 @@ export default function LogsTab() {
                 {(["FORM_CREATED", "FORM_DELETED", "FORM_UPDATED", "SETTINGS_UPDATED"] as AuditAction[]).map(a => {
                     const m = ACTION_META[a];
                     return (
-                        <div key={a} className="flex items-center gap-1.5 text-[10px] text-[#8B8B96]">
+                        <div key={a} className="flex items-center gap-1.5 text-[10px] text-mu">
                             <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`}/>
                             {t(`logs.actions.${a}`)}
                         </div>
                     );
                 })}
-                <span className="text-[10px] text-[#C7C7CE]">{t("logs.expandHint")}</span>
+                <span className="text-[10px] text-mu/70">{t("logs.expandHint")}</span>
             </div>
 
             {/* Pagination */}
             {totalPages > 1 && (
                 <div className="flex items-center justify-between">
-                    <span className="text-xs text-[#8B8B96]">
+                    <span className="text-xs text-mu">
                         {t("logs.pagination.page", {page: page + 1, total: totalPages})}
                     </span>
                     <div className="flex items-center gap-1">
                         <button
                             onClick={() => setPage(p => p - 1)}
                             disabled={page === 0}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E4E4E7] bg-white text-[#8B8B96] transition-colors hover:text-[#1E1E24] disabled:opacity-30 disabled:cursor-not-allowed"
+                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-bd bg-sf text-mu transition-colors hover:text-tx disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                             <FiChevronLeft size={14}/>
                         </button>
@@ -511,8 +511,8 @@ export default function LogsTab() {
                                     onClick={() => setPage(p)}
                                     className={`h-8 min-w-[32px] rounded-lg border px-2 text-xs font-medium transition-colors ${
                                         p === page
-                                            ? "border-[#D8DCF5] bg-[#EEF0FB] text-[#3730A3]"
-                                            : "border-[#E4E4E7] bg-white text-[#8B8B96] hover:text-[#1E1E24]"
+                                            ? "border-prs bg-prs text-prt"
+                                            : "border-bd bg-sf text-mu hover:text-tx"
                                     }`}
                                 >
                                     {p + 1}
@@ -523,7 +523,7 @@ export default function LogsTab() {
                         <button
                             onClick={() => setPage(p => p + 1)}
                             disabled={page >= totalPages - 1}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E4E4E7] bg-white text-[#8B8B96] transition-colors hover:text-[#1E1E24] disabled:opacity-30 disabled:cursor-not-allowed"
+                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-bd bg-sf text-mu transition-colors hover:text-tx disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                             <FiChevronRight size={14}/>
                         </button>

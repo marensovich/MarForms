@@ -11,7 +11,7 @@ interface Props {
 }
 
 const inputCls =
-    "w-full rounded-xl border border-[#E4E4E7] bg-[#FAFAFB] px-4 py-3 text-sm text-[#1E1E24] placeholder-[#C7C7CE] outline-none transition-colors focus:border-[#3730A3] focus:bg-white";
+    "w-full rounded-xl border border-bd bg-bg px-4 py-3 text-sm text-tx placeholder-mu/70 outline-none transition-colors focus:border-pr focus:bg-sf";
 
 function isValidSnowflake(id: string): boolean {
     return /^\d{17,19}$/.test(id.trim());
@@ -53,15 +53,15 @@ export default function StepServerSettings({draft, onChange, lockServer = false}
     return (
         <div className="flex flex-col gap-6">
             <div>
-                <p className="text-xs text-[#8B8B96]">
+                <p className="text-xs text-mu">
                     {t("wizard.server.hint")}
                 </p>
             </div>
 
             {/* Server ID */}
             <div>
-                <label className="mb-2 flex items-center gap-1.5 text-sm font-medium text-[#1E1E24]">
-                    {t("wizard.server.serverIdLabel")} <span className="text-[#B56A65]">*</span>
+                <label className="mb-2 flex items-center gap-1.5 text-sm font-medium text-tx">
+                    {t("wizard.server.serverIdLabel")} <span className="text-rdt">*</span>
                 </label>
                 <input
                     type="text"
@@ -69,12 +69,12 @@ export default function StepServerSettings({draft, onChange, lockServer = false}
                     onChange={e => onChange({serverId: e.target.value.trim()})}
                     readOnly={lockServer}
                     placeholder={t("wizard.server.serverIdPlaceholder")}
-                    className={`${inputCls} font-mono ${lockServer ? "cursor-not-allowed text-[#8B8B96]" : ""} ${
-                        draft.serverId && !serverIdValid ? "border-[#EAD4D3] focus:border-[#B56A65]" : ""
+                    className={`${inputCls} font-mono ${lockServer ? "cursor-not-allowed text-mu" : ""} ${
+                        draft.serverId && !serverIdValid ? "border-rdb focus:border-rdt" : ""
                     }`}
                 />
                 {draft.serverId && !serverIdValid && (
-                    <p className="mt-1.5 text-[11px] text-[#B56A65]">
+                    <p className="mt-1.5 text-[11px] text-rdt">
                         {t("wizard.server.serverIdError")}
                     </p>
                 )}
@@ -83,9 +83,9 @@ export default function StepServerSettings({draft, onChange, lockServer = false}
 
             {/* Channel IDs */}
             <div>
-                <label className="mb-2 block text-sm font-medium text-[#1E1E24]">
+                <label className="mb-2 block text-sm font-medium text-tx">
                     {t("wizard.server.channelIdsLabel")}
-                    <span className="ml-2 text-xs font-normal text-[#8B8B96]">{t("wizard.server.channelIdsOptional")}</span>
+                    <span className="ml-2 text-xs font-normal text-mu">{t("wizard.server.channelIdsOptional")}</span>
                 </label>
 
                 {/* Tag list */}
@@ -94,12 +94,12 @@ export default function StepServerSettings({draft, onChange, lockServer = false}
                         {draft.channelsIds.map(id => (
                             <span
                                 key={id}
-                                className="flex items-center gap-1.5 rounded-lg border border-[#E4E4E7] bg-[#FAFAFB] px-2.5 py-1 text-xs font-mono text-[#55555F]"
+                                className="flex items-center gap-1.5 rounded-lg border border-bd bg-bg px-2.5 py-1 text-xs font-mono text-mu"
                             >
                                 {id}
                                 <button
                                     onClick={() => removeChannel(id)}
-                                    className="text-[#8B8B96] transition-colors hover:text-[#B56A65]"
+                                    className="text-mu transition-colors hover:text-rdt"
                                 >
                                     <FiX size={10}/>
                                 </button>
@@ -124,7 +124,7 @@ export default function StepServerSettings({draft, onChange, lockServer = false}
                     <button
                         onClick={addChannel}
                         disabled={!channelInput.trim()}
-                        className="flex items-center gap-1.5 rounded-xl bg-[#F0F0F2] px-3 py-2 text-sm text-[#6B6B76] transition-colors hover:bg-[#E4E4E7] hover:text-[#1E1E24] disabled:cursor-not-allowed disabled:opacity-40"
+                        className="flex items-center gap-1.5 rounded-xl bg-s2 px-3 py-2 text-sm text-mu transition-colors hover:bg-bd hover:text-tx disabled:cursor-not-allowed disabled:opacity-40"
                     >
                         <FiPlus size={13}/>
                         {t("wizard.server.channelIdsAdd")}
@@ -132,7 +132,7 @@ export default function StepServerSettings({draft, onChange, lockServer = false}
                 </div>
 
                 {channelError && (
-                    <p className="mt-1.5 text-[11px] text-[#B56A65]">{channelError}</p>
+                    <p className="mt-1.5 text-[11px] text-rdt">{channelError}</p>
                 )}
 
                 <Tip>
@@ -145,18 +145,18 @@ export default function StepServerSettings({draft, onChange, lockServer = false}
 
             {/* Summary card */}
             {draft.serverId.trim() && serverIdValid && (
-                <div className="rounded-xl border border-[#E4E4E7] bg-[#FAFAFB] p-4">
-                    <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#8B8B96]">{t("wizard.server.summaryTitle")}</p>
-                    <div className="space-y-1.5 text-xs text-[#6B6B76]">
+                <div className="rounded-xl border border-bd bg-bg p-4">
+                    <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-mu">{t("wizard.server.summaryTitle")}</p>
+                    <div className="space-y-1.5 text-xs text-mu">
                         <p>
-                            <span className="text-[#8B8B96]">{t("wizard.server.summaryServer")} </span>
-                            <span className="font-mono text-[#55555F]">{draft.serverId}</span>
+                            <span className="text-mu">{t("wizard.server.summaryServer")} </span>
+                            <span className="font-mono text-mu">{draft.serverId}</span>
                         </p>
                         <p>
-                            <span className="text-[#8B8B96]">{t("wizard.server.summaryChannels")} </span>
+                            <span className="text-mu">{t("wizard.server.summaryChannels")} </span>
                             {draft.channelsIds.length > 0
-                                ? <span className="text-[#55555F]">{t("wizard.server.summaryRestricted", {count: draft.channelsIds.length})}</span>
-                                : <span className="text-[#8B8B96]">{t("wizard.server.summaryAllChannels")}</span>
+                                ? <span className="text-mu">{t("wizard.server.summaryRestricted", {count: draft.channelsIds.length})}</span>
+                                : <span className="text-mu">{t("wizard.server.summaryAllChannels")}</span>
                             }
                         </p>
                     </div>
@@ -168,7 +168,7 @@ export default function StepServerSettings({draft, onChange, lockServer = false}
 
 function Tip({children}: { children: React.ReactNode }) {
     return (
-        <div className="mt-2 flex items-start gap-1.5 text-[11px] text-[#8B8B96] leading-relaxed">
+        <div className="mt-2 flex items-start gap-1.5 text-[11px] text-mu leading-relaxed">
             <FiInfo size={11} className="mt-0.5 flex-shrink-0"/>
             <p>{children}</p>
         </div>

@@ -32,10 +32,10 @@ export default function RatingField({field, value, onChange, onBlur, error}: Pro
                             }}
                             className={`flex h-9 w-9 items-center justify-center rounded-lg border transition-colors ${
                                 active
-                                    ? "border-[#EFDFC0] bg-[#FBF3E4] text-[#C99A3E]"
+                                    ? "border-amb bg-amb text-amt"
                                     : error
-                                        ? "border-[#EAD4D3] bg-[#F7EEEE] text-[#C7C7CE]"
-                                        : "border-[#E4E4E7] bg-white text-[#C7C7CE] hover:border-[#D4D4D9]"
+                                        ? "border-rdb bg-rdb text-mu/70"
+                                        : "border-bd bg-sf text-mu/70 hover:border-bd"
                             }`}
                         >
                             <FiStar size={15} fill={active ? "currentColor" : "none"}/>
@@ -43,7 +43,7 @@ export default function RatingField({field, value, onChange, onBlur, error}: Pro
                     );
                 })}
                 {value !== undefined && (
-                    <span className="ml-2 text-xs tabular-nums text-[#8B8B96]">{value} / {scale}</span>
+                    <span className="ml-2 text-xs tabular-nums text-mu">{value} / {scale}</span>
                 )}
             </div>
         </FieldWrapper>

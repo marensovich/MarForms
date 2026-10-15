@@ -42,49 +42,49 @@ export default function MySubmissionsPage() {
     }, [page, t]);
 
     return (
-        <div className="min-h-screen w-full bg-[#F7F7F8] px-4 py-10">
+        <div className="min-h-screen w-full bg-s2 px-4 py-10">
             <div className="mx-auto max-w-2xl">
-                <Link to="/" className="mb-6 inline-flex items-center gap-1.5 text-sm text-[#6B6B76] hover:text-[#1E1E24]">
+                <Link to="/" className="mb-6 inline-flex items-center gap-1.5 text-sm text-mu hover:text-tx">
                     <FiArrowLeft size={14}/>
                     MarForms
                 </Link>
-                <h1 className="text-2xl font-bold tracking-tight text-[#1E1E24]">{t("mySubmissions.title")}</h1>
-                <p className="mt-1 text-sm text-[#6B6B76]">{t("mySubmissions.subtitle")}</p>
+                <h1 className="text-2xl font-bold tracking-tight text-tx">{t("mySubmissions.title")}</h1>
+                <p className="mt-1 text-sm text-mu">{t("mySubmissions.subtitle")}</p>
 
                 {error && (
-                    <div className="mt-6 rounded-lg border border-[#EAD4D3] bg-[#F7EEEE] px-3 py-2 text-xs text-[#8B4A46]">
+                    <div className="mt-6 rounded-lg border border-rdb bg-rdb px-3 py-2 text-xs text-rdt">
                         {error}
                     </div>
                 )}
 
                 {loading && items.length === 0 ? (
-                    <p className="mt-8 text-sm text-[#8B8B96]">{t("common.loading")}</p>
+                    <p className="mt-8 text-sm text-mu">{t("common.loading")}</p>
                 ) : items.length === 0 && !error ? (
-                    <div className="mt-8 flex flex-col items-center gap-3 rounded-xl border border-dashed border-[#D4D4D9] py-12">
-                        <FiInbox size={28} className="text-[#C7C7CE]"/>
-                        <p className="text-sm text-[#8B8B96]">{t("mySubmissions.empty")}</p>
+                    <div className="mt-8 flex flex-col items-center gap-3 rounded-xl border border-dashed border-bd py-12">
+                        <FiInbox size={28} className="text-mu/70"/>
+                        <p className="text-sm text-mu">{t("mySubmissions.empty")}</p>
                     </div>
                 ) : (
                     <ul className="mt-6 flex flex-col gap-3">
                         {items.map(s => (
-                            <li key={s.id} className="rounded-xl border border-[#E4E4E7] bg-white p-4">
+                            <li key={s.id} className="rounded-xl border border-bd bg-sf p-4">
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="flex min-w-0 items-center gap-2">
-                                        <FiFileText size={14} className="flex-shrink-0 text-[#8B8B96]"/>
-                                        <p className="truncate text-sm font-medium text-[#1E1E24]">
+                                        <FiFileText size={14} className="flex-shrink-0 text-mu"/>
+                                        <p className="truncate text-sm font-medium text-tx">
                                             {s.formTitle ?? t("mySubmissions.untitled")}
                                         </p>
                                     </div>
                                     <SubmissionStatusBadge status={s.status}/>
                                 </div>
-                                <p className="mt-1 text-xs text-[#8B8B96]">
+                                <p className="mt-1 text-xs text-mu">
                                     {t("mySubmissions.sent", {date: new Date(s.createdAt).toLocaleString()})}
                                     {s.decidedAt && ` · ${t("mySubmissions.decided", {date: new Date(s.decidedAt).toLocaleString()})}`}
                                 </p>
                                 {s.moderatorComment && (
-                                    <div className="mt-3 flex gap-2 rounded-lg border border-[#E4E4E7] bg-[#FAFAFB] px-3 py-2">
-                                        <FiMessageSquare size={13} className="mt-0.5 flex-shrink-0 text-[#8B8B96]"/>
-                                        <p className="whitespace-pre-wrap break-words text-sm text-[#1E1E24]">{s.moderatorComment}</p>
+                                    <div className="mt-3 flex gap-2 rounded-lg border border-bd bg-bg px-3 py-2">
+                                        <FiMessageSquare size={13} className="mt-0.5 flex-shrink-0 text-mu"/>
+                                        <p className="whitespace-pre-wrap break-words text-sm text-tx">{s.moderatorComment}</p>
                                     </div>
                                 )}
                             </li>
@@ -99,7 +99,7 @@ export default function MySubmissionsPage() {
                             setPage(p => p + 1);
                         }}
                         disabled={loading}
-                        className="mt-4 w-full rounded-lg border border-[#E4E4E7] bg-white py-2 text-sm text-[#55555F] hover:text-[#1E1E24] disabled:opacity-50"
+                        className="mt-4 w-full rounded-lg border border-bd bg-sf py-2 text-sm text-mu hover:text-tx disabled:opacity-50"
                     >
                         {t("mySubmissions.more")}
                     </button>

@@ -80,36 +80,36 @@ export default function ModeratorsModal({guild, onClose}: { guild: MyGuild; onCl
                         if (e.key === "Enter") add();
                     }}
                     placeholder={t("moderators.placeholder")}
-                    className="flex-1 rounded-lg border border-[#E4E4E7] px-3 py-2 text-sm outline-none focus:border-[#3730A3]"
+                    className="flex-1 rounded-lg border border-bd px-3 py-2 text-sm outline-none focus:border-pr"
                 />
                 <button
                     onClick={add}
                     disabled={busy || !input.trim()}
-                    className="flex items-center gap-1.5 rounded-lg bg-[#3730A3] px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-[#2D2682] disabled:opacity-40"
+                    className="flex items-center gap-1.5 rounded-lg bg-pr px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-prh disabled:opacity-40"
                 >
                     <FiUserPlus size={14}/>
                     {t("moderators.add")}
                 </button>
             </div>
-            <p className="mb-4 text-xs text-[#8B8B96]">{t("moderators.hint")}</p>
+            <p className="mb-4 text-xs text-mu">{t("moderators.hint")}</p>
 
             {error && (
-                <div className="mb-4 rounded-lg border border-[#EAD4D3] bg-[#F7EEEE] px-3 py-2 text-xs text-[#8B4A46]">
+                <div className="mb-4 rounded-lg border border-rdb bg-rdb px-3 py-2 text-xs text-rdt">
                     {error}
                 </div>
             )}
 
             {loading ? (
-                <p className="text-sm text-[#8B8B96]">{t("common.loading")}</p>
+                <p className="text-sm text-mu">{t("common.loading")}</p>
             ) : moderators.length === 0 ? (
                 <EmptyState message={t("moderators.empty")}/>
             ) : (
-                <ul className="divide-y divide-[#E4E4E7] rounded-lg border border-[#E4E4E7]">
+                <ul className="divide-y divide-bd rounded-lg border border-bd">
                     {moderators.map(m => (
                         <li key={m.discordId} className="flex items-center justify-between px-3 py-2">
                             <div className="min-w-0">
-                                <p className="truncate text-sm font-medium text-[#1E1E24]">{m.username}</p>
-                                <p className="text-xs text-[#8B8B96]">{m.discordId}</p>
+                                <p className="truncate text-sm font-medium text-tx">{m.username}</p>
+                                <p className="text-xs text-mu">{m.discordId}</p>
                             </div>
                             <ActionBtn variant="danger" disabled={busy} onClick={() => remove(m.discordId)}
                                        title={t("moderators.remove")}>

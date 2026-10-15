@@ -30,16 +30,16 @@ export default function FormPreviewModal({title, description, fields, onClose}: 
             initial={{opacity: 0}}
             animate={{opacity: 1}}
             exit={{opacity: 0}}
-            className="fixed inset-0 z-[60] overflow-y-auto bg-[#F7F7F8]"
+            className="fixed inset-0 z-[60] overflow-y-auto bg-s2"
         >
-            <div className="sticky top-0 z-30 flex items-center justify-between border-b border-[#EFDFC0] bg-[#FBF3E4] px-6 py-2 text-xs text-[#92702A]">
+            <div className="sticky top-0 z-30 flex items-center justify-between border-b border-amb bg-amb px-6 py-2 text-xs text-amt">
                 <span className="flex items-center gap-2">
                     <FiEye size={13}/>
                     {t("preview.banner")}
                 </span>
                 <button
                     onClick={onClose}
-                    className="flex items-center gap-1 rounded-lg px-2 py-1 font-medium transition-colors hover:bg-[#EFDFC0]"
+                    className="flex items-center gap-1 rounded-lg px-2 py-1 font-medium transition-colors hover:bg-amb"
                 >
                     <FiX size={13}/>
                     {t("preview.close")}

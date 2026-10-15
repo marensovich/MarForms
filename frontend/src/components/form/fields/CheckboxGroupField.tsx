@@ -25,19 +25,19 @@ export default function CheckboxGroupField({field, value, onChange, onBlur, erro
                             key={opt}
                             className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition-all ${
                                 checked
-                                    ? "border-[#D8DCF5] bg-[#EEF0FB]"
+                                    ? "border-prs bg-prs"
                                     : error
-                                        ? "border-[#EAD4D3] bg-[#F7EEEE] hover:border-[#E0B8B6]"
-                                        : "border-[#E4E4E7] bg-white hover:border-[#D4D4D9] hover:bg-[#FAFAFB]"
+                                        ? "border-rdb bg-rdb hover:border-rdb"
+                                        : "border-bd bg-sf hover:border-bd hover:bg-bg"
                             }`}
                         >
                             <input
                                 type="checkbox"
                                 checked={checked}
                                 onChange={() => toggle(opt)}
-                                className="h-4 w-4 accent-[#3730A3]"
+                                className="h-4 w-4 accent-pr"
                             />
-                            <span className="text-sm text-[#55555F]">{opt}</span>
+                            <span className="text-sm text-mu">{opt}</span>
                         </label>
                     );
                 })}

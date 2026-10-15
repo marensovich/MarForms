@@ -21,7 +21,7 @@ export default function LoginPage() {
 
     return (
         <div
-            className="relative flex min-h-screen w-full flex-col items-center justify-center bg-[#F7F7F8] px-4 py-16">
+            className="relative flex min-h-screen w-full flex-col items-center justify-center bg-s2 px-4 py-16">
             <motion.div
                 initial={{opacity: 0, y: 22}}
                 animate={{opacity: 1, y: 0}}
@@ -37,22 +37,22 @@ export default function LoginPage() {
 
                 {/* Headline */}
                 <div className="mb-8 text-center">
-                    <h1 className="text-[2rem] font-bold leading-tight tracking-tight text-[#1E1E24]">
+                    <h1 className="text-[2rem] font-bold leading-tight tracking-tight text-tx">
                         {t("login.welcome")}{" "}
-                        <span className="text-[#3730A3]">
+                        <span className="text-prt">
                             {systemName}
                         </span>
                     </h1>
-                    <p className="mt-2.5 text-[0.9rem] leading-relaxed text-[#6B6B76]">
+                    <p className="mt-2.5 text-[0.9rem] leading-relaxed text-mu">
                         {t("login.tagline")}
                     </p>
                 </div>
 
                 {/* Login card */}
                 <div
-                    className="w-full overflow-hidden rounded-2xl border border-[#E4E4E7] bg-white">
+                    className="w-full overflow-hidden rounded-2xl border border-bd bg-sf">
                     <div className="p-6">
-                        <p className="mb-4 text-center text-xs font-medium uppercase tracking-widest text-[#8B8B96]">
+                        <p className="mb-4 text-center text-xs font-medium uppercase tracking-widest text-mu">
                             {t("login.signInLabel")}
                         </p>
 
@@ -60,13 +60,13 @@ export default function LoginPage() {
                             onClick={loginWithDiscord}
                             whileHover={{scale: 1.015}}
                             whileTap={{scale: 0.985}}
-                            className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl bg-[#5865F2] px-6 py-4 font-semibold text-white transition-colors hover:bg-[#4752C4] focus:outline-none focus:ring-2 focus:ring-[#5865F2]/40 focus:ring-offset-2 focus:ring-offset-white"
+                            className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl bg-discord px-6 py-4 font-semibold text-white transition-colors hover:bg-discord-hover focus:outline-none focus:ring-2 focus:ring-discord/40 focus:ring-offset-2 focus:ring-offset-white"
                         >
                             <FaDiscord size={20} className="flex-shrink-0"/>
                             <span>{t("login.continueDiscord")}</span>
                         </motion.button>
 
-                        <p className="mt-4 text-center text-xs text-[#8B8B96]">
+                        <p className="mt-4 text-center text-xs text-mu">
                             {t("login.terms")}
                         </p>
                     </div>
@@ -79,21 +79,21 @@ export default function LoginPage() {
                         return (
                             <div
                                 key={key}
-                                className="flex flex-col items-center gap-2 rounded-xl border border-[#E4E4E7] bg-white p-3 text-center"
+                                className="flex flex-col items-center gap-2 rounded-xl border border-bd bg-sf p-3 text-center"
                             >
-                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EEF0FB]">
-                                    <Icon size={15} className="text-[#3730A3]"/>
+                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-prs">
+                                    <Icon size={15} className="text-prt"/>
                                 </div>
                                 <div>
-                                    <p className="text-xs font-semibold text-[#1E1E24]">{t(`login.features.${key}`)}</p>
-                                    <p className="mt-0.5 text-[11px] leading-snug text-[#8B8B96]">{t(`login.features.${key}Desc`)}</p>
+                                    <p className="text-xs font-semibold text-tx">{t(`login.features.${key}`)}</p>
+                                    <p className="mt-0.5 text-[11px] leading-snug text-mu">{t(`login.features.${key}Desc`)}</p>
                                 </div>
                             </div>
                         );
                     })}
                 </div>
 
-                <p className="mt-8 text-xs text-[#C7C7CE]">
+                <p className="mt-8 text-xs text-mu/70">
                     {t("login.footer")}
                 </p>
             </motion.div>

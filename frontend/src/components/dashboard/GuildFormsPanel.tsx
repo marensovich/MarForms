@@ -122,30 +122,30 @@ export default function GuildFormsPanel({guild, onBack}: { guild: MyGuild; onBac
     return (
         <div>
             <button onClick={onBack}
-                    className="mb-4 flex items-center gap-1.5 text-sm text-[#6B6B76] transition-colors hover:text-[#1E1E24]">
+                    className="mb-4 flex items-center gap-1.5 text-sm text-mu transition-colors hover:text-tx">
                 <FiArrowLeft size={14}/>
                 {t("servers.title")}
             </button>
 
             <div className="mb-6 flex items-start justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-semibold text-[#1E1E24]">{guild.guildName}</h1>
-                    <p className="mt-0.5 text-sm text-[#6B6B76]">{t("guildForms.subtitle", {count: forms.length})}</p>
+                    <h1 className="text-xl font-semibold text-tx">{guild.guildName}</h1>
+                    <p className="mt-0.5 text-sm text-mu">{t("guildForms.subtitle", {count: forms.length})}</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <label className="flex cursor-pointer items-center gap-2 text-xs text-[#6B6B76]">
+                    <label className="flex cursor-pointer items-center gap-2 text-xs text-mu">
                         <input type="checkbox" checked={includeArchived}
                                onChange={e => {
                                    setLoading(true);
                                    setIncludeArchived(e.target.checked);
                                }}
-                               className="accent-[#3730A3]"/>
+                               className="accent-pr"/>
                         {t("guildForms.showArchived")}
                     </label>
                     {isOwner && (
                         <button
                             onClick={() => setShowWizard(true)}
-                            className="flex items-center gap-2 rounded-lg bg-[#3730A3] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#2D2682]"
+                            className="flex items-center gap-2 rounded-lg bg-pr px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-prh"
                         >
                             <FiFileText size={14}/>
                             {t("forms.newForm")}
@@ -157,7 +157,7 @@ export default function GuildFormsPanel({guild, onBack}: { guild: MyGuild; onBac
             {isOwner && <PlanUsage guildId={guild.guildId} refreshKey={forms}/>}
 
             {brokenNotifications > 0 && (
-                <div className="mb-4 flex gap-2 rounded-lg border border-[#EFDFC0] bg-[#FBF3E4] px-3 py-2.5 text-xs text-[#92702A]">
+                <div className="mb-4 flex gap-2 rounded-lg border border-amb bg-amb px-3 py-2.5 text-xs text-amt">
                     <FiAlertTriangle size={14} className="mt-0.5 flex-shrink-0"/>
                     <div>
                         <p className="font-medium">{t("webhookHealth.panelAlert.title", {count: brokenNotifications})}</p>
@@ -167,7 +167,7 @@ export default function GuildFormsPanel({guild, onBack}: { guild: MyGuild; onBac
             )}
 
             {error && (
-                <div className="mb-4 rounded-lg border border-[#EAD4D3] bg-[#F7EEEE] px-3 py-2 text-xs text-[#8B4A46]">
+                <div className="mb-4 rounded-lg border border-rdb bg-rdb px-3 py-2 text-xs text-rdt">
                     {error}
                 </div>
             )}
@@ -177,10 +177,10 @@ export default function GuildFormsPanel({guild, onBack}: { guild: MyGuild; onBac
             ) : forms.length === 0 ? (
                 <EmptyState message={isOwner ? t("guildForms.emptyOwner") : t("guildForms.empty")} icon={<FiFileText/>}/>
             ) : (
-                <div className="overflow-hidden rounded-xl border border-[#E4E4E7] bg-white">
+                <div className="overflow-hidden rounded-xl border border-bd bg-sf">
                     <table className="w-full text-sm">
                         <thead>
-                        <tr className="border-b border-[#E4E4E7] text-left text-xs uppercase tracking-wider text-[#8B8B96]">
+                        <tr className="border-b border-bd text-left text-xs uppercase tracking-wider text-mu">
                             <th className="px-5 py-3 font-medium">{t("guildForms.columns.title")}</th>
                             <th className="px-5 py-3 font-medium">{t("guildForms.columns.status")}</th>
                             <th className="px-5 py-3 font-medium">{t("guildForms.columns.access")}</th>
@@ -193,28 +193,28 @@ export default function GuildFormsPanel({guild, onBack}: { guild: MyGuild; onBac
                             const status = f.status ?? (f.active ? "PUBLISHED" : "CLOSED");
                             const busy = busyId === f.id;
                             return (
-                                <tr key={f.id} className="border-b border-[#F0F0F2] last:border-0">
+                                <tr key={f.id} className="border-b border-bd last:border-0">
                                     <td className="px-5 py-3">
-                                        <p className="flex items-center gap-1.5 font-medium text-[#1E1E24]">
+                                        <p className="flex items-center gap-1.5 font-medium text-tx">
                                             {f.title}
                                             {f.notificationHealth && f.notificationHealth !== "HEALTHY" && (
                                                 <span title={t(`webhookHealth.${f.notificationHealth}`)}
-                                                      className={f.notificationHealth === "INVALID" ? "text-[#B56A65]" : "text-[#C99A3E]"}>
+                                                      className={f.notificationHealth === "INVALID" ? "text-rdt" : "text-amt"}>
                                                     <FiAlertTriangle size={13}/>
                                                 </span>
                                             )}
                                         </p>
-                                        <p className="text-xs text-[#8B8B96]">
+                                        <p className="text-xs text-mu">
                                             {t("guildForms.fieldCount", {count: f.fieldCount ?? 0})}
                                         </p>
                                     </td>
                                     <td className="px-5 py-3">
                                         <Badge color={STATUS_COLOR[status]} dot>{t(`guildForms.status.${status}`)}</Badge>
                                     </td>
-                                    <td className="px-5 py-3 text-xs text-[#55555F]">
+                                    <td className="px-5 py-3 text-xs text-mu">
                                         {t(`access.modes.${f.accessMode ?? "AUTHENTICATED"}.label`)}
                                     </td>
-                                    <td className="px-5 py-3 text-right tabular-nums text-[#55555F]">{f.submissionCount}</td>
+                                    <td className="px-5 py-3 text-right tabular-nums text-mu">{f.submissionCount}</td>
                                     <td className="px-5 py-3">
                                         <div className="flex items-center justify-end gap-1">
                                             {status === "PUBLISHED" && f.slug && <CopyLink slug={f.slug}/>}

@@ -74,19 +74,19 @@ function MetricCard({
 
     return (
         <div
-            className="relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-[#E4E4E7] bg-white p-5">
+            className="relative flex flex-col gap-4 overflow-hidden rounded-2xl border border-bd bg-sf p-5">
             <div
                 className="absolute bottom-0 left-0 h-px w-full"
-                style={{background: `linear-gradient(to right, ${color}60, transparent 70%)`}}
+                style={{background: `linear-gradient(to right, color-mix(in srgb, ${color} 38%, transparent), transparent 70%)`}}
             />
             <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-[#55555F]">{title}</span>
+                <span className="text-sm font-medium text-mu">{title}</span>
                 <div className="flex items-center gap-2">
                     {alertLevel === "high" && (
-                        <FiAlertTriangle size={13} className="text-[#B56A65]" title="High usage"/>
+                        <FiAlertTriangle size={13} className="text-rdt" title="High usage"/>
                     )}
                     <span
-                        className="rounded-md border border-[#E4E4E7] bg-[#F0F0F2] px-2 py-0.5 text-xs text-[#6B6B76]">
+                        className="rounded-md border border-bd bg-s2 px-2 py-0.5 text-xs text-mu">
                         {label}
                     </span>
                 </div>
@@ -98,12 +98,12 @@ function MetricCard({
 
             <div className="flex flex-col gap-2">
                 <div className="flex items-end justify-between">
-                    <span className="text-2xl font-bold tabular-nums text-[#1E1E24]">{value}</span>
+                    <span className="text-2xl font-bold tabular-nums text-tx">{value}</span>
                     <span className="text-sm font-semibold tabular-nums" style={{color}}>
                         {clamped.toFixed(1)}%
                     </span>
                 </div>
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#F0F0F2]">
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-s2">
                     <div
                         className="h-full rounded-full transition-all duration-500"
                         style={{width: `${clamped}%`, backgroundColor: color}}
@@ -118,11 +118,11 @@ function DiskRing({pct}: { pct: number }) {
     const r = 30;
     const circ = 2 * Math.PI * r;
     const dash = (Math.max(0, Math.min(100, pct)) / 100) * circ;
-    const color = pct > 85 ? "#B56A65" : "#C99A3E";
+    const color = pct > 85 ? "rgb(var(--dg))" : "rgb(var(--wr))";
 
     return (
         <svg width="80" height="80" viewBox="0 0 80 80">
-            <circle cx="40" cy="40" r={r} fill="none" stroke="#E4E4E7" strokeWidth="7"/>
+            <circle cx="40" cy="40" r={r} fill="none" stroke="rgb(var(--bd))" strokeWidth="7"/>
             <circle
                 cx="40" cy="40" r={r}
                 fill="none"
@@ -133,7 +133,7 @@ function DiskRing({pct}: { pct: number }) {
                 transform="rotate(-90 40 40)"
                 style={{transition: "stroke-dasharray 0.5s ease"}}
             />
-            <text x="40" y="44" textAnchor="middle" fontSize="13" fontWeight="700" fill="#1E1E24">
+            <text x="40" y="44" textAnchor="middle" fontSize="13" fontWeight="700" fill="rgb(var(--tx))">
                 {pct.toFixed(0)}%
             </text>
         </svg>
@@ -142,9 +142,9 @@ function DiskRing({pct}: { pct: number }) {
 
 function InfoRow({label, value, mono = true}: { label: string; value: string; mono?: boolean }) {
     return (
-        <div className="flex items-center justify-between border-b border-[#F0F0F2] py-3 last:border-0">
-            <span className="text-sm text-[#6B6B76]">{label}</span>
-            <span className={`text-sm text-[#1E1E24] ${mono ? "font-mono" : "font-medium"}`}>{value}</span>
+        <div className="flex items-center justify-between border-b border-bd py-3 last:border-0">
+            <span className="text-sm text-mu">{label}</span>
+            <span className={`text-sm text-tx ${mono ? "font-mono" : "font-medium"}`}>{value}</span>
         </div>
     );
 }
@@ -202,21 +202,21 @@ export default function SystemTab() {
             {/* Header */}
             <div className="mb-6 flex items-start justify-between">
                 <div>
-                    <h1 className="text-xl font-semibold text-[#1E1E24]">{t("system.title")}</h1>
-                    <p className="mt-0.5 text-sm text-[#6B6B76]">
+                    <h1 className="text-xl font-semibold text-tx">{t("system.title")}</h1>
+                    <p className="mt-0.5 text-sm text-mu">
                         {t("system.subtitle")}
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
                     {lastUpdated && (
-                        <span className="flex items-center gap-1.5 text-xs text-[#6B6B76]">
-                            <FiRefreshCw size={11} className="text-[#5C8F6A]"/>
+                        <span className="flex items-center gap-1.5 text-xs text-mu">
+                            <FiRefreshCw size={11} className="text-gnt"/>
                             {lastUpdated.toLocaleTimeString()}
                         </span>
                     )}
                     {info && (
                         <span
-                            className="rounded-full border border-[#E4E4E7] bg-white px-3 py-1 text-xs font-mono text-[#6B6B76]">
+                            className="rounded-full border border-bd bg-sf px-3 py-1 text-xs font-mono text-mu">
                             v{info.appVersion}
                         </span>
                     )}
@@ -225,7 +225,7 @@ export default function SystemTab() {
 
             {error && (
                 <div
-                    className="mb-6 flex items-center gap-2 rounded-xl border border-[#EAD4D3] bg-[#F7EEEE] px-4 py-3 text-sm text-[#8B4A46]">
+                    className="mb-6 flex items-center gap-2 rounded-xl border border-rdb bg-rdb px-4 py-3 text-sm text-rdt">
                     <FiAlertTriangle size={15}/>
                     {t("system.failedFetch")}
                 </div>
@@ -238,7 +238,7 @@ export default function SystemTab() {
                     label={t("system.cpu.label")}
                     value={info ? `${info.cpuUsage.toFixed(1)}%` : "—"}
                     pct={info?.cpuUsage ?? 0}
-                    color="#3730A3"
+                    color="rgb(var(--pr))"
                     history={cpuHistory}
                     gradientId="grad-cpu"
                 />
@@ -247,20 +247,20 @@ export default function SystemTab() {
                     label={t("system.ram.label")}
                     value={info ? `${formatBytes(info.ramUsed)}` : "—"}
                     pct={ramPct}
-                    color="#5C8F6A"
+                    color="rgb(var(--ok))"
                     history={ramHistory}
                     gradientId="grad-ram"
                 />
                 {/* Disk card */}
                 <div
-                    className="relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-[#E4E4E7] bg-white p-5">
+                    className="relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-bd bg-sf p-5">
                     <div className="absolute bottom-0 left-0 h-px w-full"
-                         style={{background: "linear-gradient(to right, #C99A3E60, transparent 70%)"}}
+                         style={{background: "linear-gradient(to right, rgb(var(--wr) / 0.38), transparent 70%)"}}
                     />
                     <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-[#55555F]">{t("system.disk.title")}</span>
+                        <span className="text-sm font-medium text-mu">{t("system.disk.title")}</span>
                         <span
-                            className="flex items-center gap-1.5 rounded-md border border-[#E4E4E7] bg-[#F0F0F2] px-2 py-0.5 text-xs text-[#6B6B76]">
+                            className="flex items-center gap-1.5 rounded-md border border-bd bg-s2 px-2 py-0.5 text-xs text-mu">
                             <FiHardDrive size={11}/>
                             {t("system.disk.label")}
                         </span>
@@ -270,16 +270,16 @@ export default function SystemTab() {
                     </div>
                     <div className="flex flex-col gap-1.5">
                         <div className="flex items-end justify-between">
-                            <span className="text-lg font-bold text-[#1E1E24]">
+                            <span className="text-lg font-bold text-tx">
                                 {info ? formatBytes(info.diskUsed) : "—"}
                             </span>
-                            <span className="text-sm font-medium text-[#92702A]">
+                            <span className="text-sm font-medium text-amt">
                                 {t("system.of")} {info ? formatBytes(info.diskTotal) : "—"}
                             </span>
                         </div>
-                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#F0F0F2]">
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-s2">
                             <div
-                                className="h-full rounded-full bg-[#C99A3E] transition-all duration-500"
+                                className="h-full rounded-full bg-wr transition-all duration-500"
                                 style={{width: `${diskPct}%`}}
                             />
                         </div>
@@ -289,10 +289,10 @@ export default function SystemTab() {
 
             {/* Info + updates */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="rounded-2xl border border-[#E4E4E7] bg-white p-5">
+                <div className="rounded-2xl border border-bd bg-sf p-5">
                     <div className="mb-4 flex items-center gap-2">
-                        <FiServer size={14} className="text-[#6B6B76]"/>
-                        <h2 className="text-xs font-semibold uppercase tracking-wider text-[#6B6B76]">
+                        <FiServer size={14} className="text-mu"/>
+                        <h2 className="text-xs font-semibold uppercase tracking-wider text-mu">
                             {t("system.info.title")}
                         </h2>
                     </div>
@@ -302,9 +302,9 @@ export default function SystemTab() {
                             <InfoRow label={t("system.info.jvm")} value={info.jvmVersion}/>
                             <InfoRow label={t("system.info.appVersion")} value={`v${info.appVersion}`}/>
                             <div
-                                className="flex items-center justify-between border-b border-[#F0F0F2] py-3 last:border-0">
-                                <span className="text-sm text-[#6B6B76]">{t("system.info.uptime")}</span>
-                                <span className="font-mono text-sm text-[#1E1E24]">
+                                className="flex items-center justify-between border-b border-bd py-3 last:border-0">
+                                <span className="text-sm text-mu">{t("system.info.uptime")}</span>
+                                <span className="font-mono text-sm text-tx">
                                     <LiveUptime baseSeconds={info.uptimeSeconds} isRunning={!error}/>
                                 </span>
                             </div>
@@ -312,35 +312,35 @@ export default function SystemTab() {
                     ) : (
                         <div className="flex flex-col gap-2 animate-pulse">
                             {[...Array(4)].map((_, i) => (
-                                <div key={i} className="h-10 rounded-lg bg-[#F0F0F2]"/>
+                                <div key={i} className="h-10 rounded-lg bg-s2"/>
                             ))}
                         </div>
                     )}
                 </div>
 
-                <div className="flex flex-col rounded-2xl border border-[#E4E4E7] bg-white p-5">
+                <div className="flex flex-col rounded-2xl border border-bd bg-sf p-5">
                     <div className="mb-4 flex items-center gap-2">
-                        <FiCpu size={14} className="text-[#6B6B76]"/>
-                        <h2 className="text-xs font-semibold uppercase tracking-wider text-[#6B6B76]">
+                        <FiCpu size={14} className="text-mu"/>
+                        <h2 className="text-xs font-semibold uppercase tracking-wider text-mu">
                             {t("system.updates.title")}
                         </h2>
                     </div>
                     <div className="flex flex-1 flex-col items-center justify-center gap-4 py-4">
                         <div
-                            className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[#D7E8D9] bg-[#EEF4EE]">
-                            <FiCheckCircle size={24} className="text-[#3F6B4A]"/>
+                            className="flex h-14 w-14 items-center justify-center rounded-2xl border border-gnb bg-gnb">
+                            <FiCheckCircle size={24} className="text-gnt"/>
                         </div>
                         <div className="text-center">
-                            <p className="font-semibold text-[#1E1E24]">
+                            <p className="font-semibold text-tx">
                                 {info ? `v${info.appVersion}` : "—"}
                             </p>
-                            <p className="mt-1 text-xs text-[#6B6B76]">
+                            <p className="mt-1 text-xs text-mu">
                                 {t("system.updates.currentVersion")}
                             </p>
                         </div>
                         <button
                             disabled
-                            className="rounded-xl border border-[#E4E4E7] bg-[#F0F0F2] px-5 py-2 text-sm font-medium text-[#C7C7CE] cursor-not-allowed"
+                            className="rounded-xl border border-bd bg-s2 px-5 py-2 text-sm font-medium text-mu/70 cursor-not-allowed"
                             title="Auto-update coming soon"
                         >
                             {t("system.updates.checkUpdates")}

@@ -13,16 +13,16 @@ export default function RadioField({field, value, onChange, onBlur, error}: Prop
     return (
         <FieldWrapper label={field.label} required={field.required} description={field.description} error={error}>
             <div
-                className={`flex flex-col gap-2 rounded-xl transition-colors ${error ? "ring-1 ring-[#B56A65]/30" : ""}`}>
+                className={`flex flex-col gap-2 rounded-xl transition-colors ${error ? "ring-1 ring-rdt/30" : ""}`}>
                 {(field.options ?? []).map(opt => (
                     <label
                         key={opt}
                         className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition-all ${
                             value === opt
-                                ? "border-[#D8DCF5] bg-[#EEF0FB]"
+                                ? "border-prs bg-prs"
                                 : error
-                                    ? "border-[#EAD4D3] bg-[#F7EEEE] hover:border-[#E0B8B6]"
-                                    : "border-[#E4E4E7] bg-white hover:border-[#D4D4D9] hover:bg-[#FAFAFB]"
+                                    ? "border-rdb bg-rdb hover:border-rdb"
+                                    : "border-bd bg-sf hover:border-bd hover:bg-bg"
                         }`}
                     >
                         <input
@@ -34,9 +34,9 @@ export default function RadioField({field, value, onChange, onBlur, error}: Prop
                                 onChange(opt);
                                 onBlur?.();
                             }}
-                            className="accent-[#3730A3]"
+                            className="accent-pr"
                         />
-                        <span className="text-sm text-[#55555F]">{opt}</span>
+                        <span className="text-sm text-mu">{opt}</span>
                     </label>
                 ))}
             </div>

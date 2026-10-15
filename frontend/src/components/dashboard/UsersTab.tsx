@@ -73,7 +73,7 @@ function RolesModal({
             width="max-w-sm"
         >
             {roles.length === 0 ? (
-                <p className="py-4 text-center text-sm text-[#6B6B76]">{t("users.rolesModal.noRoles")}</p>
+                <p className="py-4 text-center text-sm text-mu">{t("users.rolesModal.noRoles")}</p>
             ) : (
                 <div className="mb-5 flex flex-col gap-1.5">
                     {roles.map(role => {
@@ -84,19 +84,19 @@ function RolesModal({
                                 onClick={() => toggle(role.id)}
                                 className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition-all ${
                                     active
-                                        ? "border-[#D8DCF5] bg-[#EEF0FB]"
-                                        : "border-[#E4E4E7] hover:border-[#D4D4D9] hover:bg-[#FAFAFB]"
+                                        ? "border-prs bg-prs"
+                                        : "border-bd hover:border-bd hover:bg-bg"
                                 }`}
                             >
                                 <div
                                     className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
-                                        active ? "border-[#3730A3] bg-[#3730A3]" : "border-[#D4D4D9]"
+                                        active ? "border-pr bg-pr" : "border-bd"
                                     }`}>
                                     {active && <FiCheckCircle size={10} className="text-white"/>}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-[#1E1E24]">{role.name}</p>
-                                    <p className="text-xs text-[#8B8B96]">{t("users.rolesModal.permissionCount", {count: role.permissions.length})}</p>
+                                    <p className="text-sm font-medium text-tx">{role.name}</p>
+                                    <p className="text-xs text-mu">{t("users.rolesModal.permissionCount", {count: role.permissions.length})}</p>
                                 </div>
                             </label>
                         );
@@ -107,13 +107,13 @@ function RolesModal({
                 <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="flex-1 rounded-xl bg-[#3730A3] py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#2D2682] disabled:opacity-60"
+                    className="flex-1 rounded-xl bg-pr py-2.5 text-sm font-medium text-white transition-colors hover:bg-prh disabled:opacity-60"
                 >
                     {saving ? t("users.rolesModal.saving") : t("users.rolesModal.save")}
                 </button>
                 <button
                     onClick={onClose}
-                    className="rounded-xl border border-[#E4E4E7] px-4 py-2.5 text-sm text-[#8B8B96] transition-colors hover:text-[#1E1E24]"
+                    className="rounded-xl border border-bd px-4 py-2.5 text-sm text-mu transition-colors hover:text-tx"
                 >
                     {t("common.cancel")}
                 </button>
@@ -156,13 +156,13 @@ function TimeoutModal({
             width="max-w-sm"
         >
             <div className="mb-4">
-                <p className="mb-2 text-xs text-[#6B6B76]">{t("users.timeoutModal.durationLabel")}</p>
+                <p className="mb-2 text-xs text-mu">{t("users.timeoutModal.durationLabel")}</p>
                 <input
                     type="number"
                     min="1"
                     value={minutes}
                     onChange={e => setMinutes(e.target.value)}
-                    className="w-full rounded-xl border border-[#E4E4E7] bg-[#FAFAFB] px-4 py-2.5 text-sm text-[#1E1E24] outline-none focus:border-[#3730A3] transition-colors"
+                    className="w-full rounded-xl border border-bd bg-bg px-4 py-2.5 text-sm text-tx outline-none focus:border-pr transition-colors"
                 />
                 <div className="mt-2 flex flex-wrap gap-1.5">
                     {presets.map(p => (
@@ -171,8 +171,8 @@ function TimeoutModal({
                             onClick={() => setMinutes(String(p))}
                             className={`rounded-lg px-2.5 py-1 text-xs transition-colors ${
                                 minutes === String(p)
-                                    ? "bg-[#EEF0FB] text-[#3730A3]"
-                                    : "bg-[#F0F0F2] text-[#6B6B76] hover:bg-[#E4E4E7] hover:text-[#1E1E24]"
+                                    ? "bg-prs text-prt"
+                                    : "bg-s2 text-mu hover:bg-bd hover:text-tx"
                             }`}
                         >
                             {p < 60 ? `${p}m` : p < 1440 ? `${p / 60}h` : p < 10080 ? `${p / 1440}d` : `${p / 10080}w`}
@@ -184,13 +184,13 @@ function TimeoutModal({
                 <button
                     onClick={handleConfirm}
                     disabled={saving || !Number(minutes) || Number(minutes) <= 0}
-                    className="flex-1 rounded-xl bg-[#C99A3E] py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#B08430] disabled:opacity-60"
+                    className="flex-1 rounded-xl bg-wr py-2.5 text-sm font-medium text-white transition-colors hover:bg-wrh disabled:opacity-60"
                 >
                     {saving ? t("users.timeoutModal.applying") : t("users.timeoutModal.apply")}
                 </button>
                 <button
                     onClick={onClose}
-                    className="rounded-xl border border-[#E4E4E7] px-4 py-2.5 text-sm text-[#8B8B96] transition-colors hover:text-[#1E1E24]"
+                    className="rounded-xl border border-bd px-4 py-2.5 text-sm text-mu transition-colors hover:text-tx"
                 >
                     {t("common.cancel")}
                 </button>
@@ -272,8 +272,8 @@ export default function UsersTab() {
             {/* Header */}
             <div className="mb-6 flex items-start justify-between">
                 <div>
-                    <h1 className="text-xl font-semibold text-[#1E1E24]">{t("users.title")}</h1>
-                    <p className="mt-0.5 text-sm text-[#6B6B76]">{t("users.subtitle")}</p>
+                    <h1 className="text-xl font-semibold text-tx">{t("users.title")}</h1>
+                    <p className="mt-0.5 text-sm text-mu">{t("users.subtitle")}</p>
                 </div>
             </div>
 
@@ -285,21 +285,21 @@ export default function UsersTab() {
                         value={totalElements}
                         sub={t("users.stats.registeredAccounts")}
                         icon={<FiUsers size={16}/>}
-                        accentColor="#3730A3"
+                        accentColor="rgb(var(--prt))"
                     />
                     <StatsCard
                         label={t("users.stats.active")}
                         value={activeCount}
                         sub={t("users.stats.onThisPage")}
                         icon={<FiUserCheck size={16}/>}
-                        accentColor="#3F6B4A"
+                        accentColor="rgb(var(--gnt))"
                     />
                     <StatsCard
                         label={t("users.stats.restricted")}
                         value={bannedCount}
                         sub={t("users.stats.bannedOrTimeout")}
                         icon={<FiUserX size={16}/>}
-                        accentColor="#B56A65"
+                        accentColor="rgb(var(--rdt))"
                     />
                 </div>
             )}
@@ -307,21 +307,21 @@ export default function UsersTab() {
             {/* Filters */}
             <div className="mb-4 flex gap-3">
                 <div className="relative flex-1">
-                    <FiSearch size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8B8B96]"/>
+                    <FiSearch size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-mu"/>
                     <input
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                         placeholder={t("users.searchPlaceholder")}
-                        className="w-full rounded-xl border border-[#E4E4E7] bg-white py-2.5 pl-9 pr-4 text-sm text-[#1E1E24] placeholder-[#C7C7CE] outline-none transition-colors focus:border-[#3730A3]"
+                        className="w-full rounded-xl border border-bd bg-sf py-2.5 pl-9 pr-4 text-sm text-tx placeholder-mu/70 outline-none transition-colors focus:border-pr"
                     />
                 </div>
                 <div className="relative">
                     <FiFilter size={13}
-                              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8B8B96]"/>
+                              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-mu"/>
                     <select
                         value={filterRoleId}
                         onChange={e => setFilterRoleId(e.target.value)}
-                        className="appearance-none rounded-xl border border-[#E4E4E7] bg-white py-2.5 pl-9 pr-8 text-sm text-[#1E1E24] outline-none focus:border-[#3730A3] transition-colors"
+                        className="appearance-none rounded-xl border border-bd bg-sf py-2.5 pl-9 pr-8 text-sm text-tx outline-none focus:border-pr transition-colors"
                     >
                         <option value="">{t("users.allRoles")}</option>
                         {roles.map(role => (
@@ -337,29 +337,29 @@ export default function UsersTab() {
             ) : users.length === 0 ? (
                 <EmptyState message={t("users.noUsers")} icon={<FiUsers/>}/>
             ) : (
-                <div className="overflow-hidden rounded-xl border border-[#E4E4E7]">
+                <div className="overflow-hidden rounded-xl border border-bd">
                     <table className="w-full text-sm">
                         <thead>
-                        <tr className="border-b border-[#E4E4E7] bg-[#FAFAFB]">
-                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#6B6B76]">{t("users.table.user")}</th>
-                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#6B6B76]">{t("users.table.discordId")}</th>
-                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#6B6B76]">{t("users.table.roles")}</th>
-                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#6B6B76]">{t("users.table.status")}</th>
-                            <th className="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#6B6B76]">{t("users.table.actions")}</th>
+                        <tr className="border-b border-bd bg-bg">
+                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-mu">{t("users.table.user")}</th>
+                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-mu">{t("users.table.discordId")}</th>
+                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-mu">{t("users.table.roles")}</th>
+                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-mu">{t("users.table.status")}</th>
+                            <th className="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-mu">{t("users.table.actions")}</th>
                         </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#F0F0F2]">
+                        <tbody className="divide-y divide-bd">
                         {users.map(user => {
                             const banStatus = getBanStatus(user);
                             return (
-                                <tr key={user.id} className="transition-colors hover:bg-[#FAFAFB]">
+                                <tr key={user.id} className="transition-colors hover:bg-bg">
                                     <td className="px-5 py-3.5">
                                         <div className="flex items-center gap-3">
                                             <UserAvatar name={user.discordUsername}/>
                                             <div>
-                                                <p className="font-medium text-[#1E1E24]">{user.discordUsername}</p>
+                                                <p className="font-medium text-tx">{user.discordUsername}</p>
                                                 {user.bannedUntil && !user.bannedPermanently && new Date(user.bannedUntil) > new Date() && (
-                                                    <p className="mt-0.5 text-xs text-[#C99A3E]">
+                                                    <p className="mt-0.5 text-xs text-amt">
                                                         {t("users.until", {date: new Date(user.bannedUntil).toLocaleString()})}
                                                     </p>
                                                 )}
@@ -367,12 +367,12 @@ export default function UsersTab() {
                                         </div>
                                     </td>
                                     <td className="px-5 py-3.5">
-                                        <span className="font-mono text-xs text-[#6B6B76]">{user.discordId}</span>
+                                        <span className="font-mono text-xs text-mu">{user.discordId}</span>
                                     </td>
                                     <td className="px-5 py-3.5">
                                         <div className="flex flex-wrap gap-1">
                                             {user.roles.length === 0 ? (
-                                                <span className="text-xs text-[#8B8B96]">{t("users.noRoles")}</span>
+                                                <span className="text-xs text-mu">{t("users.noRoles")}</span>
                                             ) : (
                                                 user.roles.map(role => (
                                                     <Badge key={role.id} color="indigo">{role.name}</Badge>
@@ -409,8 +409,8 @@ export default function UsersTab() {
                         </tbody>
                     </table>
                     {totalElements > users.length && (
-                        <div className="border-t border-[#E4E4E7] bg-[#FAFAFB] px-5 py-3">
-                            <p className="text-xs text-[#8B8B96]">
+                        <div className="border-t border-bd bg-bg px-5 py-3">
+                            <p className="text-xs text-mu">
                                 {t("users.showing", {count: users.length, total: totalElements})}
                             </p>
                         </div>

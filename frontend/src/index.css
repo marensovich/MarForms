@@ -2,11 +2,71 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Design tokens from the approved mockups (docs/design/README.md, the th() palette
+ * of every artboard). Values are space-separated RGB channels so Tailwind's
+ * opacity modifiers work (bg-pr/20). Components use the Tailwind names in
+ * tailwind.config.js, never raw hex.
+ */
+:root {
+    --bg: 250 250 251;   /* #FAFAFB page */
+    --sf: 255 255 255;   /* #FFFFFF surface */
+    --s2: 244 244 246;   /* #F4F4F6 secondary surface */
+    --tx: 30 30 36;      /* #1E1E24 text */
+    --mu: 107 107 118;   /* #6B6B76 secondary text */
+    --bd: 228 228 231;   /* #E4E4E7 borders */
+    --pr: 55 48 163;     /* #3730A3 primary */
+    --prh: 46 40 144;    /* #2E2890 primary hover */
+    --prs: 238 238 251;  /* #EEEEFB primary soft */
+    --prt: 55 48 163;    /* #3730A3 primary text */
+    --amb: 254 243 199;  /* #FEF3C7 warning / pending */
+    --amt: 146 64 14;    /* #92400E */
+    --rdb: 254 226 226;  /* #FEE2E2 danger / rejected */
+    --rdt: 185 28 28;    /* #B91C1C */
+    --gnb: 220 252 231;  /* #DCFCE7 success / approved */
+    --gnt: 22 101 52;    /* #166534 */
+    --inb: 224 242 254;  /* #E0F2FE info */
+    --int: 7 89 133;     /* #075985 */
+    --dg: 220 38 38;     /* #DC2626 danger button */
+    --dgh: 185 28 28;    /* #B91C1C danger button hover */
+    --ok: 22 163 74;     /* #16A34A success dot / solid */
+    --okh: 21 128 61;    /* #15803D */
+    --wr: 217 119 6;     /* #D97706 warning dot / solid */
+    --wrh: 180 83 9;     /* #B45309 */
+    --ov: rgba(20, 20, 30, 0.45);
+    color-scheme: light;
+}
+
+/* data-theme is set before first paint by the inline script in index.html. */
+:root[data-theme="dark"] {
+    --bg: 17 17 21;      /* #111115 */
+    --sf: 26 26 32;      /* #1A1A20 */
+    --s2: 34 34 42;      /* #22222A */
+    --tx: 236 236 239;   /* #ECECEF */
+    --mu: 163 163 173;   /* #A3A3AD */
+    --bd: 46 46 55;      /* #2E2E37 */
+    --pr: 91 84 224;     /* #5B54E0 */
+    --prh: 79 70 229;    /* #4F46E5 */
+    --prs: 37 35 75;     /* #25234B */
+    --prt: 180 176 255;  /* #B4B0FF */
+    --amb: 59 42 10;     /* #3B2A0A */
+    --amt: 252 211 77;   /* #FCD34D */
+    --rdb: 61 21 23;     /* #3D1517 */
+    --rdt: 252 165 165;  /* #FCA5A5 */
+    --gnb: 14 47 29;     /* #0E2F1D */
+    --gnt: 134 239 172;  /* #86EFAC */
+    --inb: 12 42 59;     /* #0C2A3B */
+    --int: 125 211 252;  /* #7DD3FC */
+    --ov: rgba(0, 0, 0, 0.62);
+    color-scheme: dark;
+}
+
 html, body, #root {
     height: 100%;
 }
 
 body {
-    background-color: #0a0a0f;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: rgb(var(--bg));
+    color: rgb(var(--tx));
+    font-family: 'Onest', 'Segoe UI', system-ui, -apple-system, sans-serif;
 }

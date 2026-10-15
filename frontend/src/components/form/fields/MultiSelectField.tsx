@@ -21,7 +21,7 @@ export default function MultiSelectField({field, value, onChange, onBlur, error}
     return (
         <FieldWrapper label={field.label} required={field.required} description={field.description} error={error}>
             <div
-                className={`flex flex-wrap gap-2 rounded-xl p-0.5 transition-colors ${error ? "ring-1 ring-[#B56A65]/30" : ""}`}>
+                className={`flex flex-wrap gap-2 rounded-xl p-0.5 transition-colors ${error ? "ring-1 ring-rdt/30" : ""}`}>
                 {(field.options ?? []).map(opt => {
                     const selected = value.includes(opt);
                     return (
@@ -31,10 +31,10 @@ export default function MultiSelectField({field, value, onChange, onBlur, error}
                             onClick={() => toggle(opt)}
                             className={`rounded-lg border px-3 py-1.5 text-sm transition-colors ${
                                 selected
-                                    ? "border-[#3730A3] bg-[#EEF0FB] text-[#3730A3]"
+                                    ? "border-pr bg-prs text-prt"
                                     : error
-                                        ? "border-[#EAD4D3] bg-[#F7EEEE] text-[#8B4A46] hover:border-[#E0B8B6]"
-                                        : "border-[#E4E4E7] bg-white text-[#6B6B76] hover:border-[#D4D4D9] hover:text-[#1E1E24]"
+                                        ? "border-rdb bg-rdb text-rdt hover:border-rdb"
+                                        : "border-bd bg-sf text-mu hover:border-bd hover:text-tx"
                             }`}
                         >
                             {opt}

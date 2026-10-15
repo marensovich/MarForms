@@ -33,9 +33,9 @@ function Rating({value, max}: { value: number; max: number }) {
         <span className="inline-flex items-center gap-0.5">
             {[...Array(max)].map((_, i) => (
                 <FiStar key={i} size={14}
-                        className={i < value ? "fill-[#C99A3E] text-[#C99A3E]" : "text-[#D4D4D9]"}/>
+                        className={i < value ? "fill-wr text-amt" : "text-mu"}/>
             ))}
-            <span className="ml-1.5 text-xs text-[#6B6B76]">{value}/{max}</span>
+            <span className="ml-1.5 text-xs text-mu">{value}/{max}</span>
         </span>
     );
 }
@@ -44,13 +44,13 @@ function Attachment({file}: { file: SubmissionFile | undefined }) {
     const {t} = useTranslation();
     const [busy, setBusy] = useState(false);
     const [failed, setFailed] = useState(false);
-    if (!file) return <p className="text-sm text-[#8B8B96]">—</p>;
+    if (!file) return <p className="text-sm text-mu">—</p>;
     return (
         <div className="flex items-center gap-3">
-            <FiFile size={15} className="flex-shrink-0 text-[#6B6B76]"/>
+            <FiFile size={15} className="flex-shrink-0 text-mu"/>
             <div className="min-w-0 flex-1">
-                <p className="truncate text-sm text-[#1E1E24]">{file.name}</p>
-                <p className="text-xs text-[#8B8B96]">{formatBytes(file.size)}</p>
+                <p className="truncate text-sm text-tx">{file.name}</p>
+                <p className="text-xs text-mu">{formatBytes(file.size)}</p>
             </div>
             <button
                 type="button"
@@ -60,7 +60,7 @@ function Attachment({file}: { file: SubmissionFile | undefined }) {
                     setFailed(false);
                     downloadSubmissionFile(file).catch(() => setFailed(true)).finally(() => setBusy(false));
                 }}
-                className="flex items-center gap-1.5 rounded-lg border border-[#E4E4E7] px-3 py-1.5 text-xs text-[#55555F] transition-colors hover:text-[#1E1E24] disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-lg border border-bd px-3 py-1.5 text-xs text-mu transition-colors hover:text-tx disabled:opacity-50"
             >
                 <FiDownload size={12}/>
                 {failed ? t("moderation.card.downloadFailed") : t("moderation.card.download")}
@@ -81,16 +81,16 @@ function Avatar({url, name}: { url: string | null; name: string }) {
                     className="h-11 w-11 flex-shrink-0 rounded-full object-cover"/>;
     }
     return (
-        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#3730A3] text-sm font-bold text-white">
+        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-pr text-sm font-bold text-white">
             {(name[0] ?? "?").toUpperCase()}
         </div>
     );
 }
 
 const DECISIONS: { status: DecisionStatus; icon: typeof FiCheck; cls: string }[] = [
-    {status: "APPROVED", icon: FiCheck, cls: "bg-[#3F6B4A] hover:bg-[#335A3D] text-white"},
-    {status: "NEEDS_REVISION", icon: FiCornerUpLeft, cls: "bg-[#C99A3E] hover:bg-[#B0862F] text-white"},
-    {status: "REJECTED", icon: FiX, cls: "bg-[#B54B45] hover:bg-[#9C3F3A] text-white"},
+    {status: "APPROVED", icon: FiCheck, cls: "bg-ok hover:bg-okh text-white"},
+    {status: "NEEDS_REVISION", icon: FiCornerUpLeft, cls: "bg-wr hover:bg-wrh text-white"},
+    {status: "REJECTED", icon: FiX, cls: "bg-dg hover:bg-dgh text-white"},
 ];
 
 /**
@@ -167,25 +167,25 @@ export default function SubmissionCardModal({submissionId, onClose, onDecided}: 
             width="max-w-2xl"
         >
             {loadError ? (
-                <p className="text-sm text-[#8B4A46]">{loadError}</p>
+                <p className="text-sm text-rdt">{loadError}</p>
             ) : !detail || !submission ? (
                 <TabSkeleton rows={4}/>
             ) : (
                 <div className="flex max-h-[72vh] flex-col gap-4 overflow-y-auto pr-1">
                     {/* Author */}
-                    <div className="flex items-start gap-3 rounded-xl border border-[#E4E4E7] bg-[#FAFAFB] p-4">
+                    <div className="flex items-start gap-3 rounded-xl border border-bd bg-bg p-4">
                         {author ? (
                             <>
                                 <Avatar url={author.avatarUrl} name={author.username ?? author.discordId}/>
                                 <div className="min-w-0 flex-1">
                                     <div className="flex items-center gap-2">
-                                        <p className="truncate text-sm font-semibold text-[#1E1E24]">
+                                        <p className="truncate text-sm font-semibold text-tx">
                                             {author.username ?? t("moderation.unknownUser")}
                                         </p>
                                         <SubmissionStatusBadge status={submission.status}/>
                                     </div>
-                                    <p className="font-mono text-[11px] text-[#8B8B96]">{author.discordId}</p>
-                                    <p className="mt-1 text-xs text-[#6B6B76]">
+                                    <p className="font-mono text-[11px] text-mu">{author.discordId}</p>
+                                    <p className="mt-1 text-xs text-mu">
                                         {t("moderation.card.submissionCount", {count: author.submissionCount})}
                                     </p>
                                     {author.discordRoles.length > 0 ? (
@@ -194,22 +194,22 @@ export default function SubmissionCardModal({submissionId, onClose, onDecided}: 
                                                 const color = roleColor(r.color);
                                                 return (
                                                     <span key={r.id}
-                                                          className="inline-flex items-center gap-1 rounded-full border border-[#E4E4E7] bg-white px-2 py-0.5 text-[11px] text-[#55555F]">
+                                                          className="inline-flex items-center gap-1 rounded-full border border-bd bg-sf px-2 py-0.5 text-[11px] text-mu">
                                                         <span className="h-2 w-2 rounded-full"
-                                                              style={{background: color ?? "#9A9AA4"}}/>
+                                                              style={{background: color ?? "rgb(var(--mu))"}}/>
                                                         {r.name ?? r.id}
                                                     </span>
                                                 );
                                             })}
                                         </div>
                                     ) : (
-                                        <p className="mt-2 text-[11px] text-[#8B8B96]">{t("moderation.card.noRoles")}</p>
+                                        <p className="mt-2 text-[11px] text-mu">{t("moderation.card.noRoles")}</p>
                                     )}
                                 </div>
                             </>
                         ) : (
                             <div className="flex items-center gap-2">
-                                <p className="text-sm text-[#6B6B76]">{t("moderation.card.anonymous")}</p>
+                                <p className="text-sm text-mu">{t("moderation.card.anonymous")}</p>
                                 <SubmissionStatusBadge status={submission.status}/>
                             </div>
                         )}
@@ -221,21 +221,21 @@ export default function SubmissionCardModal({submissionId, onClose, onDecided}: 
                             if (field.type === "SECTION_BREAK") {
                                 return (
                                     <p key={field.id}
-                                       className="mt-2 text-xs font-semibold uppercase tracking-wider text-[#8B8B96]">
+                                       className="mt-2 text-xs font-semibold uppercase tracking-wider text-mu">
                                         {field.label}
                                     </p>
                                 );
                             }
                             const value = submission.answers[field.id];
                             return (
-                                <div key={field.id} className="rounded-lg border border-[#E4E4E7] p-3">
-                                    <p className="mb-1 text-xs font-medium text-[#6B6B76]">{field.label}</p>
+                                <div key={field.id} className="rounded-lg border border-bd p-3">
+                                    <p className="mb-1 text-xs font-medium text-mu">{field.label}</p>
                                     {field.type === "RATING" && typeof value === "number" ? (
                                         <Rating value={value} max={field.max ?? 5}/>
                                     ) : field.type === "FILE_UPLOAD" ? (
                                         <Attachment file={detail.files?.find(fl => fl.fieldId === field.id && fl.id === value)}/>
                                     ) : (
-                                        <p className="whitespace-pre-wrap break-words text-sm text-[#1E1E24]">
+                                        <p className="whitespace-pre-wrap break-words text-sm text-tx">
                                             {formatAnswer(field, value, t)}
                                         </p>
                                     )}
@@ -243,11 +243,11 @@ export default function SubmissionCardModal({submissionId, onClose, onDecided}: 
                             );
                         })}
                         {orphanKeys.map(key => (
-                            <div key={key} className="rounded-lg border border-dashed border-[#E4E4E7] p-3">
-                                <p className="mb-1 text-xs font-medium text-[#8B8B96]">
+                            <div key={key} className="rounded-lg border border-dashed border-bd p-3">
+                                <p className="mb-1 text-xs font-medium text-mu">
                                     {key} · {t("moderation.card.removedField")}
                                 </p>
-                                <p className="whitespace-pre-wrap break-words text-sm text-[#55555F]">
+                                <p className="whitespace-pre-wrap break-words text-sm text-mu">
                                     {formatAnswer(undefined, submission.answers[key], t)}
                                 </p>
                             </div>
@@ -256,29 +256,29 @@ export default function SubmissionCardModal({submissionId, onClose, onDecided}: 
 
                     {/* Previous decision */}
                     {submission.decidedAt && (
-                        <div className="rounded-lg border border-[#E4E4E7] bg-[#FAFAFB] px-3 py-2 text-xs text-[#55555F]">
+                        <div className="rounded-lg border border-bd bg-bg px-3 py-2 text-xs text-mu">
                             {t("moderation.card.lastDecision", {
                                 date: new Date(submission.decidedAt).toLocaleString(),
                                 moderator: submission.moderatorDiscordId ?? "—",
                             })}
                             {submission.moderatorComment && (
-                                <p className="mt-1 whitespace-pre-wrap text-[#1E1E24]">«{submission.moderatorComment}»</p>
+                                <p className="mt-1 whitespace-pre-wrap text-tx">«{submission.moderatorComment}»</p>
                             )}
                         </div>
                     )}
 
                     {/* Decision */}
-                    <div className="border-t border-[#E4E4E7] pt-4">
+                    <div className="border-t border-bd pt-4">
                         <textarea
                             value={comment}
                             onChange={e => setComment(e.target.value)}
                             maxLength={2000}
                             rows={2}
                             placeholder={t("moderation.card.commentPlaceholder")}
-                            className="w-full resize-y rounded-lg border border-[#E4E4E7] px-3 py-2 text-sm text-[#1E1E24] outline-none placeholder:text-[#C7C7CE] focus:border-[#3730A3]"
+                            className="w-full resize-y rounded-lg border border-bd px-3 py-2 text-sm text-tx outline-none placeholder:text-mu/70 focus:border-pr"
                         />
                         {error && (
-                            <p className="mt-2 rounded-lg border border-[#EAD4D3] bg-[#F7EEEE] px-3 py-2 text-xs text-[#8B4A46]">
+                            <p className="mt-2 rounded-lg border border-rdb bg-rdb px-3 py-2 text-xs text-rdt">
                                 {error}
                             </p>
                         )}

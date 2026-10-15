@@ -53,10 +53,10 @@ function empty(): WebhookConfig {
 // ── Shared input styles ────────────────────────────────────────────────────────
 
 function inputCls(hasError?: boolean) {
-    return `w-full rounded-xl border px-3 py-2 text-sm text-[#1E1E24] placeholder-[#C7C7CE] outline-none transition-colors focus:ring-1 ${
+    return `w-full rounded-xl border px-3 py-2 text-sm text-tx placeholder-mu/70 outline-none transition-colors focus:ring-1 ${
         hasError
-            ? "border-[#EAD4D3] bg-[#F7EEEE] focus:border-[#B56A65] focus:ring-[#B56A65]/20"
-            : "border-[#E4E4E7] bg-[#FAFAFB] focus:border-[#3730A3] focus:ring-[#3730A3]/20"
+            ? "border-rdb bg-rdb focus:border-rdt focus:ring-rdt/20"
+            : "border-bd bg-bg focus:border-pr focus:ring-pr/20"
     }`;
 }
 
@@ -70,8 +70,8 @@ function Group({label, icon, children}: {
     return (
         <div className="mt-4 first:mt-0">
             <div className="mb-2.5 flex items-center gap-1.5">
-                <span className="text-[#C7C7CE]">{icon}</span>
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#8B8B96]">{label}</span>
+                <span className="text-mu/70">{icon}</span>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-mu">{label}</span>
             </div>
             <div className="flex flex-col gap-2.5">
                 {children}
@@ -87,9 +87,9 @@ function Row({children}: { children: React.ReactNode }) {
 function Field({label, hint, children}: { label: string; hint?: string; children: React.ReactNode }) {
     return (
         <label className="flex flex-col gap-1">
-            <span className="text-[11px] font-medium text-[#8B8B96]">
+            <span className="text-[11px] font-medium text-mu">
                 {label}
-                {hint && <span className="ml-1.5 text-[#C7C7CE] font-normal">{hint}</span>}
+                {hint && <span className="ml-1.5 text-mu/70 font-normal">{hint}</span>}
             </span>
             {children}
         </label>
@@ -145,19 +145,19 @@ function WebhookCard({wh, guildId, channels, channelsLoading, onUpdate, onDelete
     const str = (v: string | undefined) => v ?? "";
 
     return (
-        <div className="overflow-hidden rounded-xl border border-[#E4E4E7] bg-white">
+        <div className="overflow-hidden rounded-xl border border-bd bg-sf">
             <WebhookHealthNotice webhook={wh}/>
 
             {/* Create-from-channel row (bot-managed) */}
             {guildId && (
-                <div className="flex flex-wrap items-center gap-2 border-b border-[#E4E4E7] bg-[#FAFAFB] px-4 py-3">
-                    <FiHash size={12} className="flex-shrink-0 text-[#8B8B96]"/>
-                    <span className="text-xs font-medium text-[#6B6B76]">{t("wizard.webhooks.createFromChannel")}</span>
+                <div className="flex flex-wrap items-center gap-2 border-b border-bd bg-bg px-4 py-3">
+                    <FiHash size={12} className="flex-shrink-0 text-mu"/>
+                    <span className="text-xs font-medium text-mu">{t("wizard.webhooks.createFromChannel")}</span>
                     <select
                         value={selectedChannel}
                         onChange={e => setSelectedChannel(e.target.value)}
                         disabled={channelsLoading || channels.length === 0}
-                        className="min-w-[160px] flex-1 rounded-lg border border-[#E4E4E7] bg-white px-2.5 py-1.5 text-xs text-[#1E1E24] outline-none focus:border-[#3730A3] disabled:text-[#C7C7CE]"
+                        className="min-w-[160px] flex-1 rounded-lg border border-bd bg-sf px-2.5 py-1.5 text-xs text-tx outline-none focus:border-pr disabled:text-mu/70"
                     >
                         <option value="">
                             {channelsLoading
@@ -174,13 +174,13 @@ function WebhookCard({wh, guildId, channels, channelsLoading, onUpdate, onDelete
                         type="button"
                         onClick={handleCreateFromChannel}
                         disabled={!selectedChannel || creating}
-                        className="flex items-center gap-1.5 rounded-lg bg-[#3730A3] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#2D2682] disabled:cursor-not-allowed disabled:opacity-40"
+                        className="flex items-center gap-1.5 rounded-lg bg-pr px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-prh disabled:cursor-not-allowed disabled:opacity-40"
                     >
                         {creating ? <FiLoader size={11} className="animate-spin"/> : <FiZap size={11}/>}
                         {t("wizard.webhooks.createButton")}
                     </button>
                     {createError && (
-                        <p className="flex w-full items-center gap-1 text-[11px] text-[#B56A65]">
+                        <p className="flex w-full items-center gap-1 text-[11px] text-rdt">
                             <FiAlertCircle size={10}/> {createError}
                         </p>
                     )}
@@ -189,8 +189,8 @@ function WebhookCard({wh, guildId, channels, channelsLoading, onUpdate, onDelete
 
             {/* Header row */}
             <div className="flex items-center gap-3 p-4">
-                <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-[#EEF0FB]">
-                    <FiLink size={13} className="text-[#3730A3]"/>
+                <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-prs">
+                    <FiLink size={13} className="text-prt"/>
                 </div>
                 <div className="min-w-0 flex-1">
                     <input
@@ -201,17 +201,17 @@ function WebhookCard({wh, guildId, channels, channelsLoading, onUpdate, onDelete
                         className={inputCls(!urlValid && wh.url.length > 0)}
                     />
                     {!urlValid && wh.url.length > 0 ? (
-                        <p className="mt-1 flex items-center gap-1 text-[11px] text-[#B56A65]">
+                        <p className="mt-1 flex items-center gap-1 text-[11px] text-rdt">
                             <FiAlertCircle size={10}/> {t("wizard.webhooks.invalidUrl")}
                         </p>
                     ) : guildId && (
-                        <p className="mt-1 text-[11px] text-[#C7C7CE]">{t("wizard.webhooks.orPasteManually")}</p>
+                        <p className="mt-1 text-[11px] text-mu/70">{t("wizard.webhooks.orPasteManually")}</p>
                     )}
                 </div>
                 <button
                     type="button"
                     onClick={() => setExpanded(e => !e)}
-                    className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-[#8B8B96] transition-colors hover:bg-[#F0F0F2] hover:text-[#1E1E24]"
+                    className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-mu transition-colors hover:bg-s2 hover:text-tx"
                     title="Configure embed"
                 >
                     {expanded ? <FiChevronUp size={14}/> : <FiChevronDown size={14}/>}
@@ -219,7 +219,7 @@ function WebhookCard({wh, guildId, channels, channelsLoading, onUpdate, onDelete
                 <button
                     type="button"
                     onClick={onDelete}
-                    className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-[#C7C7CE] transition-colors hover:bg-[#F7EEEE] hover:text-[#B56A65]"
+                    className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-mu/70 transition-colors hover:bg-rdb hover:text-rdt"
                     title="Remove webhook"
                 >
                     <FiTrash2 size={13}/>
@@ -228,11 +228,11 @@ function WebhookCard({wh, guildId, channels, channelsLoading, onUpdate, onDelete
 
             {/* Expanded embed builder */}
             {expanded && (
-                <div className="border-t border-[#E4E4E7] px-4 pb-5 pt-4">
+                <div className="border-t border-bd px-4 pb-5 pt-4">
 
                     {/* ── Variables reference ────────────────────────── */}
-                    <div className="rounded-lg border border-[#D8DCF5] bg-[#EEF0FB] px-3 py-2.5">
-                        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#3730A3]">
+                    <div className="rounded-lg border border-prs bg-prs px-3 py-2.5">
+                        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-prt">
                             {t("wizard.webhooks.availableVars")}
                         </p>
                         <div className="flex flex-wrap gap-1">
@@ -249,12 +249,12 @@ function WebhookCard({wh, guildId, channels, channelsLoading, onUpdate, onDelete
                                 ["{server_id}", "guild ID"],
                             ] as [string, string][]).map(([v, hint]) => (
                                 <span key={v} title={hint}
-                                      className="cursor-default rounded border border-[#D8DCF5] bg-white px-1.5 py-0.5 font-mono text-[10px] text-[#3730A3]">
+                                      className="cursor-default rounded border border-prs bg-sf px-1.5 py-0.5 font-mono text-[10px] text-prt">
                                     {v}
                                 </span>
                             ))}
                         </div>
-                        <p className="mt-1.5 text-[10px] text-[#8B8B96]">
+                        <p className="mt-1.5 text-[10px] text-mu">
                             {t("wizard.webhooks.varHint")}
                         </p>
                     </div>
@@ -296,7 +296,7 @@ function WebhookCard({wh, guildId, channels, channelsLoading, onUpdate, onDelete
 
                         {/* Color picker */}
                         <div>
-                            <span className="text-[11px] font-medium text-[#8B8B96]">{t("wizard.webhooks.fields.embedColor")}</span>
+                            <span className="text-[11px] font-medium text-mu">{t("wizard.webhooks.fields.embedColor")}</span>
                             <div className="mt-2 flex flex-wrap items-center gap-2">
                                 {COLOR_PRESETS.map(p => {
                                     const active = wh.color === p.value;
@@ -305,8 +305,8 @@ function WebhookCard({wh, guildId, channels, channelsLoading, onUpdate, onDelete
                                                 onClick={() => selectPreset(p.value, p.hex)}
                                                 className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs transition-colors ${
                                                     active
-                                                        ? "border-[#D4D4D9] bg-[#F0F0F2] text-[#1E1E24]"
-                                                        : "border-[#E4E4E7] bg-white text-[#6B6B76] hover:text-[#1E1E24]"
+                                                        ? "border-bd bg-s2 text-tx"
+                                                        : "border-bd bg-sf text-mu hover:text-tx"
                                                 }`}>
                                             <span className="h-3 w-3 rounded-full" style={{background: p.hex}}/>
                                             {p.label}
@@ -315,12 +315,12 @@ function WebhookCard({wh, guildId, channels, channelsLoading, onUpdate, onDelete
                                     );
                                 })}
                                 <div
-                                    className="flex items-center gap-1.5 rounded-lg border border-[#E4E4E7] bg-white px-2.5 py-1">
-                                    <span className="text-xs text-[#8B8B96]">HEX</span>
+                                    className="flex items-center gap-1.5 rounded-lg border border-bd bg-sf px-2.5 py-1">
+                                    <span className="text-xs text-mu">HEX</span>
                                     <input type="text" value={hexInput}
                                            onChange={e => handleHexChange(e.target.value)}
                                            placeholder="#5865F2" maxLength={7}
-                                           className="w-20 bg-transparent text-xs text-[#1E1E24] outline-none placeholder-[#C7C7CE]"/>
+                                           className="w-20 bg-transparent text-xs text-tx outline-none placeholder-mu/70"/>
                                 </div>
                             </div>
                         </div>
@@ -370,15 +370,15 @@ function WebhookCard({wh, guildId, channels, channelsLoading, onUpdate, onDelete
                                 onClick={() => onUpdate({fieldsInline: !wh.fieldsInline})}
                                 className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors ${
                                     wh.fieldsInline
-                                        ? "border-[#3730A3] bg-[#EEF0FB]"
-                                        : "border-[#D4D4D9] bg-white hover:border-[#B5B5BC]"
+                                        ? "border-pr bg-prs"
+                                        : "border-bd bg-sf hover:border-bd"
                                 }`}
                             >
-                                {wh.fieldsInline && <div className="h-2 w-2 rounded-sm bg-[#3730A3]"/>}
+                                {wh.fieldsInline && <div className="h-2 w-2 rounded-sm bg-pr"/>}
                             </div>
-                            <span className="text-xs text-[#6B6B76]">
+                            <span className="text-xs text-mu">
                                 {t("wizard.webhooks.fields.inlineFields")}
-                                <span className="ml-1.5 text-[#8B8B96]">{t("wizard.webhooks.fields.inlineFieldsHint")}</span>
+                                <span className="ml-1.5 text-mu">{t("wizard.webhooks.fields.inlineFieldsHint")}</span>
                             </span>
                         </label>
                     </Group>
@@ -436,8 +436,8 @@ export default function StepWebhooks({draft, onChange}: Props) {
     return (
         <div className="flex flex-col gap-4">
             <div>
-                <h3 className="text-sm font-semibold text-[#1E1E24]">{t("wizard.webhooks.title")}</h3>
-                <p className="mt-1 text-sm text-[#8B8B96]">
+                <h3 className="text-sm font-semibold text-tx">{t("wizard.webhooks.title")}</h3>
+                <p className="mt-1 text-sm text-mu">
                     {t("wizard.webhooks.subtitle")}
                 </p>
             </div>
@@ -459,17 +459,17 @@ export default function StepWebhooks({draft, onChange}: Props) {
             )}
 
             {webhooks.length === 0 && (
-                <div className="rounded-xl border border-dashed border-[#D4D4D9] py-8 text-center">
-                    <FiLink size={20} className="mx-auto mb-2 text-[#C7C7CE]"/>
-                    <p className="text-sm text-[#8B8B96]">{t("wizard.webhooks.noWebhooks")}</p>
-                    <p className="mt-0.5 text-xs text-[#C7C7CE]">{t("wizard.webhooks.clickToAdd")}</p>
+                <div className="rounded-xl border border-dashed border-bd py-8 text-center">
+                    <FiLink size={20} className="mx-auto mb-2 text-mu/70"/>
+                    <p className="text-sm text-mu">{t("wizard.webhooks.noWebhooks")}</p>
+                    <p className="mt-0.5 text-xs text-mu/70">{t("wizard.webhooks.clickToAdd")}</p>
                 </div>
             )}
 
             <button
                 type="button"
                 onClick={add}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-[#D8DCF5] py-2.5 text-sm text-[#3730A3] transition-colors hover:border-[#3730A3] hover:bg-[#EEF0FB]"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-prs py-2.5 text-sm text-prt transition-colors hover:border-pr hover:bg-prs"
             >
                 <FiPlus size={14}/>
                 {t("wizard.webhooks.addWebhook")}

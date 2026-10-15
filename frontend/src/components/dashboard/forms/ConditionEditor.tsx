@@ -23,7 +23,7 @@ function operatorLabelKey(op: ConditionOperator, controller: FormField): string 
     return `wizard.fields.condition.operators.${op}`;
 }
 
-const selectCls = "w-full rounded-lg border border-[#E4E4E7] bg-white px-3 py-2 text-sm text-[#1E1E24] outline-none focus:border-[#3730A3]";
+const selectCls = "w-full rounded-lg border border-bd bg-sf px-3 py-2 text-sm text-tx outline-none focus:border-pr";
 
 /**
  * "Show this field only if …" (E3.1). The server re-checks the condition
@@ -49,19 +49,19 @@ export default function ConditionEditor({field, allFields, onChange}: {
     };
 
     if (candidates.length === 0) {
-        return <p className="text-xs text-[#8B8B96]">{t("wizard.fields.condition.noCandidates")}</p>;
+        return <p className="text-xs text-mu">{t("wizard.fields.condition.noCandidates")}</p>;
     }
 
     return (
-        <div className="space-y-3 rounded-xl border border-[#E4E4E7] bg-white p-4">
-            <label className="flex cursor-pointer items-center gap-2 text-sm text-[#1E1E24]">
+        <div className="space-y-3 rounded-xl border border-bd bg-sf p-4">
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-tx">
                 <input
                     type="checkbox"
                     checked={!!condition}
                     onChange={e => (e.target.checked ? start(candidates[0]) : onChange(null))}
-                    className="accent-[#3730A3]"
+                    className="accent-pr"
                 />
-                <FiGitBranch size={13} className="text-[#8B8B96]"/>
+                <FiGitBranch size={13} className="text-mu"/>
                 {t("wizard.fields.condition.toggle")}
             </label>
 
@@ -115,7 +115,7 @@ export default function ConditionEditor({field, allFields, onChange}: {
                             )}
                         </>
                     )}
-                    <p className="text-[11px] text-[#8B8B96]">{t("wizard.fields.condition.hint")}</p>
+                    <p className="text-[11px] text-mu">{t("wizard.fields.condition.hint")}</p>
                 </div>
             )}
         </div>

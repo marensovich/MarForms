@@ -7,12 +7,12 @@ import {useTranslation} from "react-i18next";
 type PermColor = "indigo" | "blue" | "purple" | "orange" | "green" | "red";
 
 const PERM_ACTIVE_CLS: Record<PermColor, string> = {
-    indigo: "border-[#D8DCF5] bg-[#EEF0FB] text-[#3730A3]",
-    blue: "border-[#CFE0F5] bg-[#EAF1FB] text-[#31578F]",
-    purple: "border-[#E0D5F2] bg-[#F2EEFA] text-[#5B3E96]",
-    orange: "border-[#EFDFC0] bg-[#FBF3E4] text-[#92702A]",
-    green: "border-[#D7E8D9] bg-[#EEF4EE] text-[#3F6B4A]",
-    red: "border-[#EAD4D3] bg-[#F7EEEE] text-[#8B4A46]",
+    indigo: "border-prs bg-prs text-prt",
+    blue: "border-inb bg-inb text-int",
+    purple: "border-prs bg-prs text-prt",
+    orange: "border-amb bg-amb text-amt",
+    green: "border-gnb bg-gnb text-gnt",
+    red: "border-rdb bg-rdb text-rdt",
 };
 
 const PERMISSION_GROUPS: { label: string; color: PermColor; perms: string[] }[] = [
@@ -43,7 +43,7 @@ function PermissionGrid({
         <div className="flex flex-col gap-3">
             {PERMISSION_GROUPS.map(group => (
                 <div key={group.label}>
-                    <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-[#8B8B96]">
+                    <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-mu">
                         {t(`roles.permGroups.${group.label}`)}
                     </p>
                     <div className="flex flex-wrap gap-1.5">
@@ -57,7 +57,7 @@ function PermissionGrid({
                                     className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-all ${
                                         active
                                             ? PERM_ACTIVE_CLS[group.color]
-                                            : "border-[#E4E4E7] bg-white text-[#6B6B76] hover:border-[#D4D4D9] hover:text-[#1E1E24]"
+                                            : "border-bd bg-sf text-mu hover:border-bd hover:text-tx"
                                     }`}
                                 >
                                     {active && <FiCheck size={10} className="flex-shrink-0"/>}
@@ -109,7 +109,7 @@ function CreateRoleModal({
         <Modal title={t("roles.createModal.title")} subtitle={t("roles.createModal.subtitle")} onClose={onClose} width="max-w-lg">
             <div className="flex flex-col gap-4">
                 <div>
-                    <label className="mb-1.5 block text-xs font-medium text-[#6B6B76]">{t("roles.createModal.nameLabel")}</label>
+                    <label className="mb-1.5 block text-xs font-medium text-mu">{t("roles.createModal.nameLabel")}</label>
                     <input
                         value={name}
                         onChange={e => {
@@ -118,17 +118,17 @@ function CreateRoleModal({
                         }}
                         placeholder={t("roles.createModal.namePlaceholder")}
                         autoFocus
-                        className="w-full rounded-xl border border-[#E4E4E7] bg-[#FAFAFB] px-4 py-2.5 text-sm text-[#1E1E24] placeholder-[#C7C7CE] outline-none transition-colors focus:border-[#3730A3]"
+                        className="w-full rounded-xl border border-bd bg-bg px-4 py-2.5 text-sm text-tx placeholder-mu/70 outline-none transition-colors focus:border-pr"
                     />
-                    {error && <p className="mt-1.5 text-xs text-[#B56A65]">{error}</p>}
+                    {error && <p className="mt-1.5 text-xs text-rdt">{error}</p>}
                 </div>
 
                 <div>
-                    <label className="mb-2 block text-xs font-medium text-[#6B6B76]">
+                    <label className="mb-2 block text-xs font-medium text-mu">
                         {t("roles.createModal.permissionsLabel")}
-                        <span className="ml-2 text-[#8B8B96]">({t("roles.createModal.selected", {count: perms.length})})</span>
+                        <span className="ml-2 text-mu">({t("roles.createModal.selected", {count: perms.length})})</span>
                     </label>
-                    <div className="rounded-xl border border-[#E4E4E7] bg-[#FAFAFB] p-4">
+                    <div className="rounded-xl border border-bd bg-bg p-4">
                         <PermissionGrid selected={perms} onToggle={toggle}/>
                     </div>
                 </div>
@@ -137,13 +137,13 @@ function CreateRoleModal({
                     <button
                         onClick={handleCreate}
                         disabled={saving || !name.trim()}
-                        className="flex-1 rounded-xl bg-[#3730A3] py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#2D2682] disabled:opacity-60"
+                        className="flex-1 rounded-xl bg-pr py-2.5 text-sm font-medium text-white transition-colors hover:bg-prh disabled:opacity-60"
                     >
                         {saving ? t("roles.createModal.creating") : t("roles.createRole")}
                     </button>
                     <button
                         onClick={onClose}
-                        className="rounded-xl border border-[#E4E4E7] px-5 py-2.5 text-sm text-[#8B8B96] transition-colors hover:text-[#1E1E24]"
+                        className="rounded-xl border border-bd px-5 py-2.5 text-sm text-mu transition-colors hover:text-tx"
                     >
                         {t("common.cancel")}
                     </button>
@@ -170,16 +170,16 @@ function RoleCard({
 
     return (
         <div
-            className="group rounded-xl border border-[#E4E4E7] bg-white p-5 transition-colors hover:border-[#D4D4D9]">
+            className="group rounded-xl border border-bd bg-sf p-5 transition-colors hover:border-bd">
             <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3 min-w-0">
                     <div
-                        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-[#D8DCF5] bg-[#EEF0FB]">
-                        <FiShield size={15} className="text-[#3730A3]"/>
+                        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-prs bg-prs">
+                        <FiShield size={15} className="text-prt"/>
                     </div>
                     <div className="min-w-0">
-                        <p className="font-semibold text-[#1E1E24]">{role.name}</p>
-                        <p className="text-xs text-[#6B6B76]">
+                        <p className="font-semibold text-tx">{role.name}</p>
+                        <p className="text-xs text-mu">
                             {t("roles.permissionCount", {count: role.permissions.length})}
                         </p>
                     </div>
@@ -259,12 +259,12 @@ export default function RolesTab() {
             {/* Header */}
             <div className="mb-6 flex items-start justify-between">
                 <div>
-                    <h1 className="text-xl font-semibold text-[#1E1E24]">{t("roles.title")}</h1>
-                    <p className="mt-0.5 text-sm text-[#6B6B76]">{t("roles.subtitle")}</p>
+                    <h1 className="text-xl font-semibold text-tx">{t("roles.title")}</h1>
+                    <p className="mt-0.5 text-sm text-mu">{t("roles.subtitle")}</p>
                 </div>
                 <button
                     onClick={() => setShowCreate(true)}
-                    className="flex items-center gap-2 rounded-lg bg-[#3730A3] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#2D2682]"
+                    className="flex items-center gap-2 rounded-lg bg-pr px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-prh"
                 >
                     <FiPlus size={15}/>
                     {t("roles.createRole")}
@@ -278,12 +278,12 @@ export default function RolesTab() {
                     value={roles.length}
                     sub={t("roles.stats.definedGroups")}
                     icon={<FiShield size={16}/>}
-                    accentColor="#3730A3"
+                    accentColor="rgb(var(--prt))"
                 />
             </div>
 
             {deleteError && (
-                <div className="mb-4 rounded-xl border border-[#EAD4D3] bg-[#F7EEEE] px-4 py-3 text-sm text-[#8B4A46]">
+                <div className="mb-4 rounded-xl border border-rdb bg-rdb px-4 py-3 text-sm text-rdt">
                     {deleteError}
                 </div>
             )}
@@ -296,14 +296,14 @@ export default function RolesTab() {
                     {roles.map(role => (
                         editing?.id === role.id ? (
                             <div key={role.id}
-                                 className="rounded-xl border border-[#D8DCF5] bg-[#EEF0FB] p-5">
-                                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-[#3730A3]">{t("roles.editingRole")}</p>
+                                 className="rounded-xl border border-prs bg-prs p-5">
+                                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-prt">{t("roles.editingRole")}</p>
                                 <input
                                     value={editing.name}
                                     onChange={e => setEditing({...editing, name: e.target.value})}
-                                    className="mb-4 w-full rounded-xl border border-[#E4E4E7] bg-white px-4 py-2.5 text-sm text-[#1E1E24] outline-none focus:border-[#3730A3] transition-colors"
+                                    className="mb-4 w-full rounded-xl border border-bd bg-sf px-4 py-2.5 text-sm text-tx outline-none focus:border-pr transition-colors"
                                 />
-                                <div className="mb-4 rounded-xl border border-[#E4E4E7] bg-white p-4">
+                                <div className="mb-4 rounded-xl border border-bd bg-sf p-4">
                                     <PermissionGrid
                                         selected={editing.permissions}
                                         onToggle={p =>
@@ -319,13 +319,13 @@ export default function RolesTab() {
                                 <div className="flex gap-2">
                                     <button
                                         onClick={handleUpdate}
-                                        className="rounded-xl bg-[#3730A3] px-4 py-2 text-sm font-medium text-white hover:bg-[#2D2682] transition-colors"
+                                        className="rounded-xl bg-pr px-4 py-2 text-sm font-medium text-white hover:bg-prh transition-colors"
                                     >
                                         {t("roles.saveChanges")}
                                     </button>
                                     <button
                                         onClick={() => setEditing(null)}
-                                        className="rounded-xl border border-[#E4E4E7] px-4 py-2 text-sm text-[#8B8B96] hover:text-[#1E1E24] transition-colors"
+                                        className="rounded-xl border border-bd px-4 py-2 text-sm text-mu hover:text-tx transition-colors"
                                     >
                                         {t("common.cancel")}
                                     </button>

@@ -79,13 +79,13 @@ export default function ServersTab() {
         <div>
             <div className="mb-6 flex items-start justify-between">
                 <div>
-                    <h1 className="text-xl font-semibold text-[#1E1E24]">{t("servers.title")}</h1>
-                    <p className="mt-0.5 text-sm text-[#6B6B76]">{t("servers.subtitle")}</p>
+                    <h1 className="text-xl font-semibold text-tx">{t("servers.title")}</h1>
+                    <p className="mt-0.5 text-sm text-mu">{t("servers.subtitle")}</p>
                 </div>
                 <button
                     onClick={handleConnect}
                     disabled={connecting}
-                    className="flex items-center gap-2 rounded-lg border border-[#E4E4E7] bg-white px-4 py-2 text-sm font-medium text-[#55555F] transition-colors hover:border-[#D4D4D9] hover:text-[#1E1E24] disabled:opacity-50"
+                    className="flex items-center gap-2 rounded-lg border border-bd bg-sf px-4 py-2 text-sm font-medium text-mu transition-colors hover:border-bd hover:text-tx disabled:opacity-50"
                 >
                     <FiExternalLink size={14}/>
                     {t("forms.connectServer")}
@@ -97,10 +97,10 @@ export default function ServersTab() {
             ) : guilds.length === 0 ? (
                 <EmptyState message={t("servers.empty")} icon={<FiServer/>}/>
             ) : (
-                <div className="overflow-hidden rounded-xl border border-[#E4E4E7] bg-white">
+                <div className="overflow-hidden rounded-xl border border-bd bg-sf">
                     <table className="w-full text-sm">
                         <thead>
-                        <tr className="border-b border-[#E4E4E7] text-left text-xs uppercase tracking-wider text-[#8B8B96]">
+                        <tr className="border-b border-bd text-left text-xs uppercase tracking-wider text-mu">
                             <th className="px-5 py-3 font-medium">{t("servers.columns.server")}</th>
                             <th className="px-5 py-3 font-medium">{t("servers.columns.bot")}</th>
                             <th className="px-5 py-3 font-medium">{t("servers.columns.role")}</th>
@@ -110,17 +110,17 @@ export default function ServersTab() {
                         <tbody>
                         {guilds.map(g => (
                             <tr key={g.guildId} onClick={() => setOpenGuild(g)}
-                                className="cursor-pointer border-b border-[#F0F0F2] transition-colors last:border-0 hover:bg-[#FAFAFB]">
+                                className="cursor-pointer border-b border-bd transition-colors last:border-0 hover:bg-bg">
                                 <td className="px-5 py-3">
-                                    <p className="font-medium text-[#1E1E24]">{g.guildName}</p>
-                                    <p className="text-xs text-[#8B8B96]">{g.guildId}</p>
+                                    <p className="font-medium text-tx">{g.guildName}</p>
+                                    <p className="text-xs text-mu">{g.guildId}</p>
                                 </td>
                                 <td className="px-5 py-3">
                                     <Badge color={g.botStatus === "CONNECTED" ? "green" : "red"} dot>
                                         {g.botStatus === "CONNECTED" ? t("forms.guilds.connected") : t("forms.guilds.kicked")}
                                     </Badge>
                                 </td>
-                                <td className="px-5 py-3 text-[#55555F]">
+                                <td className="px-5 py-3 text-mu">
                                     {t(`forms.guilds.role.${g.role.toLowerCase()}`)}
                                 </td>
                                 <td className="px-5 py-3 text-right" onClick={e => e.stopPropagation()}>

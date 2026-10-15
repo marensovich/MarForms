@@ -14,11 +14,11 @@ interface Props {
 type AccentColor = "indigo" | "amber" | "slate" | "blue" | "red";
 
 const ACCENT: Record<AccentColor, { iconBg: string; iconText: string; iconBorder: string }> = {
-    indigo: {iconBg: "bg-[#EEF0FB]", iconText: "text-[#3730A3]", iconBorder: "border-[#E4E4E7]"},
-    amber: {iconBg: "bg-[#FBF3E4]", iconText: "text-[#92702A]", iconBorder: "border-[#E4E4E7]"},
-    slate: {iconBg: "bg-[#F0F0F2]", iconText: "text-[#6B6B76]", iconBorder: "border-[#E4E4E7]"},
-    blue: {iconBg: "bg-[#EAF1FB]", iconText: "text-[#31578F]", iconBorder: "border-[#E4E4E7]"},
-    red: {iconBg: "bg-[#F7EEEE]", iconText: "text-[#8B4A46]", iconBorder: "border-[#E4E4E7]"},
+    indigo: {iconBg: "bg-prs", iconText: "text-prt", iconBorder: "border-bd"},
+    amber: {iconBg: "bg-amb", iconText: "text-amt", iconBorder: "border-bd"},
+    slate: {iconBg: "bg-s2", iconText: "text-mu", iconBorder: "border-bd"},
+    blue: {iconBg: "bg-inb", iconText: "text-int", iconBorder: "border-bd"},
+    red: {iconBg: "bg-rdb", iconText: "text-rdt", iconBorder: "border-bd"},
 };
 
 function StateLayout({
@@ -42,14 +42,14 @@ function StateLayout({
 
     return (
         <div
-            className="relative flex min-h-screen w-full flex-col items-center justify-center bg-[#F7F7F8] px-4">
+            className="relative flex min-h-screen w-full flex-col items-center justify-center bg-s2 px-4">
             <motion.div
                 initial={{opacity: 0, y: 20}}
                 animate={{opacity: 1, y: 0}}
                 transition={{duration: 0.45, ease: "easeOut"}}
                 className="relative z-10 w-full max-w-[420px]"
             >
-                <div className="overflow-hidden rounded-2xl border border-[#E4E4E7] bg-white">
+                <div className="overflow-hidden rounded-2xl border border-bd bg-sf">
                     <div className="px-8 py-9 text-center">
                         {/* Icon */}
                         <div className="mb-5 flex justify-center">
@@ -62,15 +62,15 @@ function StateLayout({
                         {/* Badge */}
                         {badge && (
                             <span
-                                className="mb-4 inline-flex items-center rounded-full border border-[#E4E4E7] bg-[#F0F0F2] px-3 py-1 text-xs font-medium text-[#6B6B76]">
+                                className="mb-4 inline-flex items-center rounded-full border border-bd bg-s2 px-3 py-1 text-xs font-medium text-mu">
                                 {badge}
                             </span>
                         )}
 
-                        <h1 className="text-[1.4rem] font-bold tracking-tight text-[#1E1E24]">
+                        <h1 className="text-[1.4rem] font-bold tracking-tight text-tx">
                             {title}
                         </h1>
-                        <p className="mt-2.5 text-sm leading-relaxed text-[#6B6B76]">
+                        <p className="mt-2.5 text-sm leading-relaxed text-mu">
                             {description}
                         </p>
 
@@ -78,7 +78,7 @@ function StateLayout({
                     </div>
                 </div>
 
-                <p className="mt-4 text-center text-xs text-[#C7C7CE]">
+                <p className="mt-4 text-center text-xs text-mu/70">
                     {t("accessStates.footer")}
                 </p>
             </motion.div>
@@ -107,12 +107,12 @@ export function NotAuthenticatedState({formId, redirectPath}: Props) {
                     onClick={handleLogin}
                     whileHover={{scale: 1.015}}
                     whileTap={{scale: 0.985}}
-                    className="flex w-full items-center justify-center gap-3 rounded-xl bg-[#5865F2] px-6 py-3.5 font-semibold text-white transition-colors hover:bg-[#4752C4] focus:outline-none focus:ring-2 focus:ring-[#5865F2]/40 focus:ring-offset-2 focus:ring-offset-white"
+                    className="flex w-full items-center justify-center gap-3 rounded-xl bg-discord px-6 py-3.5 font-semibold text-white transition-colors hover:bg-discord-hover focus:outline-none focus:ring-2 focus:ring-discord/40 focus:ring-offset-2 focus:ring-offset-white"
                 >
                     <BsDiscord size={18}/>
                     {t("accessStates.notAuthenticated.signIn")}
                 </motion.button>
-                <div className="flex items-center justify-center gap-2 text-xs text-[#8B8B96]">
+                <div className="flex items-center justify-center gap-2 text-xs text-mu">
                     <FiArrowRight size={11}/>
                     <span>{t("accessStates.notAuthenticated.redirectNote")}</span>
                 </div>
@@ -132,7 +132,7 @@ export function NotInGuildState() {
             badge={t("accessStates.notInGuild.badge")}
         >
             <div
-                className="rounded-xl border border-[#EFDFC0] bg-[#FBF3E4] px-4 py-3 text-sm text-[#92702A]">
+                className="rounded-xl border border-amb bg-amb px-4 py-3 text-sm text-amt">
                 {t("accessStates.notInGuild.hint")}
             </div>
         </StateLayout>
@@ -180,7 +180,7 @@ export function FormInactiveState({reason}: { reason?: string | null }) {
             description={t("accessStates.formInactive.description")}
             badge={t("accessStates.formInactive.badge")}
         >
-            <div className="rounded-xl border border-[#E4E4E7] bg-[#F7F7F8] px-4 py-3 text-sm text-[#6B6B76]">
+            <div className="rounded-xl border border-bd bg-s2 px-4 py-3 text-sm text-mu">
                 {reason ?? t("accessStates.formInactive.hint")}
             </div>
         </StateLayout>
@@ -197,7 +197,7 @@ export function FormNotFoundState() {
             description={t("accessStates.formNotFound.description")}
             badge={t("accessStates.formNotFound.badge")}
         >
-            <div className="rounded-xl border border-[#E4E4E7] bg-[#F7F7F8] px-4 py-3 text-sm text-[#6B6B76]">
+            <div className="rounded-xl border border-bd bg-s2 px-4 py-3 text-sm text-mu">
                 {t("accessStates.formNotFound.hint")}
             </div>
         </StateLayout>
@@ -218,7 +218,7 @@ export function FormErrorState() {
                 onClick={() => window.location.reload()}
                 whileHover={{scale: 1.015}}
                 whileTap={{scale: 0.985}}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#E4E4E7] bg-white px-6 py-3 text-sm font-medium text-[#55555F] transition-colors hover:bg-[#F0F0F2] hover:text-[#1E1E24]"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-bd bg-sf px-6 py-3 text-sm font-medium text-mu transition-colors hover:bg-s2 hover:text-tx"
             >
                 <FiRefreshCw size={14}/>
                 {t("accessStates.formError.tryAgain")}

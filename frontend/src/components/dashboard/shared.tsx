@@ -9,7 +9,7 @@ export function TabSkeleton({rows = 5}: { rows?: number }) {
             {[...Array(rows)].map((_, i) => (
                 <div
                     key={i}
-                    className="h-14 rounded-xl bg-[#F0F0F2]"
+                    className="h-14 rounded-xl bg-s2"
                     style={{opacity: 1 - i * 0.14}}
                 />
             ))}
@@ -20,9 +20,9 @@ export function TabSkeleton({rows = 5}: { rows?: number }) {
 export function EmptyState({message, icon}: { message: string; icon?: ReactNode }) {
     return (
         <div
-            className="flex flex-col h-52 items-center justify-center gap-3 rounded-xl border border-dashed border-[#D4D4D9]">
-            {icon && <div className="text-4xl text-[#C7C7CE]">{icon}</div>}
-            <p className="text-sm text-[#8B8B96]">{message}</p>
+            className="flex flex-col h-52 items-center justify-center gap-3 rounded-xl border border-dashed border-bd">
+            {icon && <div className="text-4xl text-mu/70">{icon}</div>}
+            <p className="text-sm text-mu">{message}</p>
         </div>
     );
 }
@@ -41,8 +41,8 @@ export function TabHeader({
     return (
         <div className="mb-6 flex items-start justify-between">
             <div>
-                <h1 className="text-xl font-semibold text-[#1E1E24]">{title}</h1>
-                <p className="mt-0.5 text-sm text-[#6B6B76]">
+                <h1 className="text-xl font-semibold text-tx">{title}</h1>
+                <p className="mt-0.5 text-sm text-mu">
                     {count} {noun}{count !== 1 ? "s" : ""}
                 </p>
             </div>
@@ -61,22 +61,22 @@ export function Badge({
     dot?: boolean;
 }) {
     const styles: Record<string, string> = {
-        default: "border-[#E4E4E7] bg-[#F0F0F2] text-[#55555F]",
-        green: "border-[#D7E8D9] bg-[#EEF4EE] text-[#3F6B4A]",
-        red: "border-[#EAD4D3] bg-[#F7EEEE] text-[#8B4A46]",
-        orange: "border-[#EFDFC0] bg-[#FBF3E4] text-[#92702A]",
-        indigo: "border-[#D8DCF5] bg-[#EEF0FB] text-[#3730A3]",
-        blue: "border-[#CFE0F5] bg-[#EAF1FB] text-[#31578F]",
-        purple: "border-[#E0D5F2] bg-[#F2EEFA] text-[#5B3E96]",
+        default: "border-bd bg-s2 text-mu",
+        green: "border-gnb bg-gnb text-gnt",
+        red: "border-rdb bg-rdb text-rdt",
+        orange: "border-amb bg-amb text-amt",
+        indigo: "border-prs bg-prs text-prt",
+        blue: "border-inb bg-inb text-int",
+        purple: "border-prs bg-prs text-prt",
     };
     const dotColors: Record<string, string> = {
-        default: "bg-[#9A9AA4]",
-        green: "bg-[#5C8F6A]",
-        red: "bg-[#B56A65]",
-        orange: "bg-[#C99A3E]",
-        indigo: "bg-[#3730A3]",
-        blue: "bg-[#4A78B5]",
-        purple: "bg-[#7C5CB5]",
+        default: "bg-mu",
+        green: "bg-ok",
+        red: "bg-dg",
+        orange: "bg-wr",
+        indigo: "bg-pr",
+        blue: "bg-int",
+        purple: "bg-pr",
     };
 
     return (
@@ -93,7 +93,7 @@ export function StatsCard({
                               value,
                               sub,
                               icon,
-                              accentColor = "#3730A3",
+                              accentColor = "rgb(var(--prt))",
                           }: {
     label: string;
     value: string | number;
@@ -102,20 +102,20 @@ export function StatsCard({
     accentColor?: string;
 }) {
     return (
-        <div className="relative overflow-hidden rounded-xl border border-[#E4E4E7] bg-white p-5">
+        <div className="relative overflow-hidden rounded-xl border border-bd bg-sf p-5">
             <div
                 className="absolute bottom-0 left-0 h-px w-3/4"
-                style={{background: `linear-gradient(to right, ${accentColor}60, transparent)`}}
+                style={{background: `linear-gradient(to right, color-mix(in srgb, ${accentColor} 38%, transparent), transparent)`}}
             />
             <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                    <p className="text-xs font-medium uppercase tracking-wider text-[#6B6B76]">{label}</p>
-                    <p className="mt-2 text-2xl font-bold tabular-nums text-[#1E1E24]">{value}</p>
-                    {sub && <p className="mt-0.5 truncate text-xs text-[#8B8B96]">{sub}</p>}
+                    <p className="text-xs font-medium uppercase tracking-wider text-mu">{label}</p>
+                    <p className="mt-2 text-2xl font-bold tabular-nums text-tx">{value}</p>
+                    {sub && <p className="mt-0.5 truncate text-xs text-mu">{sub}</p>}
                 </div>
                 <div
                     className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg"
-                    style={{background: `${accentColor}18`, color: accentColor}}
+                    style={{background: `color-mix(in srgb, ${accentColor} 9%, transparent)`, color: accentColor}}
                 >
                     {icon}
                 </div>
@@ -151,18 +151,18 @@ export function Modal({
                 animate={{opacity: 1, scale: 1, y: 0}}
                 exit={{opacity: 0, scale: 0.96, y: 8}}
                 transition={{duration: 0.18}}
-                className={`relative z-10 w-full ${width} rounded-2xl border border-[#E4E4E7] bg-white shadow-xl`}
+                className={`relative z-10 w-full ${width} rounded-2xl border border-bd bg-sf shadow-xl`}
             >
-                <div className="flex items-start justify-between border-b border-[#E4E4E7] px-6 py-4">
+                <div className="flex items-start justify-between border-b border-bd px-6 py-4">
                     <div>
-                        <h2 className="text-sm font-semibold text-[#1E1E24]">{title}</h2>
+                        <h2 className="text-sm font-semibold text-tx">{title}</h2>
                         {subtitle && (
-                            <p className="mt-0.5 text-xs text-[#6B6B76]">{subtitle}</p>
+                            <p className="mt-0.5 text-xs text-mu">{subtitle}</p>
                         )}
                     </div>
                     <button
                         onClick={onClose}
-                        className="ml-4 -mr-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-[#8B8B96] transition-colors hover:bg-[#F0F0F2] hover:text-[#1E1E24]"
+                        className="ml-4 -mr-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-mu transition-colors hover:bg-s2 hover:text-tx"
                     >
                         <FiX size={15}/>
                     </button>
@@ -191,16 +191,16 @@ export function ConfirmModal({
     const {t} = useTranslation();
     const btnCls =
         confirmColor === "red"
-            ? "bg-[#B54B45] hover:bg-[#9C3F3A] text-white"
-            : "bg-[#3730A3] hover:bg-[#2D2682] text-white";
+            ? "bg-dg hover:bg-dgh text-white"
+            : "bg-pr hover:bg-prh text-white";
 
     return (
         <Modal title={title} onClose={onCancel} width="max-w-sm">
-            <p className="mb-6 text-sm leading-relaxed text-[#55555F]">{message}</p>
+            <p className="mb-6 text-sm leading-relaxed text-mu">{message}</p>
             <div className="flex justify-end gap-2">
                 <button
                     onClick={onCancel}
-                    className="rounded-lg border border-[#E4E4E7] px-4 py-2 text-sm text-[#55555F] transition-colors hover:text-[#1E1E24]"
+                    className="rounded-lg border border-bd px-4 py-2 text-sm text-mu transition-colors hover:text-tx"
                 >
                     {t("common.cancel")}
                 </button>
@@ -218,8 +218,8 @@ export function ConfirmModal({
 export function SectionDivider({label}: { label: string }) {
     return (
         <div className="flex items-center gap-3 py-2">
-            <span className="text-xs font-medium uppercase tracking-wider text-[#8B8B96]">{label}</span>
-            <div className="flex-1 border-t border-[#E4E4E7]"/>
+            <span className="text-xs font-medium uppercase tracking-wider text-mu">{label}</span>
+            <div className="flex-1 border-t border-bd"/>
         </div>
     );
 }
@@ -238,11 +238,11 @@ export function ActionBtn({
     title?: string;
 }) {
     const cls: Record<string, string> = {
-        ghost: "text-[#6B6B76] hover:bg-[#F0F0F2] hover:text-[#1E1E24]",
-        danger: "text-[#B56A65] hover:bg-[#F7EEEE] hover:text-[#8B4A46]",
-        warning: "text-[#C99A3E] hover:bg-[#FBF3E4] hover:text-[#92702A]",
-        primary: "text-[#3730A3] hover:bg-[#EEF0FB] hover:text-[#2D2682]",
-        success: "text-[#5C8F6A] hover:bg-[#EEF4EE] hover:text-[#3F6B4A]",
+        ghost: "text-mu hover:bg-s2 hover:text-tx",
+        danger: "text-rdt hover:bg-rdb hover:text-rdt",
+        warning: "text-amt hover:bg-amb hover:text-amt",
+        primary: "text-prt hover:bg-prs hover:text-prt",
+        success: "text-gnt hover:bg-gnb hover:text-gnt",
     };
 
     return (

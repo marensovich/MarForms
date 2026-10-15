@@ -93,9 +93,9 @@ function ResponsesModal({
             >
                 <div className="flex flex-col gap-3 max-h-96 overflow-y-auto">
                     {Object.entries(selected.answers).map(([fieldId, value]) => (
-                        <div key={fieldId} className="rounded-lg border border-[#E4E4E7] bg-[#FAFAFB] p-3">
-                            <p className="mb-1 text-xs font-medium text-[#6B6B76]">{getLabel(fieldId)}</p>
-                            <p className="text-sm text-[#1E1E24] break-words">
+                        <div key={fieldId} className="rounded-lg border border-bd bg-bg p-3">
+                            <p className="mb-1 text-xs font-medium text-mu">{getLabel(fieldId)}</p>
+                            <p className="text-sm text-tx break-words">
                                 {Array.isArray(value) ? value.join(", ") : String(value)}
                             </p>
                         </div>
@@ -104,7 +104,7 @@ function ResponsesModal({
                 <div className="mt-4 flex justify-end">
                     <button
                         onClick={() => setSelected(null)}
-                        className="rounded-lg border border-[#E4E4E7] px-4 py-2 text-sm text-[#8B8B96] hover:text-[#1E1E24] transition-colors"
+                        className="rounded-lg border border-bd px-4 py-2 text-sm text-mu hover:text-tx transition-colors"
                     >
                         {t("forms.responses.backToList")}
                     </button>
@@ -132,17 +132,17 @@ function ResponsesModal({
                         <button
                             key={sub.id}
                             onClick={() => setSelected(sub)}
-                            className="flex items-center justify-between rounded-lg border border-[#E4E4E7] bg-[#FAFAFB] px-4 py-3 text-left transition-colors hover:border-[#D4D4D9] hover:bg-[#F0F0F2]"
+                            className="flex items-center justify-between rounded-lg border border-bd bg-bg px-4 py-3 text-left transition-colors hover:border-bd hover:bg-s2"
                         >
                             <div>
-                                <p className="text-sm font-medium text-[#1E1E24] font-mono">{sub.discordId}</p>
-                                <p className="mt-0.5 text-xs text-[#8B8B96]">
+                                <p className="text-sm font-medium text-tx font-mono">{sub.discordId}</p>
+                                <p className="mt-0.5 text-xs text-mu">
                                     {t("forms.responses.fieldsAnswered", {count: Object.keys(sub.answers).length})}
                                 </p>
                             </div>
                             <div className="text-right">
-                                <p className="text-xs text-[#8B8B96]">{new Date(sub.createdAt).toLocaleDateString()}</p>
-                                <p className="text-xs text-[#8B8B96]">{new Date(sub.createdAt).toLocaleTimeString()}</p>
+                                <p className="text-xs text-mu">{new Date(sub.createdAt).toLocaleDateString()}</p>
+                                <p className="text-xs text-mu">{new Date(sub.createdAt).toLocaleTimeString()}</p>
                             </div>
                         </button>
                     ))}
@@ -248,8 +248,8 @@ export default function FormsTab() {
             {/* Header */}
             <div className="mb-6 flex items-start justify-between">
                 <div>
-                    <h1 className="text-xl font-semibold text-[#1E1E24]">{t("forms.title")}</h1>
-                    <p className="mt-0.5 text-sm text-[#6B6B76]">
+                    <h1 className="text-xl font-semibold text-tx">{t("forms.title")}</h1>
+                    <p className="mt-0.5 text-sm text-mu">
                         {t("forms.subtitle")}
                     </p>
                 </div>
@@ -257,14 +257,14 @@ export default function FormsTab() {
                     <button
                         onClick={handleConnect}
                         disabled={connecting}
-                        className="flex items-center gap-2 rounded-lg border border-[#E4E4E7] bg-white px-4 py-2 text-sm font-medium text-[#55555F] transition-colors hover:border-[#D4D4D9] hover:text-[#1E1E24] disabled:opacity-50"
+                        className="flex items-center gap-2 rounded-lg border border-bd bg-sf px-4 py-2 text-sm font-medium text-mu transition-colors hover:border-bd hover:text-tx disabled:opacity-50"
                     >
                         <FiExternalLink size={14}/>
                         {t("forms.connectServer")}
                     </button>
                     <button
                         onClick={() => setShowWizard(true)}
-                        className="flex items-center gap-2 rounded-lg bg-[#3730A3] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#2D2682]"
+                        className="flex items-center gap-2 rounded-lg bg-pr px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-prh"
                     >
                         <FiFileText size={14}/>
                         {t("forms.newForm")}
@@ -276,8 +276,8 @@ export default function FormsTab() {
             {connectBanner && (
                 <div className={`mb-6 flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm ${
                     connectBanner.type === "success"
-                        ? "border-[#D7E8D9] bg-[#EEF4EE] text-[#3F6B4A]"
-                        : "border-[#EAD4D3] bg-[#F7EEEE] text-[#8B4A46]"
+                        ? "border-gnb bg-gnb text-gnt"
+                        : "border-rdb bg-rdb text-rdt"
                 }`}>
                     <span>
                         {connectBanner.type === "success"
@@ -295,21 +295,21 @@ export default function FormsTab() {
             {/* Connected servers */}
             {!guildsLoading && guilds.length > 0 && (
                 <div className="mb-6">
-                    <p className="mb-2 text-xs font-medium uppercase tracking-wider text-[#8B8B96]">
+                    <p className="mb-2 text-xs font-medium uppercase tracking-wider text-mu">
                         {t("forms.guilds.title")}
                     </p>
                     <div className="flex flex-wrap gap-2">
                         {guilds.map(g => (
                             <div
                                 key={g.guildId}
-                                className="flex items-center gap-2 rounded-lg border border-[#E4E4E7] bg-white px-3 py-2 text-sm"
+                                className="flex items-center gap-2 rounded-lg border border-bd bg-sf px-3 py-2 text-sm"
                             >
-                                <FiServer size={13} className="text-[#8B8B96]"/>
-                                <span className="font-medium text-[#1E1E24]">{g.guildName}</span>
+                                <FiServer size={13} className="text-mu"/>
+                                <span className="font-medium text-tx">{g.guildName}</span>
                                 <Badge color={g.botStatus === "CONNECTED" ? "green" : "red"} dot>
                                     {g.botStatus === "CONNECTED" ? t("forms.guilds.connected") : t("forms.guilds.kicked")}
                                 </Badge>
-                                <span className="text-xs text-[#8B8B96]">{t(`forms.guilds.role.${g.role.toLowerCase()}`)}</span>
+                                <span className="text-xs text-mu">{t(`forms.guilds.role.${g.role.toLowerCase()}`)}</span>
                             </div>
                         ))}
                     </div>
@@ -324,21 +324,21 @@ export default function FormsTab() {
                         value={forms.length}
                         sub={t("forms.stats.activeForms", {count: activeForms})}
                         icon={<FiFileText size={16}/>}
-                        accentColor="#3730A3"
+                        accentColor="rgb(var(--prt))"
                     />
                     <StatsCard
                         label={t("forms.stats.active")}
                         value={activeForms}
                         sub={forms.length > 0 ? t("forms.stats.ofTotal", {pct: Math.round((activeForms / forms.length) * 100)}) : "—"}
                         icon={<FiCheckCircle size={16}/>}
-                        accentColor="#3F6B4A"
+                        accentColor="rgb(var(--gnt))"
                     />
                     <StatsCard
                         label={t("forms.stats.totalResponses")}
                         value={totalSubmissions}
                         sub={t("forms.stats.acrossAllForms")}
                         icon={<FiInbox size={16}/>}
-                        accentColor="#5B3E96"
+                        accentColor="rgb(var(--prt))"
                     />
                 </div>
             )}
@@ -351,19 +351,19 @@ export default function FormsTab() {
                         onClick={() => setStatusFilter(f)}
                         className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
                             statusFilter === f
-                                ? "bg-[#F0F0F2] text-[#1E1E24]"
-                                : "text-[#8B8B96] hover:text-[#55555F]"
+                                ? "bg-s2 text-tx"
+                                : "text-mu hover:text-mu"
                         }`}
                     >
                         {t(`forms.filter.${f}`)}
                         {f !== "all" && (
-                            <span className="ml-1.5 text-[#8B8B96]">
+                            <span className="ml-1.5 text-mu">
                                 {f === "active" ? activeForms : forms.length - activeForms}
                             </span>
                         )}
                     </button>
                 ))}
-                <span className="ml-auto text-xs text-[#8B8B96]">{t("forms.filter.shown", {count: filtered.length})}</span>
+                <span className="ml-auto text-xs text-mu">{t("forms.filter.shown", {count: filtered.length})}</span>
             </div>
 
             {/* Table */}
@@ -377,36 +377,36 @@ export default function FormsTab() {
                     icon={<FiFileText/>}
                 />
             ) : (
-                <div className="overflow-hidden rounded-xl border border-[#E4E4E7]">
+                <div className="overflow-hidden rounded-xl border border-bd">
                     <table className="w-full text-sm">
                         <thead>
-                        <tr className="border-b border-[#E4E4E7] bg-[#FAFAFB]">
-                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#6B6B76]">{t("forms.table.title")}</th>
-                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#6B6B76]">{t("forms.table.status")}</th>
-                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#6B6B76]">{t("forms.table.responses")}</th>
-                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#6B6B76]">{t("forms.table.created")}</th>
-                            <th className="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#6B6B76]">{t("forms.table.actions")}</th>
+                        <tr className="border-b border-bd bg-bg">
+                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-mu">{t("forms.table.title")}</th>
+                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-mu">{t("forms.table.status")}</th>
+                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-mu">{t("forms.table.responses")}</th>
+                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-mu">{t("forms.table.created")}</th>
+                            <th className="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-mu">{t("forms.table.actions")}</th>
                         </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#F0F0F2]">
+                        <tbody className="divide-y divide-bd">
                         {filtered.map(form => (
                             <tr
                                 key={form.id}
-                                className="group transition-colors hover:bg-[#FAFAFB]"
+                                className="group transition-colors hover:bg-bg"
                             >
                                 <td className="px-5 py-4">
                                     <div className="flex items-center gap-3">
                                         <div
                                             className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border ${
                                                 form.active
-                                                    ? "border-[#D7E8D9] bg-[#EEF4EE] text-[#3F6B4A]"
-                                                    : "border-[#E4E4E7] bg-[#F0F0F2] text-[#8B8B96]"
+                                                    ? "border-gnb bg-gnb text-gnt"
+                                                    : "border-bd bg-s2 text-mu"
                                             }`}>
                                             <FiFileText size={13}/>
                                         </div>
                                         <div>
-                                            <p className="font-medium text-[#1E1E24]">{form.title}</p>
-                                            <p className="mt-0.5 text-xs text-[#8B8B96] font-mono">{form.id.slice(0, 8)}…</p>
+                                            <p className="font-medium text-tx">{form.title}</p>
+                                            <p className="mt-0.5 text-xs text-mu font-mono">{form.id.slice(0, 8)}…</p>
                                         </div>
                                     </div>
                                 </td>
@@ -417,10 +417,10 @@ export default function FormsTab() {
                                 </td>
                                 <td className="px-5 py-4">
                                     <div className="flex items-center gap-2">
-                                        <span className="font-medium text-[#1E1E24]">{form.submissionCount}</span>
+                                        <span className="font-medium text-tx">{form.submissionCount}</span>
                                         <button
                                             onClick={() => setResponsesForm(form)}
-                                            className="flex items-center gap-1 rounded text-xs text-[#8B8B96] transition-colors hover:text-[#3730A3]"
+                                            className="flex items-center gap-1 rounded text-xs text-mu transition-colors hover:text-prt"
                                             title="View responses"
                                         >
                                             <FiList size={11}/>
@@ -428,7 +428,7 @@ export default function FormsTab() {
                                         </button>
                                     </div>
                                 </td>
-                                <td className="px-5 py-4 text-sm text-[#6B6B76]">
+                                <td className="px-5 py-4 text-sm text-mu">
                                     {new Date(form.createdAt).toLocaleDateString("en-GB", {
                                         day: "2-digit",
                                         month: "short",

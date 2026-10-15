@@ -129,18 +129,18 @@ export default function FormWizard({onClose, onCreated, guildId}: Props) {
                 animate={{opacity: 1, scale: 1, y: 0}}
                 exit={{opacity: 0, scale: 0.95, y: 8}}
                 transition={{duration: 0.2}}
-                className={`flex w-full flex-col rounded-2xl border border-[#E4E4E7] bg-white shadow-xl transition-all duration-200 ${
+                className={`flex w-full flex-col rounded-2xl border border-bd bg-sf shadow-xl transition-all duration-200 ${
                     isFieldsStep ? "max-w-[960px]" : "max-w-[520px]"
                 }`}
                 style={{maxHeight: "calc(100vh - 2rem)"}}
             >
                 {/* ── Header ─────────────────────────────────────────── */}
-                <div className="flex-shrink-0 border-b border-[#E4E4E7] px-6 py-4">
+                <div className="flex-shrink-0 border-b border-bd px-6 py-4">
                     <div className="mb-4 flex items-center justify-between">
-                        <h2 className="text-sm font-semibold text-[#1E1E24]">{t("wizard.create")}</h2>
+                        <h2 className="text-sm font-semibold text-tx">{t("wizard.create")}</h2>
                         <button
                             onClick={onClose}
-                            className="flex h-7 w-7 items-center justify-center rounded-lg text-[#8B8B96] transition-colors hover:bg-[#F0F0F2] hover:text-[#1E1E24]"
+                            className="flex h-7 w-7 items-center justify-center rounded-lg text-mu transition-colors hover:bg-s2 hover:text-tx"
                         >
                             <FiX size={14}/>
                         </button>
@@ -156,21 +156,21 @@ export default function FormWizard({onClose, onCreated, guildId}: Props) {
                                     <div className="flex items-center gap-2">
                                         <div
                                             className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold transition-all ${
-                                                done ? "bg-[#3730A3] text-white" :
-                                                    current ? "bg-[#3730A3] text-white ring-2 ring-[#D8DCF5] ring-offset-1 ring-offset-white" :
-                                                        "bg-[#F0F0F2] text-[#B5B5BC]"
+                                                done ? "bg-pr text-white" :
+                                                    current ? "bg-pr text-white ring-2 ring-prs ring-offset-1 ring-offset-white" :
+                                                        "bg-s2 text-mu"
                                             }`}>
                                             {done ? <FiCheck size={9}/> : s.id}
                                         </div>
                                         <div>
-                                            <p className={`text-[11px] font-medium transition-colors leading-tight ${current ? "text-[#1E1E24]" : "text-[#B5B5BC]"}`}>
+                                            <p className={`text-[11px] font-medium transition-colors leading-tight ${current ? "text-tx" : "text-mu"}`}>
                                                 {t(s.labelKey)}
                                             </p>
-                                            <p className="text-[10px] text-[#C7C7CE] leading-tight">{t(s.descKey)}</p>
+                                            <p className="text-[10px] text-mu/70 leading-tight">{t(s.descKey)}</p>
                                         </div>
                                     </div>
                                     {idx < STEPS.length - 1 && (
-                                        <FiChevronRight size={11} className="mx-1 text-[#D4D4D9]"/>
+                                        <FiChevronRight size={11} className="mx-1 text-mu"/>
                                     )}
                                 </div>
                             );
@@ -202,7 +202,7 @@ export default function FormWizard({onClose, onCreated, guildId}: Props) {
                                     <StepServerSettings draft={draft} onChange={updateDraft} lockServer={!!guildId}/>
                                     {guildId && (
                                         <div className="mt-6">
-                                            <p className="mb-2 text-sm font-medium text-[#1E1E24]">{t("access.title")}</p>
+                                            <p className="mb-2 text-sm font-medium text-tx">{t("access.title")}</p>
                                             <AccessModeSelector value={draft.accessMode}
                                                                 onChange={accessMode => updateDraft({accessMode})}/>
                                             {draft.accessMode === "ROLE_GATED" && (
@@ -224,10 +224,10 @@ export default function FormWizard({onClose, onCreated, guildId}: Props) {
                 </div>
 
                 {/* ── Footer ─────────────────────────────────────────── */}
-                <div className="flex-shrink-0 flex items-center justify-between border-t border-[#E4E4E7] px-6 py-4">
+                <div className="flex-shrink-0 flex items-center justify-between border-t border-bd px-6 py-4">
                     <button
                         onClick={step === 1 ? onClose : handleBack}
-                        className="rounded-xl border border-[#E4E4E7] px-4 py-2 text-sm text-[#8B8B96] transition-colors hover:border-[#D4D4D9] hover:text-[#1E1E24]"
+                        className="rounded-xl border border-bd px-4 py-2 text-sm text-mu transition-colors hover:border-bd hover:text-tx"
                     >
                         {step === 1 ? t("wizard.cancel") : t("wizard.back")}
                     </button>
@@ -236,14 +236,14 @@ export default function FormWizard({onClose, onCreated, guildId}: Props) {
                         {draft.fields.length > 0 && (
                             <button
                                 onClick={() => setPreviewOpen(true)}
-                                className="flex items-center gap-1.5 rounded-xl border border-[#E4E4E7] px-3 py-2 text-sm text-[#55555F] transition-colors hover:border-[#D4D4D9] hover:text-[#1E1E24]"
+                                className="flex items-center gap-1.5 rounded-xl border border-bd px-3 py-2 text-sm text-mu transition-colors hover:border-bd hover:text-tx"
                             >
                                 <FiEye size={13}/>
                                 {t("preview.open")}
                             </button>
                         )}
                         {error && (
-                            <div className="flex items-center gap-1.5 text-xs text-[#B56A65]">
+                            <div className="flex items-center gap-1.5 text-xs text-rdt">
                                 <FiAlertCircle size={12}/>
                                 {error}
                             </div>
@@ -252,7 +252,7 @@ export default function FormWizard({onClose, onCreated, guildId}: Props) {
                             <button
                                 onClick={handleNext}
                                 disabled={!canProceed(step, draft)}
-                                className="rounded-xl bg-[#3730A3] px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-[#2D2682] disabled:cursor-not-allowed disabled:opacity-40"
+                                className="rounded-xl bg-pr px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-prh disabled:cursor-not-allowed disabled:opacity-40"
                             >
                                 {t("wizard.next")}
                             </button>
@@ -260,7 +260,7 @@ export default function FormWizard({onClose, onCreated, guildId}: Props) {
                             <button
                                 onClick={handleSubmit}
                                 disabled={submitting || !canProceed(3, draft)}
-                                className="rounded-xl bg-[#3730A3] px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-[#2D2682] disabled:cursor-not-allowed disabled:opacity-40"
+                                className="rounded-xl bg-pr px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-prh disabled:cursor-not-allowed disabled:opacity-40"
                             >
                                 {submitting ? t("wizard.creating") : guildId ? t("wizard.createDraft") : t("wizard.create")}
                             </button>

@@ -1201,5 +1201,11 @@
     "sent": "Sent {{date}}",
     "decided": "decided {{date}}",
     "more": "Show more"
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
   }
 }

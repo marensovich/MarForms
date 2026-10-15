@@ -91,28 +91,28 @@ export default function FileUploadField({field, value, onChange, onBlur, error}:
                 onChange={e => choose(e.target.files?.[0])}
             />
             {value && uploaded ? (
-                <div className="flex items-center gap-3 rounded-xl border border-[#D7E8D9] bg-[#EEF4EE] px-3 py-2.5">
-                    <FiFile size={16} className="flex-shrink-0 text-[#3F6B4A]"/>
+                <div className="flex items-center gap-3 rounded-xl border border-gnb bg-gnb px-3 py-2.5">
+                    <FiFile size={16} className="flex-shrink-0 text-gnt"/>
                     <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm text-[#1E1E24]">{uploaded.name}</p>
-                        <p className="text-xs text-[#6B6B76]">{formatBytes(uploaded.size)}</p>
+                        <p className="truncate text-sm text-tx">{uploaded.name}</p>
+                        <p className="text-xs text-mu">{formatBytes(uploaded.size)}</p>
                     </div>
                     <button type="button" onClick={clear} aria-label={t("form.file.remove")}
-                            className="rounded-lg p-1 text-[#6B6B76] transition-colors hover:bg-white hover:text-[#1E1E24]">
+                            className="rounded-lg p-1 text-mu transition-colors hover:bg-sf hover:text-tx">
                         <FiX size={14}/>
                     </button>
                 </div>
             ) : progress !== null ? (
-                <div className="rounded-xl border border-[#E4E4E7] bg-white px-3 py-2.5">
-                    <div className="mb-1.5 flex items-center justify-between text-xs text-[#6B6B76]">
+                <div className="rounded-xl border border-bd bg-sf px-3 py-2.5">
+                    <div className="mb-1.5 flex items-center justify-between text-xs text-mu">
                         <span>{t("form.file.uploading")}</span>
                         <span className="tabular-nums">{Math.round(progress * 100)}%</span>
                     </div>
-                    <div className="h-1.5 overflow-hidden rounded-full bg-[#F0F0F2]">
-                        <div className="h-full rounded-full bg-[#3730A3] transition-all"
+                    <div className="h-1.5 overflow-hidden rounded-full bg-s2">
+                        <div className="h-full rounded-full bg-pr transition-all"
                              style={{width: `${Math.round(progress * 100)}%`}}/>
                     </div>
-                    <button type="button" onClick={clear} className="mt-1.5 text-xs text-[#8B8B96] hover:text-[#1E1E24]">
+                    <button type="button" onClick={clear} className="mt-1.5 text-xs text-mu hover:text-tx">
                         {t("common.cancel")}
                     </button>
                 </div>
@@ -123,15 +123,15 @@ export default function FileUploadField({field, value, onChange, onBlur, error}:
                     onClick={() => inputRef.current?.click()}
                     className={`flex w-full items-center justify-center gap-2 rounded-xl border border-dashed px-3 py-4 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
                         shownError
-                            ? "border-[#EAD4D3] bg-[#F7EEEE] text-[#8B4A46]"
-                            : "border-[#D4D4D9] bg-white text-[#55555F] hover:border-[#3730A3] hover:text-[#3730A3]"
+                            ? "border-rdb bg-rdb text-rdt"
+                            : "border-bd bg-sf text-mu hover:border-pr hover:text-prt"
                     }`}
                 >
                     <FiPaperclip size={15}/>
                     {preview ? t("form.file.previewDisabled") : t("form.file.choose")}
                 </button>
             )}
-            <p className="text-[11px] text-[#8B8B96]">
+            <p className="text-[11px] text-mu">
                 {t("form.file.limits", {types: extensions.join(", "), max: limitMb})}
             </p>
         </FieldWrapper>

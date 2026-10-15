@@ -91,22 +91,22 @@ export default function GuildModerationPanel({guild, onBack}: { guild: MyGuild; 
     return (
         <div>
             <button onClick={onBack}
-                    className="mb-4 flex items-center gap-1.5 text-sm text-[#6B6B76] transition-colors hover:text-[#1E1E24]">
+                    className="mb-4 flex items-center gap-1.5 text-sm text-mu transition-colors hover:text-tx">
                 <FiArrowLeft size={14}/>
                 {t("servers.title")}
             </button>
 
             <div className="mb-6 flex items-start justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-semibold text-[#1E1E24]">{guild.guildName}</h1>
-                    <p className="mt-0.5 text-sm text-[#6B6B76]">{t("moderation.subtitle", {count: totalElements})}</p>
+                    <h1 className="text-xl font-semibold text-tx">{guild.guildName}</h1>
+                    <p className="mt-0.5 text-sm text-mu">{t("moderation.subtitle", {count: totalElements})}</p>
                 </div>
                 <button
                     onClick={() => {
                         setLoading(true);
                         setReloadKey(k => k + 1);
                     }}
-                    className="flex items-center gap-2 rounded-lg border border-[#E4E4E7] bg-white px-3 py-2 text-xs font-medium text-[#55555F] transition-colors hover:text-[#1E1E24]"
+                    className="flex items-center gap-2 rounded-lg border border-bd bg-sf px-3 py-2 text-xs font-medium text-mu transition-colors hover:text-tx"
                 >
                     <FiRefreshCw size={12}/>
                     {t("moderation.refresh")}
@@ -121,8 +121,8 @@ export default function GuildModerationPanel({guild, onBack}: { guild: MyGuild; 
                         onClick={() => updateFilters({status: s})}
                         className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
                             filters.status === s
-                                ? "border-[#D8DCF5] bg-[#EEF0FB] text-[#3730A3]"
-                                : "border-[#E4E4E7] bg-white text-[#6B6B76] hover:text-[#1E1E24]"
+                                ? "border-prs bg-prs text-prt"
+                                : "border-bd bg-sf text-mu hover:text-tx"
                         }`}
                     >
                         {s ? t(`moderation.status.${s}`) : t("moderation.filter.allStatuses")}
@@ -135,37 +135,37 @@ export default function GuildModerationPanel({guild, onBack}: { guild: MyGuild; 
                 <select
                     value={filters.formId}
                     onChange={e => updateFilters({formId: e.target.value})}
-                    className="rounded-lg border border-[#E4E4E7] bg-white px-3 py-2 text-xs text-[#55555F] outline-none focus:border-[#3730A3]"
+                    className="rounded-lg border border-bd bg-sf px-3 py-2 text-xs text-mu outline-none focus:border-pr"
                 >
                     <option value="">{t("moderation.filter.allForms")}</option>
                     {forms.map(f => <option key={f.id} value={f.id}>{f.title}</option>)}
                 </select>
-                <div className="flex items-center gap-1.5 rounded-lg border border-[#E4E4E7] bg-white px-3 py-2">
-                    <FiSearch size={12} className="flex-shrink-0 text-[#8B8B96]"/>
+                <div className="flex items-center gap-1.5 rounded-lg border border-bd bg-sf px-3 py-2">
+                    <FiSearch size={12} className="flex-shrink-0 text-mu"/>
                     <input
                         value={queryInput}
                         onChange={e => setQueryInput(e.target.value)}
                         onKeyDown={e => e.key === "Enter" && applyQuery()}
                         placeholder={t("moderation.filter.searchPlaceholder")}
-                        className="w-48 bg-transparent text-xs text-[#1E1E24] placeholder-[#C7C7CE] outline-none"
+                        className="w-48 bg-transparent text-xs text-tx placeholder-mu/70 outline-none"
                     />
                     {queryInput && (
                         <button onClick={() => {
                             setQueryInput("");
                             updateFilters({query: ""});
-                        }} className="text-[#8B8B96] transition-colors hover:text-[#1E1E24]">
+                        }} className="text-mu transition-colors hover:text-tx">
                             <FiX size={11}/>
                         </button>
                     )}
                 </div>
                 <button onClick={applyQuery}
-                        className="rounded-lg bg-[#3730A3] px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-[#2D2682]">
+                        className="rounded-lg bg-pr px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-prh">
                     {t("common.search")}
                 </button>
             </div>
 
             {error && (
-                <div className="mb-4 rounded-lg border border-[#EAD4D3] bg-[#F7EEEE] px-3 py-2 text-xs text-[#8B4A46]">
+                <div className="mb-4 rounded-lg border border-rdb bg-rdb px-3 py-2 text-xs text-rdt">
                     {error}
                 </div>
             )}
@@ -175,10 +175,10 @@ export default function GuildModerationPanel({guild, onBack}: { guild: MyGuild; 
             ) : rows.length === 0 ? (
                 <EmptyState message={t("moderation.empty")} icon={<FiInbox/>}/>
             ) : (
-                <div className="overflow-hidden rounded-xl border border-[#E4E4E7] bg-white">
+                <div className="overflow-hidden rounded-xl border border-bd bg-sf">
                     <table className="w-full text-sm">
                         <thead>
-                        <tr className="border-b border-[#E4E4E7] text-left text-xs uppercase tracking-wider text-[#8B8B96]">
+                        <tr className="border-b border-bd text-left text-xs uppercase tracking-wider text-mu">
                             <th className="px-5 py-3 font-medium">{t("moderation.columns.author")}</th>
                             <th className="px-5 py-3 font-medium">{t("moderation.columns.form")}</th>
                             <th className="px-5 py-3 font-medium">{t("moderation.columns.submitted")}</th>
@@ -188,19 +188,19 @@ export default function GuildModerationPanel({guild, onBack}: { guild: MyGuild; 
                         <tbody>
                         {rows.map(r => (
                             <tr key={r.id} onClick={() => setOpenId(r.id)}
-                                className="cursor-pointer border-b border-[#F0F0F2] transition-colors last:border-0 hover:bg-[#FAFAFB]">
+                                className="cursor-pointer border-b border-bd transition-colors last:border-0 hover:bg-bg">
                                 <td className="px-5 py-3">
-                                    <p className="font-medium text-[#1E1E24]">
+                                    <p className="font-medium text-tx">
                                         {r.discordUsername ?? (r.discordId ? t("moderation.unknownUser") : t("moderation.anonymous"))}
                                     </p>
-                                    {r.discordId && <p className="font-mono text-[11px] text-[#8B8B96]">{r.discordId}</p>}
+                                    {r.discordId && <p className="font-mono text-[11px] text-mu">{r.discordId}</p>}
                                 </td>
-                                <td className="max-w-[220px] truncate px-5 py-3 text-[#55555F]">{r.formTitle ?? "—"}</td>
-                                <td className="px-5 py-3 text-xs text-[#55555F]">{new Date(r.createdAt).toLocaleString()}</td>
+                                <td className="max-w-[220px] truncate px-5 py-3 text-mu">{r.formTitle ?? "—"}</td>
+                                <td className="px-5 py-3 text-xs text-mu">{new Date(r.createdAt).toLocaleString()}</td>
                                 <td className="px-5 py-3">
                                     <SubmissionStatusBadge status={r.status}/>
                                     {r.moderatorComment && (
-                                        <p className="mt-1 max-w-[220px] truncate text-[11px] text-[#8B8B96]"
+                                        <p className="mt-1 max-w-[220px] truncate text-[11px] text-mu"
                                            title={r.moderatorComment}>
                                             {r.moderatorComment}
                                         </p>
@@ -215,7 +215,7 @@ export default function GuildModerationPanel({guild, onBack}: { guild: MyGuild; 
 
             {totalPages > 1 && (
                 <div className="mt-4 flex items-center justify-between">
-                    <span className="text-xs text-[#8B8B96]">
+                    <span className="text-xs text-mu">
                         {t("responses.pagination.info", {page: page + 1, total: totalPages, elements: totalElements})}
                     </span>
                     <div className="flex items-center gap-1.5">
@@ -225,7 +225,7 @@ export default function GuildModerationPanel({guild, onBack}: { guild: MyGuild; 
                                 setPage(p => Math.max(0, p - 1));
                             }}
                             disabled={page === 0}
-                            className="flex items-center gap-1 rounded-lg border border-[#E4E4E7] px-3 py-1.5 text-xs text-[#6B6B76] transition-colors hover:text-[#1E1E24] disabled:cursor-not-allowed disabled:opacity-30"
+                            className="flex items-center gap-1 rounded-lg border border-bd px-3 py-1.5 text-xs text-mu transition-colors hover:text-tx disabled:cursor-not-allowed disabled:opacity-30"
                         >
                             <FiChevronLeft size={13}/> {t("responses.pagination.prev")}
                         </button>
@@ -235,7 +235,7 @@ export default function GuildModerationPanel({guild, onBack}: { guild: MyGuild; 
                                 setPage(p => Math.min(totalPages - 1, p + 1));
                             }}
                             disabled={page >= totalPages - 1}
-                            className="flex items-center gap-1 rounded-lg border border-[#E4E4E7] px-3 py-1.5 text-xs text-[#6B6B76] transition-colors hover:text-[#1E1E24] disabled:cursor-not-allowed disabled:opacity-30"
+                            className="flex items-center gap-1 rounded-lg border border-bd px-3 py-1.5 text-xs text-mu transition-colors hover:text-tx disabled:cursor-not-allowed disabled:opacity-30"
                         >
                             {t("responses.pagination.next")} <FiChevronRight size={13}/>
                         </button>

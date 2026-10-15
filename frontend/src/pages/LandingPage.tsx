@@ -2,13 +2,14 @@ import {useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import {motion} from "framer-motion";
 import {useTranslation} from "react-i18next";
+import ThemeToggle from "../theme/ThemeToggle";
 import {FiArrowRight, FiFileText, FiLink2, FiShield, FiUsers} from "react-icons/fi";
 import {useAuth} from "../hooks/useAuth";
 
 const COLOR_MAP: Record<string, { bg: string; text: string; border: string }> = {
-    indigo: {bg: "bg-[#EEF0FB]", text: "text-[#3730A3]", border: "border-[#E4E4E7]"},
-    purple: {bg: "bg-[#F2EEFA]", text: "text-[#5B3E96]", border: "border-[#E4E4E7]"},
-    cyan: {bg: "bg-[#EAF1FB]", text: "text-[#31578F]", border: "border-[#E4E4E7]"},
+    indigo: {bg: "bg-prs", text: "text-prt", border: "border-bd"},
+    purple: {bg: "bg-prs", text: "text-prt", border: "border-bd"},
+    cyan: {bg: "bg-inb", text: "text-int", border: "border-bd"},
 };
 
 function extractFormId(input: string): string | null {
@@ -52,7 +53,8 @@ export default function LandingPage() {
 
     return (
         <div
-            className="relative flex min-h-screen w-full flex-col items-center justify-center bg-[#F7F7F8] px-4 py-16">
+            className="relative flex min-h-screen w-full flex-col items-center justify-center bg-s2 px-4 py-16">
+            <div className="absolute right-4 top-4 z-20"><ThemeToggle/></div>
             <motion.div
                 initial={{opacity: 0, y: 20}}
                 animate={{opacity: 1, y: 0}}
@@ -62,24 +64,24 @@ export default function LandingPage() {
                 {/* Brand */}
                 <img src="/logo.svg" alt="MarForms" className="mb-6 h-16 w-16 rounded-2xl object-cover"/>
 
-                <h1 className="text-center text-4xl font-bold tracking-tight text-[#1E1E24]">
+                <h1 className="text-center text-4xl font-bold tracking-tight text-tx">
                     MarForms
                 </h1>
-                <p className="mt-3 text-center text-base text-[#6B6B76]">
+                <p className="mt-3 text-center text-base text-mu">
                     {t("landing.subtitle")}
                 </p>
 
                 {/* Info card */}
-                <div className="mt-8 w-full overflow-hidden rounded-2xl border border-[#E4E4E7] bg-white">
-                    <div className="border-b border-[#E4E4E7] px-6 py-5">
+                <div className="mt-8 w-full overflow-hidden rounded-2xl border border-bd bg-sf">
+                    <div className="border-b border-bd px-6 py-5">
                         <div className="flex items-start gap-3">
                             <div
-                                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[#FBF3E4]">
-                                <FiLink2 size={15} className="text-[#92702A]"/>
+                                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-amb">
+                                <FiLink2 size={15} className="text-amt"/>
                             </div>
                             <div>
-                                <p className="font-semibold text-[#1E1E24]">{t("landing.directLinkTitle")}</p>
-                                <p className="mt-1.5 text-sm leading-relaxed text-[#6B6B76]">
+                                <p className="font-semibold text-tx">{t("landing.directLinkTitle")}</p>
+                                <p className="mt-1.5 text-sm leading-relaxed text-mu">
                                     {t("landing.directLinkDesc")}
                                 </p>
                             </div>
@@ -88,12 +90,12 @@ export default function LandingPage() {
                     <div className="px-6 py-5">
                         <div className="flex items-start gap-3">
                             <div
-                                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[#EEF0FB]">
-                                <FiShield size={15} className="text-[#3730A3]"/>
+                                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-prs">
+                                <FiShield size={15} className="text-prt"/>
                             </div>
                             <div>
-                                <p className="font-semibold text-[#1E1E24]">{t("landing.staffTitle")}</p>
-                                <p className="mt-1.5 text-sm leading-relaxed text-[#6B6B76]">
+                                <p className="font-semibold text-tx">{t("landing.staffTitle")}</p>
+                                <p className="mt-1.5 text-sm leading-relaxed text-mu">
                                     {t("landing.staffDesc")}
                                 </p>
                             </div>
@@ -102,8 +104,8 @@ export default function LandingPage() {
                 </div>
 
                 {/* Quick-open by link */}
-                <div className="mt-4 w-full rounded-2xl border border-[#E4E4E7] bg-white px-5 py-4">
-                    <p className="mb-3 text-xs font-semibold text-[#8B8B96]">{t("landing.openFormLabel")}</p>
+                <div className="mt-4 w-full rounded-2xl border border-bd bg-sf px-5 py-4">
+                    <p className="mb-3 text-xs font-semibold text-mu">{t("landing.openFormLabel")}</p>
                     <div className="flex gap-2">
                         <input
                             type="text"
@@ -114,22 +116,22 @@ export default function LandingPage() {
                             }}
                             onKeyDown={handleKeyDown}
                             placeholder={t("landing.openFormPlaceholder")}
-                            className="min-w-0 flex-1 rounded-xl border border-[#E4E4E7] bg-[#FAFAFB] px-4 py-2.5 text-sm text-[#1E1E24] placeholder-[#C7C7CE] outline-none transition-colors focus:border-[#3730A3] focus:ring-1 focus:ring-[#3730A3]/20"
+                            className="min-w-0 flex-1 rounded-xl border border-bd bg-bg px-4 py-2.5 text-sm text-tx placeholder-mu/70 outline-none transition-colors focus:border-pr focus:ring-1 focus:ring-pr/20"
                         />
                         <button
                             onClick={handleOpen}
-                            className="flex items-center gap-1.5 rounded-xl bg-[#3730A3] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#2D2682]"
+                            className="flex items-center gap-1.5 rounded-xl bg-pr px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-prh"
                         >
                             <FiArrowRight size={14}/>
                             {t("landing.openFormButton")}
                         </button>
                     </div>
-                    {error && <p className="mt-2 text-xs text-[#B56A65]">{error}</p>}
+                    {error && <p className="mt-2 text-xs text-rdt">{error}</p>}
                 </div>
 
                 {/* How it works */}
                 <div className="mt-8 w-full">
-                    <p className="mb-4 text-center text-xs font-semibold uppercase tracking-widest text-[#8B8B96]">
+                    <p className="mb-4 text-center text-xs font-semibold uppercase tracking-widest text-mu">
                         {t("landing.howItWorks")}
                     </p>
                     <div className="grid grid-cols-3 gap-3">
@@ -138,16 +140,16 @@ export default function LandingPage() {
                             return (
                                 <div
                                     key={titleKey}
-                                    className={`relative flex flex-col gap-2 rounded-xl border ${cls.border} bg-white p-4`}
+                                    className={`relative flex flex-col gap-2 rounded-xl border ${cls.border} bg-sf p-4`}
                                 >
-                                    <span className="absolute right-3 top-3 text-xs font-bold text-[#D4D4D9]">
+                                    <span className="absolute right-3 top-3 text-xs font-bold text-mu">
                                         0{i + 1}
                                     </span>
                                     <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${cls.bg}`}>
                                         <Icon size={15} className={cls.text}/>
                                     </div>
-                                    <p className="text-xs font-semibold text-[#1E1E24]">{t(titleKey)}</p>
-                                    <p className="text-[11px] leading-snug text-[#8B8B96]">{t(descKey)}</p>
+                                    <p className="text-xs font-semibold text-tx">{t(titleKey)}</p>
+                                    <p className="text-[11px] leading-snug text-mu">{t(descKey)}</p>
                                 </div>
                             );
                         })}
@@ -155,12 +157,12 @@ export default function LandingPage() {
                 </div>
 
                 {user && (
-                    <Link to="/me/submissions" className="mt-8 text-sm font-medium text-[#3730A3] hover:text-[#2D2682]">
+                    <Link to="/me/submissions" className="mt-8 text-sm font-medium text-prt hover:text-prt">
                         {t("landing.mySubmissions")}
                     </Link>
                 )}
 
-                <div className="mt-10 flex items-center gap-3 text-xs text-[#C7C7CE]">
+                <div className="mt-10 flex items-center gap-3 text-xs text-mu/70">
                     {t("landing.footer")}
                 </div>
             </motion.div>

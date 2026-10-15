@@ -30,22 +30,22 @@ function Details({entry}: { entry: GuildAuditEntry }) {
     const m = entry.metadata ?? {};
     return (
         <div className="min-w-0">
-            <p className="truncate text-sm text-[#1E1E24]">
+            <p className="truncate text-sm text-tx">
                 {entry.targetName ?? entry.targetId ?? "—"}
                 {entry.targetType === "USER" && entry.targetId && (
-                    <span className="ml-1.5 font-mono text-[11px] text-[#8B8B96]">{entry.targetId}</span>
+                    <span className="ml-1.5 font-mono text-[11px] text-mu">{entry.targetId}</span>
                 )}
             </p>
             {m.from && m.to && (
-                <p className="text-xs text-[#55555F]">
+                <p className="text-xs text-mu">
                     {t("guildAudit.statusChange", {
                         from: t(`moderation.status.${m.from}`),
                         to: t(`moderation.status.${m.to}`),
                     })}
                 </p>
             )}
-            {m.comment && <p className="break-words text-xs text-[#6B6B76]">{t("guildAudit.comment", {comment: m.comment})}</p>}
-            {m.reason && <p className="break-words text-xs text-[#6B6B76]">{t("guildAudit.reason", {reason: m.reason})}</p>}
+            {m.comment && <p className="break-words text-xs text-mu">{t("guildAudit.comment", {comment: m.comment})}</p>}
+            {m.reason && <p className="break-words text-xs text-mu">{t("guildAudit.reason", {reason: m.reason})}</p>}
         </div>
     );
 }
@@ -98,14 +98,14 @@ export default function GuildAuditPanel({guild, onBack}: { guild: MyGuild; onBac
     return (
         <div>
             <button onClick={onBack}
-                    className="mb-4 flex items-center gap-1.5 text-sm text-[#6B6B76] transition-colors hover:text-[#1E1E24]">
+                    className="mb-4 flex items-center gap-1.5 text-sm text-mu transition-colors hover:text-tx">
                 <FiArrowLeft size={14}/>
                 {t("servers.title")}
             </button>
 
             <div className="mb-6">
-                <h1 className="text-xl font-semibold text-[#1E1E24]">{guild.guildName}</h1>
-                <p className="mt-0.5 text-sm text-[#6B6B76]">{t("guildAudit.subtitle")}</p>
+                <h1 className="text-xl font-semibold text-tx">{guild.guildName}</h1>
+                <p className="mt-0.5 text-sm text-mu">{t("guildAudit.subtitle")}</p>
             </div>
 
             <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -116,7 +116,7 @@ export default function GuildAuditPanel({guild, onBack}: { guild: MyGuild; onBac
                         setPage(0);
                         setAction(e.target.value as GuildAuditAction | "");
                     }}
-                    className="rounded-lg border border-[#E4E4E7] bg-white px-3 py-2 text-xs text-[#55555F] outline-none focus:border-[#3730A3]"
+                    className="rounded-lg border border-bd bg-sf px-3 py-2 text-xs text-mu outline-none focus:border-pr"
                 >
                     <option value="">{t("guildAudit.filter.allActions")}</option>
                     {ACTIONS.map(a => <option key={a} value={a}>{t(`guildAudit.actions.${a}`)}</option>)}
@@ -128,7 +128,7 @@ export default function GuildAuditPanel({guild, onBack}: { guild: MyGuild; onBac
                         setPage(0);
                         setActorId(e.target.value);
                     }}
-                    className="rounded-lg border border-[#E4E4E7] bg-white px-3 py-2 text-xs text-[#55555F] outline-none focus:border-[#3730A3]"
+                    className="rounded-lg border border-bd bg-sf px-3 py-2 text-xs text-mu outline-none focus:border-pr"
                 >
                     <option value="">{t("guildAudit.filter.allActors")}</option>
                     {moderators.map(m => <option key={m.discordId} value={m.discordId}>{m.username}</option>)}
@@ -136,7 +136,7 @@ export default function GuildAuditPanel({guild, onBack}: { guild: MyGuild; onBac
             </div>
 
             {error && (
-                <div className="mb-4 rounded-lg border border-[#EAD4D3] bg-[#F7EEEE] px-3 py-2 text-xs text-[#8B4A46]">
+                <div className="mb-4 rounded-lg border border-rdb bg-rdb px-3 py-2 text-xs text-rdt">
                     {error}
                 </div>
             )}
@@ -146,12 +146,12 @@ export default function GuildAuditPanel({guild, onBack}: { guild: MyGuild; onBac
             ) : entries.length === 0 ? (
                 <EmptyState message={t("guildAudit.empty")} icon={<FiList/>}/>
             ) : (
-                <ul className="divide-y divide-[#F0F0F2] overflow-hidden rounded-xl border border-[#E4E4E7] bg-white">
+                <ul className="divide-y divide-bd overflow-hidden rounded-xl border border-bd bg-sf">
                     {entries.map(entry => (
                         <li key={entry.id} className="grid grid-cols-[150px_170px_1fr] items-start gap-4 px-5 py-3">
                             <div>
-                                <p className="text-xs text-[#55555F]">{new Date(entry.createdAt).toLocaleString()}</p>
-                                <p className="mt-0.5 truncate text-xs font-medium text-[#1E1E24]">
+                                <p className="text-xs text-mu">{new Date(entry.createdAt).toLocaleString()}</p>
+                                <p className="mt-0.5 truncate text-xs font-medium text-tx">
                                     {entry.actorUsername ?? entry.actorDiscordId ?? t("guildAudit.unknownActor")}
                                 </p>
                             </div>
@@ -167,12 +167,12 @@ export default function GuildAuditPanel({guild, onBack}: { guild: MyGuild; onBac
             {totalPages > 1 && (
                 <div className="mt-4 flex items-center justify-end gap-1.5">
                     <button onClick={() => changePage(Math.max(0, page - 1))} disabled={page === 0}
-                            className="flex items-center gap-1 rounded-lg border border-[#E4E4E7] px-3 py-1.5 text-xs text-[#6B6B76] transition-colors hover:text-[#1E1E24] disabled:cursor-not-allowed disabled:opacity-30">
+                            className="flex items-center gap-1 rounded-lg border border-bd px-3 py-1.5 text-xs text-mu transition-colors hover:text-tx disabled:cursor-not-allowed disabled:opacity-30">
                         <FiChevronLeft size={13}/> {t("responses.pagination.prev")}
                     </button>
-                    <span className="px-2 text-xs text-[#8B8B96]">{page + 1} / {totalPages}</span>
+                    <span className="px-2 text-xs text-mu">{page + 1} / {totalPages}</span>
                     <button onClick={() => changePage(Math.min(totalPages - 1, page + 1))} disabled={page >= totalPages - 1}
-                            className="flex items-center gap-1 rounded-lg border border-[#E4E4E7] px-3 py-1.5 text-xs text-[#6B6B76] transition-colors hover:text-[#1E1E24] disabled:cursor-not-allowed disabled:opacity-30">
+                            className="flex items-center gap-1 rounded-lg border border-bd px-3 py-1.5 text-xs text-mu transition-colors hover:text-tx disabled:cursor-not-allowed disabled:opacity-30">
                         {t("responses.pagination.next")} <FiChevronRight size={13}/>
                     </button>
                 </div>

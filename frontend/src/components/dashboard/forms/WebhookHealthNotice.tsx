@@ -20,8 +20,8 @@ export default function WebhookHealthNotice({webhook}: { webhook: WebhookConfig 
     const Icon = invalid ? FiXOctagon : FiAlertTriangle;
     return (
         <div className={`flex gap-2 border-b px-4 py-2.5 text-xs ${invalid
-            ? "border-[#EAD4D3] bg-[#F7EEEE] text-[#8B4A46]"
-            : "border-[#EFDFC0] bg-[#FBF3E4] text-[#92702A]"}`}>
+            ? "border-rdb bg-rdb text-rdt"
+            : "border-amb bg-amb text-amt"}`}>
             <Icon size={13} className="mt-0.5 flex-shrink-0"/>
             <div>
                 <p className="font-medium">{t(`webhookHealth.${health}`)}</p>
