@@ -138,7 +138,8 @@
       "3min": "~3 min",
       "5min": "~5 min",
       "10min": "~10 min"
-    }
+    },
+    "draftSaved": "Draft saved · {{time}}"
   },
   "login": {
     "welcome": "Welcome to",

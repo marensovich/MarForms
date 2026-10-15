@@ -12,6 +12,7 @@ import {visibleFieldIds} from "./conditions";
 import {UploadContext} from "./fields/uploadContext";
 import {ApiError} from "../../api/client";
 import {describeApiError} from "../../api/errors";
+import {useFormDraft} from "./useFormDraft";
 
 /** Per-field errors from a 400 response ({"fields": {fieldId: message}}), if any. */
 function fieldErrorsOf(err: unknown): Record<string, string> | null {
@@ -467,8 +468,10 @@ interface Props {
 type SubmitStatus = "idle" | "submitting" | "success" | "error";
 
 export default function FormRenderer({form, preview = false}: Props) {
-    const {t} = useTranslation();
-    const [answers, setAnswers] = useState<FormAnswers>({});
+    const {t, i18n: i18next} = useTranslation();
+    // Browser draft of the answers (ТЗ ФТ-3.3.8, #113); none in the builder preview.
+    const draft = useFormDraft(form.id, form.schema.fields, !preview);
+    const [answers, setAnswers] = useState<FormAnswers>(draft.initialAnswers);
     // After the first edit, fields shown by a condition appear without the staggered intro delay.
     const [hasInteracted, setHasInteracted] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -532,7 +535,11 @@ export default function FormRenderer({form, preview = false}: Props) {
 
     const handleChange = (fieldId: string, value: FormAnswers[string]) => {
         setHasInteracted(true);
-        setAnswers(prev => ({...prev, [fieldId]: value}));
+        setAnswers(prev => {
+            const next = {...prev, [fieldId]: value};
+            draft.schedule(next);
+            return next;
+        });
         // Re-validate live once user has touched the field or already tried to submit
         if (touched.has(fieldId) || hasSubmitted) {
             revalidateField(fieldId, value);
@@ -564,6 +571,7 @@ export default function FormRenderer({form, preview = false}: Props) {
             if (form.slug) await submitPublicForm(form.slug, shownAnswers, idempotencyKey.current,
                 form.accessMode === "ANONYMOUS" ? getAnonymousToken() : undefined);
             else await submitForm(form.id, shownAnswers, idempotencyKey.current);
+            draft.clear();
             setSubmitStatus("success");
         } catch (err) {
             const serverFieldErrors = fieldErrorsOf(err);
@@ -716,6 +724,11 @@ export default function FormRenderer({form, preview = false}: Props) {
                                     )}
                                 </motion.button>
                             </div>
+                            {draft.savedAt && (
+                                <p className="mt-2 text-center text-xs text-mu" aria-live="polite">
+                                    {t("form.draftSaved", {time: draft.savedAt.toLocaleTimeString(i18next?.language || undefined, {hour: "2-digit", minute: "2-digit"})})}
+                                </p>
+                            )}
                         </div>
                     </div>
 
