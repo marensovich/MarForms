@@ -9,6 +9,7 @@ export type AuditAction =
     | "SUBMISSION_CREATED"
     | "SUBMISSION_DELETED"
     | "SUBMISSION_DECIDED"
+    | "SUBMISSION_DM_FAILED"
     | "ROLE_CREATED"
     | "ROLE_UPDATED"
     | "ROLE_DELETED"

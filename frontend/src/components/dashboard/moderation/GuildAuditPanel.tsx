@@ -7,12 +7,13 @@ import {describeApiError} from "../../../api/errors";
 import {Badge, EmptyState, TabSkeleton} from "../shared";
 
 const ACTIONS: GuildAuditAction[] = [
-    "SUBMISSION_DECIDED", "MODERATOR_ADDED", "MODERATOR_REMOVED", "GUILD_BAN_ADDED", "GUILD_BAN_REMOVED",
+    "SUBMISSION_DECIDED", "SUBMISSION_DM_FAILED", "MODERATOR_ADDED", "MODERATOR_REMOVED", "GUILD_BAN_ADDED", "GUILD_BAN_REMOVED",
     "GUILD_CONNECTED", "GUILD_ROLE_REVOKED", "SUBMISSION_DELETED", "FORM_DELETED",
 ];
 
 const COLOR: Record<GuildAuditAction, "purple" | "green" | "red"> = {
     SUBMISSION_DECIDED: "purple",
+    SUBMISSION_DM_FAILED: "red",
     MODERATOR_ADDED: "green",
     MODERATOR_REMOVED: "red",
     GUILD_BAN_ADDED: "red",

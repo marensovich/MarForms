@@ -153,6 +153,7 @@ export function resubmitMySubmission(id: string, answers: FormAnswers): Promise<
 
 export type GuildAuditAction =
     | "SUBMISSION_DECIDED"
+    | "SUBMISSION_DM_FAILED"
     | "MODERATOR_ADDED"
     | "MODERATOR_REMOVED"
     | "GUILD_BAN_ADDED"

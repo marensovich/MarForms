@@ -31,6 +31,7 @@ import java.util.UUID;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import me.marensovich.gta5rpformapp.backend.service.jobs.OutboundJobService;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -52,6 +53,8 @@ class ModerationControllerTest {
     private UserRepository userRepository;
     @Autowired
     private GuildRepository guildRepository;
+    @Autowired
+    private me.marensovich.gta5rpformapp.backend.database.repository.OutboundJobRepository outboundJobRepository;
     @Autowired
     private GuildMembershipRepository guildMembershipRepository;
     @Autowired
@@ -238,6 +241,20 @@ class ModerationControllerTest {
                 .andExpect(jsonPath("$.history[1].comment").value("Wrong person"));
         mvc.perform(as(owner, get("/api/v1/guilds/{g}/submissions", GUILD).param("moderator", "1")))
                 .andExpect(jsonPath("$.page.totalElements").value(0));
+    }
+
+    @Test
+    void aDecisionQueuesADirectMessageToTheAuthor() throws Exception {
+        mvc.perform(as(moderator, post("/api/v1/submissions/{id}/decision", aliceSubmission.getId()))
+                        .content("{\"status\": \"REJECTED\", \"comment\": \"Too short\"}"))
+                .andExpect(status().isOk());
+        var jobs = outboundJobRepository.findAll().stream()
+                .filter(j -> OutboundJobService.JOB_TYPE_DECISION_DM.equals(j.getJobType())).toList();
+        org.assertj.core.api.Assertions.assertThat(jobs).singleElement().satisfies(j -> {
+            org.assertj.core.api.Assertions.assertThat(j.getPayload()).containsEntry("recipientId", 2)
+                    .containsEntry("status", "REJECTED").containsEntry("comment", "Too short")
+                    .containsEntry("moderatorName", "mod").containsEntry("formTitle", "Application");
+        });
     }
 
     @Test

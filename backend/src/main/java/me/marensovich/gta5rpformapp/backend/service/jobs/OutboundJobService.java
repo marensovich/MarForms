@@ -38,6 +38,8 @@ public class OutboundJobService {
 
     /** Job type handled by {@code WebhookDeliveryProcessor}. */
     public static final String JOB_TYPE_WEBHOOK_DELIVERY = "webhook_delivery";
+    /** A direct message to a submission's author about a decision (#120), see {@code DecisionDmProcessor}. */
+    public static final String JOB_TYPE_DECISION_DM = "decision_dm";
 
     private static final int DEFAULT_MAX_ATTEMPTS = 5;
     private static final int MAX_ERROR_LENGTH = 2000;

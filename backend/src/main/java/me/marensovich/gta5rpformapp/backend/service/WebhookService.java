@@ -225,6 +225,11 @@ public class WebhookService {
      * @return a {@link Map} representing the global embed, or {@code null} if no fields are set
      * @since v.0.1
      */
+    // Also the common embed of the bot's direct messages (#120).
+    public Map<String, Object> brandingEmbed(Map<String, String> vars) {
+        return buildGlobalEmbed(vars);
+    }
+
     private Map<String, Object> buildGlobalEmbed(Map<String, String> vars) {
         String title = sub(settingsService.get(SystemSettings.KEY_G_TITLE, null), vars);
         String desc = sub(settingsService.get(SystemSettings.KEY_G_DESC, null), vars);

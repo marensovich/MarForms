@@ -482,6 +482,7 @@
       "SUBMISSION_CREATED": "Submission Created",
       "SUBMISSION_DELETED": "Submission Deleted",
       "SUBMISSION_DECIDED": "Submission Decided",
+      "SUBMISSION_DM_FAILED": "Decision DM not delivered",
       "MODERATOR_ADDED": "Moderator Added",
       "MODERATOR_REMOVED": "Moderator Removed",
       "GUILD_BAN_ADDED": "Server Ban Added",
@@ -599,6 +600,7 @@
         "SUBMISSION_CREATED": "Submission Created",
         "SUBMISSION_DELETED": "Submission Deleted",
         "SUBMISSION_DECIDED": "Submission Decided",
+        "SUBMISSION_DM_FAILED": "Decision DM not delivered",
         "MODERATOR_ADDED": "Moderator Added",
         "MODERATOR_REMOVED": "Moderator Removed",
         "GUILD_BAN_ADDED": "Server Ban Added",
@@ -1149,6 +1151,7 @@
     },
     "actions": {
       "SUBMISSION_DECIDED": "Submission decided",
+      "SUBMISSION_DM_FAILED": "Decision DM not delivered",
       "MODERATOR_ADDED": "Moderator added",
       "MODERATOR_REMOVED": "Moderator removed",
       "GUILD_BAN_ADDED": "Ban",

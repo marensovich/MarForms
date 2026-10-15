@@ -1,16 +1,19 @@
 package me.marensovich.gta5rpformapp.backend.service.discord;
 
 import lombok.extern.slf4j.Slf4j;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.Webhook;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.requests.ErrorResponse;
+import net.dv8tion.jda.api.utils.data.DataObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
@@ -325,6 +328,48 @@ public class DiscordBotClient {
      * @param color the role's colour as 0xRRGGBB ({@code 0x1FFFFFFF} = default/none)
      * @since v.0.1
      */
+    /** How a direct message went (#120). */
+    public enum DmResult {
+        SENT,
+        /** The user doesn't accept DMs from the bot, or shares no server with it. */
+        CLOSED,
+        /** No bot session in this environment. */
+        NO_BOT,
+        /** Anything else; worth retrying. */
+        FAILED
+    }
+
+    /**
+     * Writes a user a direct message made of embeds (Discord's JSON embed objects).
+     *
+     * @param userId the recipient's Discord ID
+     * @param embeds the embeds, as Discord's API takes them
+     * @return how it went
+     * @since v.0.1
+     */
+    public DmResult sendDirectMessage(Long userId, List<Map<String, Object>> embeds) {
+        if (jda == null) return DmResult.NO_BOT;
+        try {
+            List<MessageEmbed> built = new java.util.ArrayList<>();
+            for (Map<String, Object> embed : embeds) {
+                built.add(EmbedBuilder.fromData(DataObject.fromJson(EMBED_JSON.writeValueAsString(embed))).build());
+            }
+            jda.openPrivateChannelById(userId).flatMap(channel -> channel.sendMessageEmbeds(built)).complete();
+            return DmResult.SENT;
+        } catch (ErrorResponseException e) {
+            if (e.getErrorResponse() == ErrorResponse.CANNOT_SEND_TO_USER || e.getErrorResponse() == ErrorResponse.UNKNOWN_USER) {
+                return DmResult.CLOSED;
+            }
+            log.warn("Failed to DM user {}: {}", userId, e.getMessage());
+            return DmResult.FAILED;
+        } catch (Exception e) {
+            log.warn("Failed to DM user {}: {}", userId, e.getMessage());
+            return DmResult.FAILED;
+        }
+    }
+
+    private static final com.fasterxml.jackson.databind.ObjectMapper EMBED_JSON = new com.fasterxml.jackson.databind.ObjectMapper();
+
     public record DiscordRole(String id, String name, int color) {
     }
 

@@ -1,6 +1,8 @@
 package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.RequiredArgsConstructor;
+import me.marensovich.gta5rpformapp.backend.service.jobs.DecisionDmPayload;
+import me.marensovich.gta5rpformapp.backend.service.jobs.OutboundJobService;
 import org.springframework.security.access.AccessDeniedException;
 import me.marensovich.gta5rpformapp.backend.exception.FieldValidationException;
 import me.marensovich.gta5rpformapp.backend.exception.DecisionConflictException;
@@ -71,6 +73,7 @@ public class ModerationService {
     private final GuildMembershipRepository guildMembershipRepository;
     private final GuildRepository guildRepository;
     private final SubmissionEventRepository submissionEventRepository;
+    private final OutboundJobService outboundJobService;
     private final DiscordBotClient discordBotClient;
     private final FileService fileService;
     private final AuditLogService auditLogService;
@@ -270,6 +273,15 @@ public class ModerationService {
         auditLogService.logGuildAction(form != null ? form.getServerId() : null, AuditAction.SUBMISSION_DECIDED,
                 "SUBMISSION", saved.getId().toString(), title, metadata,
                 "Status: " + old + " → " + saved.getStatus() + (comment != null ? "\nComment: " + comment : ""));
+
+        // The bot tells the author (#120); an anonymous submission has no author to tell.
+        if (!reopen && saved.getDiscordId() != null) {
+            Long guildId = form != null ? form.getServerId() : null;
+            String guildName = guildId == null ? null : guildRepository.findById(guildId).map(Guild::getName).orElse(null);
+            outboundJobService.enqueue(OutboundJobService.JOB_TYPE_DECISION_DM, new DecisionDmPayload(saved.getId(),
+                    saved.getDiscordId(), guildId, guildName, title, saved.getStatus(), comment,
+                    userRepository.findByDiscordId(moderatorDiscordId).map(User::getDiscordUsername).orElse(null)));
+        }
 
         String username = saved.getDiscordId() == null ? null
                 : userRepository.findByDiscordId(saved.getDiscordId()).map(User::getDiscordUsername).orElse(null);

@@ -123,6 +123,14 @@ public enum AuditAction {
     SUBMISSION_DECIDED,
 
     /**
+     * The bot couldn't tell the author about a decision: closed DMs, no shared
+     * server or no bot (#120). The decision itself stands.
+     *
+     * @since v.0.1
+     */
+    SUBMISSION_DM_FAILED,
+
+    /**
      * Role created event.
      * <p>
      * Logged when a new role is created.

@@ -360,6 +360,7 @@ public class AuditLogService {
             case SUBMISSION_CREATED -> "🟢 Submission Created";
             case SUBMISSION_DELETED -> "🔴 Submission Deleted";
             case SUBMISSION_DECIDED -> "🟣 Submission Decided";
+            case SUBMISSION_DM_FAILED -> "✉️ Decision DM Not Delivered";
             case ROLE_CREATED -> "🟢 Role Created";
             case ROLE_UPDATED -> "🔵 Role Updated";
             case ROLE_DELETED -> "🔴 Role Deleted";
@@ -387,6 +388,7 @@ public class AuditLogService {
             case USER_LOGIN, FORM_UPDATED, ROLE_UPDATED -> 0x5865F2;
             case USER_ROLES_UPDATED, SETTINGS_UPDATED -> 0xFEE75C;
             case SUBMISSION_DECIDED -> 0xEB459E;
+            case SUBMISSION_DM_FAILED -> 0xFEE75C;
         };
     }
 }

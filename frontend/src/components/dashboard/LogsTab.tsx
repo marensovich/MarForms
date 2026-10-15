@@ -95,6 +95,13 @@ const ACTION_META: Record<AuditAction, ActionMeta> = {
         border: "border-prs",
         dot: "bg-pr"
     },
+    SUBMISSION_DM_FAILED: {
+        label: "Decision DM Not Delivered",
+        bg: "bg-amb",
+        text: "text-amt",
+        border: "border-amb",
+        dot: "bg-wr"
+    },
     ROLE_CREATED: {
         label: "Role Created",
         bg: "bg-gnb",

@@ -488,6 +488,7 @@
       "SUBMISSION_CREATED": "Ответ создан",
       "SUBMISSION_DELETED": "Ответ удалён",
       "SUBMISSION_DECIDED": "Решение по заявке",
+      "SUBMISSION_DM_FAILED": "ЛС о решении не доставлено",
       "MODERATOR_ADDED": "Назначен модератор",
       "MODERATOR_REMOVED": "Снят модератор",
       "GUILD_BAN_ADDED": "Бан на сервере",
@@ -606,6 +607,7 @@
         "SUBMISSION_CREATED": "Ответ создан",
         "SUBMISSION_DELETED": "Ответ удалён",
         "SUBMISSION_DECIDED": "Решение по заявке",
+        "SUBMISSION_DM_FAILED": "ЛС о решении не доставлено",
         "MODERATOR_ADDED": "Назначен модератор",
         "MODERATOR_REMOVED": "Снят модератор",
         "GUILD_BAN_ADDED": "Бан на сервере",
@@ -1167,6 +1169,7 @@
     },
     "actions": {
       "SUBMISSION_DECIDED": "Решение по заявке",
+      "SUBMISSION_DM_FAILED": "ЛС о решении не доставлено",
       "MODERATOR_ADDED": "Назначен модератор",
       "MODERATOR_REMOVED": "Снят модератор",
       "GUILD_BAN_ADDED": "Бан",
