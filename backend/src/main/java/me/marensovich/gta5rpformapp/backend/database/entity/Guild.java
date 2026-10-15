@@ -87,4 +87,39 @@ public class Guild {
      */
     @Column(nullable = false, updatable = false)
     private LocalDateTime connectedAt = LocalDateTime.now();
+
+    /**
+     * Approximate member count, as the bot last saw it (#124).
+     *
+     * @since v.0.1
+     */
+    private Integer memberCount;
+
+    /**
+     * Permissions the bot lacks on this server, comma-separated
+     * ({@code DiscordBotClient.REQUIRED_PERMISSIONS} names); empty or null if none (#124).
+     *
+     * @since v.0.1
+     */
+    @Column(length = 255)
+    private String missingPermissions;
+
+    /**
+     * When the state above was last read from Discord.
+     *
+     * @since v.0.1
+     */
+    private LocalDateTime syncedAt;
+
+    /**
+     * The missing permissions as a list.
+     *
+     * @return their names, empty if none
+     * @since v.0.1
+     */
+    @Transient
+    public java.util.List<String> missingPermissionList() {
+        return missingPermissions == null || missingPermissions.isBlank() ? java.util.List.of()
+                : java.util.List.of(missingPermissions.split(","));
+    }
 }

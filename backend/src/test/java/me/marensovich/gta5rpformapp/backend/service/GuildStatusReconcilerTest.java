@@ -10,7 +10,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
@@ -43,29 +42,16 @@ class GuildStatusReconcilerTest {
     }
 
     @Test
-    void marksAGuildKickedWhenTheBotCanNoLongerSeeIt() {
+    void syncsEveryConnectedGuild() {
+        // Kicked or not, members and permissions: GuildService.sync decides (#124).
         when(discordBotClient.isAvailable()).thenReturn(true);
         when(guildRepository.findAllByBotStatus(GuildBotStatus.CONNECTED))
-                .thenReturn(List.of(guildWith(6001L)));
-        when(discordBotClient.fetchGuild(6001L)).thenReturn(Optional.empty());
+                .thenReturn(List.of(guildWith(6001L), guildWith(6002L)));
         var reconciler = new GuildStatusReconciler(guildRepository, guildService, discordBotClient);
 
         reconciler.reconcile();
 
-        verify(guildService).markKicked(6001L);
-    }
-
-    @Test
-    void leavesAGuildAloneWhenTheBotCanStillSeeIt() {
-        when(discordBotClient.isAvailable()).thenReturn(true);
-        when(guildRepository.findAllByBotStatus(GuildBotStatus.CONNECTED))
-                .thenReturn(List.of(guildWith(6002L)));
-        when(discordBotClient.fetchGuild(6002L))
-                .thenReturn(Optional.of(new DiscordBotClient.DiscordGuildInfo("6002", "Still There", null)));
-        var reconciler = new GuildStatusReconciler(guildRepository, guildService, discordBotClient);
-
-        reconciler.reconcile();
-
-        verify(guildService, never()).markKicked(anyLong());
+        verify(guildService).sync(6001L);
+        verify(guildService).sync(6002L);
     }
 }

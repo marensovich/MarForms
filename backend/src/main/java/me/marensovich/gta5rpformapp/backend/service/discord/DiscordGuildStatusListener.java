@@ -57,6 +57,39 @@ public class DiscordGuildStatusListener extends ListenerAdapter {
         }
     }
 
+    /** The bot was added (possibly outside our flow): read its state. */
+    @Override
+    public void onGuildJoin(net.dv8tion.jda.api.events.guild.GuildJoinEvent event) {
+        sync(event.getGuild().getIdLong());
+    }
+
+    /** The bot got or lost a role: its permissions may have changed (#124). */
+    @Override
+    public void onGuildMemberRoleAdd(net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent event) {
+        if (event.getMember().equals(event.getGuild().getSelfMember())) sync(event.getGuild().getIdLong());
+    }
+
+    @Override
+    public void onGuildMemberRoleRemove(net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent event) {
+        if (event.getMember().equals(event.getGuild().getSelfMember())) sync(event.getGuild().getIdLong());
+    }
+
+    /** One of the bot's roles changed its permissions. */
+    @Override
+    public void onRoleUpdatePermissions(net.dv8tion.jda.api.events.role.update.RoleUpdatePermissionsEvent event) {
+        if (event.getGuild().getSelfMember().getRoles().contains(event.getRole()) || event.getRole().isPublicRole()) {
+            sync(event.getGuild().getIdLong());
+        }
+    }
+
+    private void sync(long guildId) {
+        try {
+            guildService.sync(guildId);
+        } catch (Exception e) {
+            log.warn("Could not sync guild {} after a Discord event: {}", guildId, e.getMessage());
+        }
+    }
+
     @Override
     public void onGuildLeave(GuildLeaveEvent event) {
         long guildId = event.getGuild().getIdLong();

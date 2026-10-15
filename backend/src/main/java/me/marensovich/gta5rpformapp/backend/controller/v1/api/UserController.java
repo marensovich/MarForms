@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 public class UserController {
 
     private final GuildMembershipRepository guildMembershipRepository;
+    private final me.marensovich.gta5rpformapp.backend.service.MyServersService myServersService;
 
     /**
      * Retrieves information about the currently authenticated user.
@@ -77,9 +78,19 @@ public class UserController {
      */
     @GetMapping("/me/guilds")
     public List<GuildMembershipDto> myGuilds(@AuthenticationPrincipal CustomUserDetails principal) {
-        return guildMembershipRepository.findAllByUser_Id(principal.getUser().getId()).stream()
-                .map(GuildMembershipDto::from)
-                .sorted((a, b) -> b.since().compareTo(a.since()))
-                .collect(Collectors.toList());
+        return myServersService.list(principal.getUser());
+    }
+
+    /**
+     * Re-reads the user's servers from Discord: names, icons, members and the
+     * bot's permissions (#124). At most once a minute per user.
+     *
+     * @param principal the current user
+     * @return the servers, refreshed
+     * @since v.0.1
+     */
+    @org.springframework.web.bind.annotation.PostMapping("/me/guilds/refresh")
+    public List<GuildMembershipDto> refreshMyGuilds(@AuthenticationPrincipal CustomUserDetails principal) {
+        return myServersService.refresh(principal.getUser());
     }
 }

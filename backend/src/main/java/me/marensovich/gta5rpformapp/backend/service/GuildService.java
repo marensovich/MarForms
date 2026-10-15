@@ -8,6 +8,7 @@ import me.marensovich.gta5rpformapp.backend.service.discord.DiscordBotClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 /**
@@ -101,6 +102,34 @@ public class GuildService {
                 guildRepository.save(guild);
             }
         });
+    }
+
+    /**
+     * Re-reads a server's name, icon, member count and the bot's permissions
+     * from Discord (#124). A server the bot can't see any more is marked
+     * kicked; one it sees again, connected. Without a bot session nothing changes.
+     *
+     * @param discordGuildId the server
+     * @since v.0.1
+     */
+    @Transactional
+    public void sync(Long discordGuildId) {
+        if (!discordBotClient.isAvailable()) return;
+        Guild guild = guildRepository.findById(discordGuildId).orElse(null);
+        if (guild == null) return;
+        Optional<DiscordBotClient.GuildState> state = discordBotClient.fetchGuildState(discordGuildId);
+        if (state.isEmpty()) {
+            markKicked(discordGuildId);
+            return;
+        }
+        DiscordBotClient.GuildState s = state.get();
+        guild.setName(s.name());
+        guild.setIconHash(s.icon());
+        guild.setMemberCount(s.memberCount());
+        guild.setMissingPermissions(String.join(",", s.missingPermissions()));
+        guild.setSyncedAt(LocalDateTime.now());
+        guild.setBotStatus(GuildBotStatus.CONNECTED);
+        guildRepository.save(guild);
     }
 
     private Optional<String> fetchRealName(Long discordGuildId) {

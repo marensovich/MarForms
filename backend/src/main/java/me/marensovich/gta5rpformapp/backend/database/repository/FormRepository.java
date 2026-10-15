@@ -107,6 +107,9 @@ public interface FormRepository extends JpaRepository<Form, UUID> {
      */
     long countByServerIdAndStatusNot(Long serverId, FormStatus status);
 
+    /** Forms of a server in one status — the active ones for «Мои серверы» (#124). */
+    long countByServerIdAndStatus(Long serverId, FormStatus status);
+
     /**
      * Locks a form's row until the transaction ends: serializes the
      * "count, then insert" of per-user submission limits (#103).

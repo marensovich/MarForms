@@ -65,11 +65,12 @@ public class GuildStatusReconciler {
     public void reconcile() {
         if (!discordBotClient.isAvailable()) return;
 
+        // Also refreshes members and the bot's permissions on the servers it sees (#124).
         for (Guild guild : guildRepository.findAllByBotStatus(GuildBotStatus.CONNECTED)) {
-            Long guildId = guild.getDiscordGuildId();
-            if (discordBotClient.fetchGuild(guildId).isEmpty()) {
-                log.info("Guild {} is no longer reachable by the bot — marking bot_status=kicked", guildId);
-                guildService.markKicked(guildId);
+            try {
+                guildService.sync(guild.getDiscordGuildId());
+            } catch (Exception e) {
+                log.warn("Could not sync guild {}: {}", guild.getDiscordGuildId(), e.getMessage());
             }
         }
     }

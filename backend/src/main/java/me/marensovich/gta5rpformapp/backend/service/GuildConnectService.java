@@ -128,6 +128,8 @@ public class GuildConnectService {
         // flip its status back — getOrCreate() (called by ensureMembership)
         // only sets it on first creation, not on every call.
         guildService.markConnected(guildId);
+        // Members and the bot's permissions right away (#124).
+        guildService.sync(guildId);
 
         String username = userRepository.findByDiscordId(discordId).map(User::getDiscordUsername).orElse(null);
         auditLogService.logGuildActionAs(discordId, username, guildId, AuditAction.GUILD_CONNECTED,

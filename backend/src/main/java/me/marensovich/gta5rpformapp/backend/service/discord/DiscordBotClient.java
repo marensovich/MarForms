@@ -87,6 +87,49 @@ public class DiscordBotClient {
     }
 
     /**
+     * What the bot needs on a server (ТЗ 7.1): see its channels, create webhooks
+     * in them, and manage roles (role revocation events). Reading members and
+     * their roles goes through the API and needs no permission.
+     *
+     * @since v.0.1
+     */
+    public static final List<Permission> REQUIRED_PERMISSIONS =
+            List.of(Permission.VIEW_CHANNEL, Permission.MANAGE_WEBHOOKS, Permission.MANAGE_ROLES);
+
+    /**
+     * A server as the bot sees it now (#124).
+     *
+     * @param name               its name
+     * @param icon               its icon hash
+     * @param memberCount        approximate member count
+     * @param missingPermissions {@link #REQUIRED_PERMISSIONS} the bot lacks, by name
+     */
+    public record GuildState(String name, String icon, int memberCount, List<String> missingPermissions) {
+    }
+
+    /**
+     * Reads a server's name, icon, member count and the bot's missing permissions.
+     *
+     * @param guildId the Discord guild snowflake ID
+     * @return the state, or empty if the bot isn't on the server or there is no bot
+     * @since v.0.1
+     */
+    public Optional<GuildState> fetchGuildState(Long guildId) {
+        if (jda == null) return Optional.empty();
+        try {
+            Guild guild = jda.getGuildById(guildId);
+            if (guild == null) return Optional.empty();
+            Member self = guild.getSelfMember();
+            List<String> missing = REQUIRED_PERMISSIONS.stream()
+                    .filter(p -> !self.hasPermission(p)).map(Permission::name).toList();
+            return Optional.of(new GuildState(guild.getName(), guild.getIconId(), guild.getMemberCount(), missing));
+        } catch (Exception e) {
+            log.warn("Failed to read the state of guild {} via bot: {}", guildId, e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    /**
      * Fetches the text channels of a guild that the bot can both see and
      * create webhooks in.
      *

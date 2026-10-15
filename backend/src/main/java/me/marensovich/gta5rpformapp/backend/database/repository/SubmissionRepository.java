@@ -118,6 +118,12 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID>, J
 
     long countByDiscordId(Long discordId);
 
+    /** Submissions of a server's forms in one status — the waiting ones for «Мои серверы» (#124). */
+    @org.springframework.data.jpa.repository.Query("""
+            select count(s) from Submission s
+            where s.status = :status and s.formId in (select f.id from Form f where f.serverId = :guildId)""")
+    long countInGuildByStatus(Long guildId, SubmissionStatus status);
+
     long countByDiscordIdAndStatus(Long discordId, SubmissionStatus status);
 
     /**

@@ -40,8 +40,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class GuildConnectController {
 
-    /** VIEW_CHANNEL (1&lt;&lt;10) | MANAGE_WEBHOOKS (1&lt;&lt;29) — see product spec раздел 4.1. */
-    private static final long BOT_PERMISSIONS = (1L << 10) | (1L << 29);
+    /** The bot's permissions of ТЗ 7.1: VIEW_CHANNEL, MANAGE_WEBHOOKS, MANAGE_ROLES. */
+    private static final long BOT_PERMISSIONS = net.dv8tion.jda.api.Permission.getRaw(
+            me.marensovich.gta5rpformapp.backend.service.discord.DiscordBotClient.REQUIRED_PERMISSIONS);
 
     private final GuildConnectService guildConnectService;
 
@@ -64,7 +65,8 @@ public class GuildConnectController {
      * @since v.0.1
      */
     @GetMapping
-    public Map<String, String> connectUrl(@AuthenticationPrincipal CustomUserDetails principal) {
+    public Map<String, String> connectUrl(@AuthenticationPrincipal CustomUserDetails principal,
+                                          @org.springframework.web.bind.annotation.RequestParam(required = false) Long guildId) {
         String state = guildConnectService.start(principal.getDiscordId());
         String url = "https://discord.com/oauth2/authorize"
                 + "?client_id=" + discordClientId
@@ -75,7 +77,9 @@ public class GuildConnectController {
                 // "Invalid OAuth2 redirect_uri" before the consent screen.
                 + "&response_type=code"
                 + "&redirect_uri=" + encode(botInstallRedirectUri)
-                + "&state=" + encode(state);
+                + "&state=" + encode(state)
+                // «Выдать права» / «Пригласить снова» (#124): straight to that server.
+                + (guildId != null ? "&guild_id=" + Long.toUnsignedString(guildId) + "&disable_guild_select=true" : "");
         return Map.of("url", url);
     }
 
