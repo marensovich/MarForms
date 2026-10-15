@@ -79,6 +79,7 @@ public class SubmissionService {
     private final FileService fileService;
     private final WebhookUrlCipher webhookUrlCipher;
     private final SubmissionEventRepository submissionEventRepository;
+    private final me.marensovich.gta5rpformapp.backend.service.NotificationService notificationService;
 
     /**
      * Submits a response to a form, by form ID and submitter Discord ID —
@@ -203,6 +204,11 @@ public class SubmissionService {
         String discordUsername = author != null ? author.getDiscordUsername() : null;
         enqueueWebhookDeliveries(form, saved, withFileNames(clean, files), discordUsername, discordId);
 
+        if (form.getServerId() != null) {
+            notificationService.notifyStaff(form.getServerId(), me.marensovich.gta5rpformapp.backend.data.notifications.NotificationType.NEW_SUBMISSION, saved.getId().toString(),
+                    notificationParams(form, discordUsername, saved), submissionLink(form, saved), discordId);
+        }
+
         auditLogService.log(AuditAction.SUBMISSION_CREATED,
                 discordId, discordUsername,
                 saved.getId().toString(), form.getSchema().getTitle(),
@@ -256,12 +262,30 @@ public class SubmissionService {
                 saved.getStatus(), user.getDiscordId(), null));
 
         enqueueWebhookDeliveries(form, saved, withFileNames(clean, files), user.getDiscordUsername(), user.getDiscordId());
+        if (form.getServerId() != null) {
+            notificationService.notifyStaff(form.getServerId(), me.marensovich.gta5rpformapp.backend.data.notifications.NotificationType.SUBMISSION_RESUBMITTED, saved.getId().toString(),
+                    notificationParams(form, user.getDiscordUsername(), saved), submissionLink(form, saved), user.getDiscordId());
+        }
         auditLogService.logGuildAction(form.getServerId(), AuditAction.SUBMISSION_DECIDED, "SUBMISSION",
                 saved.getId().toString(), form.getSchema().getTitle(),
                 Map.of("formId", form.getId().toString(), "from", old.name(), "to", saved.getStatus().name(),
                         "authorDiscordId", user.getDiscordId().toString()),
                 "Sent again after revision");
         return saved;
+    }
+
+    /** Names for a submission notification (#122). */
+    private static Map<String, String> notificationParams(Form form, @Nullable String author, Submission submission) {
+        Map<String, String> params = new java.util.LinkedHashMap<>();
+        params.put("form", form.getSchema() != null ? form.getSchema().getTitle() : null);
+        params.put("author", author);
+        params.put("number", submission.getNumber() != null ? submission.getNumber().toString() : null);
+        return params;
+    }
+
+    /** The queue with the submission's card open. */
+    private static String submissionLink(Form form, Submission submission) {
+        return "/dashboard/servers/" + form.getServerId() + "/submissions?submission=" + submission.getId();
     }
 
     /**

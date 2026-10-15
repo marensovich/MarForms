@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({GuildService.class, GuildMembershipService.class, DiscordBotClient.class})
+@Import({GuildService.class, NotificationService.class, GuildMembershipService.class, DiscordBotClient.class})
 class GuildMembershipServiceTest {
 
     // Audit entries are covered by GuildAuditControllerTest.

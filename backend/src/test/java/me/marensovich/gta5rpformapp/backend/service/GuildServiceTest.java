@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({GuildService.class, DiscordBotClient.class})
+@Import({GuildService.class, NotificationService.class, DiscordBotClient.class})
 class GuildServiceTest {
 
     @Autowired

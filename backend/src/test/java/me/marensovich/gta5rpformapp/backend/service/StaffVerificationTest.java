@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
  */
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({GuildService.class, GuildMembershipService.class})
+@Import({GuildService.class, NotificationService.class, GuildMembershipService.class})
 class StaffVerificationTest {
 
     private static final long GUILD = 5101L;

@@ -81,6 +81,7 @@ public class FormService {
     private final me.marensovich.gta5rpformapp.backend.service.files.FileService fileService;
     private final org.springframework.transaction.support.TransactionTemplate transactionTemplate;
     private final me.marensovich.gta5rpformapp.backend.database.repository.FormReminderRepository formReminderRepository;
+    private final me.marensovich.gta5rpformapp.backend.service.NotificationService notificationService;
 
     // ── Lookup ──────────────────────────────────────────────────────────────
 
@@ -575,11 +576,13 @@ public class FormService {
         formRepository.findById(formId).ifPresent(form -> {
             if (form.getWebhooks() == null) return;
             boolean changed = false;
+            boolean broke = false;
             for (WebhookConfig webhook : form.getWebhooks()) {
                 if (!webhookUrl.equals(webhook.getUrl())) continue;
                 if (webhook.effectiveHealth() == health && java.util.Objects.equals(webhook.getHealthReason(), reason)) {
                     continue;
                 }
+                broke |= webhook.effectiveHealth() == WebhookHealth.HEALTHY && health != WebhookHealth.HEALTHY;
                 webhook.setHealth(health);
                 webhook.setHealthReason(reason);
                 webhook.setHealthCheckedAt(LocalDateTime.now().toString());
@@ -588,6 +591,14 @@ public class FormService {
                 changed = true;
             }
             if (changed) formRepository.save(form);
+            // Told once, when it goes from working to not (#122).
+            if (broke && form.getServerId() != null) {
+                java.util.Map<String, String> params = new java.util.LinkedHashMap<>();
+                params.put("form", form.getSchema() != null ? form.getSchema().getTitle() : null);
+                params.put("reason", reason);
+                notificationService.notifyOwner(form.getServerId(), me.marensovich.gta5rpformapp.backend.data.notifications.NotificationType.WEBHOOK_PROBLEM, form.getId().toString(),
+                        params, "/dashboard/servers/" + form.getServerId() + "/forms");
+            }
         });
     }
 

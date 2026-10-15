@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({GuildService.class, GuildMembershipService.class})
+@Import({GuildService.class, NotificationService.class, GuildMembershipService.class})
 @TestPropertySource(properties = "app.discord.member-roles-ttl=PT5M")
 class GuildMembershipRoleSyncTest {
 

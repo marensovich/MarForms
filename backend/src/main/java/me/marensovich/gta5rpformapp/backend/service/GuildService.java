@@ -32,6 +32,7 @@ public class GuildService {
 
     private final GuildRepository guildRepository;
     private final DiscordBotClient discordBotClient;
+    private final me.marensovich.gta5rpformapp.backend.service.NotificationService notificationService;
 
     /**
      * Retrieves the {@link Guild} for the given Discord guild ID, creating it
@@ -76,6 +77,9 @@ public class GuildService {
             if (guild.getBotStatus() != GuildBotStatus.KICKED) {
                 guild.setBotStatus(GuildBotStatus.KICKED);
                 guildRepository.save(guild);
+                notificationService.notifyOwner(discordGuildId, me.marensovich.gta5rpformapp.backend.data.notifications.NotificationType.BOT_REMOVED, discordGuildId.toString(),
+                        java.util.Map.of("server", guild.getName() != null ? guild.getName() : discordGuildId.toString()),
+                        "/dashboard/servers");
             }
         });
     }
