@@ -6,6 +6,7 @@ import {useAuth} from "../hooks/useAuth";
 import {saveRedirectPath} from "../auth/redirectStorage";
 import {MY_SUBMISSIONS_PATH, PANEL_PATH, useHasPanel} from "../auth/useHomePath";
 import UserMenu from "../shell/UserMenu";
+import LanguageSwitch from "../components/LanguageSwitch";
 import {cx} from "../ui";
 import {parseFormLink} from "./landingLink";
 
@@ -45,24 +46,6 @@ function Logo() {
             </span>
             MarForms
         </Link>
-    );
-}
-
-function LanguageSwitch() {
-    const {t, i18n} = useTranslation();
-    const lang = i18n.language?.startsWith("en") ? "en" : "ru";
-    return (
-        <div role="radiogroup" aria-label={t("shell.language")}
-             className="flex rounded-[9px] border border-bd p-0.5 text-xs font-semibold">
-            {(["ru", "en"] as const).map(code => (
-                <button key={code} type="button" role="radio" aria-checked={lang === code}
-                        onClick={() => i18n.changeLanguage(code)}
-                        className={cx("h-[26px] rounded-[7px] px-2 uppercase focus-visible:outline focus-visible:outline-2 focus-visible:outline-pr",
-                            lang === code ? "bg-prs text-prt" : "text-mu hover:text-tx")}>
-                    {code}
-                </button>
-            ))}
-        </div>
     );
 }
 

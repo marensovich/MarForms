@@ -39,8 +39,17 @@
     "staff": "Staff"
   },
   "auth": {
-    "signingIn": "Signing you in…",
-    "checkingSession": "Checking your session…"
+    "signingIn": "Signing in with Discord…",
+    "signingInText": "Checking your account and server roles. This takes a couple of seconds.",
+    "checkingSession": "Checking session…",
+    "failedTitle": "Couldn't sign in",
+    "retry": "Try again",
+    "errors": {
+      "access_denied": "Discord declined the request. You may have pressed “Cancel” in the authorization window.",
+      "authorization_request_not_found": "The sign-in attempt expired or was started in another browser. Please sign in again.",
+      "code_expired": "The sign-in link expired. Please sign in again.",
+      "unavailable": "Discord is unavailable or returned an error. Try again in a minute."
+    }
   },
   "formGate": {
     "checkingAccess": "Checking access…",
@@ -203,20 +212,17 @@
     }
   },
   "login": {
-    "welcome": "Welcome to",
-    "tagline": "Discord-powered application forms for your community. Sign in to manage and submit forms.",
-    "signInLabel": "Sign in to continue",
-    "continueDiscord": "Continue with Discord",
-    "terms": "By continuing, you agree to MarForms' Terms of Service and Privacy Policy.",
-    "footer": "MarForms · Discord Application Forms",
-    "features": {
-      "formBuilder": "Form Builder",
-      "formBuilderDesc": "Multi-step wizard with custom fields",
-      "roleControl": "Role Control",
-      "roleControlDesc": "Granular permissions for your team",
-      "instantDelivery": "Instant Delivery",
-      "instantDeliveryDesc": "Responses sent to Discord channels"
-    }
+    "home": "Home",
+    "title": "Sign in to {{name}}",
+    "lead": "We use Discord to confirm who you are and check your roles on servers. No password needed.",
+    "continueDiscord": "Sign in with Discord",
+    "scopesTitle": "What we ask Discord for",
+    "scopes": {
+      "identify": "name, avatar and ID",
+      "guilds": "the list of your servers"
+    },
+    "noMessages": "We don't read your messages or post anything on your behalf.",
+    "terms": "By continuing you accept the Terms and the Privacy Policy."
   },
   "forms": {
     "title": "Forms",

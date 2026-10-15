@@ -40,6 +40,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final OAuthSuccessHandler oAuthSuccessHandler;
+    private final OAuthFailureHandler oAuthFailureHandler;
     private final NoPkceAuthorizationRequestResolver noPkceResolver;
 
     /**
@@ -72,6 +73,7 @@ public class SecurityConfig {
                                 .authorizationRequestResolver(noPkceResolver)
                         )
                         .successHandler(oAuthSuccessHandler)
+                        .failureHandler(oAuthFailureHandler)
                 )
 
                 .authorizeHttpRequests(auth -> auth
