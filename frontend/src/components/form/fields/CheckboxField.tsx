@@ -1,5 +1,8 @@
+import {useTranslation} from "react-i18next";
 import FieldWrapper from "./FieldWrapper";
 import type {FormField} from "../../../types/forms";
+import {cx} from "../../../ui";
+import {describedBy, fieldIds} from "./fieldStyles";
 
 interface Props {
     field: FormField;
@@ -9,26 +12,25 @@ interface Props {
     error?: string;
 }
 
+/** Yes / no as a switch with its answer next to it (FormDesktop.dc.html — «Был ли опыт…»). */
 export default function CheckboxField({field, value, onChange, onBlur, error}: Props) {
+    const {t} = useTranslation();
     return (
-        <FieldWrapper label={field.label} required={field.required} description={field.description} error={error}>
-            <label
-                className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-2.5 transition-colors hover:border-bd ${
-                    error
-                        ? "border-rdb bg-rdb"
-                        : "border-bd bg-sf"
-                }`}>
-                <input
-                    type="checkbox"
-                    checked={value}
-                    onChange={e => {
-                        onChange(e.target.checked);
-                        onBlur?.();
-                    }}
-                    className="h-4 w-4 accent-pr"
-                />
-                <span className="text-sm text-mu">{field.label}</span>
-            </label>
+        <FieldWrapper fieldId={field.id} label={field.label} required={field.required} description={field.description} error={error}>
+            <div className="flex items-center gap-3">
+                <button id={fieldIds(field.id).input} type="button" role="switch" aria-checked={value}
+                        aria-invalid={error ? true : undefined} aria-describedby={describedBy(field.id, !!field.description, !!error)}
+                        onClick={() => {
+                            onChange(!value);
+                            onBlur?.();
+                        }}
+                        className={cx("flex h-6 w-11 flex-none rounded-full p-0.5 transition-colors",
+                            "focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-prs",
+                            value ? "justify-end bg-pr" : "justify-start bg-bd", error && !value && "ring-[1.5px] ring-dg")}>
+                    <span className="h-5 w-5 rounded-full bg-white shadow-sm"/>
+                </button>
+                <span className="text-[15px] font-medium text-tx" aria-hidden="true">{value ? t("form.yes") : t("form.no")}</span>
+            </div>
         </FieldWrapper>
     );
 }

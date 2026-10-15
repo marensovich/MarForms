@@ -9,38 +9,21 @@ interface Props {
     error?: string;
 }
 
-/** CHECKBOX with options: several choices, all visible (vs. MULTI_SELECT's dropdown). */
+/** CHECKBOX with options: several choices in a row (FormDesktop.dc.html — «В какие дни вы онлайн?»). */
 export default function CheckboxGroupField({field, value, onChange, onBlur, error}: Props) {
     const toggle = (opt: string) => {
         onChange(value.includes(opt) ? value.filter(v => v !== opt) : [...value, opt]);
         onBlur?.();
     };
     return (
-        <FieldWrapper label={field.label} required={field.required} description={field.description} error={error}>
-            <div className="flex flex-col gap-2">
-                {(field.options ?? []).map(opt => {
-                    const checked = value.includes(opt);
-                    return (
-                        <label
-                            key={opt}
-                            className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition-all ${
-                                checked
-                                    ? "border-prs bg-prs"
-                                    : error
-                                        ? "border-rdb bg-rdb hover:border-rdb"
-                                        : "border-bd bg-sf hover:border-bd hover:bg-bg"
-                            }`}
-                        >
-                            <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={() => toggle(opt)}
-                                className="h-4 w-4 accent-pr"
-                            />
-                            <span className="text-sm text-mu">{opt}</span>
-                        </label>
-                    );
-                })}
+        <FieldWrapper fieldId={field.id} label={field.label} required={field.required} description={field.description} error={error} group>
+            <div className="flex flex-wrap gap-x-3.5 gap-y-1 text-[15px] sm:text-sm">
+                {(field.options ?? []).map(opt => (
+                    <label key={opt} className="flex min-h-[44px] cursor-pointer items-center gap-2 text-tx sm:min-h-0 sm:py-1">
+                        <input type="checkbox" checked={value.includes(opt)} onChange={() => toggle(opt)} className="h-4 w-4 accent-pr"/>
+                        {opt}
+                    </label>
+                ))}
             </div>
         </FieldWrapper>
     );

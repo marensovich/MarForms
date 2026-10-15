@@ -77,5 +77,8 @@ export default function PublicFormPage() {
         createdAt: "",
         accessMode: form.accessMode,
     };
-    return <FormRenderer form={definition}/>;
+    return <FormRenderer form={definition} meta={{
+        guildName: form.guildName, guildIconUrl: form.guildIconUrl,
+        closesAt: form.closesAt, submissionLimitPerUser: form.submissionLimitPerUser,
+    }}/>;
 }

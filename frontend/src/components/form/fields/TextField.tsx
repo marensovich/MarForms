@@ -1,5 +1,7 @@
+import {useTranslation} from "react-i18next";
 import FieldWrapper from "./FieldWrapper";
 import type {FormField} from "../../../types/forms";
+import {describedBy, fieldIds, inputClass} from "./fieldStyles";
 
 interface Props {
     field: FormField;
@@ -9,13 +11,13 @@ interface Props {
     error?: string;
 }
 
-const DEFAULT_PLACEHOLDER: Partial<Record<FormField["type"], string>> = {
-    TEXT: "Type your answer…",
-    TEXTAREA: "Write your answer here…",
-    NUMBER: "Enter a number…",
-    EMAIL: "you@example.com",
-    URL: "https://example.com",
-    PHONE: "+7 (___) ___-__-__",
+const PLACEHOLDER_KEYS: Partial<Record<FormField["type"], string>> = {
+    TEXT: "form.placeholder.text",
+    TEXTAREA: "form.placeholder.textarea",
+    NUMBER: "form.placeholder.number",
+    EMAIL: "form.placeholder.email",
+    URL: "form.placeholder.url",
+    PHONE: "form.placeholder.phone",
 };
 
 // Integer.MAX_VALUE — actual backend TEXT column upper bound
@@ -38,7 +40,6 @@ function fieldTypeToInputType(type: FormField["type"]): string {
 
 // Strips anything that isn't a digit, leading minus, or decimal point.
 function filterNumber(raw: string): string {
-    // Allow optional leading minus, then digits and at most one dot
     const sign = raw.startsWith("-") ? "-" : "";
     const digits = raw.replace(/[^0-9.]/g, "");
     const parts = digits.split(".");
@@ -68,89 +69,62 @@ function formatPhone(input: string): string {
 // ── Component ──────────────────────────────────────────────────────────────
 
 export default function TextField({field, value, onChange, onBlur, error}: Props) {
+    const {t} = useTranslation();
     const isTextarea = field.type === "TEXTAREA";
     const isPhone = field.type === "PHONE";
     const isNumber = field.type === "NUMBER";
     const isText = field.type === "TEXT";
 
-    const placeholder = field.placeholder ?? DEFAULT_PLACEHOLDER[field.type] ?? "";
-
-    const baseCls = "w-full rounded-xl border px-4 py-3 text-sm text-tx placeholder-mu/70 outline-none transition-colors focus:ring-1";
-    const normalCls = "border-bd bg-bg focus:border-pr focus:bg-sf focus:ring-pr/20";
-    const errorCls = "border-rdb bg-rdb focus:border-rdt focus:ring-rdt/20";
-    const inputCls = `${baseCls} ${error ? errorCls : normalCls}`;
+    const placeholderKey = PLACEHOLDER_KEYS[field.type];
+    const placeholder = field.placeholder ?? (placeholderKey ? t(placeholderKey) : "");
 
     const handleChange = (raw: string) => {
-        if (isPhone) {
-            onChange(formatPhone(raw));
-            return;
-        }
-        if (isNumber) {
-            onChange(filterNumber(raw));
-            return;
-        }
-        onChange(raw);
+        if (isPhone) onChange(formatPhone(raw));
+        else if (isNumber) onChange(filterNumber(raw));
+        else onChange(raw);
     };
 
-    // ── Counter / range hint (shown only when creator explicitly set the limit) ──
-
+    // Counter or range hint, shown only when the form's author set a limit: "58 / 2000 · минимум 200".
     let counter: React.ReactNode = null;
-
     if (isText || isTextarea) {
-        if (field.max != null) {
-            const len = value.length;
-            const near = len > field.max * 0.85;
-            const over = len > field.max;
-            counter = (
-                <span className={`text-[10px] tabular-nums transition-colors ${
-                    over ? "text-rdt" : near ? "text-amt" : "text-mu/70"
-                }`}>
-                    {len} / {field.max.toLocaleString()}
-                </span>
-            );
-        } else if (field.min != null) {
-            counter = (
-                <span className="text-[10px] text-mu/70">min {field.min} chars</span>
-            );
+        const parts: string[] = [];
+        if (field.max != null) parts.push(`${value.length} / ${field.max.toLocaleString()}`);
+        if (field.min != null) parts.push(t("form.counter.minChars", {min: field.min}));
+        if (parts.length) {
+            const over = field.max != null && value.length > field.max;
+            counter = <span className={over ? "text-rdt" : undefined}>{parts.join(" · ")}</span>;
         }
     }
-
     if (isNumber && (field.min != null || field.max != null)) {
         const parts: string[] = [];
-        if (field.min != null) parts.push(`min ${field.min}`);
-        if (field.max != null) parts.push(`max ${field.max}`);
-        counter = <span className="text-[10px] text-mu/70">{parts.join(" · ")}</span>;
+        if (field.min != null) parts.push(t("form.counter.min", {min: field.min}));
+        if (field.max != null) parts.push(t("form.counter.max", {max: field.max}));
+        counter = parts.join(" · ");
     }
 
+    const ids = fieldIds(field.id);
+    const common = {
+        id: ids.input,
+        value,
+        onBlur,
+        placeholder,
+        required: field.required,
+        "aria-invalid": error ? true : undefined,
+        "aria-describedby": describedBy(field.id, !!field.description, !!error),
+    };
+
     return (
-        <FieldWrapper
-            label={field.label}
-            required={field.required}
-            description={field.description}
-            error={error}
-            counter={counter}
-        >
+        <FieldWrapper fieldId={field.id} label={field.label} required={field.required} description={field.description}
+                      error={error} counter={counter}>
             {isTextarea ? (
-                <textarea
-                    value={value}
-                    onChange={e => handleChange(e.target.value)}
-                    onBlur={onBlur}
-                    placeholder={placeholder}
-                    rows={4}
-                    maxLength={field.max != null ? field.max : TEXTAREA_MAX_LENGTH}
-                    className={`${inputCls} resize-none`}
-                />
+                <textarea {...common} onChange={e => handleChange(e.target.value)} rows={4}
+                          maxLength={field.max != null ? field.max : TEXTAREA_MAX_LENGTH}
+                          className={inputClass(error, "min-h-[112px] resize-y py-3 leading-normal sm:py-2.5")}/>
             ) : (
-                <input
-                    type={fieldTypeToInputType(field.type)}
-                    value={value}
-                    onChange={e => handleChange(e.target.value)}
-                    onBlur={onBlur}
-                    placeholder={placeholder}
-                    inputMode={isPhone ? "tel" : isNumber ? "decimal" : undefined}
-                    maxLength={isText ? (field.max != null ? field.max : 255) : undefined}
-                    className={inputCls}
-                />
+                <input {...common} type={fieldTypeToInputType(field.type)} onChange={e => handleChange(e.target.value)}
+                       inputMode={isPhone ? "tel" : isNumber ? "decimal" : undefined}
+                       maxLength={isText ? (field.max != null ? field.max : 255) : undefined}
+                       className={inputClass(error)}/>
             )}
         </FieldWrapper>
     );

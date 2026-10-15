@@ -68,14 +68,15 @@
   },
   "form": {
     "file": {
-      "choose": "Choose a file",
+      "choose": "browse",
       "uploading": "Uploading…",
       "remove": "Remove file",
       "failed": "Couldn't upload the file",
       "wrongType": "Allowed file types: {{types}}",
       "tooLarge": "The file is larger than {{max}} MB",
       "limits": "{{types}} · up to {{max}} MB",
-      "previewDisabled": "Uploads are disabled in preview"
+      "previewDisabled": "Uploads are disabled in preview",
+      "drop": "Drop a file here or"
     },
     "anonymousNote": "This is an anonymous form: your Discord account is not stored with your answers.",
     "previewSubmitDisabled": "Preview — submitting is disabled",
@@ -100,27 +101,6 @@
       "invalidTime": "Please enter a valid time (HH:MM)",
       "invalidDatetime": "Please enter a valid date and time"
     },
-    "sidebar": {
-      "fields": "Fields",
-      "required": "Required",
-      "estTime": "Est. time",
-      "progress": "Progress",
-      "requiredProgress": "{{answered}} / {{total}} required",
-      "allFilled": "All required fields filled — ready to submit",
-      "fieldTypes": "Field types",
-      "createdBy": "Created by",
-      "secure": "Your response is encrypted in transit and stored securely."
-    },
-    "topBar": {
-      "secure": "Secure form"
-    },
-    "fieldCount_one": "{{count}} question",
-    "fieldCount_other": "{{count}} questions",
-    "requiredCount": "· {{count}} required",
-    "percentComplete": "{{pct}}% complete",
-    "readyToSubmit": "Ready to submit",
-    "validationSummary_one": "{{count}} field needs your attention",
-    "validationSummary_other": "{{count}} fields need your attention",
     "submitting": "Submitting…",
     "submit": "Submit response",
     "footer": "Powered by MarForms · Your data is transmitted securely",
@@ -129,17 +109,54 @@
       "mySubmissions": "My submissions: status and the moderator's reply",
       "statusLabel": "Status",
       "statusPending": "Under review",
-      "title": "Response submitted!",
+      "title": "Submission sent",
       "description": "Your response to \"{{formTitle}}\" has been recorded and sent to the server.",
-      "closeNote": "You can now close this tab. Thank you for your submission."
+      "closeNote": "You can now close this tab. Thank you for your submission.",
+      "text": "Moderators will review it soon. Its status will be in My submissions.",
+      "home": "Home"
     },
-    "estTime": {
-      "1min": "~1 min",
-      "3min": "~3 min",
-      "5min": "~5 min",
-      "10min": "~10 min"
+    "draftSaved": "Draft saved in your browser · {{time}}",
+    "placeholder": {
+      "text": "Your answer",
+      "textarea": "Write your answer…",
+      "number": "Number",
+      "email": "you@example.com",
+      "url": "https://",
+      "phone": "+7 (___) ___-__-__",
+      "select": "Choose an option",
+      "add": "Add…"
     },
-    "draftSaved": "Draft saved · {{time}}"
+    "counter": {
+      "minChars": "at least {{min}}",
+      "min": "from {{min}}",
+      "max": "up to {{max}}"
+    },
+    "removeOption": "Remove “{{option}}”",
+    "yes": "Yes",
+    "no": "No",
+    "progressLabel": "Fields filled in",
+    "section": "Section {{n}}",
+    "sectionOf": "Section {{n}} of {{total}}",
+    "fieldsOf": "{{n}} of {{total}} fields",
+    "badge": {
+      "closes": "Closes {{date}}",
+      "limit_one": "{{count}} submission per person",
+      "limit_other": "{{count}} submissions per person",
+      "minutes_one": "≈ {{count}} minute",
+      "minutes_other": "≈ {{count}} minutes",
+      "anonymous": "Anonymous form: the answer can't be traced"
+    },
+    "anonymousTitle": "Anonymous form.",
+    "anonymousText": "Moderators won't see your Discord account, so they can't contact you or ask for changes.",
+    "answeringAs": "You are answering as",
+    "errorsToFix_one": "{{count}} field needs fixing",
+    "errorsToFix_other": "{{count}} fields need fixing",
+    "shownByAnswer": "Shown because of your answer",
+    "shownAfter": "Shown after the answer “{{answer}}”",
+    "requiredNote": {
+      "before": "Fields marked",
+      "after": "are required."
+    }
   },
   "login": {
     "welcome": "Welcome to",

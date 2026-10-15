@@ -68,14 +68,15 @@
   },
   "form": {
     "file": {
-      "choose": "Выбрать файл",
+      "choose": "выберите",
       "uploading": "Загрузка…",
       "remove": "Убрать файл",
       "failed": "Не удалось загрузить файл",
       "wrongType": "Допустимые типы файлов: {{types}}",
       "tooLarge": "Файл больше {{max}} МБ",
       "limits": "{{types}} · до {{max}} МБ",
-      "previewDisabled": "В предпросмотре загрузка отключена"
+      "previewDisabled": "В предпросмотре загрузка отключена",
+      "drop": "Перетащите файл сюда или"
     },
     "anonymousNote": "Это анонимная форма — ваш Discord-аккаунт не сохраняется вместе с ответами.",
     "previewSubmitDisabled": "Предпросмотр — отправка отключена",
@@ -100,27 +101,6 @@
       "invalidTime": "Введите корректное время (ЧЧ:ММ)",
       "invalidDatetime": "Введите корректные дату и время"
     },
-    "sidebar": {
-      "fields": "Полей",
-      "required": "Обязательных",
-      "estTime": "Время",
-      "progress": "Прогресс",
-      "requiredProgress": "{{answered}} / {{total}} обязательных",
-      "allFilled": "Все обязательные поля заполнены — можно отправить",
-      "fieldTypes": "Типы полей",
-      "createdBy": "Создано",
-      "secure": "Ваш ответ зашифрован при передаче и хранится безопасно."
-    },
-    "topBar": {
-      "secure": "Защищённая форма"
-    },
-    "fieldCount_one": "{{count}} вопрос",
-    "fieldCount_other": "{{count}} вопросов",
-    "requiredCount": "· {{count}} обязательных",
-    "percentComplete": "{{pct}}% заполнено",
-    "readyToSubmit": "Готово к отправке",
-    "validationSummary_one": "{{count}} поле требует внимания",
-    "validationSummary_other": "{{count}} полей требуют внимания",
     "submitting": "Отправка…",
     "submit": "Отправить ответ",
     "footer": "Работает на MarForms · Данные передаются безопасно",
@@ -129,17 +109,60 @@
       "mySubmissions": "Мои заявки — статус и ответ модератора",
       "statusLabel": "Статус",
       "statusPending": "На рассмотрении",
-      "title": "Ответ отправлен!",
+      "title": "Заявка отправлена",
       "description": "Ваш ответ на «{{formTitle}}» записан и отправлен на сервер.",
-      "closeNote": "Вы можете закрыть эту вкладку. Спасибо за ответ."
+      "closeNote": "Вы можете закрыть эту вкладку. Спасибо за ответ.",
+      "text": "Модераторы рассмотрят её в ближайшее время. Статус появится в «Мои заявки».",
+      "home": "На главную"
     },
-    "estTime": {
-      "1min": "~1 мин",
-      "3min": "~3 мин",
-      "5min": "~5 мин",
-      "10min": "~10 мин"
+    "draftSaved": "Черновик сохранён в браузере · {{time}}",
+    "placeholder": {
+      "text": "Ваш ответ",
+      "textarea": "Напишите ответ…",
+      "number": "Число",
+      "email": "you@example.com",
+      "url": "https://",
+      "phone": "+7 (___) ___-__-__",
+      "select": "Выберите вариант",
+      "add": "Добавить…"
     },
-    "draftSaved": "Черновик сохранён · {{time}}"
+    "counter": {
+      "minChars": "минимум {{min}}",
+      "min": "от {{min}}",
+      "max": "до {{max}}"
+    },
+    "removeOption": "Убрать «{{option}}»",
+    "yes": "Да",
+    "no": "Нет",
+    "progressLabel": "Заполнено полей",
+    "section": "Раздел {{n}}",
+    "sectionOf": "Раздел {{n}} из {{total}}",
+    "fieldsOf": "{{n}} из {{total}} полей",
+    "badge": {
+      "closes": "Закроется {{date}}",
+      "limit_one": "{{count}} заявка на человека",
+      "limit_few": "{{count}} заявки на человека",
+      "limit_many": "{{count}} заявок на человека",
+      "limit_other": "{{count}} заявки на человека",
+      "minutes_one": "≈ {{count}} минута",
+      "minutes_few": "≈ {{count}} минуты",
+      "minutes_many": "≈ {{count}} минут",
+      "minutes_other": "≈ {{count}} минуты",
+      "anonymous": "Анонимная форма: ответ нельзя будет отследить"
+    },
+    "anonymousTitle": "Анонимная форма.",
+    "anonymousText": "Модераторы не увидят ваш Discord-аккаунт, поэтому не смогут связаться с вами или попросить доработку.",
+    "answeringAs": "Вы отвечаете как",
+    "errorsToFix_one": "{{count}} поле требует исправления",
+    "errorsToFix_few": "{{count}} поля требуют исправления",
+    "errorsToFix_many": "{{count}} полей требуют исправления",
+    "errorsToFix_other": "{{count}} поля требуют исправления",
+    "shownByAnswer": "Появилось по вашему ответу",
+    "shownAfter": "Появилось после ответа «{{answer}}»",
+    "requiredNote": {
+      "before": "Поля, отмеченные",
+      "after": "обязательны."
+    }
   },
   "login": {
     "welcome": "Добро пожаловать в",

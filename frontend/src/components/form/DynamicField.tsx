@@ -6,7 +6,6 @@ import RadioField from "./fields/RadioField";
 import CheckboxField from "./fields/CheckboxField";
 import CheckboxGroupField from "./fields/CheckboxGroupField";
 import RatingField from "./fields/RatingField";
-import SectionBreak from "./fields/SectionBreak";
 import FileUploadField from "./fields/FileUploadField";
 
 interface Props {
@@ -82,7 +81,8 @@ export default function DynamicField({field, value, onChange, onBlur, error}: Pr
                 />
             );
         case "SECTION_BREAK":
-            return <SectionBreak field={field}/>;
+            // Rendered by the form as the heading of its section card.
+            return null;
         case "FILE_UPLOAD":
             return (
                 <FileUploadField
