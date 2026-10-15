@@ -7,12 +7,12 @@ import {
     deleteSubmission,
     getAllSubmissions,
     getDashboardForms,
-    getForm,
     getUsers,
     getUserSubmissionCounts,
     type UserSubmissionCount,
 } from "../../api/dashboard";
-import {type FormDefinition} from "../../types/forms";
+import {type FormSchema} from "../../types/forms";
+import {getSubmissionDetail} from "../../api/moderation";
 import {ActionBtn, ConfirmModal, EmptyState, Modal, StatsCard, TabSkeleton} from "./shared";
 import {
     FiArrowDown,
@@ -44,15 +44,16 @@ const PAGE_SIZE = 15;
 
 function SubmissionDetailModal({
                                    submission,
-                                   formDef,
+                                   questions,
                                    onClose,
                                }: {
     submission: DashboardSubmission;
-    formDef: FormDefinition | null;
+    /** The questions the submission answered (its snapshot, #117). */
+    questions: FormSchema | null;
     onClose: () => void;
 }) {
     const getLabel = (fieldId: string): string => {
-        const field = formDef?.schema.fields.find(f => f.id === fieldId);
+        const field = questions?.fields.find(f => f.id === fieldId);
         return field?.label ?? fieldId;
     };
 
@@ -103,7 +104,7 @@ export default function ResponsesTab() {
     });
     const [searchInput, setSearchInput] = useState("");
     const [selected, setSelected] = useState<DashboardSubmission | null>(null);
-    const [formDef, setFormDef] = useState<FormDefinition | null>(null);
+    const [questions, setQuestions] = useState<FormSchema | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<DashboardSubmission | null>(null);
 
     // Load static data on mount
@@ -157,13 +158,13 @@ export default function ResponsesTab() {
             .finally(() => setLoading(false));
     }, [view]);
 
-    // Load form definition for detail modal
+    // The questions the submission was asked, for the detail modal
     useEffect(() => {
         if (!selected) {
-            setFormDef(null);
+            setQuestions(null);
             return;
         }
-        getForm(selected.formId).then(setFormDef).catch(() => setFormDef(null));
+        getSubmissionDetail(selected.id).then(d => setQuestions(d.schema)).catch(() => setQuestions(null));
     }, [selected]);
 
     const applySearch = () => {
@@ -483,7 +484,7 @@ export default function ResponsesTab() {
             {selected && (
                 <SubmissionDetailModal
                     submission={selected}
-                    formDef={formDef}
+                    questions={questions}
                     onClose={() => setSelected(null)}
                 />
             )}
