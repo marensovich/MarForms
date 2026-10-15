@@ -11,7 +11,10 @@ import me.marensovich.gta5rpformapp.backend.dto.submission.MySubmissionDetailDto
 import me.marensovich.gta5rpformapp.backend.dto.submission.MySubmissionDto;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmissionDetailDto;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmissionDto;
+import me.marensovich.gta5rpformapp.backend.dto.submission.SubmissionReceiptDto;
+import me.marensovich.gta5rpformapp.backend.dto.submission.SubmitFormRequest;
 import me.marensovich.gta5rpformapp.backend.service.ModerationService;
+import me.marensovich.gta5rpformapp.backend.service.SubmissionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -38,6 +41,7 @@ public class ModerationController {
 
     private final ModerationService moderationService;
     private final GuildAccessGuard guildAccess;
+    private final SubmissionService submissionService;
 
     /**
      * Every submission of a guild's forms, filterable (task #52) — the
@@ -143,6 +147,21 @@ public class ModerationController {
      * @return the submission, its questions as asked, answers and files
      * @since v.0.1
      */
+    /**
+     * Sends one of the current user's submissions again after revision (#119).
+     *
+     * @param principal the author
+     * @param id        the submission
+     * @param request   the revised answers
+     * @return the receipt; the submission is pending again
+     * @since v.0.1
+     */
+    @PostMapping("/me/submissions/{id}/resubmit")
+    public SubmissionReceiptDto resubmit(@AuthenticationPrincipal CustomUserDetails principal, @PathVariable UUID id,
+                                         @Valid @RequestBody SubmitFormRequest request) {
+        return SubmissionReceiptDto.from(submissionService.resubmit(id, principal.getUser(), request.answers()));
+    }
+
     @GetMapping("/me/submissions/{id}")
     public MySubmissionDetailDto mineDetail(@AuthenticationPrincipal CustomUserDetails principal, @PathVariable UUID id) {
         return moderationService.mineDetail(principal.getDiscordId(), id);

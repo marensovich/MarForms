@@ -125,6 +125,21 @@ public class FileService {
      */
     @Transactional(readOnly = true)
     public List<SubmissionFile> resolveAnswerFiles(Form form, Map<String, Object> answers) {
+        return resolveAnswerFiles(form, answers, null);
+    }
+
+    /**
+     * As {@link #resolveAnswerFiles(Form, Map)}, also accepting files already
+     * attached to {@code keptBy} — a submission sent again after revision keeps
+     * the files it had (#119).
+     *
+     * @param form    the form
+     * @param answers the cleaned answers
+     * @param keptBy  the submission whose own files may be answered again, or {@code null}
+     * @return the files the answers point to
+     * @since v.0.1
+     */
+    public List<SubmissionFile> resolveAnswerFiles(Form form, Map<String, Object> answers, @Nullable UUID keptBy) {
         List<SubmissionFile> files = new ArrayList<>();
         Map<String, String> errors = new LinkedHashMap<>();
         for (FormField field : form.getSchema().getFields()) {
@@ -133,7 +148,7 @@ public class FileService {
             if (answer == null) continue;
             SubmissionFile file = fileRepository.findById(UUID.fromString(answer.toString())).orElse(null);
             if (file == null || !file.getFormId().equals(form.getId()) || !file.getFieldId().equals(field.getId())
-                    || file.getSubmissionId() != null) {
+                    || (file.getSubmissionId() != null && !file.getSubmissionId().equals(keptBy))) {
                 errors.put(field.getId(), "Upload the file again");
             } else {
                 files.add(file);

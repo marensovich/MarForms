@@ -147,7 +147,8 @@ public class Submission {
      * @since v.0.1
      */
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "schema_snapshot", updatable = false)
+    // Updated only when the author sends it again after revision (#119): the questions answered then.
+    @Column(name = "schema_snapshot")
     private FormSchema schemaSnapshot;
 
     /**

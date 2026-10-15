@@ -3,6 +3,7 @@ package me.marensovich.gta5rpformapp.backend.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.data.forms.SubmissionEventType;
+import me.marensovich.gta5rpformapp.backend.data.forms.SubmissionStatus;
 import me.marensovich.gta5rpformapp.backend.database.entity.SubmissionEvent;
 import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionEventRepository;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
@@ -208,6 +209,59 @@ public class SubmissionService {
                 "Form: " + form.getSchema().getTitle() + " (" + form.getId() + ")\nSubmission ID: " + saved.getId());
 
         return new SubmitResult(saved, true);
+    }
+
+    /**
+     * Sends a submission again after the moderator asked for revision (#119,
+     * ТЗ ФТ-3.6.5): only its author, only from NEEDS_REVISION. The form's access
+     * rules and the answer and file checks apply as on a first submission; the
+     * per-user limit doesn't, since no new submission is created. The submission
+     * goes back to PENDING with the new answers and the questions as asked now,
+     * and its webhooks are notified again.
+     *
+     * @param submissionId the submission
+     * @param user         its author
+     * @param answers      the revised answers
+     * @return the submission, pending again
+     * @throws NotFoundException     if it isn't theirs
+     * @throws InvalidStateException if it isn't waiting for revision
+     * @since v.0.1
+     */
+    @Transactional
+    public Submission resubmit(UUID submissionId, User user, Map<String, Object> answers) {
+        Submission submission = submissionRepository.findById(submissionId)
+                .filter(s -> user.getDiscordId().equals(s.getDiscordId()))
+                .orElseThrow(() -> new NotFoundException("Submission not found: " + submissionId));
+        if (submission.getStatus() != SubmissionStatus.NEEDS_REVISION) {
+            throw new InvalidStateException("Only a submission sent back for revision can be sent again");
+        }
+        Form form = formRepository.findById(submission.getFormId())
+                .orElseThrow(() -> new NotFoundException("Form not found: " + submission.getFormId()));
+        formAccessService.requireAccess(form, user);
+
+        Map<String, Object> clean = SubmissionAnswerValidator.validate(form.getSchema(), answers);
+        List<SubmissionFile> files = fileService.resolveAnswerFiles(form, clean, submission.getId());
+
+        SubmissionStatus old = submission.getStatus();
+        submission.setAnswers(clean);
+        submission.setSchemaSnapshot(form.getSchema() == null ? null : SNAPSHOT_COPIER.convertValue(form.getSchema(), FormSchema.class));
+        submission.setStatus(SubmissionStatus.PENDING);
+        submission.setDecidedAt(null);
+        // The earlier decision stays in the history; the row reads as pending again.
+        submission.setModeratorComment(null);
+        submission.setModeratorDiscordId(null);
+        Submission saved = submissionRepository.saveAndFlush(submission);
+        fileService.attach(files, saved.getId());
+        submissionEventRepository.save(SubmissionEvent.of(saved.getId(), SubmissionEventType.RESUBMITTED, old,
+                saved.getStatus(), user.getDiscordId(), null));
+
+        enqueueWebhookDeliveries(form, saved, withFileNames(clean, files), user.getDiscordUsername(), user.getDiscordId());
+        auditLogService.logGuildAction(form.getServerId(), AuditAction.SUBMISSION_DECIDED, "SUBMISSION",
+                saved.getId().toString(), form.getSchema().getTitle(),
+                Map.of("formId", form.getId().toString(), "from", old.name(), "to", saved.getStatus().name(),
+                        "authorDiscordId", user.getDiscordId().toString()),
+                "Sent again after revision");
+        return saved;
     }
 
     /**
