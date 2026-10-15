@@ -25,18 +25,18 @@
     "navigation": "Навигация",
     "dashboard": "Панель",
     "forms": "Формы",
-    "responses": "Ответы",
+    "responses": "Заявки",
     "users": "Пользователи",
     "roles": "Роли",
-    "logs": "Логи",
+    "logs": "Журнал",
     "system": "Система",
     "settings": "Настройки"
   },
   "adminLevel": {
-    "systemAdmin": "Системный Admin",
-    "admin": "Администратор",
-    "moderator": "Модератор",
-    "staff": "Сотрудник"
+    "systemAdmin": "System Admin",
+    "admin": "Admin",
+    "moderator": "Moderator",
+    "staff": "Staff"
   },
   "auth": {
     "signingIn": "Выполняется вход…",
@@ -1244,5 +1244,25 @@
     "retry": "Повторить",
     "nothingFound": "Ничего не найдено",
     "resetFilters": "Сбросить фильтры"
+  },
+  "shell": {
+    "admin": "Администрирование",
+    "mainNav": "Основная навигация",
+    "breadcrumbs": "Хлебные крошки",
+    "collapse": "Свернуть меню",
+    "expand": "Развернуть меню",
+    "language": "Язык",
+    "darkTheme": "Тёмная тема",
+    "lightTheme": "Светлая тема",
+    "userMenu": "Меню пользователя",
+    "mySubmissions": "Мои заявки",
+    "myServers": "Мои серверы",
+    "noAccessTitle": "Нет доступа к разделу",
+    "noAccessText": "Для этого раздела нужно право платформы, которого у вас нет. Обратитесь к администратору MarForms.",
+    "guild": {
+      "forms": "Формы",
+      "submissions": "Заявки",
+      "audit": "Журнал"
+    }
   }
 }

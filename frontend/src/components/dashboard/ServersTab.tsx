@@ -1,4 +1,5 @@
 import {useEffect, useState} from "react";
+import {useNavigate} from "react-router-dom";
 import {AnimatePresence} from "framer-motion";
 import {useTranslation} from "react-i18next";
 import {FiChevronRight, FiCreditCard, FiExternalLink, FiInbox, FiList, FiServer, FiSlash, FiUsers} from "react-icons/fi";
@@ -7,9 +8,6 @@ import {ActionBtn, Badge, EmptyState, TabSkeleton} from "./shared";
 import ModeratorsModal from "./ModeratorsModal";
 import BansModal from "./BansModal";
 import BillingModal from "./BillingModal";
-import GuildFormsPanel from "./GuildFormsPanel";
-import GuildModerationPanel from "./moderation/GuildModerationPanel";
-import GuildAuditPanel from "./moderation/GuildAuditPanel";
 
 /**
  * The servers the current user owns or moderates — the entry point of the
@@ -17,14 +15,14 @@ import GuildAuditPanel from "./moderation/GuildAuditPanel";
  */
 export default function ServersTab() {
     const {t} = useTranslation();
+    const navigate = useNavigate();
+    const open = (g: MyGuild, section: "forms" | "submissions" | "audit") =>
+        navigate(`/dashboard/servers/${g.guildId}/${section}`);
     const [guilds, setGuilds] = useState<MyGuild[]>([]);
     const [loading, setLoading] = useState(true);
     const [connecting, setConnecting] = useState(false);
     const [moderatorsGuild, setModeratorsGuild] = useState<MyGuild | null>(null);
-    const [openGuild, setOpenGuild] = useState<MyGuild | null>(null);
-    const [moderationGuild, setModerationGuild] = useState<MyGuild | null>(null);
     const [bansGuild, setBansGuild] = useState<MyGuild | null>(null);
-    const [auditGuild, setAuditGuild] = useState<MyGuild | null>(null);
     const [billingGuild, setBillingGuild] = useState<MyGuild | null>(null);
     const [checkoutResult, setCheckoutResult] = useState<"success" | "cancel" | null>(null);
 
@@ -63,18 +61,6 @@ export default function ServersTab() {
         }
     };
 
-    if (auditGuild) {
-        return <GuildAuditPanel guild={auditGuild} onBack={() => setAuditGuild(null)}/>;
-    }
-
-    if (moderationGuild) {
-        return <GuildModerationPanel guild={moderationGuild} onBack={() => setModerationGuild(null)}/>;
-    }
-
-    if (openGuild) {
-        return <GuildFormsPanel guild={openGuild} onBack={() => setOpenGuild(null)}/>;
-    }
-
     return (
         <div>
             <div className="mb-6 flex items-start justify-between">
@@ -109,7 +95,7 @@ export default function ServersTab() {
                         </thead>
                         <tbody>
                         {guilds.map(g => (
-                            <tr key={g.guildId} onClick={() => setOpenGuild(g)}
+                            <tr key={g.guildId} onClick={() => open(g, "forms")}
                                 className="cursor-pointer border-b border-bd transition-colors last:border-0 hover:bg-bg">
                                 <td className="px-5 py-3">
                                     <p className="font-medium text-tx">{g.guildName}</p>
@@ -131,7 +117,7 @@ export default function ServersTab() {
                                                 {t("moderators.manage")}
                                             </ActionBtn>
                                         )}
-                                        <ActionBtn variant="primary" onClick={() => setModerationGuild(g)}>
+                                        <ActionBtn variant="primary" onClick={() => open(g, "submissions")}>
                                             <FiInbox size={11} className="mr-1 inline"/>
                                             {t("moderation.open")}
                                         </ActionBtn>
@@ -144,14 +130,14 @@ export default function ServersTab() {
                                             </ActionBtn>
                                         )}
                                         {g.role === "OWNER" && (
-                                            <ActionBtn onClick={() => setAuditGuild(g)} title={t("guildAudit.open")}>
+                                            <ActionBtn onClick={() => open(g, "audit")} title={t("guildAudit.open")}>
                                                 <FiList size={11} className="inline"/>
                                             </ActionBtn>
                                         )}
                                         <ActionBtn variant="danger" onClick={() => setBansGuild(g)} title={t("bans.title")}>
                                             <FiSlash size={11} className="inline"/>
                                         </ActionBtn>
-                                        <ActionBtn onClick={() => setOpenGuild(g)}>
+                                        <ActionBtn onClick={() => open(g, "forms")}>
                                             {t("servers.openForms")}
                                             <FiChevronRight size={11} className="ml-1 inline"/>
                                         </ActionBtn>

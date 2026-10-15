@@ -25,10 +25,10 @@
     "navigation": "Navigation",
     "dashboard": "Dashboard",
     "forms": "Forms",
-    "responses": "Responses",
+    "responses": "Submissions",
     "users": "Users",
     "roles": "Roles",
-    "logs": "Logs",
+    "logs": "Audit log",
     "system": "System",
     "settings": "Settings"
   },
@@ -1230,5 +1230,25 @@
     "retry": "Retry",
     "nothingFound": "Nothing found",
     "resetFilters": "Reset filters"
+  },
+  "shell": {
+    "admin": "Administration",
+    "mainNav": "Main navigation",
+    "breadcrumbs": "Breadcrumbs",
+    "collapse": "Collapse menu",
+    "expand": "Expand menu",
+    "language": "Language",
+    "darkTheme": "Dark theme",
+    "lightTheme": "Light theme",
+    "userMenu": "User menu",
+    "mySubmissions": "My submissions",
+    "myServers": "My servers",
+    "noAccessTitle": "No access to this section",
+    "noAccessText": "This section needs a platform permission you do not have. Contact a MarForms administrator.",
+    "guild": {
+      "forms": "Forms",
+      "submissions": "Submissions",
+      "audit": "Audit log"
+    }
   }
 }
