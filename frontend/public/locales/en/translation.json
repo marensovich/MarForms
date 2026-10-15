@@ -1250,5 +1250,17 @@
       "submissions": "Submissions",
       "audit": "Audit log"
     }
+  },
+  "palette": {
+    "title": "Search",
+    "placeholder": "Search: forms, submissions, people…",
+    "searching": "Searching…",
+    "forms": "Forms",
+    "submissions": "Submissions",
+    "users": "Users",
+    "actions": "Actions",
+    "newForm": "New form",
+    "queue": "Go to the moderation queue",
+    "toggleTheme": "Toggle theme"
   }
 }

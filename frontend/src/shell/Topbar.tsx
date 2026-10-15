@@ -1,6 +1,6 @@
 import {Fragment} from "react";
 import {useTranslation} from "react-i18next";
-import {FiChevronRight} from "react-icons/fi";
+import {FiChevronRight, FiSearch} from "react-icons/fi";
 import {Link} from "react-router-dom";
 import UserMenu from "./UserMenu";
 
@@ -9,8 +9,10 @@ export interface Crumb {
     to?: string;
 }
 
-// Docs: docs/design/mockups/Topbar.dc.html. Search (⌘K, #107) and notifications (#123) join here.
-export default function Topbar({crumbs}: { crumbs: Crumb[] }) {
+const IS_MAC = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
+
+// Docs: docs/design/mockups/Topbar.dc.html. Notifications (#123) join here.
+export default function Topbar({crumbs, onSearch}: { crumbs: Crumb[]; onSearch: () => void }) {
     const {t} = useTranslation();
     return (
         <header className="sticky top-0 z-30 flex h-[60px] flex-none items-center gap-4 border-b border-bd bg-sf pl-10 pr-6 text-tx">
@@ -31,6 +33,12 @@ export default function Topbar({crumbs}: { crumbs: Crumb[] }) {
                     })}
                 </ol>
             </nav>
+            <button type="button" onClick={onSearch} aria-keyshortcuts={IS_MAC ? "Meta+K" : "Control+K"}
+                    className="flex h-9 w-[300px] max-w-[40%] items-center gap-2 rounded-[10px] border border-bd bg-bg px-2.5 text-left text-[13px] text-mu hover:border-mu/40 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-prs">
+                <FiSearch size={15} aria-hidden="true" className="flex-none"/>
+                <span className="flex-1 truncate">{t("palette.placeholder")}</span>
+                <kbd className="rounded-md border border-bd bg-sf px-1.5 py-0.5 font-mono text-[11px]">{IS_MAC ? "⌘K" : "Ctrl K"}</kbd>
+            </button>
             <UserMenu variant="topbar"/>
         </header>
     );

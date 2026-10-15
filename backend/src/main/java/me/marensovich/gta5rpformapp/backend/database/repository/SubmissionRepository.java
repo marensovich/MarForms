@@ -161,4 +161,19 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID>, J
     @Query("SELECT new me.marensovich.gta5rpformapp.backend.dto.submission.UserSubmissionCountDto(s.discordId, COUNT(s)) " +
             "FROM Submission s GROUP BY s.discordId ORDER BY COUNT(s) DESC")
     List<UserSubmissionCountDto> findUserSubmissionCounts();
+
+    /**
+     * Newest submissions of the given authors — the ⌘K search by author (#107).
+     * Anonymous submissions have no author and never match.
+     *
+     * @param authors  Discord IDs of the matching authors (non-empty)
+     * @param all      search every server (platform RESPONSES_MANAGE)
+     * @param guildIds otherwise only these servers' submissions; never empty (pass a sentinel)
+     * @param pageable the result limit
+     * @return matching submissions, newest first
+     * @since v.0.1
+     */
+    @Query("select s from Submission s where s.discordId in :authors and (:all = true or s.formId in "
+            + "(select f.id from Form f where f.serverId in :guildIds)) order by s.createdAt desc")
+    List<Submission> searchByAuthors(Collection<Long> authors, boolean all, Collection<Long> guildIds, Pageable pageable);
 }

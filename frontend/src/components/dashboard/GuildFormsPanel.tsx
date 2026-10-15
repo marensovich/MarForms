@@ -56,7 +56,8 @@ export default function GuildFormsPanel({guild, onBack}: { guild: MyGuild; onBac
     const [includeArchived, setIncludeArchived] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [busyId, setBusyId] = useState<string | null>(null);
-    const [showWizard, setShowWizard] = useState(false);
+    // ?new=1 (the "Новая форма" command, #107) opens the wizard straight away.
+    const [showWizard, setShowWizard] = useState(() => new URLSearchParams(window.location.search).get("new") === "1");
     const [editForm, setEditForm] = useState<DashboardForm | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<DashboardForm | null>(null);
 

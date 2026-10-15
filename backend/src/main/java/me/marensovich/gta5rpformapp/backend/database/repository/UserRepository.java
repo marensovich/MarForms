@@ -123,4 +123,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @since v.0.1
      */
     List<User> findAllByDiscordIdIn(java.util.Collection<Long> discordIds);
+
+    /**
+     * Users whose Discord username contains the text, with a result limit —
+     * the ⌘K search (#107).
+     *
+     * @param username part of the username, any case
+     * @param pageable the result limit
+     * @return matching users
+     * @since v.0.1
+     */
+    List<User> findByDiscordUsernameContainingIgnoreCase(String username, Pageable pageable);
 }

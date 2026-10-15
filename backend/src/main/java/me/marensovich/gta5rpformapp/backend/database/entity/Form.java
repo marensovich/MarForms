@@ -215,11 +215,22 @@ public class Form {
         this.active = status == FormStatus.PUBLISHED;
     }
 
+    /**
+     * Copy of {@code schema.title} kept as a column, so forms can be searched
+     * and sorted by title without reading the JSON schema (#107).
+     *
+     * @since v.0.1
+     */
+    @Column(nullable = false)
+    private String title = "";
+
     @PrePersist
     @PreUpdate
     void syncDerivedFields() {
         active = status == FormStatus.PUBLISHED;
         updatedAt = LocalDateTime.now();
+        String schemaTitle = schema != null && schema.getTitle() != null ? schema.getTitle() : "";
+        title = schemaTitle.length() > 255 ? schemaTitle.substring(0, 255) : schemaTitle;
     }
 
     /**

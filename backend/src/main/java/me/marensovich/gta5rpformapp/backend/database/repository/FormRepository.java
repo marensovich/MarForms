@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -113,4 +114,19 @@ public interface FormRepository extends JpaRepository<Form, UUID> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select f from Form f where f.id = :id")
     Optional<Form> lockById(UUID id);
+
+    /**
+     * Forms whose title or slug contains {@code pattern} (a lower-case LIKE
+     * pattern), newest changes first — the ⌘K search (#107).
+     *
+     * @param all      search every form (platform FORMS_MANAGE)
+     * @param guildIds otherwise only these servers' forms; never empty (pass a sentinel)
+     * @param pattern  lower-case LIKE pattern, e.g. {@code %lspd%}
+     * @param pageable the result limit
+     * @return matching forms
+     * @since v.0.1
+     */
+    @Query("select f from Form f where (:all = true or f.serverId in :guildIds) "
+            + "and (lower(f.title) like :pattern escape '!' or lower(f.slug) like :pattern escape '!') order by f.updatedAt desc")
+    List<Form> search(boolean all, Collection<Long> guildIds, String pattern, Pageable pageable);
 }

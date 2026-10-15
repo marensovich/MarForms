@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {useTranslation} from "react-i18next";
-import {matchPath, Navigate, Outlet, useLocation} from "react-router-dom";
+import {matchPath, Navigate, Outlet, useLocation, useNavigate} from "react-router-dom";
 import {getMyGuilds, type MyGuild} from "../api/dashboard";
 import LoadingScreen from "../components/LoadingScreen";
 import {useAuth} from "../hooks/useAuth";
@@ -8,6 +8,8 @@ import type {DashboardContext} from "./dashboardContext";
 import {ADMIN_NAV, readSidebarCollapsed, writeSidebarCollapsed} from "./navigation";
 import Sidebar from "./Sidebar";
 import Topbar, {type Crumb} from "./Topbar";
+import CommandPalette from "./CommandPalette";
+import {isTypingTarget, newFormTarget, queueTarget} from "./commands";
 
 // Docs: docs/design/mockups/Servers.dc.html (sidebar + topbar + page), ТЗ 4.1.
 
@@ -24,6 +26,8 @@ export default function DashboardLayout() {
     const [guilds, setGuilds] = useState<MyGuild[] | null>(null);
     const [collapsed, setCollapsed] = useState(readSidebarCollapsed);
     const [reloadKey, setReloadKey] = useState(0);
+    const [paletteOpen, setPaletteOpen] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
         let cancelled = false;
@@ -34,6 +38,31 @@ export default function DashboardLayout() {
             cancelled = true;
         };
     }, [reloadKey]);
+
+    // ⌘K / Ctrl+K opens the palette anywhere; N and G→Q work outside text fields (ТЗ ФТ-4.1.3).
+    useEffect(() => {
+        let pendingG = 0;
+        const onKey = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+                e.preventDefault();
+                setPaletteOpen(o => !o);
+                return;
+            }
+            if (paletteOpen || e.metaKey || e.ctrlKey || e.altKey || isTypingTarget(e.target)) return;
+            if (document.querySelector("[aria-modal=true]")) return;
+            const key = e.key.toLowerCase();
+            if (key === "q" && Date.now() - pendingG < 1000) {
+                pendingG = 0;
+                navigate(queueTarget(guilds));
+            } else if (key === "g") {
+                pendingG = Date.now();
+            } else if (key === "n") {
+                navigate(newFormTarget(guilds));
+            }
+        };
+        document.addEventListener("keydown", onKey);
+        return () => document.removeEventListener("keydown", onKey);
+    }, [paletteOpen, guilds, navigate]);
 
     const reloadGuilds = useCallback(() => setReloadKey(k => k + 1), []);
     const context: DashboardContext = useMemo(() => ({guilds, reloadGuilds}), [guilds, reloadGuilds]);
@@ -68,11 +97,13 @@ export default function DashboardLayout() {
                 setCollapsed(!collapsed);
             }}/>
             <div className="flex min-w-0 flex-1 flex-col">
-                <Topbar crumbs={crumbs}/>
+                <Topbar crumbs={crumbs} onSearch={() => setPaletteOpen(true)}/>
                 <main className="flex min-w-0 flex-1 flex-col gap-6 px-10 pb-12 pt-8">
                     <Outlet context={context}/>
                 </main>
+                <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} guilds={guilds}/>
             </div>
         </div>
     );
 }
+

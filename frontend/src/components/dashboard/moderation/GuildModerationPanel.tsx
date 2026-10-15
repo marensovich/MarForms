@@ -39,7 +39,8 @@ export default function GuildModerationPanel({guild, onBack}: { guild: MyGuild; 
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
     const [reloadKey, setReloadKey] = useState(0);
-    const [openId, setOpenId] = useState<string | null>(null);
+    // ?submission=<id> (from the ⌘K search) opens that card straight away.
+    const [openId, setOpenId] = useState<string | null>(() => new URLSearchParams(window.location.search).get("submission"));
 
     useEffect(() => {
         getGuildForms(guild.guildId, true)
