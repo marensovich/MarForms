@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * A guild's audit log of moderator actions (E2.5, #77/#78): decisions,
- * moderator changes, bans. Owner-only: per spec раздел 2 the log is the
- * owner's tool for trusting their moderators, so moderators don't see it.
+ * moderator changes, bans. The server's staff read it: ТЗ 4.3 keeps only the
+ * «Модераторы» and «Тариф» tabs to the owner (#126).
  *
  * @author marensovich
  * @version v.0.1
@@ -41,7 +41,7 @@ public class GuildAuditController {
      * @return the matching entries
      * @since v.0.1
      */
-    @PreAuthorize("@guildAccess.hasRole(#guildId, 'OWNER')")
+    @PreAuthorize("@guildAccess.hasRole(#guildId, 'MODERATOR')")
     @GetMapping
     public Page<GuildAuditEntryDto> list(
             @PathVariable Long guildId,

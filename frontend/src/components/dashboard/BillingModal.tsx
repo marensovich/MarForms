@@ -3,7 +3,7 @@ import {useTranslation} from "react-i18next";
 import {FiCheckCircle, FiCreditCard, FiExternalLink} from "react-icons/fi";
 import {type BillingStatus, getGuildBilling, type MyGuild, openBillingPortal, startCheckout} from "../../api/dashboard";
 import {describeApiError} from "../../api/errors";
-import {Badge, Modal} from "./shared";
+import {Badge, Frame} from "./shared";
 import SharedServers from "./SharedServers";
 
 const PAID = new Set(["active", "trialing", "past_due"]);
@@ -13,13 +13,15 @@ const PAID = new Set(["active", "trialing", "past_due"]);
  * status, Stripe Checkout to subscribe, the Billing Portal to change or
  * cancel. Payment itself happens on Stripe's pages.
  */
-export default function BillingModal({guild, ownedGuilds, onClose, checkoutResult}: {
+export default function BillingModal({guild, asPage, ownedGuilds, onClose, checkoutResult}: {
     guild: MyGuild;
     /** Every server the owner owns, to share the subscription with (E4.3). */
     ownedGuilds: MyGuild[];
     onClose: () => void;
     /** Set when Stripe sent the owner back here after checkout. */
     checkoutResult?: "success" | "cancel" | null;
+    /** Shown as the workspace's «Тариф» tab instead of a dialog (#126). */
+    asPage?: boolean;
 }) {
     const {t} = useTranslation();
     const [billing, setBilling] = useState<BillingStatus | null>(null);
@@ -55,7 +57,7 @@ export default function BillingModal({guild, ownedGuilds, onClose, checkoutResul
     const subscribed = billing ? PAID.has(billing.status) : false;
 
     return (
-        <Modal title={t("billing.title")} subtitle={guild.guildName} onClose={onClose} width="max-w-lg">
+        <Frame asPage={asPage} title={t("billing.title")} subtitle={guild.guildName} onClose={onClose} width="max-w-lg">
             {checkoutResult === "success" && (
                 <div className="mb-4 flex gap-2 rounded-lg border border-gnb bg-gnb px-3 py-2 text-xs text-gnt">
                     <FiCheckCircle size={14} className="mt-0.5 flex-shrink-0"/>
@@ -157,6 +159,6 @@ export default function BillingModal({guild, ownedGuilds, onClose, checkoutResul
                     <p className="text-[11px] text-mu">{t("billing.stripeNote")}</p>
                 </div>
             )}
-        </Modal>
+        </Frame>
     );
 }

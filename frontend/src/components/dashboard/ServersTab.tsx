@@ -1,199 +1,202 @@
-import {useEffect, useState} from "react";
-import {useNavigate} from "react-router-dom";
-import {AnimatePresence} from "framer-motion";
+import {useMemo, useState} from "react";
+import {Link} from "react-router-dom";
 import {useTranslation} from "react-i18next";
-import {FiChevronRight, FiCreditCard, FiExternalLink, FiInbox, FiList, FiServer, FiSlash, FiUsers, FiX} from "react-icons/fi";
+import {FiAlertTriangle, FiArrowRight, FiCheck, FiPlus, FiRefreshCw, FiSearch, FiServer, FiX} from "react-icons/fi";
 import {ApiError} from "../../api/client";
-import {getGuildConnectUrl, getMyGuilds, type MyGuild} from "../../api/dashboard";
-import {ActionBtn, Badge, EmptyState, TabSkeleton} from "./shared";
-import ModeratorsModal from "./ModeratorsModal";
-import BansModal from "./BansModal";
-import BillingModal from "./BillingModal";
+import {getGuildConnectUrl, type MyGuild, refreshMyGuilds} from "../../api/dashboard";
+import {useDashboard} from "../../shell/dashboardContext";
+import {cx, SegmentedControl, ServerIcon, Skeleton} from "../../ui";
+
+// Docs: docs/design/mockups/Servers.dc.html, DarkServers.dc.html; ТЗ 4.2, #125.
+
+type RoleFilter = "all" | "OWNER" | "MODERATOR";
+
+const BOT = {
+    CONNECTED: {cls: "bg-gnb text-gnt", icon: FiCheck},
+    MISSING_PERMISSIONS: {cls: "bg-amb text-amt", icon: FiAlertTriangle},
+    KICKED: {cls: "bg-rdb text-rdt", icon: FiX},
+} as const;
 
 /**
- * The servers the current user owns or moderates — the entry point of the
- * owner panel. Owners manage their moderators from here (task #61).
+ * «Мои серверы»: the servers the user owns or moderates as cards — members,
+ * role, the bot's state with a way to fix it, active forms and waiting
+ * submissions — with role segments, search, «Обновить» and «Добавить бота на сервер».
  */
 export default function ServersTab() {
     const {t} = useTranslation();
-    const navigate = useNavigate();
-    const open = (g: MyGuild, section: "forms" | "submissions" | "audit") =>
-        navigate(`/dashboard/servers/${g.guildId}/${section}`);
-    const [guilds, setGuilds] = useState<MyGuild[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [connecting, setConnecting] = useState(false);
-    const [moderatorsGuild, setModeratorsGuild] = useState<MyGuild | null>(null);
-    const [bansGuild, setBansGuild] = useState<MyGuild | null>(null);
-    const [billingGuild, setBillingGuild] = useState<MyGuild | null>(null);
-    const [checkoutResult, setCheckoutResult] = useState<"success" | "cancel" | null>(null);
+    const {guilds: all, reloadGuilds} = useDashboard();
+    const [filter, setFilter] = useState<RoleFilter>("all");
+    const [query, setQuery] = useState("");
+    const [refreshed, setRefreshed] = useState<MyGuild[] | null>(null);
+    const [refreshing, setRefreshing] = useState(false);
+    const [connecting, setConnecting] = useState<string | null>(null);
     // The result of a bot install: Discord comes back to /dashboard/servers?connectedGuild=… (#151).
-    const [connectBanner, setConnectBanner] = useState<{ type: "success" | "error"; guildId?: string; reason?: string } | null>(() => {
+    const [banner, setBanner] = useState<{ type: "success" | "error"; text: string } | null>(() => {
         const params = new URLSearchParams(window.location.search);
-        const connectedGuild = params.get("connectedGuild");
-        const connectError = params.get("guildConnectError");
-        if (connectedGuild) return {type: "success", guildId: connectedGuild};
-        return connectError ? {type: "error", reason: connectError} : null;
+        const connected = params.get("connectedGuild");
+        const error = params.get("guildConnectError");
+        if (!connected && !error) return null;
+        window.history.replaceState(null, "", window.location.pathname);
+        if (connected) return {type: "success", text: t("forms.connectSuccess", {guildId: connected})};
+        return {type: "error", text: error === "manager" ? t("forms.connectErrorManager")
+                : error === "bot" ? t("forms.connectErrorBot") : t("forms.connectError")};
     });
 
-    useEffect(() => {
-        let cancelled = false;
-        getMyGuilds()
-            .then(list => {
-                if (cancelled) return;
-                const staffGuilds = list.filter(g => g.role !== "RESPONDENT");
-                setGuilds(staffGuilds);
-                // Back from Stripe Checkout: reopen that server's billing with the outcome.
-                const params = new URLSearchParams(window.location.search);
-                if (params.has("connectedGuild") || params.has("guildConnectError")) {
-                    window.history.replaceState(null, "", window.location.pathname);
-                }
-                const returning = staffGuilds.find(g => g.guildId === params.get("billing") && g.role === "OWNER");
-                if (returning) {
-                    const result = params.get("checkout");
-                    setCheckoutResult(result === "success" || result === "cancel" ? result : null);
-                    setBillingGuild(returning);
-                    window.history.replaceState(null, "", window.location.pathname);
-                }
-            })
-            .finally(() => {
-                if (!cancelled) setLoading(false);
-            });
-        return () => {
-            cancelled = true;
-        };
-    }, []);
+    const staff = useMemo(() => (refreshed ?? all ?? []).filter(g => g.role !== "RESPONDENT"), [refreshed, all]);
+    const counts = {
+        all: staff.length,
+        OWNER: staff.filter(g => g.role === "OWNER").length,
+        MODERATOR: staff.filter(g => g.role === "MODERATOR").length,
+    };
+    const q = query.trim().toLowerCase();
+    const shown = staff.filter(g => (filter === "all" || g.role === filter)
+        && (!q || g.guildName.toLowerCase().includes(q) || g.guildId.includes(q)));
 
-    const handleConnect = async () => {
-        setConnecting(true);
+    const connect = async (guildId?: string) => {
+        setConnecting(guildId ?? "new");
         try {
-            const {url} = await getGuildConnectUrl();
+            const {url} = await getGuildConnectUrl(guildId);
             window.location.href = url;
         } catch (e) {
-            setConnectBanner({type: "error", reason: e instanceof ApiError && e.status === 429 ? "tooMany" : "start"});
-        } finally {
-            setConnecting(false);
+            setBanner({type: "error", text: e instanceof ApiError && e.status === 429
+                    ? t("forms.connectErrorTooMany") : t("forms.connectError")});
+            setConnecting(null);
         }
     };
 
+    const refresh = async () => {
+        setRefreshing(true);
+        try {
+            setRefreshed(await refreshMyGuilds());
+            reloadGuilds();
+        } catch (e) {
+            setBanner({type: "error", text: e instanceof ApiError && e.status === 429
+                    ? t("servers.refreshTooOften") : t("servers.refreshError")});
+        } finally {
+            setRefreshing(false);
+        }
+    };
+
+    const addButton = (
+        <button type="button" onClick={() => connect()} disabled={connecting !== null}
+                className="flex h-10 items-center gap-2 rounded-xl bg-pr px-4 text-sm font-semibold text-white hover:bg-prh disabled:opacity-60">
+            <FiPlus size={16} aria-hidden="true"/>{t("servers.addBot")}
+        </button>
+    );
+
     return (
-        <div>
-            <div className="mb-6 flex items-start justify-between">
-                <div>
-                    <h1 className="text-xl font-semibold text-tx">{t("servers.title")}</h1>
-                    <p className="mt-0.5 text-sm text-mu">{t("servers.subtitle")}</p>
+        <div className="flex flex-col gap-6">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+                <div className="flex flex-col gap-1.5">
+                    <h1 className="m-0 text-[28px] font-bold tracking-[-0.01em]">{t("servers.title")}</h1>
+                    <p className="m-0 text-[15px] text-mu">{t("servers.subtitle")}</p>
                 </div>
-                <button
-                    onClick={handleConnect}
-                    disabled={connecting}
-                    className="flex items-center gap-2 rounded-lg border border-bd bg-sf px-4 py-2 text-sm font-medium text-mu transition-colors hover:border-bd hover:text-tx disabled:opacity-50"
-                >
-                    <FiExternalLink size={14}/>
-                    {t("forms.connectServer")}
-                </button>
+                <div className="flex gap-2.5">
+                    <button type="button" onClick={refresh} disabled={refreshing}
+                            className="flex h-10 items-center gap-2 rounded-xl border border-bd bg-sf px-3.5 text-sm font-medium text-tx hover:bg-s2 disabled:opacity-60">
+                        <FiRefreshCw size={15} aria-hidden="true" className={refreshing ? "animate-spin" : undefined}/>
+                        {t("servers.refresh")}
+                    </button>
+                    {addButton}
+                </div>
             </div>
 
-            {connectBanner && (
-                <div role={connectBanner.type === "error" ? "alert" : "status"}
-                     className={`mb-6 flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm ${
-                         connectBanner.type === "success" ? "border-gnb bg-gnb text-gnt" : "border-rdb bg-rdb text-rdt"}`}>
-                    <span>
-                        {connectBanner.type === "success"
-                            ? t("forms.connectSuccess", {guildId: connectBanner.guildId})
-                            : connectBanner.reason === "manager" ? t("forms.connectErrorManager")
-                                : connectBanner.reason === "bot" ? t("forms.connectErrorBot")
-                                    : connectBanner.reason === "tooMany" ? t("forms.connectErrorTooMany")
-                                        : t("forms.connectError")}
-                    </span>
-                    <button type="button" onClick={() => setConnectBanner(null)} aria-label={t("common.close")}
-                            className="flex-shrink-0 opacity-70 hover:opacity-100">
-                        <FiX size={14}/>
-                    </button>
+            {banner && (
+                <div role={banner.type === "error" ? "alert" : "status"}
+                     className={cx("flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm",
+                         banner.type === "success" ? "bg-gnb text-gnt" : "bg-rdb text-rdt")}>
+                    <span>{banner.text}</span>
+                    <button type="button" onClick={() => setBanner(null)} aria-label={t("common.close")}
+                            className="opacity-70 hover:opacity-100"><FiX size={14}/></button>
                 </div>
             )}
 
-            {loading ? (
-                <TabSkeleton rows={3}/>
-            ) : guilds.length === 0 ? (
-                <EmptyState message={t("servers.empty")} icon={<FiServer/>}/>
+            {all === null ? (
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4" aria-busy="true">
+                    {[0, 1, 2].map(i => <Skeleton key={i} className="h-[260px] rounded-2xl"/>)}
+                </div>
+            ) : staff.length === 0 ? (
+                <div className="flex flex-col items-center gap-3.5 rounded-2xl border border-bd bg-sf px-6 py-[72px] text-center">
+                    <span className="grid h-16 w-16 place-items-center rounded-[20px] bg-prs text-prt"><FiServer size={28} aria-hidden="true"/></span>
+                    <h2 className="m-0 text-xl font-bold">{t("servers.emptyTitle")}</h2>
+                    <p className="m-0 max-w-[440px] text-[15px] leading-normal text-mu">{t("servers.emptyText")}</p>
+                    {addButton}
+                </div>
             ) : (
-                <div className="overflow-hidden rounded-xl border border-bd bg-sf">
-                    <table className="w-full text-sm">
-                        <thead>
-                        <tr className="border-b border-bd text-left text-xs uppercase tracking-wider text-mu">
-                            <th className="px-5 py-3 font-medium">{t("servers.columns.server")}</th>
-                            <th className="px-5 py-3 font-medium">{t("servers.columns.bot")}</th>
-                            <th className="px-5 py-3 font-medium">{t("servers.columns.role")}</th>
-                            <th className="px-5 py-3"/>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {guilds.map(g => (
-                            <tr key={g.guildId} onClick={() => open(g, "forms")}
-                                className="cursor-pointer border-b border-bd transition-colors last:border-0 hover:bg-bg">
-                                <td className="px-5 py-3">
-                                    <p className="font-medium text-tx">{g.guildName}</p>
-                                    <p className="text-xs text-mu">{g.guildId}</p>
-                                </td>
-                                <td className="px-5 py-3">
-                                    <Badge color={g.botStatus === "CONNECTED" ? "green" : "red"} dot>
-                                        {g.botStatus === "CONNECTED" ? t("forms.guilds.connected") : t("forms.guilds.kicked")}
-                                    </Badge>
-                                </td>
-                                <td className="px-5 py-3 text-mu">
-                                    {t(`forms.guilds.role.${g.role.toLowerCase()}`)}
-                                </td>
-                                <td className="px-5 py-3 text-right" onClick={e => e.stopPropagation()}>
-                                    <div className="flex items-center justify-end gap-1">
-                                        {g.role === "OWNER" && (
-                                            <ActionBtn variant="primary" onClick={() => setModeratorsGuild(g)}>
-                                                <FiUsers size={11} className="mr-1 inline"/>
-                                                {t("moderators.manage")}
-                                            </ActionBtn>
-                                        )}
-                                        <ActionBtn variant="primary" onClick={() => open(g, "submissions")}>
-                                            <FiInbox size={11} className="mr-1 inline"/>
-                                            {t("moderation.open")}
-                                        </ActionBtn>
-                                        {g.role === "OWNER" && (
-                                            <ActionBtn onClick={() => {
-                                                setCheckoutResult(null);
-                                                setBillingGuild(g);
-                                            }} title={t("billing.title")}>
-                                                <FiCreditCard size={11} className="inline"/>
-                                            </ActionBtn>
-                                        )}
-                                        {g.role === "OWNER" && (
-                                            <ActionBtn onClick={() => open(g, "audit")} title={t("guildAudit.open")}>
-                                                <FiList size={11} className="inline"/>
-                                            </ActionBtn>
-                                        )}
-                                        <ActionBtn variant="danger" onClick={() => setBansGuild(g)} title={t("bans.title")}>
-                                            <FiSlash size={11} className="inline"/>
-                                        </ActionBtn>
-                                        <ActionBtn onClick={() => open(g, "forms")}>
-                                            {t("servers.openForms")}
-                                            <FiChevronRight size={11} className="ml-1 inline"/>
-                                        </ActionBtn>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                </div>
+                <>
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <SegmentedControl ariaLabel={t("servers.filterLabel")} value={filter} onChange={setFilter}
+                                          options={(["all", "OWNER", "MODERATOR"] as const).map(v => ({
+                                              value: v, count: counts[v],
+                                              label: v === "all" ? t("servers.filter.all") : t(`forms.guilds.role.${v.toLowerCase()}`),
+                                          }))}/>
+                        <label className="flex h-10 w-[280px] max-w-full items-center gap-2 rounded-xl border border-bd bg-sf px-3 text-mu focus-within:border-pr">
+                            <FiSearch size={15} aria-hidden="true"/>
+                            <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t("servers.search")}
+                                   aria-label={t("servers.search")}
+                                   className="min-w-0 flex-1 border-0 bg-transparent text-sm text-tx outline-none placeholder:text-mu"/>
+                        </label>
+                    </div>
+                    <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">
+                        {shown.map(g => <ServerCard key={g.guildId} guild={g} onFix={() => connect(g.guildId)}
+                                                    fixing={connecting === g.guildId}/>)}
+                        <button type="button" onClick={() => connect()} disabled={connecting !== null}
+                                className="flex min-h-[260px] flex-col items-center justify-center gap-2.5 rounded-2xl border-[1.5px] border-dashed border-bd text-mu hover:border-pr hover:bg-prs/40">
+                            <span className="grid h-11 w-11 place-items-center rounded-[14px] bg-prs text-prt"><FiPlus size={20} aria-hidden="true"/></span>
+                            <span className="text-[15px] font-semibold text-tx">{t("servers.addCard")}</span>
+                            <span className="text-[13px]">{t("servers.addCardHint")}</span>
+                        </button>
+                    </div>
+                    {shown.length === 0 && <p className="m-0 text-center text-sm text-mu">{t("servers.nothingFound")}</p>}
+                </>
             )}
-
-            <AnimatePresence>
-                {moderatorsGuild && (
-                    <ModeratorsModal guild={moderatorsGuild} onClose={() => setModeratorsGuild(null)}/>
-                )}
-                {bansGuild && <BansModal guild={bansGuild} onClose={() => setBansGuild(null)}/>}
-                {billingGuild && (
-                    <BillingModal guild={billingGuild} checkoutResult={checkoutResult}
-                                  ownedGuilds={guilds.filter(g => g.role === "OWNER")}
-                                  onClose={() => setBillingGuild(null)}/>
-                )}
-            </AnimatePresence>
         </div>
+    );
+}
+
+function ServerCard({guild, onFix, fixing}: { guild: MyGuild; onFix: () => void; fixing: boolean }) {
+    const {t} = useTranslation();
+    const state = guild.botState ?? (guild.botStatus === "KICKED" ? "KICKED" : "CONNECTED");
+    const bot = BOT[state];
+    const isOwner = guild.role === "OWNER";
+    const permissions = (guild.missingPermissions ?? []).map(p => t(`servers.permission.${p}`)).join(", ");
+    return (
+        <article className="flex flex-col gap-4 rounded-2xl border border-bd bg-sf p-5">
+            <div className="flex items-center gap-3">
+                <ServerIcon name={guild.guildName} src={guild.guildIconUrl} size={48}/>
+                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <h2 className="m-0 truncate text-[17px] font-bold">{guild.guildName}</h2>
+                    <span className="text-[13px] text-mu">
+                        {guild.memberCount != null ? t("servers.members", {count: guild.memberCount}) : t("servers.membersUnknown")}
+                    </span>
+                </div>
+                <span className="rounded-full border border-bd px-2.5 py-1 text-xs font-semibold">
+                    {t(`forms.guilds.role.${guild.role.toLowerCase()}`)}
+                </span>
+            </div>
+            <div className={cx("flex items-center gap-2 rounded-xl px-3 py-2.5 text-[13px] font-medium", bot.cls)}>
+                <bot.icon size={15} aria-hidden="true" className="flex-none"/>
+                <span className="flex-1">{t(`servers.bot.${state}`, {permissions})}</span>
+                {state !== "CONNECTED" && isOwner && (
+                    <button type="button" onClick={onFix} disabled={fixing} className="font-semibold underline">
+                        {t(state === "KICKED" ? "servers.inviteAgain" : "servers.grant")}
+                    </button>
+                )}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-0.5">
+                    <span className="text-xs text-mu">{t("servers.activeForms")}</span>
+                    <span className="text-xl font-semibold tabular-nums">{guild.activeForms ?? 0}</span>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                    <span className="text-xs text-mu">{t("servers.pending")}</span>
+                    <span className="text-xl font-semibold tabular-nums">{guild.pendingSubmissions ?? 0}</span>
+                </div>
+            </div>
+            <Link to={`/dashboard/servers/${guild.guildId}/forms`}
+                  className="flex h-10 items-center justify-center gap-1.5 rounded-xl border border-bd text-sm font-semibold text-tx hover:bg-s2">
+                {t("servers.open")}<FiArrowRight size={15} aria-hidden="true"/>
+            </Link>
+        </article>
     );
 }

@@ -117,9 +117,12 @@ export function createForm(payload: CreateFormPayload): Promise<DashboardForm> {
     return apiRequest("/forms", {method: "POST", body: payload});
 }
 
-export function getGuildConnectUrl(): Promise<{ url: string }> {
-    return apiRequest("/guilds/connect");
+/** The bot's invite; with a server, straight to it («Выдать права», «Пригласить снова», #124). */
+export function getGuildConnectUrl(guildId?: string): Promise<{ url: string }> {
+    return apiRequest(guildId ? `/guilds/connect?guildId=${guildId}` : "/guilds/connect");
 }
+
+export type BotState = "CONNECTED" | "MISSING_PERMISSIONS" | "KICKED";
 
 export interface MyGuild {
     guildId: string;
@@ -127,10 +130,23 @@ export interface MyGuild {
     botStatus: "CONNECTED" | "KICKED";
     role: "OWNER" | "MODERATOR" | "RESPONDENT";
     since: string;
+    /* «Мои серверы» (#124); absent in older test data. */
+    guildIconUrl?: string | null;
+    memberCount?: number | null;
+    botState?: BotState;
+    /** VIEW_CHANNEL, MANAGE_WEBHOOKS, MANAGE_ROLES the bot lacks. */
+    missingPermissions?: string[];
+    activeForms?: number;
+    pendingSubmissions?: number;
 }
 
 export function getMyGuilds(): Promise<MyGuild[]> {
     return apiRequest("/me/guilds");
+}
+
+/** Re-reads the servers from Discord; once a minute (429 otherwise). */
+export function refreshMyGuilds(): Promise<MyGuild[]> {
+    return apiRequest("/me/guilds/refresh", {method: "POST"});
 }
 
 export interface GuildModerator {

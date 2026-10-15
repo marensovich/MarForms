@@ -128,6 +128,22 @@ export function StatsCard({
     );
 }
 
+/**
+ * A dialog, or — on a server's workspace tab (#126) — the same content as a card
+ * on the page, without the overlay and the close button.
+ */
+export function Frame({asPage, ...props}: Parameters<typeof Modal>[0] & { asPage?: boolean }) {
+    if (!asPage) return <Modal {...props}/>;
+    return (
+        <section aria-label={props.title} className="w-full max-w-3xl rounded-2xl border border-bd bg-sf">
+            <div className="border-b border-bd px-6 py-4">
+                <h2 className="text-base font-semibold text-tx">{props.title}</h2>
+            </div>
+            {props.children}
+        </section>
+    );
+}
+
 export function Modal({
                           title,
                           subtitle,

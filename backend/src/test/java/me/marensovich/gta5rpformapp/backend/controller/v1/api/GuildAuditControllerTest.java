@@ -163,7 +163,10 @@ class GuildAuditControllerTest {
     }
 
     @Test
-    void moderatorsCannotReadTheAuditLog() throws Exception {
-        mvc.perform(as(moderator, get("/api/v1/guilds/{g}/audit-log", GUILD))).andExpect(status().isForbidden());
+    void moderatorsReadTheAuditLogButRespondentsDont() throws Exception {
+        // ТЗ 4.3: only «Модераторы» and «Тариф» are the owner's; the log is the staff's (#126).
+        mvc.perform(as(moderator, get("/api/v1/guilds/{g}/audit-log", GUILD))).andExpect(status().isOk());
+        User respondent = user(5L, "respondent");
+        mvc.perform(as(respondent, get("/api/v1/guilds/{g}/audit-log", GUILD))).andExpect(status().isForbidden());
     }
 }

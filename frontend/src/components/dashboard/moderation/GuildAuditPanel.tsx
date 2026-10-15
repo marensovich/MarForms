@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 import {useTranslation} from "react-i18next";
-import {FiArrowLeft, FiChevronLeft, FiChevronRight, FiList} from "react-icons/fi";
+import {FiChevronLeft, FiChevronRight, FiList} from "react-icons/fi";
 import {getGuildModerators, type GuildModerator, type MyGuild} from "../../../api/dashboard";
 import {type GuildAuditAction, type GuildAuditEntry, getGuildAuditLog} from "../../../api/moderation";
 import {describeApiError} from "../../../api/errors";
@@ -56,7 +56,7 @@ function Details({entry}: { entry: GuildAuditEntry }) {
  * was made or removed as moderator, who was banned. Moderators can't open
  * it; the API refuses them too.
  */
-export default function GuildAuditPanel({guild, onBack}: { guild: MyGuild; onBack: () => void }) {
+export default function GuildAuditPanel({guild}: { guild: MyGuild }) {
     const {t} = useTranslation();
     const [entries, setEntries] = useState<GuildAuditEntry[]>([]);
     const [moderators, setModerators] = useState<GuildModerator[]>([]);
@@ -98,14 +98,8 @@ export default function GuildAuditPanel({guild, onBack}: { guild: MyGuild; onBac
 
     return (
         <div>
-            <button onClick={onBack}
-                    className="mb-4 flex items-center gap-1.5 text-sm text-mu transition-colors hover:text-tx">
-                <FiArrowLeft size={14}/>
-                {t("servers.title")}
-            </button>
-
             <div className="mb-6">
-                <h1 className="text-xl font-semibold text-tx">{guild.guildName}</h1>
+                <h2 className="text-lg font-semibold text-tx">{t("shell.guild.audit")}</h2>
                 <p className="mt-0.5 text-sm text-mu">{t("guildAudit.subtitle")}</p>
             </div>
 

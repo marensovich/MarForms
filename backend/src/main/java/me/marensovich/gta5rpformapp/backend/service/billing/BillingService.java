@@ -149,7 +149,7 @@ public class BillingService {
         }
         sub.setUpdatedAt(LocalDateTime.now());
         subscriptionRepository.save(sub);
-        String back = frontendUrl + "/dashboard?billing=" + guildId;
+        String back = frontendUrl + "/dashboard/servers/" + guildId + "/billing?billing=" + guildId;
         return stripeClient.createCheckoutSession(sub.getStripeCustomerId(), price, workspace.getId().toString(),
                 plan.name(), back + "&checkout=success", back + "&checkout=cancel");
     }
@@ -170,7 +170,7 @@ public class BillingService {
         String customer = subscriptionRepository.findByWorkspaceId(workspace.getId())
                 .map(Subscription::getStripeCustomerId)
                 .orElseThrow(() -> new InvalidStateException("There is no subscription to manage yet"));
-        return stripeClient.createPortalSession(customer, frontendUrl + "/dashboard?billing=" + guildId);
+        return stripeClient.createPortalSession(customer, frontendUrl + "/dashboard/servers/" + guildId + "/billing");
     }
 
     /**

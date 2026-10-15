@@ -1,7 +1,8 @@
 import {useCallback, useEffect, useState} from "react";
 import {AnimatePresence} from "framer-motion";
 import {useTranslation} from "react-i18next";
-import {FiAlertTriangle, FiArchive, FiArrowLeft, FiCheck, FiDownload, FiEdit3, FiFileText, FiLink, FiSend, FiSlash, FiTrash2} from "react-icons/fi";
+import {useSearchParams} from "react-router-dom";
+import {FiAlertTriangle, FiArchive, FiCheck, FiDownload, FiEdit3, FiFileText, FiLink, FiSend, FiSlash, FiTrash2} from "react-icons/fi";
 import {
     type DashboardForm,
     deleteGuildForm,
@@ -16,7 +17,6 @@ import type {FormStatus} from "../../types/forms";
 import {ActionBtn, Badge, ConfirmModal, EmptyState, TabSkeleton} from "./shared";
 import FormWizard from "./forms/FormWizard";
 import FormEditModal from "./forms/FormEditModal";
-import PlanUsage from "./PlanUsage";
 
 const STATUS_COLOR: Record<FormStatus, "default" | "green" | "orange" | "red"> = {
     DRAFT: "default",
@@ -48,7 +48,7 @@ function CopyLink({slug}: { slug: string }) {
  * create, edit, publish/close/archive and delete. Moderators get a
  * read-only view.
  */
-export default function GuildFormsPanel({guild, onBack}: { guild: MyGuild; onBack: () => void }) {
+export default function GuildFormsPanel({guild}: { guild: MyGuild }) {
     const {t} = useTranslation();
     const isOwner = guild.role === "OWNER";
     const [forms, setForms] = useState<DashboardForm[]>([]);
@@ -57,7 +57,18 @@ export default function GuildFormsPanel({guild, onBack}: { guild: MyGuild; onBac
     const [error, setError] = useState<string | null>(null);
     const [busyId, setBusyId] = useState<string | null>(null);
     // ?new=1 (the "Новая форма" command, #107) opens the wizard straight away.
-    const [showWizard, setShowWizard] = useState(() => new URLSearchParams(window.location.search).get("new") === "1");
+    const [searchParams, setSearchParams] = useSearchParams();
+    const askedNew = searchParams.get("new") === "1";
+    const [showWizard, setShowWizard] = useState(askedNew);
+    const [lastAsked, setLastAsked] = useState(askedNew);
+    if (askedNew !== lastAsked) {
+        setLastAsked(askedNew);
+        if (askedNew) setShowWizard(true);
+    }
+    const closeWizard = () => {
+        setShowWizard(false);
+        if (askedNew) setSearchParams({}, {replace: true});
+    };
     const [editForm, setEditForm] = useState<DashboardForm | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<DashboardForm | null>(null);
 
@@ -122,15 +133,9 @@ export default function GuildFormsPanel({guild, onBack}: { guild: MyGuild; onBac
 
     return (
         <div>
-            <button onClick={onBack}
-                    className="mb-4 flex items-center gap-1.5 text-sm text-mu transition-colors hover:text-tx">
-                <FiArrowLeft size={14}/>
-                {t("servers.title")}
-            </button>
-
             <div className="mb-6 flex items-start justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-semibold text-tx">{guild.guildName}</h1>
+                    <h2 className="text-lg font-semibold text-tx">{t("shell.guild.forms")}</h2>
                     <p className="mt-0.5 text-sm text-mu">{t("guildForms.subtitle", {count: forms.length})}</p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -154,8 +159,6 @@ export default function GuildFormsPanel({guild, onBack}: { guild: MyGuild; onBac
                     )}
                 </div>
             </div>
-
-            {isOwner && <PlanUsage guildId={guild.guildId} refreshKey={forms}/>}
 
             {brokenNotifications > 0 && (
                 <div className="mb-4 flex gap-2 rounded-lg border border-amb bg-amb px-3 py-2.5 text-xs text-amt">
@@ -279,9 +282,9 @@ export default function GuildFormsPanel({guild, onBack}: { guild: MyGuild; onBac
                 {showWizard && (
                     <FormWizard
                         guildId={guild.guildId}
-                        onClose={() => setShowWizard(false)}
+                        onClose={closeWizard}
                         onCreated={() => {
-                            setShowWizard(false);
+                            closeWizard();
                             load();
                         }}
                     />

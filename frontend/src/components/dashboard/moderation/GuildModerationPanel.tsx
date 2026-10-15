@@ -2,7 +2,7 @@ import {useEffect, useState} from "react";
 import {AnimatePresence} from "framer-motion";
 import {useTranslation} from "react-i18next";
 import {useSearchParams} from "react-router-dom";
-import {FiArrowLeft, FiChevronLeft, FiChevronRight, FiInbox, FiRefreshCw, FiSearch, FiX} from "react-icons/fi";
+import {FiChevronLeft, FiChevronRight, FiInbox, FiRefreshCw, FiSearch, FiX} from "react-icons/fi";
 import {type DashboardForm, getGuildForms, getGuildModerators, type GuildModerator, type MyGuild} from "../../../api/dashboard";
 import {
     getGuildSubmissions,
@@ -30,7 +30,7 @@ interface Filters {
  * form, status and author, open a card and decide. Decisions patch the row
  * in place — no reload of the list.
  */
-export default function GuildModerationPanel({guild, onBack}: { guild: MyGuild; onBack: () => void }) {
+export default function GuildModerationPanel({guild}: { guild: MyGuild }) {
     const {t} = useTranslation();
     const [forms, setForms] = useState<DashboardForm[]>([]);
     const [rows, setRows] = useState<ModerationSubmission[]>([]);
@@ -108,15 +108,9 @@ export default function GuildModerationPanel({guild, onBack}: { guild: MyGuild; 
 
     return (
         <div>
-            <button onClick={onBack}
-                    className="mb-4 flex items-center gap-1.5 text-sm text-mu transition-colors hover:text-tx">
-                <FiArrowLeft size={14}/>
-                {t("servers.title")}
-            </button>
-
             <div className="mb-6 flex items-start justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-semibold text-tx">{guild.guildName}</h1>
+                    <h2 className="text-lg font-semibold text-tx">{t("shell.guild.submissions")}</h2>
                     <p className="mt-0.5 text-sm text-mu">{t("moderation.subtitle", {count: totalElements})}</p>
                 </div>
                 <button

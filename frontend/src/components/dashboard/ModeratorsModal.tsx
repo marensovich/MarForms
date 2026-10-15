@@ -9,13 +9,13 @@ import {
     removeGuildModerator,
 } from "../../api/dashboard";
 import {describeApiError} from "../../api/errors";
-import {ActionBtn, EmptyState, Modal} from "./shared";
+import {ActionBtn, EmptyState, Frame} from "./shared";
 
 /**
  * Owner-only screen for a guild's moderators (task #61): list, add by
  * Discord ID or username, remove.
  */
-export default function ModeratorsModal({guild, onClose}: { guild: MyGuild; onClose: () => void }) {
+export default function ModeratorsModal({guild, asPage, onClose}: { guild: MyGuild; onClose: () => void; asPage?: boolean }) {
     const {t} = useTranslation();
     const [moderators, setModerators] = useState<GuildModerator[]>([]);
     const [loading, setLoading] = useState(true);
@@ -71,7 +71,7 @@ export default function ModeratorsModal({guild, onClose}: { guild: MyGuild; onCl
     };
 
     return (
-        <Modal title={t("moderators.title")} subtitle={guild.guildName} onClose={onClose}>
+        <Frame asPage={asPage} title={t("moderators.title")} subtitle={guild.guildName} onClose={onClose}>
             <div className="mb-4 flex gap-2">
                 <input
                     value={input}
@@ -119,6 +119,6 @@ export default function ModeratorsModal({guild, onClose}: { guild: MyGuild; onCl
                     ))}
                 </ul>
             )}
-        </Modal>
+        </Frame>
     );
 }

@@ -965,13 +965,47 @@
   "servers": {
     "openForms": "Формы",
     "title": "Мои серверы",
-    "subtitle": "Серверы, которыми вы владеете или модерируете",
+    "subtitle": "Серверы, где вы владелец или модератор. Бот MarForms нужен для проверки ролей и уведомлений.",
     "empty": "У вас пока нет серверов, где вы владелец или модератор. Добавьте бота на сервер, чтобы начать.",
     "columns": {
       "server": "Сервер",
       "bot": "Бот",
       "role": "Ваша роль"
-    }
+    },
+    "refresh": "Обновить",
+    "addBot": "Добавить бота на сервер",
+    "filterLabel": "Роль на сервере",
+    "filter": {
+      "all": "Все"
+    },
+    "search": "Найти сервер",
+    "emptyTitle": "У вас пока нет серверов",
+    "emptyText": "Добавьте бота MarForms на сервер, где у вас есть право «Управлять сервером», — или попросите владельца назначить вас модератором.",
+    "addCard": "Добавить сервер",
+    "addCardHint": "Пригласите бота MarForms",
+    "nothingFound": "Ничего не найдено",
+    "members_one": "{{count}} участник",
+    "members_few": "{{count}} участника",
+    "members_many": "{{count}} участников",
+    "members_other": "{{count}} участников",
+    "membersUnknown": "Участники: нет данных",
+    "bot": {
+      "CONNECTED": "Бот подключён",
+      "MISSING_PERMISSIONS": "Не хватает прав: {{permissions}}",
+      "KICKED": "Бот удалён с сервера"
+    },
+    "permission": {
+      "VIEW_CHANNEL": "View Channels",
+      "MANAGE_WEBHOOKS": "Manage Webhooks",
+      "MANAGE_ROLES": "Manage Roles"
+    },
+    "grant": "Выдать права",
+    "inviteAgain": "Пригласить снова",
+    "activeForms": "Активные формы",
+    "pending": "Ждут решения",
+    "open": "Открыть сервер",
+    "refreshTooOften": "Список обновлялся меньше минуты назад — попробуйте чуть позже.",
+    "refreshError": "Не удалось обновить серверы."
   },
   "preview": {
     "open": "Предпросмотр",
@@ -1322,7 +1356,10 @@
     "guild": {
       "forms": "Формы",
       "submissions": "Заявки",
-      "audit": "Журнал"
+      "audit": "Журнал",
+      "moderators": "Модераторы",
+      "bans": "Баны",
+      "billing": "Тариф"
     }
   },
   "palette": {
@@ -1445,5 +1482,13 @@
       "WEBHOOK_PROBLEM": "Вебхук формы «{{form}}» перестал работать",
       "BOT_REMOVED": "Бот удалён с сервера {{server}}"
     }
+  },
+  "workspace": {
+    "unlimited": "∞",
+    "you": "Вы: {{role}}",
+    "activeForms": "Активные формы",
+    "submissionsThisMonth": "Заявки за месяц",
+    "plan": "Тариф {{plan}}",
+    "tabs": "Разделы сервера"
   }
 }

@@ -3,13 +3,13 @@ import {useTranslation} from "react-i18next";
 import {FiSlash, FiUserCheck} from "react-icons/fi";
 import {banGuildUser, type GuildBan, getGuildBans, type MyGuild, unbanGuildUser} from "../../api/dashboard";
 import {describeApiError} from "../../api/errors";
-import {ActionBtn, EmptyState, Modal} from "./shared";
+import {ActionBtn, EmptyState, Frame} from "./shared";
 
 /**
  * A guild's ban list for its owner and moderators (task #69): banned users
  * can't open or submit the guild's forms.
  */
-export default function BansModal({guild, onClose}: { guild: MyGuild; onClose: () => void }) {
+export default function BansModal({guild, asPage, onClose}: { guild: MyGuild; onClose: () => void; asPage?: boolean }) {
     const {t} = useTranslation();
     const [bans, setBans] = useState<GuildBan[]>([]);
     const [loading, setLoading] = useState(true);
@@ -67,7 +67,7 @@ export default function BansModal({guild, onClose}: { guild: MyGuild; onClose: (
     };
 
     return (
-        <Modal title={t("bans.title")} subtitle={guild.guildName} onClose={onClose} width="max-w-lg">
+        <Frame asPage={asPage} title={t("bans.title")} subtitle={guild.guildName} onClose={onClose} width="max-w-lg">
             <div className="mb-2 flex gap-2">
                 <input
                     value={target}
@@ -131,6 +131,6 @@ export default function BansModal({guild, onClose}: { guild: MyGuild; onClose: (
                     ))}
                 </ul>
             )}
-        </Modal>
+        </Frame>
     );
 }

@@ -26,9 +26,10 @@ export const ADMIN_NAV: (NavItem<AdminSection> & { permission: string })[] = [
     {id: "settings", labelKey: "nav.settings", icon: FiSliders, to: "/admin/settings", permission: "SYSTEM_ADMIN"},
 ];
 
-/** Workspace tabs of a server (ТЗ 4.3); moderators/bans/billing open as dialogs until #130–#132. */
-export type GuildSection = "forms" | "submissions" | "audit";
-export const GUILD_SECTIONS: GuildSection[] = ["forms", "submissions", "audit"];
+/** Workspace tabs of a server (ТЗ 4.3, #126); moderators and billing are the owner's only. */
+export type GuildSection = "forms" | "submissions" | "audit" | "moderators" | "bans" | "billing";
+export const GUILD_SECTIONS: GuildSection[] = ["forms", "submissions", "audit", "moderators", "bans", "billing"];
+export const OWNER_ONLY_SECTIONS: GuildSection[] = ["moderators", "billing"];
 
 export function can(user: AuthUser | null, permission: string): boolean {
     const perms = user?.permissions ?? [];

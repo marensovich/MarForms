@@ -957,13 +957,45 @@
   "servers": {
     "openForms": "Forms",
     "title": "My servers",
-    "subtitle": "Servers you own or moderate",
+    "subtitle": "Servers you own or moderate. The MarForms bot checks roles and sends notifications.",
     "empty": "You don't own or moderate any server yet. Add the bot to a server to get started.",
     "columns": {
       "server": "Server",
       "bot": "Bot",
       "role": "Your role"
-    }
+    },
+    "refresh": "Refresh",
+    "addBot": "Add the bot to a server",
+    "filterLabel": "Role on the server",
+    "filter": {
+      "all": "All"
+    },
+    "search": "Find a server",
+    "emptyTitle": "You have no servers yet",
+    "emptyText": "Add the MarForms bot to a server where you can manage the server — or ask its owner to make you a moderator.",
+    "addCard": "Add a server",
+    "addCardHint": "Invite the MarForms bot",
+    "nothingFound": "Nothing found",
+    "members_one": "{{count}} member",
+    "members_other": "{{count}} members",
+    "membersUnknown": "Members: unknown",
+    "bot": {
+      "CONNECTED": "Bot connected",
+      "MISSING_PERMISSIONS": "Missing permissions: {{permissions}}",
+      "KICKED": "Bot removed from the server"
+    },
+    "permission": {
+      "VIEW_CHANNEL": "View Channels",
+      "MANAGE_WEBHOOKS": "Manage Webhooks",
+      "MANAGE_ROLES": "Manage Roles"
+    },
+    "grant": "Grant permissions",
+    "inviteAgain": "Invite again",
+    "activeForms": "Active forms",
+    "pending": "Awaiting decision",
+    "open": "Open server",
+    "refreshTooOften": "Refreshed less than a minute ago — try again shortly.",
+    "refreshError": "Couldn't refresh the servers."
   },
   "preview": {
     "open": "Preview",
@@ -1302,7 +1334,10 @@
     "guild": {
       "forms": "Forms",
       "submissions": "Submissions",
-      "audit": "Audit log"
+      "audit": "Audit log",
+      "moderators": "Moderators",
+      "bans": "Bans",
+      "billing": "Plan"
     }
   },
   "palette": {
@@ -1425,5 +1460,13 @@
       "WEBHOOK_PROBLEM": "The webhook of “{{form}}” stopped working",
       "BOT_REMOVED": "The bot was removed from {{server}}"
     }
+  },
+  "workspace": {
+    "unlimited": "∞",
+    "you": "You: {{role}}",
+    "activeForms": "Active forms",
+    "submissionsThisMonth": "Submissions this month",
+    "plan": "{{plan}} plan",
+    "tabs": "Server sections"
   }
 }
