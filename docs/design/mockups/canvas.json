@@ -1,0 +1,743 @@
+{
+"v": 3,
+"createdOnFiles": {
+"v": 1,
+"at": "2026-10-15T10:00:00Z"
+},
+"title": "MarForms — UI mockups",
+"launch": {
+"view": "canvas",
+"page": "public"
+},
+"pages": [
+{
+"id": "public",
+"name": "Публичные · mobile"
+},
+{
+"id": "desk",
+"name": "Публичные · desktop"
+},
+{
+"id": "dash",
+"name": "Dashboard · сервер"
+},
+{
+"id": "wizard",
+"name": "Конструктор форм"
+},
+{
+"id": "admin",
+"name": "Платформа · admin"
+},
+{
+"id": "dark",
+"name": "Тёмная тема"
+},
+{
+"id": "resp",
+"name": "Адаптив 1024 / 1280"
+},
+{
+"id": "comp",
+"name": "Компоненты"
+}
+],
+"boards": {
+"Main.dc.html": {
+"x": 0,
+"y": 0,
+"w": 390,
+"h": 2280,
+"page": "public",
+"title": "Лендинг /"
+},
+"FormPublic.dc.html": {
+"x": 470,
+"y": 0,
+"w": 390,
+"h": 3760,
+"page": "public",
+"title": "Публичная форма /f/:slug"
+},
+"Login.dc.html": {
+"x": 940,
+"y": 0,
+"w": 1290,
+"h": 920,
+"page": "public",
+"title": "Вход /login + /auth"
+},
+"MySubmissions.dc.html": {
+"x": 940,
+"y": 1040,
+"w": 900,
+"h": 1180,
+"page": "public",
+"title": "Мои заявки /me/submissions"
+},
+"AccessStates.dc.html": {
+"x": 2310,
+"y": 0,
+"w": 1760,
+"h": 2240,
+"page": "public",
+"title": "Состояния доступа формы"
+},
+"Servers.dc.html": {
+"x": 0,
+"y": 0,
+"w": 1440,
+"h": 1000,
+"page": "dash",
+"expand": "fill",
+"title": "5a · Мои серверы"
+},
+"WsForms.dc.html": {
+"x": 1520,
+"y": 0,
+"w": 1440,
+"h": 1080,
+"page": "dash",
+"expand": "fill",
+"title": "5b · Формы"
+},
+"WsSubmissions.dc.html": {
+"x": 3040,
+"y": 0,
+"w": 1440,
+"h": 1240,
+"page": "dash",
+"expand": "fill",
+"title": "5b · Модерация + карточка заявки"
+},
+"WsAudit.dc.html": {
+"x": 0,
+"y": 1360,
+"w": 1440,
+"h": 1080,
+"page": "dash",
+"expand": "fill",
+"title": "5b · Журнал действий"
+},
+"WsModerators.dc.html": {
+"x": 1520,
+"y": 1360,
+"w": 1440,
+"h": 960,
+"page": "dash",
+"expand": "fill",
+"title": "5b · Модераторы"
+},
+"WsBans.dc.html": {
+"x": 3040,
+"y": 1360,
+"w": 1440,
+"h": 960,
+"page": "dash",
+"expand": "fill",
+"title": "5b · Баны"
+},
+"WsBilling.dc.html": {
+"x": 0,
+"y": 2560,
+"w": 1440,
+"h": 900,
+"page": "dash",
+"expand": "fill",
+"title": "5b · Тариф"
+},
+"MobileShell.dc.html": {
+"x": 1520,
+"y": 2560,
+"w": 390,
+"h": 844,
+"page": "dash",
+"title": "Dashboard · mobile"
+},
+"Wizard1.dc.html": {
+"x": 0,
+"y": 0,
+"w": 1440,
+"h": 900,
+"page": "wizard",
+"expand": "fill",
+"title": "Мастер · 1 Основное"
+},
+"Wizard2.dc.html": {
+"x": 1520,
+"y": 0,
+"w": 1440,
+"h": 1000,
+"page": "wizard",
+"expand": "fill",
+"title": "Мастер · 2 Поля"
+},
+"Wizard3.dc.html": {
+"x": 3040,
+"y": 0,
+"w": 1440,
+"h": 1120,
+"page": "wizard",
+"expand": "fill",
+"title": "Мастер · 3 Discord и доступ"
+},
+"Wizard4.dc.html": {
+"x": 0,
+"y": 1240,
+"w": 1440,
+"h": 900,
+"page": "wizard",
+"expand": "fill",
+"title": "Мастер · 4 Вебхуки"
+},
+"AnonDialog.dc.html": {
+"x": 1520,
+"y": 1240,
+"w": 640,
+"h": 600,
+"page": "wizard",
+"title": "Диалог: анонимная форма"
+},
+"FormEdit.dc.html": {
+"x": 2240,
+"y": 1240,
+"w": 1440,
+"h": 1000,
+"page": "wizard",
+"expand": "fill",
+"title": "Конструктор · 3 колонки + инспектор"
+},
+"Preview.dc.html": {
+"x": 0,
+"y": 2360,
+"w": 1440,
+"h": 1000,
+"page": "wizard",
+"expand": "fill",
+"title": "Предпросмотр · desktop/mobile"
+},
+"AdminForms.dc.html": {
+"x": 0,
+"y": 0,
+"w": 1440,
+"h": 1000,
+"page": "admin",
+"expand": "fill",
+"title": "A1 · Формы"
+},
+"AdminResponses.dc.html": {
+"x": 1520,
+"y": 0,
+"w": 1440,
+"h": 1000,
+"page": "admin",
+"expand": "fill",
+"title": "A2 · Заявки + карточка"
+},
+"AdminUsers.dc.html": {
+"x": 3040,
+"y": 0,
+"w": 1440,
+"h": 1000,
+"page": "admin",
+"expand": "fill",
+"title": "A3 · Пользователи"
+},
+"AdminLogs.dc.html": {
+"x": 0,
+"y": 1120,
+"w": 1440,
+"h": 1000,
+"page": "admin",
+"expand": "fill",
+"title": "A5 · Журнал + diff"
+},
+"AdminRoles.dc.html": {
+"x": 1520,
+"y": 1120,
+"w": 1440,
+"h": 1000,
+"page": "admin",
+"expand": "fill",
+"title": "A4 · Роли"
+},
+"AdminSystem.dc.html": {
+"x": 3040,
+"y": 1120,
+"w": 1440,
+"h": 1060,
+"page": "admin",
+"expand": "fill",
+"title": "A6 · Система"
+},
+"AdminSettings.dc.html": {
+"x": 0,
+"y": 2300,
+"w": 1440,
+"h": 2120,
+"page": "admin",
+"expand": "fill",
+"title": "A7 · Настройки"
+},
+"DarkLanding.dc.html": {
+"x": 0,
+"y": 0,
+"w": 390,
+"h": 2280,
+"page": "dark",
+"title": "Dark · Лендинг mobile"
+},
+"DarkForm.dc.html": {
+"x": 470,
+"y": 0,
+"w": 390,
+"h": 3760,
+"page": "dark",
+"title": "Dark · Публичная форма mobile"
+},
+"DarkServers.dc.html": {
+"x": 940,
+"y": 0,
+"w": 1440,
+"h": 1000,
+"page": "dark",
+"expand": "fill",
+"title": "Dark · Мои серверы"
+},
+"DarkModeration.dc.html": {
+"x": 940,
+"y": 1120,
+"w": 1440,
+"h": 1240,
+"page": "dark",
+"expand": "fill",
+"title": "Dark · Модерация + карточка"
+},
+"Components.dc.html": {
+"x": 0,
+"y": 0,
+"w": 1440,
+"h": 2000,
+"page": "comp",
+"expand": "fill",
+"title": "Компоненты"
+},
+"Sidebar.dc.html": {
+"x": 1520,
+"y": 0,
+"w": 248,
+"h": 900,
+"page": "comp",
+"title": "Компонент: сайдбар"
+},
+"WsHeader.dc.html": {
+"x": 1848,
+"y": 0,
+"w": 1192,
+"h": 250,
+"page": "comp",
+"title": "Компонент: шапка сервера"
+},
+"WizStepper.dc.html": {
+"x": 1848,
+"y": 370,
+"w": 1192,
+"h": 88,
+"page": "comp",
+"title": "Компонент: степпер"
+},
+"SuccessMobile.dc.html": {
+"x": 4150,
+"y": 0,
+"w": 390,
+"h": 844,
+"page": "public",
+"title": "Заявка отправлена · mobile"
+},
+"LandingDesktop.dc.html": {
+"x": 0,
+"y": 0,
+"w": 1440,
+"h": 2060,
+"page": "desk",
+"title": "Лендинг / · 1440",
+"expand": "fill"
+},
+"FormDesktop.dc.html": {
+"x": 1520,
+"y": 0,
+"w": 1440,
+"h": 2400,
+"page": "desk",
+"title": "Публичная форма /f/:slug · 1440",
+"expand": "fill"
+},
+"FormAnon.dc.html": {
+"x": 3040,
+"y": 0,
+"w": 1440,
+"h": 2400,
+"page": "desk",
+"title": "Форма · анонимная (предупреждение)",
+"expand": "fill"
+},
+"FormSuccess.dc.html": {
+"x": 0,
+"y": 2520,
+"w": 1440,
+"h": 900,
+"page": "desk",
+"title": "Заявка отправлена · 1440",
+"expand": "fill"
+},
+"AccessDesktop.dc.html": {
+"x": 1520,
+"y": 2520,
+"w": 1440,
+"h": 900,
+"page": "desk",
+"title": "Доступ · нет роли (Tweaks: 12 состояний)",
+"expand": "fill"
+},
+"AccessLogin.dc.html": {
+"x": 3040,
+"y": 2520,
+"w": 1440,
+"h": 900,
+"page": "desk",
+"title": "Доступ · нужен вход",
+"expand": "fill"
+},
+"AccessClosed.dc.html": {
+"x": 0,
+"y": 3540,
+"w": 1440,
+"h": 900,
+"page": "desk",
+"title": "Доступ · форма закрыта",
+"expand": "fill"
+},
+"AccessRestricted.dc.html": {
+"x": 1520,
+"y": 3540,
+"w": 1440,
+"h": 900,
+"page": "desk",
+"title": "Доступ · аккаунт ограничен",
+"expand": "fill"
+},
+"MySubsDesktop.dc.html": {
+"x": 3040,
+"y": 3540,
+"w": 1440,
+"h": 900,
+"page": "desk",
+"title": "Мои заявки + карточка",
+"expand": "fill"
+},
+"MySubsEmpty.dc.html": {
+"x": 0,
+"y": 4560,
+"w": 1440,
+"h": 900,
+"page": "desk",
+"title": "Мои заявки · пусто",
+"expand": "fill"
+},
+"AdminFormsDelete.dc.html": {
+"x": 1520,
+"y": 2300,
+"w": 1440,
+"h": 1000,
+"page": "admin",
+"title": "A1 · Удаление формы",
+"expand": "fill"
+},
+"AdminFormsLoading.dc.html": {
+"x": 3040,
+"y": 2300,
+"w": 1440,
+"h": 1000,
+"page": "admin",
+"title": "A1 · Загрузка (скелетоны)",
+"expand": "fill"
+},
+"AdminFormsError.dc.html": {
+"x": 1520,
+"y": 3420,
+"w": 1440,
+"h": 1000,
+"page": "admin",
+"title": "A1 · Ошибка загрузки",
+"expand": "fill"
+},
+"AdminRespByUser.dc.html": {
+"x": 3040,
+"y": 3420,
+"w": 1440,
+"h": 1000,
+"page": "admin",
+"title": "A2 · По пользователям",
+"expand": "fill"
+},
+"AdminUsersRoles.dc.html": {
+"x": 0,
+"y": 4540,
+"w": 1440,
+"h": 1000,
+"page": "admin",
+"title": "A3 · Назначить роли",
+"expand": "fill"
+},
+"AdminUsersTimeout.dc.html": {
+"x": 1520,
+"y": 4540,
+"w": 1440,
+"h": 1000,
+"page": "admin",
+"title": "A3 · Тайм-аут",
+"expand": "fill"
+},
+"AdminUsersBan.dc.html": {
+"x": 3040,
+"y": 4540,
+"w": 1440,
+"h": 1000,
+"page": "admin",
+"title": "A3 · Бан",
+"expand": "fill"
+},
+"AdminUsersUnban.dc.html": {
+"x": 0,
+"y": 5660,
+"w": 1440,
+"h": 1000,
+"page": "admin",
+"title": "A3 · Разбан",
+"expand": "fill"
+},
+"AdminRolesCreate.dc.html": {
+"x": 1520,
+"y": 5660,
+"w": 1440,
+"h": 1000,
+"page": "admin",
+"title": "A4 · Создать роль",
+"expand": "fill"
+},
+"AdminRolesDelete.dc.html": {
+"x": 3040,
+"y": 5660,
+"w": 1440,
+"h": 1000,
+"page": "admin",
+"title": "A4 · Удалить роль",
+"expand": "fill"
+},
+"AdminSystemError.dc.html": {
+"x": 0,
+"y": 6780,
+"w": 1440,
+"h": 1060,
+"page": "admin",
+"title": "A6 · Бэкенд недоступен",
+"expand": "fill"
+},
+"DarkAdmin.dc.html": {
+"x": 2460,
+"y": 0,
+"w": 1440,
+"h": 1000,
+"page": "dark",
+"title": "Dark · Пользователи + тайм-аут",
+"expand": "fill"
+},
+"DarkLandingDesktop.dc.html": {
+"x": 2460,
+"y": 1120,
+"w": 1440,
+"h": 2060,
+"page": "dark",
+"title": "Dark · Лендинг 1440",
+"expand": "fill"
+},
+"R1024Moderation.dc.html": {
+"x": 0,
+"y": 0,
+"w": 1024,
+"h": 1240,
+"page": "resp",
+"title": "1024 · Модерация",
+"expand": "fill"
+},
+"R1024Builder.dc.html": {
+"x": 1104,
+"y": 0,
+"w": 1024,
+"h": 1500,
+"page": "resp",
+"title": "1024 · Конструктор",
+"expand": "fill"
+},
+"R1024Users.dc.html": {
+"x": 2208,
+"y": 0,
+"w": 1024,
+"h": 1000,
+"page": "resp",
+"title": "1024 · Пользователи",
+"expand": "fill"
+},
+"R1280Forms.dc.html": {
+"x": 3312,
+"y": 0,
+"w": 1280,
+"h": 1100,
+"page": "resp",
+"title": "1280 · Формы платформы",
+"expand": "fill"
+},
+"Topbar.dc.html": {
+"x": 1848,
+"y": 578,
+"w": 1192,
+"h": 60,
+"page": "comp",
+"title": "Компонент: топбар"
+}
+},
+"order": [
+"Main.dc.html",
+"FormPublic.dc.html",
+"Login.dc.html",
+"MySubmissions.dc.html",
+"AccessStates.dc.html",
+"Servers.dc.html",
+"WsForms.dc.html",
+"WsSubmissions.dc.html",
+"WsAudit.dc.html",
+"WsModerators.dc.html",
+"WsBans.dc.html",
+"WsBilling.dc.html",
+"MobileShell.dc.html",
+"Wizard1.dc.html",
+"Wizard2.dc.html",
+"Wizard3.dc.html",
+"Wizard4.dc.html",
+"AnonDialog.dc.html",
+"FormEdit.dc.html",
+"Preview.dc.html",
+"AdminForms.dc.html",
+"AdminResponses.dc.html",
+"AdminUsers.dc.html",
+"AdminLogs.dc.html",
+"AdminRoles.dc.html",
+"AdminSystem.dc.html",
+"AdminSettings.dc.html",
+"DarkLanding.dc.html",
+"DarkForm.dc.html",
+"DarkServers.dc.html",
+"DarkModeration.dc.html",
+"Components.dc.html",
+"Sidebar.dc.html",
+"WsHeader.dc.html",
+"WizStepper.dc.html",
+"SuccessMobile.dc.html",
+"LandingDesktop.dc.html",
+"FormDesktop.dc.html",
+"FormAnon.dc.html",
+"FormSuccess.dc.html",
+"AccessDesktop.dc.html",
+"AccessLogin.dc.html",
+"AccessClosed.dc.html",
+"AccessRestricted.dc.html",
+"MySubsDesktop.dc.html",
+"MySubsEmpty.dc.html",
+"AdminFormsDelete.dc.html",
+"AdminFormsLoading.dc.html",
+"AdminFormsError.dc.html",
+"AdminRespByUser.dc.html",
+"AdminUsersRoles.dc.html",
+"AdminUsersTimeout.dc.html",
+"AdminUsersBan.dc.html",
+"AdminUsersUnban.dc.html",
+"AdminRolesCreate.dc.html",
+"AdminRolesDelete.dc.html",
+"AdminSystemError.dc.html",
+"DarkAdmin.dc.html",
+"DarkLandingDesktop.dc.html",
+"R1024Moderation.dc.html",
+"R1024Builder.dc.html",
+"R1024Users.dc.html",
+"R1280Forms.dc.html",
+"Topbar.dc.html"
+],
+"notes": {
+"t_public": {
+"x": 0,
+"y": -300,
+"text": "Публичные экраны · mobile 390",
+"kind": "title1",
+"maxW": 4540,
+"page": "public"
+},
+"t_dash": {
+"x": 0,
+"y": -300,
+"text": "Рабочее пространство сервера · desktop 1440",
+"kind": "title1",
+"maxW": 4480,
+"page": "dash"
+},
+"t_wiz": {
+"x": 0,
+"y": -300,
+"text": "Конструктор форм, мастер, предпросмотр",
+"kind": "title1",
+"maxW": 4480,
+"page": "wizard"
+},
+"t_admin": {
+"x": 0,
+"y": -300,
+"text": "Платформа · админ-разделы, модалки и состояния",
+"kind": "title1",
+"maxW": 4480,
+"page": "admin"
+},
+"t_dark": {
+"x": 0,
+"y": -300,
+"text": "Тёмная тема · ключевые экраны",
+"kind": "title1",
+"maxW": 3900,
+"page": "dark"
+},
+"t_comp": {
+"x": 0,
+"y": -300,
+"text": "Компоненты и общие части",
+"kind": "title1",
+"maxW": 3040,
+"page": "comp"
+},
+"t_desk": {
+"x": 0,
+"y": -300,
+"text": "Публичные экраны · desktop 1440",
+"kind": "title1",
+"maxW": 4480,
+"page": "desk"
+},
+"t_resp": {
+"x": 0,
+"y": -300,
+"text": "Адаптив · 1024 и 1280",
+"kind": "title1",
+"maxW": 4592,
+"page": "resp"
+}
+},
+"designSystems": []
+}

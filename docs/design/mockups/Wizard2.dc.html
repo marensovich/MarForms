@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Мастер формы — поля</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="{{tv}}; min-height: 100vh; display: flex; flex-direction: column; background: var(--bg); color: var(--tx); font-family: Onest, 'Segoe UI', system-ui, sans-serif">
+  <dc-import name="WizStepper" step="{{2}}" dark="{{dark}}" hint-size="100%,88px"></dc-import>
+  <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+
+    <aside style="flex: 1 1 220px; max-width: 100%; padding: 20px 16px; box-sizing: border-box; background: var(--sf); border-right: 1px solid var(--bd); display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 12px; font-weight: 600; color: var(--mu); text-transform: uppercase; letter-spacing: 0.06em; padding: 0 6px 4px">Добавить поле</span>
+      <div style="display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 2px">
+        <sc-for list="{{palette}}" as="p" hint-placeholder-count="17">
+          <button style="height: 36px; padding: 0 8px; border: 0; border-radius: 9px; background: transparent; color: var(--tx); font-family: inherit; font-size: 13px; display: flex; align-items: center; gap: 10px; text-align: left"><span style="width: 26px; height: 26px; border-radius: 8px; background: var(--s2); color: var(--mu); display: grid; place-items: center; flex: none"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{p.ic}}"></path></svg></span>{{p.t}}</button>
+        </sc-for>
+      </div>
+    </aside>
+
+    <section style="flex: 999 1 420px; min-width: 0; padding: 24px 28px; display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px"><h1 style="margin: 0; font-size: 22px">Поля формы · 13</h1><span style="font-size: 13px; color: var(--mu)">Перетаскивайте за <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M9 5h.01M9 12h.01M9 19h.01M15 5h.01M15 12h.01M15 19h.01"></path></svg>, чтобы изменить порядок</span></div>
+      <sc-for list="{{fields}}" as="f" hint-placeholder-count="12">
+        <sc-if value="{{f.isSection}}" hint-placeholder-val="{{false}}">
+          <div style="display: flex; align-items: center; gap: 10px; padding: 14px 4px 4px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M9 5h.01M9 12h.01M9 19h.01M15 5h.01M15 12h.01M15 19h.01"></path></svg><span style="font-size: 12px; font-weight: 700; color: var(--prt); text-transform: uppercase; letter-spacing: 0.06em">Раздел · {{f.label}}</span><span style="flex: 1; height: 1px; background: var(--bd)"></span></div>
+        </sc-if>
+        <sc-if value="{{f.isDrop}}" hint-placeholder-val="{{false}}">
+          <div style="height: 4px; margin: 2px 0; border-radius: 4px; background: var(--pr)"></div>
+        </sc-if>
+        <sc-if value="{{f.isField}}" hint-placeholder-val="{{true}}">
+          <div style="{{f.st}}; display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 12px; border-radius: 12px; box-sizing: border-box">
+            <button aria-label="Перетащить" style="width: 24px; height: 32px; border: 0; background: transparent; color: var(--mu); display: grid; place-items: center; cursor: grab"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M9 5h.01M9 12h.01M9 19h.01M15 5h.01M15 12h.01M15 19h.01"></path></svg></button>
+            <span style="width: 30px; height: 30px; border-radius: 9px; background: var(--s2); color: var(--mu); display: grid; place-items: center; flex: none"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{f.ic}}"></path></svg></span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 14px; font-weight: 600">{{f.label}}<sc-if value="{{f.req}}" hint-placeholder-val="{{false}}"><span style="color: var(--rdt)"> *</span></sc-if></span><span style="font-size: 12px; color: var(--mu)">{{f.type}}</span></span>
+            <sc-if value="{{f.cond}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; background: var(--prs); color: var(--prt); font-size: 11px; font-weight: 600"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3v12M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 9a9 9 0 0 1-9 9"></path></svg>Условие</span></sc-if>
+            <button aria-label="Ещё" style="width: 32px; height: 32px; border: 0; border-radius: 9px; background: transparent; color: var(--mu); display: grid; place-items: center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 12h.01M19 12h.01M5 12h.01"></path></svg></button>
+          </div>
+        </sc-if>
+      </sc-for>
+      <button style="margin-top: 8px; height: 48px; border: 1.5px dashed var(--bd); border-radius: 12px; background: transparent; color: var(--prt); font-family: inherit; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Добавить поле</button>
+    </section>
+
+    <aside aria-label="Настройки поля" style="flex: 1 1 380px; max-width: 100%; padding: 22px 22px 28px; box-sizing: border-box; background: var(--sf); border-left: 1px solid var(--bd); display: flex; flex-direction: column; gap: 18px">
+      <div style="display: flex; align-items: center; justify-content: space-between"><span style="font-size: 16px; font-weight: 700">Настройки поля</span><span style="padding: 3px 9px; border-radius: 999px; background: var(--s2); font-size: 12px; font-weight: 600; color: var(--mu)">{{selType}}</span></div>
+      <div style="display: flex; flex-direction: column; gap: 6px"><label for="lb" style="font-size: 13px; font-weight: 600">Вопрос</label><input id="lb" value="{{selLabel}}" style="height: 42px; padding: 0 12px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px"></div>
+      <div style="display: flex; flex-direction: column; gap: 6px"><label for="hp" style="font-size: 13px; font-weight: 600">Подсказка</label><input id="hp" value="{{selHelp}}" style="height: 42px; padding: 0 12px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px"></div>
+      <div style="display: flex; align-items: center; justify-content: space-between"><span style="font-size: 14px; font-weight: 500">Обязательное поле</span><button role="switch" aria-checked="true" aria-label="Обязательное" style="width: 44px; height: 26px; border: 0; border-radius: 999px; background: var(--pr); padding: 3px; display: flex; justify-content: flex-end"><span style="width: 20px; height: 20px; border-radius: 999px; background: #fff"></span></button></div>
+
+      <sc-if value="{{isRadio}}" hint-placeholder-val="{{true}}">
+        <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 14px; border-top: 1px solid var(--bd)">
+          <span style="font-size: 13px; font-weight: 600">Варианты ответа</span>
+          <sc-for list="{{options}}" as="o" hint-placeholder-count="3">
+            <div style="display: flex; align-items: center; gap: 6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M9 5h.01M9 12h.01M9 19h.01M15 5h.01M15 12h.01M15 19h.01"></path></svg><input value="{{o}}" aria-label="Вариант" style="flex: 1; min-width: 0; height: 38px; padding: 0 10px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px"><button aria-label="Удалить вариант" style="width: 32px; height: 32px; border: 0; border-radius: 9px; background: transparent; color: var(--mu); display: grid; place-items: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div>
+          </sc-for>
+          <button style="align-self: flex-start; height: 34px; padding: 0 10px; border: 0; border-radius: 9px; background: var(--prs); color: var(--prt); font-family: inherit; font-size: 13px; font-weight: 600">+ Вариант</button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{isFile}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; flex-direction: column; gap: 12px; padding-top: 14px; border-top: 1px solid var(--bd)">
+          <span style="font-size: 13px; font-weight: 600">Ограничения файлов</span>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px">
+            <sc-for list="{{ftypes}}" as="t" hint-placeholder-count="5"><button aria-pressed="{{t.on}}" style="{{t.st}}; height: 32px; padding: 0 10px; border-radius: 9px; font-family: inherit; font-size: 13px; font-weight: 600">{{t.t}}</button></sc-for>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+            <div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: var(--mu)">Макс. размер</span><button style="height: 40px; padding: 0 10px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px; display: flex; justify-content: space-between; align-items: center">10 МБ<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button></div>
+            <div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: var(--mu)">Макс. файлов</span><div style="height: 40px; display: flex; border: 1px solid var(--bd); border-radius: 10px; overflow: hidden"><button aria-label="Меньше" style="width: 40px; border: 0; background: var(--s2); color: var(--tx); font-size: 16px">−</button><span style="flex: 1; display: grid; place-items: center; font-weight: 600">3</span><button aria-label="Больше" style="width: 40px; border: 0; background: var(--s2); color: var(--tx); font-size: 16px">+</button></div></div>
+          </div>
+        </div>
+      </sc-if>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; padding-top: 14px; border-top: 1px solid var(--bd)">
+        <span style="font-size: 13px; font-weight: 600">Условие показа</span>
+        <div style="display: flex; border: 1px solid var(--bd); border-radius: 10px; padding: 2px"><button style="flex: 1; height: 32px; border: 0; border-radius: 8px; background: transparent; color: var(--mu); font-family: inherit; font-size: 13px">Всегда</button><button style="flex: 1; height: 32px; border: 0; border-radius: 8px; background: var(--prs); color: var(--prt); font-family: inherit; font-size: 13px; font-weight: 600">По условию</button></div>
+        <div style="padding: 12px; border-radius: 12px; background: var(--s2); display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 13px; color: var(--mu)">Показывать, если</span>
+          <button style="height: 38px; padding: 0 10px; border: 1px solid var(--bd); border-radius: 9px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 13px; display: flex; justify-content: space-between; align-items: center">{{condField}}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
+          <div style="display: flex; gap: 6px">
+            <button style="flex: 1; height: 38px; padding: 0 10px; border: 1px solid var(--bd); border-radius: 9px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 13px; display: flex; justify-content: space-between; align-items: center">{{condOp}}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
+            <button style="flex: 1.4; height: 38px; padding: 0 10px; border: 1px solid var(--bd); border-radius: 9px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 13px; display: flex; justify-content: space-between; align-items: center; white-space: nowrap; overflow: hidden">{{condVal}}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
+          </div>
+          <button style="align-self: flex-start; height: 30px; padding: 0 8px; border: 0; border-radius: 8px; background: transparent; color: var(--prt); font-family: inherit; font-size: 13px; font-weight: 600">+ Ещё условие</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+  <footer style="position: sticky; bottom: 0; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 28px; background: var(--sf); border-top: 1px solid var(--bd)">
+    <a href="/Wizard1.dc.html" style="height: 44px; padding: 0 16px; display: flex; align-items: center; gap: 8px; border: 1px solid var(--bd); border-radius: 12px; color: var(--tx); text-decoration: none; font-size: 14px; font-weight: 500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>Назад</a>
+    <a href="/Wizard3.dc.html" style="height: 44px; padding: 0 18px; display: flex; align-items: center; gap: 8px; border-radius: 12px; background: var(--pr); color: #fff; text-decoration: none; font-size: 14px; font-weight: 600">Далее: Discord и доступ<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></a>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"selected":{"editor":"enum","options":["radio","file"],"default":"radio"},"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  th(d){const t=d?{bg:'#111115',sf:'#1A1A20',s2:'#22222A',tx:'#ECECEF',mu:'#A3A3AD',bd:'#2E2E37',pr:'#5B54E0',prs:'#25234B',prt:'#B4B0FF',amb:'#3B2A0A',amt:'#FCD34D',rdb:'#3D1517',rdt:'#FCA5A5',gnb:'#0E2F1D',gnt:'#86EFAC',ov:'rgba(0,0,0,0.62)'}:{bg:'#FAFAFB',sf:'#FFFFFF',s2:'#F4F4F6',tx:'#1E1E24',mu:'#6B6B76',bd:'#E4E4E7',pr:'#3730A3',prs:'#EEEEFB',prt:'#3730A3',amb:'#FEF3C7',amt:'#92400E',rdb:'#FEE2E2',rdt:'#B91C1C',gnb:'#DCFCE7',gnt:'#166534',ov:'rgba(20,20,30,0.45)'};return Object.keys(t).map(k=>'--'+k+':'+t[k]).join(';');}
+  renderVals() {
+    const sel = this.props.selected === 'file' ? 'file' : 'radio';
+    const I = {
+      txt: 'M4 7V4h16v3M9 20h6M12 4v16', long: 'M17 10H3M21 6H3M21 14H3M17 18H3', num: 'M4 9h16M4 15h16M10 3 8 21M16 3l-2 18', mail: 'M4 4h16v16H4zM22 6l-10 7L2 6',
+      phone: 'M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z',
+      link: 'M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71', date: 'M3 4h18v18H3zM16 2v4M8 2v4M3 10h18', time: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 6v6l4 2',
+      sel: 'M3 6h18v12H3zM15 11l2 2 2-2', radio: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', check: 'M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11',
+      multi: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01', toggle: 'M16 5H8a7 7 0 0 0 0 14h8a7 7 0 0 0 0-14zM16 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', star: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z',
+      file: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12', sect: 'M3 12h18M3 6h18'
+    };
+    const pal = [['Короткий текст','txt'],['Длинный текст','long'],['Число','num'],['Email','mail'],['Телефон','phone'],['Ссылка','link'],['Дата','date'],['Время','time'],['Дата и время','date'],['Выпадающий список','sel'],['Один из списка','radio'],['Несколько вариантов','check'],['Мультивыбор','multi'],['Да / Нет','toggle'],['Оценка 1–5','star'],['Файл','file'],['Раздел','sect']];
+    const F = (label, type, ic, req, cond, key) => ({ isField: true, isSection: false, isDrop: false, label, type, ic: I[ic], req: !!req, cond: !!cond, st: key && key === sel ? 'border: 1.5px solid var(--pr); background: var(--prs)' : 'border: 1px solid var(--bd); background: var(--sf)' });
+    const S = (label) => ({ isSection: true, isField: false, isDrop: false, label });
+    const D = { isDrop: true, isField: false, isSection: false };
+    const isRadio = sel === 'radio';
+    return {
+      tv: this.th(!!this.props.dark), dark: !!this.props.dark,
+      palette: pal.map(p => ({ t: p[0], ic: I[p[1]] })),
+      fields: [
+        S('Персонаж'), F('Имя и фамилия персонажа', 'Короткий текст', 'txt', 1), F('Возраст', 'Число', 'num', 1), F('Дата рождения', 'Дата', 'date'), F('Биография персонажа', 'Длинный текст', 'long', 1),
+        S('Связь'), F('Email', 'Email', 'mail', 1), F('Телефон', 'Телефон', 'phone'), D, F('Ссылка на прошлые отыгрыши', 'Ссылка', 'link'),
+        S('Опыт и собеседование'), F('Был ли опыт в гос. структурах?', 'Один из списка', 'radio', 1, 1, 'radio'), F('Где и в какой должности служили?', 'Короткий текст', 'txt', 1, 1), F('Желаемый отдел', 'Выпадающий список', 'sel', 1), F('Скриншоты статистики', 'Файл', 'file', 0, 1, 'file')
+      ],
+      isRadio, isFile: !isRadio,
+      selType: isRadio ? 'Один из списка' : 'Файл',
+      selLabel: isRadio ? 'Был ли опыт в гос. структурах на RP-серверах?' : 'Скриншоты статистики',
+      selHelp: isRadio ? 'Учитываем только сервера GTA 5 RP' : 'Статистика часов и последние выговоры',
+      options: ['Да, больше 3 месяцев', 'Да, меньше 3 месяцев', 'Нет, это первый опыт'],
+      ftypes: [['PNG',1],['JPG',1],['PDF',1],['MP4',0],['ZIP',0]].map(x => ({ t: x[0], on: x[1] ? 'true' : 'false', st: x[1] ? 'border: 1.5px solid var(--pr); background: var(--prs); color: var(--prt)' : 'border: 1px solid var(--bd); background: var(--sf); color: var(--mu)' })),
+      condField: isRadio ? 'Возраст' : 'Был ли опыт в гос. структурах?',
+      condOp: isRadio ? 'больше или равно' : 'равно',
+      condVal: isRadio ? '18' : 'Да, больше 3 месяцев'
+    };
+  }
+}
+</script>
+</body>
+</html>

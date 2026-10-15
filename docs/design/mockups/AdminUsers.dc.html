@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Платформа — пользователи</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="{{tv}}; position: relative; display: flex; flex-wrap: wrap; min-height: 100vh; background: var(--bg); color: var(--tx); font-family: Onest, 'Segoe UI', system-ui, sans-serif">
+  <div style="flex: 1 1 248px; max-width: 100%; background: var(--sf); border-right: 1px solid var(--bd)">
+    <dc-import name="Sidebar" active="users" dark="{{dark}}" hint-size="248px,860px"></dc-import>
+  </div>
+  <main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <dc-import name="Topbar" page="Пользователи" level="Moderator" dark="{{dark}}" hint-size="100%,60px"></dc-import>
+    <div style="padding: 28px 40px 48px; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; flex-direction: column; gap: 6px"><h1 style="margin: 0; font-size: 26px; letter-spacing: -0.01em">Пользователи</h1><p style="margin: 0; font-size: 14px; color: var(--mu)">Все, кто входил через Discord. Ограничения действуют на всей платформе.</p></div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+        <div style="padding: 18px 20px; border: 1px solid var(--bd); border-radius: 14px; background: var(--sf); display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; color: var(--mu)">Всего пользователей</span><span style="font-size: 28px; font-weight: 700; letter-spacing: -0.02em">24 816</span><span style="font-size: 12px; color: var(--gnt)">+612 за 7 дней</span></div>
+        <div style="padding: 18px 20px; border: 1px solid var(--bd); border-radius: 14px; background: var(--sf); display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; color: var(--mu)">Активные за 30 дней</span><span style="font-size: 28px; font-weight: 700; letter-spacing: -0.02em">9 340</span><span style="font-size: 12px; color: var(--mu)">38% от всех</span></div>
+        <div style="padding: 18px 20px; border: 1px solid var(--bd); border-radius: 14px; background: var(--sf); display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; color: var(--mu)">Ограниченные</span><span style="font-size: 28px; font-weight: 700; letter-spacing: -0.02em; color: var(--rdt)">57</span><span style="font-size: 12px; color: var(--mu)">41 бан · 16 тайм-аутов</span></div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center">
+        <label style="flex: 1 1 280px; display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--mu); box-sizing: border-box"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.35-4.35"></path></svg><input aria-label="Поиск" placeholder="Ник или Discord ID" style="flex: 1; min-width: 0; border: 0; background: transparent; color: var(--tx); font-family: inherit; font-size: 13px; outline: 0"></label>
+        <button style="height: 38px; padding: 0 12px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 13px; display: flex; align-items: center; gap: 8px">Роль: любая<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
+        <button style="height: 38px; padding: 0 12px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 13px; display: flex; align-items: center; gap: 8px">Статус: любой<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
+      </div>
+      <div style="border: 1px solid var(--bd); border-radius: 14px; background: var(--sf); overflow: auto; max-height: 640px">
+        <table style="width: 100%; min-width: 860px; border-collapse: separate; border-spacing: 0; font-size: 13px">
+          <thead><tr style="text-align: left; color: var(--mu); font-size: 12px">
+            <th style="position: sticky; top: 0; z-index: 1; background: var(--sf); padding: 10px 14px; border-bottom: 1px solid var(--bd); font-weight: 600">Пользователь</th>
+            <th style="position: sticky; top: 0; z-index: 1; background: var(--sf); padding: 10px 12px; border-bottom: 1px solid var(--bd); font-weight: 600">Discord ID</th>
+            <th style="position: sticky; top: 0; z-index: 1; background: var(--sf); padding: 10px 12px; border-bottom: 1px solid var(--bd); font-weight: 600">Роли платформы</th>
+            <th style="position: sticky; top: 0; z-index: 1; background: var(--sf); padding: 10px 12px; border-bottom: 1px solid var(--bd); font-weight: 600">Статус</th>
+            <th style="position: sticky; top: 0; z-index: 1; background: var(--sf); padding: 10px 14px; border-bottom: 1px solid var(--bd); font-weight: 600; text-align: right">Действия</th>
+          </tr></thead>
+          <tbody>
+            <sc-for list="{{rows}}" as="r" hint-placeholder-count="9">
+              <tr>
+                <td style="padding: 10px 14px; border-bottom: 1px solid var(--bd)"><div style="display: flex; align-items: center; gap: 10px"><span style="{{r.avSt}}; flex: none; width: 32px; height: 32px; border-radius: 99px; color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 600">{{r.ini}}</span><div style="display: flex; flex-direction: column; gap: 1px"><span style="font-weight: 600">{{r.nick}}</span><span style="font-size: 12px; color: var(--mu)">@{{r.handle}}</span></div></div></td>
+                <td style="padding: 10px 12px; border-bottom: 1px solid var(--bd)"><button title="Копировать ID" style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 6px; border: 0; border-radius: 6px; background: transparent; color: var(--tx); font-family: 'JetBrains Mono', monospace; font-size: 12px">{{r.id}}<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 9h-9a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2zM5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button></td>
+                <td style="padding: 10px 12px; border-bottom: 1px solid var(--bd)"><div style="display: flex; flex-wrap: wrap; gap: 4px"><sc-for list="{{r.roles}}" as="ro" hint-placeholder-count="1"><span style="display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border: 1px solid var(--bd); border-radius: 99px; font-size: 12px; font-weight: 500"><span style="{{ro.dot}}; width: 7px; height: 7px; border-radius: 99px"></span>{{ro.t}}</span></sc-for><sc-if value="{{r.noRoles}}" hint-placeholder-val="{{false}}"><span style="color: var(--mu)">—</span></sc-if></div></td>
+                <td style="padding: 10px 12px; border-bottom: 1px solid var(--bd)"><span style="{{r.bst}}; display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 99px; font-size: 12px; font-weight: 600; white-space: nowrap"><span style="width: 6px; height: 6px; border-radius: 99px; background: currentColor"></span>{{r.st}}</span></td>
+                <td style="padding: 0 14px; border-bottom: 1px solid var(--bd)">
+                  <div style="position: relative; display: flex; justify-content: flex-end; gap: 6px">
+                    <button style="height: 30px; padding: 0 10px; border: 1px solid var(--bd); border-radius: 8px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 12px; font-weight: 500">Роли</button>
+                    <button style="height: 30px; padding: 0 10px; border: 1px solid var(--bd); border-radius: 8px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 12px; font-weight: 500">Тайм-аут</button>
+                    <button disabled="{{r.locked}}" aria-describedby="{{r.tipId}}" style="{{r.banSt}}; height: 30px; padding: 0 10px; border-radius: 8px; font-family: inherit; font-size: 12px; font-weight: 600">{{r.ban}}</button>
+                    <sc-if value="{{r.tip}}" hint-placeholder-val="{{false}}">
+                      <span id="tip-admin" role="tooltip" style="position: absolute; right: 0; bottom: 38px; z-index: 2; width: 230px; padding: 8px 10px; border-radius: 8px; background: #1E1E24; color: #fff; font-size: 12px; line-height: 1.4; text-align: left; box-shadow: 0 8px 24px rgba(0,0,0,0.2)">Модератор не может забанить администратора платформы.</span>
+                    </sc-if>
+                  </div>
+                </td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; font-size: 13px; color: var(--mu); border-top: 1px solid var(--bd)"><span>Страница 1 из 993 · 24 816 всего</span><span style="display: flex; gap: 6px"><button style="height: 30px; padding: 0 10px; border: 1px solid var(--bd); border-radius: 8px; background: var(--sf); color: var(--mu); font-family: inherit; font-size: 13px">Назад</button><button style="height: 30px; padding: 0 10px; border: 1px solid var(--bd); border-radius: 8px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 13px">Вперёд</button></span></div>
+      </div>
+    </div>
+  </main>
+
+  <sc-if value="{{anyModal}}" hint-placeholder-val="{{true}}">
+    <div style="position: absolute; inset: 0; z-index: 10; background: var(--ov); display: flex; align-items: flex-start; justify-content: center; padding-top: 140px">
+      <sc-if value="{{mRoles}}" hint-placeholder-val="{{true}}">
+        <div role="dialog" aria-modal="true" aria-labelledby="mr-t" style="width: 480px; box-sizing: border-box; border-radius: 16px; background: var(--sf); border: 1px solid var(--bd); box-shadow: 0 24px 64px rgba(10,10,30,0.28); display: flex; flex-direction: column">
+          <div style="padding: 20px 22px 6px; display: flex; flex-direction: column; gap: 4px"><h2 id="mr-t" style="margin: 0; font-size: 18px">Назначить роли</h2><span style="font-size: 13px; color: var(--mu)">kate_wl · 701122984336</span></div>
+          <div style="padding: 12px 14px; display: flex; flex-direction: column; gap: 2px">
+            <sc-for list="{{roleOpts}}" as="o" hint-placeholder-count="5">
+              <label style="{{o.st}}; display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 10px; font-size: 14px"><input type="checkbox" checked="{{o.on}}" style="width: 16px; height: 16px; accent-color: var(--pr)"><span style="{{o.dot}}; width: 8px; height: 8px; border-radius: 99px"></span><span style="flex: 1; font-weight: 600">{{o.t}}</span><span style="font-size: 12px; color: var(--mu)">{{o.p}} прав</span></label>
+            </sc-for>
+          </div>
+          <div style="padding: 14px 22px; border-top: 1px solid var(--bd); display: flex; justify-content: flex-end; gap: 8px"><button style="height: 38px; padding: 0 14px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px">Отмена</button><button style="height: 38px; padding: 0 14px; border: 0; border-radius: 10px; background: var(--pr); color: #fff; font-family: inherit; font-size: 14px; font-weight: 600">Сохранить</button></div>
+        </div>
+      </sc-if>
+      <sc-if value="{{mTimeout}}" hint-placeholder-val="{{false}}">
+        <div role="dialog" aria-modal="true" aria-labelledby="mt-t" style="width: 480px; box-sizing: border-box; padding: 22px; border-radius: 16px; background: var(--sf); border: 1px solid var(--bd); box-shadow: 0 24px 64px rgba(10,10,30,0.28); display: flex; flex-direction: column; gap: 16px">
+          <div style="display: flex; flex-direction: column; gap: 4px"><h2 id="mt-t" style="margin: 0; font-size: 18px">Тайм-аут для vlad.kozlov</h2><span style="font-size: 13px; color: var(--mu)">На время тайм-аута нельзя отправлять заявки и входить в панель.</span></div>
+          <div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 13px; font-weight: 600">Длительность</span>
+            <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px">
+              <button style="height: 36px; border: 1px solid var(--bd); border-radius: 9px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 13px">10 мин</button>
+              <button style="height: 36px; border: 1px solid var(--bd); border-radius: 9px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 13px">1 час</button>
+              <button aria-pressed="true" style="height: 36px; border: 1.5px solid var(--pr); border-radius: 9px; background: var(--prs); color: var(--prt); font-family: inherit; font-size: 13px; font-weight: 600">1 день</button>
+              <button style="height: 36px; border: 1px solid var(--bd); border-radius: 9px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 13px">7 дней</button>
+              <button style="height: 36px; border: 1px solid var(--bd); border-radius: 9px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 13px">Своё</button>
+            </div>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--mu)">или минут:<input value="1440" inputmode="numeric" style="width: 90px; height: 34px; padding: 0 10px; border: 1px solid var(--bd); border-radius: 9px; background: var(--sf); color: var(--tx); font-family: 'JetBrains Mono', monospace; font-size: 13px"></label>
+          </div>
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Причина<textarea rows="3" style="padding: 10px 12px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px; resize: none">Спам одинаковыми заявками в 4 формы подряд.</textarea></label>
+          <span style="font-size: 12px; color: var(--mu)">Закончится 16 окт 2026, 14:20 · пользователь увидит причину</span>
+          <div style="display: flex; justify-content: flex-end; gap: 8px"><button style="height: 38px; padding: 0 14px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px">Отмена</button><button style="height: 38px; padding: 0 14px; border: 0; border-radius: 10px; background: #B45309; color: #fff; font-family: inherit; font-size: 14px; font-weight: 600">Выдать тайм-аут</button></div>
+        </div>
+      </sc-if>
+      <sc-if value="{{mBan}}" hint-placeholder-val="{{false}}">
+        <div role="alertdialog" aria-modal="true" aria-labelledby="mb-t" style="width: 440px; box-sizing: border-box; padding: 22px; border-radius: 16px; background: var(--sf); border: 1px solid var(--bd); box-shadow: 0 24px 64px rgba(10,10,30,0.28); display: flex; flex-direction: column; gap: 14px">
+          <span style="width: 40px; height: 40px; border-radius: 12px; background: var(--rdb); color: var(--rdt); display: grid; place-items: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM4.93 4.93l14.14 14.14"></path></svg></span>
+          <h2 id="mb-t" style="margin: 0; font-size: 18px">Забанить boris_tm на платформе?</h2>
+          <p style="margin: 0; font-size: 14px; line-height: 1.5; color: var(--mu)">Пользователь не сможет открывать формы и входить в панель ни на одном сервере. Его заявки сохранятся.</p>
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Причина (видна пользователю)<input value="Мультиаккаунты, обход бана на 3 серверах" style="height: 38px; padding: 0 12px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px"></label>
+          <div style="display: flex; justify-content: flex-end; gap: 8px"><button style="height: 38px; padding: 0 14px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px">Отмена</button><button style="height: 38px; padding: 0 14px; border: 0; border-radius: 10px; background: #DC2626; color: #fff; font-family: inherit; font-size: 14px; font-weight: 600">Забанить</button></div>
+        </div>
+      </sc-if>
+      <sc-if value="{{mUnban}}" hint-placeholder-val="{{false}}">
+        <div role="alertdialog" aria-modal="true" aria-labelledby="mu-t" style="width: 420px; box-sizing: border-box; padding: 22px; border-radius: 16px; background: var(--sf); border: 1px solid var(--bd); box-shadow: 0 24px 64px rgba(10,10,30,0.28); display: flex; flex-direction: column; gap: 14px">
+          <h2 id="mu-t" style="margin: 0; font-size: 18px">Разбанить ghost_rider?</h2>
+          <p style="margin: 0; font-size: 14px; line-height: 1.5; color: var(--mu)">Забанен 02.09.2026 модератором Кирилл Н. Причина: «Оскорбления в заявках». Доступ восстановится сразу.</p>
+          <div style="display: flex; justify-content: flex-end; gap: 8px"><button style="height: 38px; padding: 0 14px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px">Отмена</button><button style="height: 38px; padding: 0 14px; border: 0; border-radius: 10px; background: var(--pr); color: #fff; font-family: inherit; font-size: 14px; font-weight: 600">Разбанить</button></div>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"modal":{"editor":"enum","options":["none","roles","timeout","ban","unban"],"default":"none"},"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  th(d){const t=d?{bg:'#111115',sf:'#1A1A20',s2:'#22222A',tx:'#ECECEF',mu:'#A3A3AD',bd:'#2E2E37',pr:'#5B54E0',prs:'#25234B',prt:'#B4B0FF',amb:'#3B2A0A',amt:'#FCD34D',rdb:'#3D1517',rdt:'#FCA5A5',gnb:'#0E2F1D',gnt:'#86EFAC',ov:'rgba(0,0,0,0.62)'}:{bg:'#FAFAFB',sf:'#FFFFFF',s2:'#F4F4F6',tx:'#1E1E24',mu:'#6B6B76',bd:'#E4E4E7',pr:'#3730A3',prs:'#EEEEFB',prt:'#3730A3',amb:'#FEF3C7',amt:'#92400E',rdb:'#FEE2E2',rdt:'#B91C1C',gnb:'#DCFCE7',gnt:'#166534',ov:'rgba(20,20,30,0.45)'};return Object.keys(t).map(k=>'--'+k+':'+t[k]).join(';');}
+  renderVals() {
+    const RL = { sa: ['System Admin', '#DC2626'], ad: ['Admin', '#7C3AED'], md: ['Moderator', '#2563EB'], sf: ['Staff', '#16A34A'] };
+    const S = { ok: ['Активен', 'background: var(--gnb); color: var(--gnt)'], to: ['Тайм-аут до 16.10, 14:20', 'background: var(--amb); color: var(--amt)'], ban: ['Забанен', 'background: var(--rdb); color: var(--rdt)'] };
+    const u = (nick, handle, ini, c, id, roles, s, locked) => ({
+      nick, handle, ini, id, avSt: 'background: ' + c,
+      roles: roles.map(k => ({ t: RL[k][0], dot: 'background: ' + RL[k][1] })), noRoles: roles.length === 0,
+      st: S[s][0], bst: S[s][1], ban: s === 'ban' ? 'Разбан' : 'Бан', locked: !!locked, tip: !!locked, tipId: locked ? 'tip-admin' : '',
+      banSt: locked ? 'border: 1px solid var(--bd); background: var(--s2); color: var(--mu); opacity: 0.6; cursor: not-allowed' : (s === 'ban' ? 'border: 1px solid var(--bd); background: var(--sf); color: var(--tx)' : 'border: 1px solid var(--rdb); background: var(--rdb); color: var(--rdt)')
+    });
+    const m = this.props.modal || 'none';
+    const ro = (t, c, p, on) => ({ t, p, on, dot: 'background: ' + c, st: on ? 'background: var(--prs)' : '' });
+    return {
+      tv: this.th(!!this.props.dark), dark: !!this.props.dark,
+      anyModal: m !== 'none', mRoles: m === 'roles', mTimeout: m === 'timeout', mBan: m === 'ban', mUnban: m === 'unban',
+      rows: [
+        u('Кирилл Н.', 'kirill_nv', 'К', '#0E7490', '284019574330621952', ['sa'], 'ok'),
+        u('Мария S.', 'maria_sh', 'М', '#BE185D', '193004811276540928', ['ad'], 'ok', true),
+        u('kate_wl', 'kate_wl', 'K', '#15803D', '701122984336019211', ['md', 'sf'], 'ok'),
+        u('Тимур Р.', 'timur_r', 'Т', '#4338CA', '118839220570448320', ['sf'], 'ok'),
+        u('vlad.kozlov', 'vlad.kozlov', 'V', '#0E7490', '590112874001338712', [], 'to'),
+        u('boris_tm', 'boris_tm', 'B', '#C2410C', '640012998174552301', [], 'ok'),
+        u('ghost_rider', 'ghost_rider', 'G', '#475569', '902117336458820133', [], 'ban'),
+        u('Ника Sweet', 'nika_sweet', 'Н', '#BE185D', '281773019455120874', [], 'ok'),
+        u('Arthur_Morgan', 'arthur.m', 'A', '#B45309', '330918447120775190', [], 'ok')
+      ],
+      roleOpts: [ro('System Admin', '#DC2626', 6, false), ro('Admin', '#7C3AED', 5, false), ro('Moderator', '#2563EB', 3, true), ro('Staff', '#16A34A', 1, true), ro('Поддержка', '#0891B2', 2, false)]
+    };
+  }
+}
+</script>
+</body>
+</html>

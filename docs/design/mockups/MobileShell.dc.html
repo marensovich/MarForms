@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Dashboard — мобильная версия</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="{{tv}}; width: 390px; height: 844px; box-sizing: border-box; display: flex; flex-direction: column; background: var(--bg); color: var(--tx); font-family: Onest, 'Segoe UI', system-ui, sans-serif">
+  <header style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--sf); border-bottom: 1px solid var(--bd)">
+    <button aria-label="Открыть меню" style="width: 44px; height: 44px; border: 0; border-radius: 12px; background: transparent; color: var(--tx); display: grid; place-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 12h18M3 6h18M3 18h18"></path></svg></button>
+    <span style="flex: 1; font-weight: 700; font-size: 17px">Мои серверы</span>
+    <span style="width: 34px; height: 34px; border-radius: 999px; background: #0E7490; color: #fff; display: grid; place-items: center; font-size: 13px; font-weight: 600">К</span>
+  </header>
+  <div style="flex: 1; overflow: hidden; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+    <button style="height: 44px; border: 0; border-radius: 12px; background: var(--pr); color: #fff; font-family: inherit; font-size: 15px; font-weight: 600">Добавить бота на сервер</button>
+    <sc-for list="{{servers}}" as="s" hint-placeholder-count="4">
+      <a href="#" style="display: flex; align-items: center; gap: 12px; padding: 14px; border: 1px solid var(--bd); border-radius: 14px; background: var(--sf); color: var(--tx); text-decoration: none">
+        <span style="{{s.icSt}}; flex: none; width: 42px; height: 42px; border-radius: 12px; color: #fff; display: grid; place-items: center; font-weight: 700">{{s.ini}}</span>
+        <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px"><span style="font-weight: 600; font-size: 15px">{{s.name}}</span><span style="{{s.botSt}}; align-self: flex-start; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600">{{s.bot}}</span></span>
+        <span style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px"><span style="font-weight: 700">{{s.pending}}</span><span style="font-size: 11px; color: var(--mu)">ждут</span></span>
+      </a>
+    </sc-for>
+  </div>
+  <nav aria-label="Нижняя навигация" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 6px 8px 14px; background: var(--sf); border-top: 1px solid var(--bd)">
+    <sc-for list="{{tabs}}" as="t" hint-placeholder-count="4">
+      <a href="#" style="{{t.st}}; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 0; text-decoration: none; font-size: 11px"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{t.ic}}"></path></svg>{{t.t}}</a>
+    </sc-for>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  th(d){const t=d?{bg:'#111115',sf:'#1A1A20',s2:'#22222A',tx:'#ECECEF',mu:'#A3A3AD',bd:'#2E2E37',pr:'#5B54E0',prs:'#25234B',prt:'#B4B0FF',amb:'#3B2A0A',amt:'#FCD34D',rdb:'#3D1517',rdt:'#FCA5A5',gnb:'#0E2F1D',gnt:'#86EFAC',ov:'rgba(0,0,0,0.62)'}:{bg:'#FAFAFB',sf:'#FFFFFF',s2:'#F4F4F6',tx:'#1E1E24',mu:'#6B6B76',bd:'#E4E4E7',pr:'#3730A3',prs:'#EEEEFB',prt:'#3730A3',amb:'#FEF3C7',amt:'#92400E',rdb:'#FEE2E2',rdt:'#B91C1C',gnb:'#DCFCE7',gnt:'#166534',ov:'rgba(20,20,30,0.45)'};return Object.keys(t).map(k=>'--'+k+':'+t[k]).join(';');}
+  renderVals() {
+    const B = { ok: ['Бот подключён', 'background: var(--gnb); color: var(--gnt)'], perm: ['Не хватает прав', 'background: var(--amb); color: var(--amt)'], gone: ['Бот удалён', 'background: var(--rdb); color: var(--rdt)'] };
+    const sv = (name, ini, c, b, pending) => ({ name, ini, icSt: 'background: ' + c, bot: B[b][0], botSt: B[b][1], pending });
+    const tb = (t, ic, on) => ({ t, ic, st: on ? 'color: var(--prt); font-weight: 600' : 'color: var(--mu); font-weight: 500' });
+    return {
+      tv: this.th(!!this.props.dark),
+      servers: [sv('Los Santos RP', 'LS', '#B45309', 'ok', '12'), sv('Vinewood Life', 'VL', '#7C3AED', 'ok', '3'), sv('Grove Street RP', 'GS', '#15803D', 'perm', '27'), sv('Paleto Bay Community', 'PB', '#0E7490', 'gone', '0')],
+      tabs: [
+        tb('Серверы', 'M2 2h20v8H2zM2 14h20v8H2zM6 6h.01M6 18h.01', true),
+        tb('Заявки', 'M22 12h-6l-2 3h-4l-2-3H2M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z', false),
+        tb('Формы', 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6', false),
+        tb('Ещё', 'M12 12h.01M19 12h.01M5 12h.01', false)
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

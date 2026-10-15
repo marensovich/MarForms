@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Степпер мастера</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<header style="{{tv}}; width: 100%; box-sizing: border-box; min-height: 88px; padding: 16px 28px; display: flex; flex-wrap: wrap; align-items: center; gap: 20px; background: var(--sf); border-bottom: 1px solid var(--bd); color: var(--tx); font-family: Onest, 'Segoe UI', system-ui, sans-serif">
+  <div style="flex: 1 1 220px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 17px; font-weight: 700">Новая форма</span><span style="font-size: 13px; color: var(--mu)">Los Santos RP · черновик сохраняется автоматически</span></div>
+  <ol aria-label="Шаги" style="list-style: none; margin: 0; padding: 0; display: flex; align-items: center; gap: 8px">
+    <sc-for list="{{steps}}" as="s" hint-placeholder-count="4">
+      <li aria-current="{{s.cur}}" style="display: flex; align-items: center; gap: 8px">
+        <span style="{{s.dotSt}}; width: 28px; height: 28px; border-radius: 999px; display: grid; place-items: center; font-size: 13px; font-weight: 700; box-sizing: border-box">
+          <sc-if value="{{s.done}}" hint-placeholder-val="{{false}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></sc-if>
+          <sc-if value="{{s.notDone}}" hint-placeholder-val="{{true}}">{{s.n}}</sc-if>
+        </span>
+        <span style="{{s.lblSt}}; font-size: 14px; white-space: nowrap">{{s.t}}</span>
+        <sc-if value="{{s.line}}" hint-placeholder-val="{{true}}"><span style="{{s.lineSt}}; width: 32px; height: 2px; border-radius: 2px"></span></sc-if>
+      </li>
+    </sc-for>
+  </ol>
+  <div style="flex: 1 1 220px; display: flex; justify-content: flex-end; gap: 8px">
+    <a href="/Preview.dc.html" style="height: 40px; padding: 0 14px; display: flex; align-items: center; gap: 8px; border: 1px solid var(--bd); border-radius: 12px; color: var(--tx); text-decoration: none; font-size: 14px; font-weight: 500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path></svg>Предпросмотр</a>
+    <a href="/WsForms.dc.html" aria-label="Закрыть мастер" style="width: 40px; height: 40px; border-radius: 12px; background: var(--s2); color: var(--tx); display: grid; place-items: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></a>
+  </div>
+</header>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"step":{"editor":"int","default":2,"min":1,"max":4},"dark":{"editor":"boolean","default":false},"$preview":{"width":1192,"height":88}}'>
+class Component extends DCLogic {
+  th(d){const t=d?{bg:'#111115',sf:'#1A1A20',s2:'#22222A',tx:'#ECECEF',mu:'#A3A3AD',bd:'#2E2E37',pr:'#5B54E0',prs:'#25234B',prt:'#B4B0FF',amb:'#3B2A0A',amt:'#FCD34D',rdb:'#3D1517',rdt:'#FCA5A5',gnb:'#0E2F1D',gnt:'#86EFAC',ov:'rgba(0,0,0,0.62)'}:{bg:'#FAFAFB',sf:'#FFFFFF',s2:'#F4F4F6',tx:'#1E1E24',mu:'#6B6B76',bd:'#E4E4E7',pr:'#3730A3',prs:'#EEEEFB',prt:'#3730A3',amb:'#FEF3C7',amt:'#92400E',rdb:'#FEE2E2',rdt:'#B91C1C',gnb:'#DCFCE7',gnt:'#166534',ov:'rgba(20,20,30,0.45)'};return Object.keys(t).map(k=>'--'+k+':'+t[k]).join(';');}
+  renderVals() {
+    const cur = Number(this.props.step ?? 2);
+    const names = ['Основное', 'Поля', 'Discord и доступ', 'Вебхуки'];
+    return {
+      tv: this.th(!!this.props.dark),
+      steps: names.map((t, i) => {
+        const n = i + 1, done = n < cur, on = n === cur;
+        return { n: String(n), t, done, notDone: !done, line: n < 4, cur: on ? 'step' : 'false',
+          dotSt: done ? 'background: var(--pr); color: #fff' : on ? 'background: var(--prs); color: var(--prt); border: 2px solid var(--pr)' : 'background: var(--s2); color: var(--mu); border: 1px solid var(--bd)',
+          lblSt: on ? 'color: var(--tx); font-weight: 600' : done ? 'color: var(--tx); font-weight: 500' : 'color: var(--mu); font-weight: 500',
+          lineSt: done ? 'background: var(--pr)' : 'background: var(--bd)' };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

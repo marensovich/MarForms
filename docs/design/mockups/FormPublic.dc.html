@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Публичная форма — Заявка в LSPD</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="{{tv}}; width: 390px; min-height: 3760px; box-sizing: border-box; background: var(--bg); color: var(--tx); font-family: Onest, 'Segoe UI', system-ui, sans-serif; display: flex; flex-direction: column">
+  <header style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--sf); border-bottom: 1px solid var(--bd)">
+    <a href="Main.dc.html" style="display: flex; align-items: center; gap: 8px; color: var(--tx); text-decoration: none; font-weight: 700; font-size: 15px"><span style="width: 28px; height: 28px; border-radius: 9px; background: var(--pr); color: #fff; display: grid; place-items: center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M7 7h10M7 12h10M7 17h5"></path></svg></span>MarForms</a>
+    <div style="display: flex; align-items: center; gap: 10px">
+      <a href="MySubmissions.dc.html" style="font-size: 14px; color: var(--prt); text-decoration: none; font-weight: 500">Мои заявки</a>
+      <span style="width: 32px; height: 32px; border-radius: 999px; background: #0E7490; color: #fff; display: grid; place-items: center; font-size: 13px; font-weight: 600" aria-label="Кирилл">К</span>
+    </div>
+  </header>
+
+  <section style="padding: 20px 16px; background: var(--sf); border-bottom: 1px solid var(--bd); display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <span style="width: 36px; height: 36px; border-radius: 12px; background: #B45309; color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 13px">LS</span>
+      <div style="display: flex; flex-direction: column"><span style="font-weight: 600; font-size: 14px">Los Santos RP</span><span style="color: var(--mu); font-size: 12px">Discord-сервер · 12 480 участников</span></div>
+    </div>
+    <h1 style="margin: 0; font-size: 26px; line-height: 1.15; letter-spacing: -0.01em">Заявка в LSPD</h1>
+    <p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--mu)">Полиция штата объявляет набор. Ответьте честно — анкету читает отдел кадров. Решение придёт в личные сообщения Discord и появится в «Моих заявках».</p>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px">
+      <span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: var(--amb); color: var(--amt); font-size: 12px; font-weight: 600"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 6v6l4 2"></path></svg>Приём до 30 окт, 23:59</span>
+      <span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: var(--s2); border: 1px solid var(--bd); color: var(--tx); font-size: 12px; font-weight: 600"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"></path></svg>1 заявка на человека</span>
+    </div>
+    <sc-if value="{{anon}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; gap: 10px; padding: 12px; border-radius: 12px; background: var(--amb); color: var(--amt); font-size: 13px; line-height: 1.45"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"></path></svg><span><b>Анонимная форма.</b> Модераторы не увидят ваш Discord-аккаунт, поэтому не смогут связаться с вами или попросить доработку.</span></div>
+    </sc-if>
+    <sc-if value="{{notAnon}}" hint-placeholder-val="{{true}}">
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--mu)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gnt)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Вы отвечаете как <b style="color: var(--tx)">@kirill_nv</b> · роли проверены</div>
+    </sc-if>
+  </section>
+
+  <form style="padding: 20px 16px 0; display: flex; flex-direction: column; gap: 22px">
+    <p style="margin: 0; font-size: 13px; color: var(--mu)">Поля, отмеченные <span style="color: var(--rdt); font-weight: 700">*</span>, обязательны.</p>
+
+    <div style="display: flex; flex-direction: column; gap: 4px; padding-top: 4px">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--prt)">Раздел 1 из 3</span>
+      <h2 style="margin: 0; font-size: 20px">Персонаж</h2>
+      <p style="margin: 0; font-size: 14px; color: var(--mu)">Информация об игровом персонаже.</p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <label for="f1" style="font-size: 15px; font-weight: 600">Имя и фамилия персонажа <span style="color: var(--rdt)">*</span></label>
+      <input id="f1" value="Алексей Морозов" style="height: 48px; padding: 0 14px; border: 1px solid var(--bd); border-radius: 12px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 15px; box-sizing: border-box; width: 100%">
+    </div>
+
+    <div style="display: flex; gap: 12px">
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0">
+        <label for="f2" style="font-size: 15px; font-weight: 600">Возраст <span style="color: var(--rdt)">*</span></label>
+        <input id="f2" type="number" value="27" style="height: 48px; padding: 0 14px; border: 1px solid var(--bd); border-radius: 12px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 15px; box-sizing: border-box; width: 100%">
+      </div>
+      <div style="flex: 1.4; display: flex; flex-direction: column; gap: 8px; min-width: 0">
+        <label for="f3" style="font-size: 15px; font-weight: 600">Дата рождения</label>
+        <div style="height: 48px; padding: 0 12px; border: 1px solid var(--bd); border-radius: 12px; background: var(--sf); display: flex; align-items: center; gap: 8px"><input id="f3" value="14.03.1999" style="flex: 1; min-width: 0; border: 0; background: transparent; color: var(--tx); font-family: inherit; font-size: 15px; outline: 0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 4h18v18H3zM16 2v4M8 2v4M3 10h18"></path></svg></div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <label for="f4" style="font-size: 15px; font-weight: 600">Биография персонажа <span style="color: var(--rdt)">*</span></label>
+      <span style="font-size: 13px; color: var(--mu); margin-top: -4px">Минимум 300 символов: прошлое, мотивация, почему именно LSPD.</span>
+      <textarea id="f4" rows="6" style="padding: 12px 14px; border: 1px solid var(--bd); border-radius: 12px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 15px; line-height: 1.5; resize: vertical; box-sizing: border-box; width: 100%">Алексей вырос в Палето-Бэй, после службы в армии переехал в Лос-Сантос и полгода работал охранником в Mission Row. Хочет попасть в патрульную службу…</textarea>
+      <span style="align-self: flex-end; font-size: 12px; color: var(--mu); font-family: 'JetBrains Mono', monospace">412 / 2000</span>
+    </div>
+
+    <div style="height: 1px; background: var(--bd)"></div>
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--prt)">Раздел 2 из 3</span>
+      <h2 style="margin: 0; font-size: 20px">Связь</h2>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <label for="f5" style="font-size: 15px; font-weight: 600">Email <span style="color: var(--rdt)">*</span></label>
+      <input id="f5" type="email" value="alexey@mail" aria-invalid="true" aria-describedby="e5" style="height: 48px; padding: 0 14px; border: 1.5px solid var(--rdt); border-radius: 12px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 15px; box-sizing: border-box; width: 100%">
+      <span id="e5" style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--rdt)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 8v4M12 16h.01"></path></svg>Введите адрес в формате name@example.com</span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <label for="f6" style="font-size: 15px; font-weight: 600">Телефон</label>
+      <input id="f6" type="tel" placeholder="+7 (900) 000-00-00" style="height: 48px; padding: 0 14px; border: 1px solid var(--bd); border-radius: 12px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 15px; box-sizing: border-box; width: 100%">
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <label for="f7" style="font-size: 15px; font-weight: 600">Ссылка на прошлые отыгрыши</label>
+      <input id="f7" type="url" value="https://youtube.com/@morozov_rp" style="height: 48px; padding: 0 14px; border: 1px solid var(--bd); border-radius: 12px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 15px; box-sizing: border-box; width: 100%">
+    </div>
+
+    <div style="height: 1px; background: var(--bd)"></div>
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--prt)">Раздел 3 из 3</span>
+      <h2 style="margin: 0; font-size: 20px">Опыт и собеседование</h2>
+    </div>
+
+    <fieldset style="border: 0; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px">
+      <legend style="font-size: 15px; font-weight: 600; margin-bottom: 8px; padding: 0">Был ли опыт в гос. структурах на RP-серверах? <span style="color: var(--rdt)">*</span></legend>
+      <sc-for list="{{radios}}" as="r" hint-placeholder-count="3">
+        <label style="{{r.box}}; display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 14px; border-radius: 12px; font-size: 15px"><span style="{{r.dot}}; width: 20px; height: 20px; border-radius: 999px; box-sizing: border-box; flex: none"></span><input type="radio" name="exp" style="position: absolute; opacity: 0; width: 1px; height: 1px">{{r.t}}</label>
+      </sc-for>
+    </fieldset>
+
+    <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 14px; background: var(--prs)">
+      <span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--prt)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Появилось по вашему ответу</span>
+      <label for="f9" style="font-size: 15px; font-weight: 600">Где и в какой должности служили? <span style="color: var(--rdt)">*</span></label>
+      <input id="f9" placeholder="Например: Majestic RP, LSSD, сержант" style="height: 48px; padding: 0 14px; border: 1.5px solid var(--pr); border-radius: 12px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 15px; box-sizing: border-box; width: 100%">
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <label for="f10" style="font-size: 15px; font-weight: 600">Желаемый отдел <span style="color: var(--rdt)">*</span></label>
+      <button id="f10" type="button" style="height: 48px; padding: 0 14px; border: 1px solid var(--bd); border-radius: 12px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 15px; display: flex; align-items: center; justify-content: space-between">Патрульная служба<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <label style="font-size: 15px; font-weight: 600">Языки в голосовом чате</label>
+      <div style="min-height: 48px; padding: 8px 10px; border: 1px solid var(--bd); border-radius: 12px; background: var(--sf); display: flex; flex-wrap: wrap; align-items: center; gap: 6px; box-sizing: border-box">
+        <span style="display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 6px 0 10px; border-radius: 8px; background: var(--prs); color: var(--prt); font-size: 13px; font-weight: 500">Русский<button type="button" aria-label="Убрать" style="width: 22px; height: 22px; border: 0; background: transparent; color: inherit; display: grid; place-items: center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></span>
+        <span style="display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 6px 0 10px; border-radius: 8px; background: var(--prs); color: var(--prt); font-size: 13px; font-weight: 500">Украинский<button type="button" aria-label="Убрать" style="width: 22px; height: 22px; border: 0; background: transparent; color: inherit; display: grid; place-items: center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></span>
+        <span style="font-size: 14px; color: var(--mu); padding-left: 4px">Добавить…</span>
+      </div>
+    </div>
+
+    <fieldset style="border: 0; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px">
+      <legend style="font-size: 15px; font-weight: 600; margin-bottom: 8px; padding: 0">Когда вы обычно играете?</legend>
+      <sc-for list="{{checks}}" as="c" hint-placeholder-count="4">
+        <label style="display: flex; align-items: center; gap: 12px; min-height: 32px; font-size: 15px"><span style="{{c.st}}; width: 22px; height: 22px; border-radius: 7px; box-sizing: border-box; display: grid; place-items: center; color: #fff; flex: none"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span>{{c.t}}</label>
+      </sc-for>
+    </fieldset>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <label for="f13" style="font-size: 15px; font-weight: 600">Удобное время для собеседования</label>
+      <div style="display: flex; gap: 10px">
+        <div style="flex: 1.3; height: 48px; padding: 0 12px; border: 1px solid var(--bd); border-radius: 12px; background: var(--sf); display: flex; align-items: center; gap: 8px; font-size: 15px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 4h18v18H3zM16 2v4M8 2v4M3 10h18"></path></svg><input id="f13" value="28.10.2026" style="flex: 1; min-width: 0; border: 0; background: transparent; color: var(--tx); font-family: inherit; font-size: 15px; outline: 0"></div>
+        <div style="flex: 1; height: 48px; padding: 0 12px; border: 1px solid var(--bd); border-radius: 12px; background: var(--sf); display: flex; align-items: center; gap: 8px; font-size: 15px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 6v6l4 2"></path></svg><input aria-label="Время" value="20:00" style="flex: 1; min-width: 0; border: 0; background: transparent; color: var(--tx); font-family: inherit; font-size: 15px; outline: 0"></div>
+      </div>
+      <span style="font-size: 13px; color: var(--mu)">Дата и время по Москве (UTC+3)</span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <span style="font-size: 15px; font-weight: 600">Оцените свой навык отыгрыша <span style="color: var(--rdt)">*</span></span>
+      <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px">
+        <sc-for list="{{rating}}" as="g" hint-placeholder-count="5">
+          <button type="button" style="{{g.st}}; height: 48px; border-radius: 12px; font-family: inherit; font-size: 16px; font-weight: 600">{{g.n}}</button>
+        </sc-for>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--mu)"><span>Новичок</span><span>Эксперт</span></div>
+    </div>
+
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px; border: 1px solid var(--bd); border-radius: 14px; background: var(--sf)">
+      <span style="font-size: 15px; font-weight: 600; line-height: 1.35">Готовы пройти собеседование в голосовом канале? <span style="color: var(--rdt)">*</span></span>
+      <button type="button" role="switch" aria-checked="true" aria-label="Да" style="flex: none; width: 52px; height: 30px; border: 0; border-radius: 999px; background: var(--pr); padding: 3px; display: flex; justify-content: flex-end"><span style="width: 24px; height: 24px; border-radius: 999px; background: #fff"></span></button>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <span style="font-size: 15px; font-weight: 600">Скриншоты статистики</span>
+      <div style="padding: 22px 16px; border: 1.5px dashed var(--bd); border-radius: 14px; background: var(--sf); display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center">
+        <span style="width: 40px; height: 40px; border-radius: 12px; background: var(--prs); color: var(--prt); display: grid; place-items: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"></path></svg></span>
+        <span style="font-size: 15px"><button type="button" style="border: 0; padding: 0; background: none; color: var(--prt); font: inherit; font-weight: 600; text-decoration: underline">Выберите файлы</button> или перетащите сюда</span>
+        <span style="font-size: 12px; color: var(--mu)">PNG, JPG, PDF · до 10 МБ · не больше 3 файлов</span>
+      </div>
+      <sc-for list="{{files}}" as="f" hint-placeholder-count="3">
+        <div style="{{f.box}}; display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border-radius: 12px">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM13 2v7h7"></path></svg>
+            <div style="flex: 1; min-width: 0; display: flex; flex-direction: column"><span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{f.n}}</span><span style="{{f.metaSt}}; font-size: 12px">{{f.meta}}</span></div>
+            <button type="button" aria-label="Удалить файл" style="width: 36px; height: 36px; border: 0; border-radius: 10px; background: transparent; color: var(--mu); display: grid; place-items: center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+          </div>
+          <sc-if value="{{f.uploading}}" hint-placeholder-val="{{false}}"><div style="height: 4px; border-radius: 999px; background: var(--s2); overflow: hidden"><div style="width: 64%; height: 100%; background: var(--pr); border-radius: 999px"></div></div></sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </form>
+
+  <div style="position: sticky; bottom: 0; margin-top: 28px; padding: 14px 16px 20px; background: var(--sf); border-top: 1px solid var(--bd); display: flex; flex-direction: column; gap: 8px">
+    <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--mu)"><span>Заполнено 9 из 11 обязательных</span><span style="color: var(--rdt)">1 ошибка</span></div>
+    <button style="height: 52px; border: 0; border-radius: 14px; background: var(--pr); color: #fff; font-family: inherit; font-size: 16px; font-weight: 600">Отправить заявку</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"anonymous":{"editor":"boolean","default":false},"$preview":{"width":390,"height":3760}}'>
+class Component extends DCLogic {
+  th(d){const t=d?{bg:'#111115',sf:'#1A1A20',s2:'#22222A',tx:'#ECECEF',mu:'#A3A3AD',bd:'#2E2E37',pr:'#5B54E0',prs:'#25234B',prt:'#B4B0FF',amb:'#3B2A0A',amt:'#FCD34D',rdb:'#3D1517',rdt:'#FCA5A5',gnb:'#0E2F1D',gnt:'#86EFAC',ov:'rgba(0,0,0,0.62)'}:{bg:'#FAFAFB',sf:'#FFFFFF',s2:'#F4F4F6',tx:'#1E1E24',mu:'#6B6B76',bd:'#E4E4E7',pr:'#3730A3',prs:'#EEEEFB',prt:'#3730A3',amb:'#FEF3C7',amt:'#92400E',rdb:'#FEE2E2',rdt:'#B91C1C',gnb:'#DCFCE7',gnt:'#166534',ov:'rgba(20,20,30,0.45)'};return Object.keys(t).map(k=>'--'+k+':'+t[k]).join(';');}
+  renderVals() {
+    const anon = !!this.props.anonymous;
+    const radio = (t, on) => ({ t, box: on ? 'border: 1.5px solid var(--pr); background: var(--prs)' : 'border: 1px solid var(--bd); background: var(--sf)', dot: on ? 'border: 6px solid var(--pr); background: #fff' : 'border: 2px solid var(--bd); background: var(--sf)' });
+    const chk = (t, on) => ({ t, st: on ? 'background: var(--pr); border: 0' : 'background: var(--sf); border: 2px solid var(--bd); color: transparent' });
+    return {
+      tv: this.th(!!this.props.dark), anon, notAnon: !anon,
+      radios: [radio('Да, больше 3 месяцев', true), radio('Да, меньше 3 месяцев', false), radio('Нет, это первый опыт', false)],
+      checks: [chk('Будни, вечер', true), chk('Будни, ночь', false), chk('Выходные, день', true), chk('Выходные, вечер', true)],
+      rating: [1,2,3,4,5].map(n => ({ n: String(n), st: n === 4 ? 'border: 0; background: var(--pr); color: #fff' : 'border: 1px solid var(--bd); background: var(--sf); color: var(--tx)' })),
+      files: [
+        { n: 'stats_october.png', meta: '1,2 МБ · загружено', metaSt: 'color: var(--gnt)', box: 'border: 1px solid var(--bd); background: var(--sf)', uploading: false },
+        { n: 'rp_log_majestic.pdf', meta: 'Загрузка… 64% из 3,8 МБ', metaSt: 'color: var(--mu)', box: 'border: 1px solid var(--bd); background: var(--sf)', uploading: true },
+        { n: 'patrol_video.mp4', meta: 'Не загружен: больше 10 МБ', metaSt: 'color: var(--rdt)', box: 'border: 1.5px solid var(--rdt); background: var(--rdb)', uploading: false }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

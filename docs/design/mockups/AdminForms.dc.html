@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Платформа — все формы</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0} @keyframes mfsk{0%{opacity:.55}50%{opacity:1}100%{opacity:.55}}</style>
+</helmet>
+<div style="{{tv}}; position: relative; display: flex; flex-wrap: wrap; min-height: 100vh; background: var(--bg); color: var(--tx); font-family: Onest, 'Segoe UI', system-ui, sans-serif">
+  <div style="flex: 1 1 248px; max-width: 100%; background: var(--sf); border-right: 1px solid var(--bd)">
+    <dc-import name="Sidebar" active="forms" dark="{{dark}}" hint-size="248px,860px"></dc-import>
+  </div>
+  <main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <dc-import name="Topbar" page="Формы" dark="{{dark}}" hint-size="100%,60px"></dc-import>
+    <div style="padding: 28px 40px 48px; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+        <div style="display: flex; flex-direction: column; gap: 6px"><h1 style="margin: 0; font-size: 26px; letter-spacing: -0.01em">Формы</h1><p style="margin: 0; font-size: 14px; color: var(--mu)">Все формы на всех подключённых серверах. Деактивация закрывает приём заявок, но сохраняет данные.</p></div>
+        <button style="height: 38px; padding: 0 14px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>Экспорт CSV</button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+        <div style="padding: 18px 20px; border: 1px solid var(--bd); border-radius: 14px; background: var(--sf); display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; color: var(--mu)">Всего форм</span><span style="font-size: 28px; font-weight: 700; letter-spacing: -0.02em">318</span><span style="font-size: 12px; color: var(--gnt)">+14 за 7 дней</span></div>
+        <div style="padding: 18px 20px; border: 1px solid var(--bd); border-radius: 14px; background: var(--sf); display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; color: var(--mu)">Активных</span><span style="font-size: 28px; font-weight: 700; letter-spacing: -0.02em">204 <span style="font-size: 15px; font-weight: 500; color: var(--mu)">· 64%</span></span><span style="height: 6px; border-radius: 99px; background: var(--s2); overflow: hidden"><span style="display: block; width: 64%; height: 100%; background: var(--pr)"></span></span></div>
+        <div style="padding: 18px 20px; border: 1px solid var(--bd); border-radius: 14px; background: var(--sf); display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; color: var(--mu)">Всего заявок</span><span style="font-size: 28px; font-weight: 700; letter-spacing: -0.02em">48 912</span><span style="font-size: 12px; color: var(--mu)">2 310 за эту неделю</span></div>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+        <section style="flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center">
+            <div style="display: flex; border: 1px solid var(--bd); border-radius: 10px; padding: 3px; background: var(--sf)">
+              <button style="height: 30px; padding: 0 12px; border: 0; border-radius: 8px; background: var(--prs); color: var(--prt); font-family: inherit; font-size: 13px; font-weight: 600">Все · 318</button>
+              <button style="height: 30px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: var(--mu); font-family: inherit; font-size: 13px">Активные · 204</button>
+              <button style="height: 30px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: var(--mu); font-family: inherit; font-size: 13px">Неактивные · 114</button>
+            </div>
+            <button style="height: 38px; padding: 0 12px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 13px; display: flex; align-items: center; gap: 8px">Сервер: все<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
+            <label style="flex: 1 1 220px; display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--mu); box-sizing: border-box"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.35-4.35"></path></svg><input aria-label="Поиск форм" placeholder="Название или slug" style="flex: 1; min-width: 0; border: 0; background: transparent; color: var(--tx); font-family: inherit; font-size: 13px; outline: 0"></label>
+          </div>
+
+          <sc-if value="{{showBulk}}" hint-placeholder-val="{{true}}">
+            <div style="display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 14px; border-radius: 10px; background: var(--prs); color: var(--prt); font-size: 13px; font-weight: 600"><span style="flex: 1">Выбрано: 2</span><button style="height: 30px; padding: 0 10px; border: 1px solid var(--bd); border-radius: 8px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 13px">Деактивировать</button><button style="height: 30px; padding: 0 10px; border: 0; border-radius: 8px; background: #DC2626; color: #fff; font-family: inherit; font-size: 13px; font-weight: 600">Удалить</button></div>
+          </sc-if>
+
+          <div style="border: 1px solid var(--bd); border-radius: 14px; background: var(--sf); overflow: auto; max-height: 640px">
+            <table style="width: 100%; min-width: 760px; border-collapse: separate; border-spacing: 0; font-size: 13px">
+              <thead><tr style="text-align: left; color: var(--mu); font-size: 12px">
+                <th style="position: sticky; top: 0; z-index: 1; background: var(--sf); width: 36px; padding: 10px 0 10px 14px; border-bottom: 1px solid var(--bd)"><input type="checkbox" aria-label="Выбрать все" style="accent-color: var(--pr)"></th>
+                <th style="position: sticky; top: 0; z-index: 1; background: var(--sf); padding: 10px 12px; border-bottom: 1px solid var(--bd); font-weight: 600">Название</th>
+                <th style="position: sticky; top: 0; z-index: 1; background: var(--sf); padding: 10px 12px; border-bottom: 1px solid var(--bd); font-weight: 600">Сервер</th>
+                <th style="position: sticky; top: 0; z-index: 1; background: var(--sf); padding: 10px 12px; border-bottom: 1px solid var(--bd); font-weight: 600">Статус</th>
+                <th style="position: sticky; top: 0; z-index: 1; background: var(--sf); padding: 10px 12px; border-bottom: 1px solid var(--bd); font-weight: 600; color: var(--tx)"><span style="display: inline-flex; align-items: center; gap: 4px">Заявки<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></span></th>
+                <th style="position: sticky; top: 0; z-index: 1; background: var(--sf); padding: 10px 12px; border-bottom: 1px solid var(--bd); font-weight: 600">Создана</th>
+                <th style="position: sticky; top: 0; z-index: 1; background: var(--sf); padding: 10px 12px; border-bottom: 1px solid var(--bd)"><span style="position: absolute; left: -9999px">Действия</span></th>
+              </tr></thead>
+              <tbody>
+                <sc-if value="{{loading}}" hint-placeholder-val="{{false}}">
+                  <sc-for list="{{sk}}" as="k" hint-placeholder-count="6">
+                    <tr><td style="padding: 14px; border-bottom: 1px solid var(--bd)"><span style="display: block; width: 14px; height: 14px; border-radius: 4px; background: var(--s2)"></span></td><td style="padding: 14px 12px; border-bottom: 1px solid var(--bd)"><span style="display: block; width: 180px; height: 12px; border-radius: 6px; background: var(--s2); animation: mfsk 1.4s infinite"></span></td><td style="padding: 14px 12px; border-bottom: 1px solid var(--bd)"><span style="display: block; width: 110px; height: 12px; border-radius: 6px; background: var(--s2); animation: mfsk 1.4s infinite"></span></td><td style="padding: 14px 12px; border-bottom: 1px solid var(--bd)"><span style="display: block; width: 70px; height: 20px; border-radius: 99px; background: var(--s2); animation: mfsk 1.4s infinite"></span></td><td style="padding: 14px 12px; border-bottom: 1px solid var(--bd)"><span style="display: block; width: 40px; height: 12px; border-radius: 6px; background: var(--s2)"></span></td><td style="padding: 14px 12px; border-bottom: 1px solid var(--bd)"><span style="display: block; width: 80px; height: 12px; border-radius: 6px; background: var(--s2)"></span></td><td style="border-bottom: 1px solid var(--bd)"></td></tr>
+                  </sc-for>
+                </sc-if>
+                <sc-if value="{{hasRows}}" hint-placeholder-val="{{true}}">
+                  <sc-for list="{{rows}}" as="r" hint-placeholder-count="9">
+                    <tr style="{{r.rowSt}}">
+                      <td style="padding: 0 0 0 14px; border-bottom: 1px solid var(--bd)"><input type="checkbox" aria-label="Выбрать" checked="{{r.sel}}" style="accent-color: var(--pr)"></td>
+                      <td style="padding: 11px 12px; border-bottom: 1px solid var(--bd)"><div style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 600">{{r.t}}</span><span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--mu)">/f/{{r.slug}}</span></div></td>
+                      <td style="padding: 11px 12px; border-bottom: 1px solid var(--bd)"><span style="display: inline-flex; align-items: center; gap: 8px"><span style="{{r.icSt}}; width: 22px; height: 22px; border-radius: 7px; color: #fff; display: grid; place-items: center; font-size: 10px; font-weight: 700">{{r.ini}}</span>{{r.srv}}</span></td>
+                      <td style="padding: 11px 12px; border-bottom: 1px solid var(--bd)"><span style="{{r.bst}}; display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 99px; font-size: 12px; font-weight: 600"><span style="width: 6px; height: 6px; border-radius: 99px; background: currentColor"></span>{{r.st}}</span></td>
+                      <td style="padding: 11px 12px; border-bottom: 1px solid var(--bd); font-variant-numeric: tabular-nums; font-weight: 600">{{r.n}}</td>
+                      <td style="padding: 11px 12px; border-bottom: 1px solid var(--bd); color: var(--mu); white-space: nowrap">{{r.d}}</td>
+                      <td style="padding: 0 10px; border-bottom: 1px solid var(--bd)">
+                        <div style="{{r.actSt}}; justify-content: flex-end; gap: 2px">
+                          <button aria-label="Открыть" title="Открыть" style="width: 30px; height: 30px; border: 0; border-radius: 8px; background: transparent; color: var(--mu); display: grid; place-items: center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3"></path></svg></button>
+                          <button aria-label="Копировать ссылку" title="Копировать ссылку" style="width: 30px; height: 30px; border: 0; border-radius: 8px; background: transparent; color: var(--mu); display: grid; place-items: center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg></button>
+                          <button aria-label="{{r.tg}}" title="{{r.tg}}" style="width: 30px; height: 30px; border: 0; border-radius: 8px; background: transparent; color: var(--mu); display: grid; place-items: center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10"></path></svg></button>
+                          <button aria-label="Удалить" title="Удалить" style="width: 30px; height: 30px; border: 0; border-radius: 8px; background: transparent; color: var(--rdt); display: grid; place-items: center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                        </div>
+                      </td>
+                    </tr>
+                  </sc-for>
+                </sc-if>
+              </tbody>
+            </table>
+            <sc-if value="{{empty}}" hint-placeholder-val="{{false}}">
+              <div style="padding: 56px 24px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center"><span style="width: 48px; height: 48px; border-radius: 14px; background: var(--s2); color: var(--mu); display: grid; place-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.35-4.35"></path></svg></span><strong style="font-size: 15px">Ничего не найдено</strong><span style="font-size: 13px; color: var(--mu)">Попробуйте изменить фильтры или строку поиска.</span><button style="height: 34px; padding: 0 12px; border: 1px solid var(--bd); border-radius: 9px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 13px">Сбросить фильтры</button></div>
+            </sc-if>
+            <sc-if value="{{error}}" hint-placeholder-val="{{false}}">
+              <div style="padding: 56px 24px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center"><span style="width: 48px; height: 48px; border-radius: 14px; background: var(--rdb); color: var(--rdt); display: grid; place-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 8v4M12 16h.01"></path></svg></span><strong style="font-size: 15px">Не удалось загрузить формы</strong><span style="font-size: 13px; color: var(--mu)">Сервер ответил ошибкой 503. Данные не потеряны.</span><button style="height: 34px; padding: 0 12px; border: 0; border-radius: 9px; background: var(--pr); color: #fff; font-family: inherit; font-size: 13px; font-weight: 600">Повторить</button></div>
+            </sc-if>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; font-size: 13px; color: var(--mu); border-top: 1px solid var(--bd)">
+              <span>Страница 2 из 14 · 318 всего</span>
+              <div style="display: flex; gap: 4px; align-items: center">
+                <button aria-label="Назад" style="width: 30px; height: 30px; border: 1px solid var(--bd); border-radius: 8px; background: var(--sf); color: var(--tx); display: grid; place-items: center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button>
+                <button style="width: 30px; height: 30px; border: 0; border-radius: 8px; background: transparent; color: var(--tx); font-family: inherit">1</button>
+                <button aria-current="page" style="width: 30px; height: 30px; border: 0; border-radius: 8px; background: var(--prs); color: var(--prt); font-family: inherit; font-weight: 700">2</button>
+                <button style="width: 30px; height: 30px; border: 0; border-radius: 8px; background: transparent; color: var(--tx); font-family: inherit">3</button>
+                <span style="padding: 0 4px">…</span>
+                <button style="width: 30px; height: 30px; border: 0; border-radius: 8px; background: transparent; color: var(--tx); font-family: inherit">14</button>
+                <button aria-label="Вперёд" style="width: 30px; height: 30px; border: 1px solid var(--bd); border-radius: 8px; background: var(--sf); color: var(--tx); display: grid; place-items: center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside style="flex: 1 1 320px; min-width: 0; padding: 18px; border: 1px solid var(--bd); border-radius: 14px; background: var(--sf); display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px"><h2 style="margin: 0; font-size: 15px">Подключённые серверы · 42</h2><button style="height: 32px; padding: 0 10px; border: 0; border-radius: 9px; background: var(--pr); color: #fff; font-family: inherit; font-size: 13px; font-weight: 600">Подключить сервер</button></div>
+          <div role="status" style="display: flex; gap: 8px; padding: 10px 12px; border-radius: 10px; background: var(--gnb); color: var(--gnt); font-size: 13px; line-height: 1.4"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; margin-top: 1px"><path d="M20 6 9 17l-5-5"></path></svg><span>Сервер «Sandy Shores RP» подключён. Бот получил нужные права.</span></div>
+          <div role="alert" style="display: flex; gap: 8px; padding: 10px 12px; border-radius: 10px; background: var(--amb); color: var(--amt); font-size: 13px; line-height: 1.4"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex: none; margin-top: 1px"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"></path></svg><span>Подключить сервер может только владелец или участник с правом «Управлять сервером».</span></div>
+          <div role="alert" style="display: flex; gap: 8px; padding: 10px 12px; border-radius: 10px; background: var(--rdb); color: var(--rdt); font-size: 13px; line-height: 1.4"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex: none; margin-top: 1px"><path d="M18 6 6 18M6 6l12 12"></path></svg><span>Бот не присоединился к серверу. Повторите приглашение и не снимайте галочки прав.</span></div>
+          <ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column">
+            <sc-for list="{{servers}}" as="s" hint-placeholder-count="6">
+              <li style="display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--bd)"><span style="{{s.icSt}}; width: 30px; height: 30px; border-radius: 9px; color: #fff; display: grid; place-items: center; font-size: 11px; font-weight: 700; flex: none">{{s.ini}}</span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 13px; font-weight: 600">{{s.name}}</span><span style="font-size: 12px; color: var(--mu)">{{s.forms}} форм</span></span><span style="{{s.bst}}; padding: 3px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; white-space: nowrap">{{s.bot}}</span></li>
+            </sc-for>
+          </ul>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <div style="position: fixed; right: 24px; bottom: 24px; z-index: 5; display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: #1E1E24; color: #fff; font-size: 13px; box-shadow: 0 10px 30px rgba(0,0,0,0.2)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#86EFAC" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg>Ссылка скопирована<button style="margin-left: 8px; border: 0; background: transparent; color: #B4B0FF; font-family: inherit; font-size: 13px; font-weight: 600">Открыть</button></div>
+
+  <sc-if value="{{confirm}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; inset: 0; z-index: 10; background: var(--ov); display: flex; align-items: flex-start; justify-content: center; padding-top: 200px">
+      <div role="alertdialog" aria-modal="true" aria-labelledby="af-del" style="width: 440px; box-sizing: border-box; padding: 24px; border-radius: 16px; background: var(--sf); border: 1px solid var(--bd); box-shadow: 0 24px 64px rgba(10,10,30,0.28); display: flex; flex-direction: column; gap: 14px">
+        <span style="width: 40px; height: 40px; border-radius: 12px; background: var(--rdb); color: var(--rdt); display: grid; place-items: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></span>
+        <h2 id="af-del" style="margin: 0; font-size: 18px">Удалить форму «Набор в LSPD»?</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 1.5; color: var(--mu)">Это удалит форму и все её заявки — 1 284 шт. Действие нельзя отменить. Запись попадёт в журнал платформы.</p>
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 500">Введите <code style="font-family: 'JetBrains Mono', monospace; padding: 1px 5px; border-radius: 5px; background: var(--s2)">lspd-academy</code> для подтверждения<input value="lspd-acad" style="height: 38px; padding: 0 12px; border: 1px solid var(--pr); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: 'JetBrains Mono', monospace; font-size: 13px; outline: 3px solid var(--prs)"></label>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px"><button style="height: 38px; padding: 0 14px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px">Отмена</button><button disabled style="height: 38px; padding: 0 14px; border: 0; border-radius: 10px; background: #DC2626; color: #fff; opacity: 0.5; font-family: inherit; font-size: 14px; font-weight: 600">Удалить навсегда</button></div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"state":{"editor":"enum","options":["data","loading","empty","error"],"default":"data"},"confirm":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  th(d){const t=d?{bg:'#111115',sf:'#1A1A20',s2:'#22222A',tx:'#ECECEF',mu:'#A3A3AD',bd:'#2E2E37',pr:'#5B54E0',prs:'#25234B',prt:'#B4B0FF',amb:'#3B2A0A',amt:'#FCD34D',rdb:'#3D1517',rdt:'#FCA5A5',gnb:'#0E2F1D',gnt:'#86EFAC',ov:'rgba(0,0,0,0.62)'}:{bg:'#FAFAFB',sf:'#FFFFFF',s2:'#F4F4F6',tx:'#1E1E24',mu:'#6B6B76',bd:'#E4E4E7',pr:'#3730A3',prs:'#EEEEFB',prt:'#3730A3',amb:'#FEF3C7',amt:'#92400E',rdb:'#FEE2E2',rdt:'#B91C1C',gnb:'#DCFCE7',gnt:'#166534',ov:'rgba(20,20,30,0.45)'};return Object.keys(t).map(k=>'--'+k+':'+t[k]).join(';');}
+  renderVals() {
+    const S = { on: ['Активна', 'background: var(--gnb); color: var(--gnt)', 'Деактивировать'], off: ['Неактивна', 'background: var(--s2); color: var(--mu)', 'Активировать'] };
+    const C = { LS: '#B45309', VL: '#7C3AED', GS: '#15803D', SS: '#BE185D', PB: '#0E7490', EC: '#4338CA' };
+    const r = (t, slug, ini, srv, s, n, d, i) => ({ t, slug, ini, srv, n, d, st: S[s][0], bst: S[s][1], tg: S[s][2], icSt: 'background: ' + C[ini], sel: i === 0 || i === 2, rowSt: i === 2 ? 'background: var(--bg)' : (i === 0 ? 'background: var(--prs)' : ''), actSt: i === 2 ? 'display: flex' : 'display: none' });
+    const st = this.props.state || 'data';
+    return {
+      tv: this.th(!!this.props.dark), dark: !!this.props.dark, confirm: !!this.props.confirm,
+      loading: st === 'loading', hasRows: st === 'data', empty: st === 'empty', error: st === 'error', showBulk: st === 'data',
+      sk: [1, 2, 3, 4, 5, 6],
+      rows: [
+        r('Набор в LSPD', 'lspd-academy', 'LS', 'Los Santos RP', 'on', '1 284', '12 авг 2026', 0),
+        r('Набор в EMS', 'ems-2026', 'LS', 'Los Santos RP', 'on', '642', '03 сен 2026', 1),
+        r('Заявка на whitelist', 'vl-whitelist', 'VL', 'Vinewood Life', 'on', '3 910', '21 мая 2026', 2),
+        r('Жалоба на администрацию', 'gs-report', 'GS', 'Grove Street RP', 'on', '218', '14 июл 2026', 3),
+        r('Банды · Ballas', 'gs-ballas', 'GS', 'Grove Street RP', 'off', '96', '02 июн 2026', 4),
+        r('Набор в Weazel News', 'weazel', 'VL', 'Vinewood Life', 'on', '57', '30 сен 2026', 5),
+        r('Апелляция бана', 'ss-appeal', 'SS', 'Sandy Shores RP', 'on', '133', '11 апр 2026', 6),
+        r('Ивент «Гонки Paleto»', 'pb-race', 'PB', 'Paleto Bay Community', 'off', '41', '19 мар 2026', 7),
+        r('Анкета хелпера', 'eclipse-helper', 'EC', 'Eclipse RP', 'on', '402', '08 окт 2026', 8)
+      ],
+      servers: [
+        { ini: 'LS', name: 'Los Santos RP', forms: 12, bot: 'Подключён', icSt: 'background: #B45309', bst: 'background: var(--gnb); color: var(--gnt)' },
+        { ini: 'VL', name: 'Vinewood Life', forms: 7, bot: 'Подключён', icSt: 'background: #7C3AED', bst: 'background: var(--gnb); color: var(--gnt)' },
+        { ini: 'GS', name: 'Grove Street RP', forms: 9, bot: 'Подключён', icSt: 'background: #15803D', bst: 'background: var(--gnb); color: var(--gnt)' },
+        { ini: 'PB', name: 'Paleto Bay Community', forms: 3, bot: 'Бот удалён', icSt: 'background: #0E7490', bst: 'background: var(--rdb); color: var(--rdt)' },
+        { ini: 'SS', name: 'Sandy Shores RP', forms: 4, bot: 'Подключён', icSt: 'background: #BE185D', bst: 'background: var(--gnb); color: var(--gnt)' },
+        { ini: 'EC', name: 'Eclipse RP', forms: 6, bot: 'Подключён', icSt: 'background: #4338CA', bst: 'background: var(--gnb); color: var(--gnt)' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

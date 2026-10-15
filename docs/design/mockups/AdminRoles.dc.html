@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Платформа — роли</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="{{tv}}; position: relative; display: flex; flex-wrap: wrap; min-height: 100vh; background: var(--bg); color: var(--tx); font-family: Onest, 'Segoe UI', system-ui, sans-serif">
+  <div style="flex: 1 1 248px; max-width: 100%; background: var(--sf); border-right: 1px solid var(--bd)">
+    <dc-import name="Sidebar" active="roles" dark="{{dark}}" hint-size="248px,860px"></dc-import>
+  </div>
+  <main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <dc-import name="Topbar" page="Роли" dark="{{dark}}" hint-size="100%,60px"></dc-import>
+    <div style="padding: 28px 40px 110px; display: flex; flex-direction: column; gap: 20px">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+        <div style="display: flex; flex-direction: column; gap: 6px"><h1 style="margin: 0; font-size: 26px; letter-spacing: -0.01em">Роли</h1><p style="margin: 0; font-size: 14px; color: var(--mu)">Группы прав для персонала платформы. Изменения применяются сразу после сохранения.</p></div>
+        <button style="height: 38px; padding: 0 14px; border: 0; border-radius: 10px; background: var(--pr); color: #fff; font-family: inherit; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Создать роль</button>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; max-width: 720px">
+        <div style="padding: 18px 20px; border: 1px solid var(--bd); border-radius: 14px; background: var(--sf); display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; color: var(--mu)">Всего ролей</span><span style="font-size: 28px; font-weight: 700">5</span></div>
+        <div style="padding: 18px 20px; border: 1px solid var(--bd); border-radius: 14px; background: var(--sf); display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; color: var(--mu)">Назначено прав</span><span style="font-size: 28px; font-weight: 700">3,4 <span style="font-size: 15px; font-weight: 500; color: var(--mu)">в среднем на роль</span></span></div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+        <nav aria-label="Роли" style="flex: 1 1 280px; min-width: 0; padding: 8px; border: 1px solid var(--bd); border-radius: 14px; background: var(--sf); display: flex; flex-direction: column; gap: 2px">
+          <sc-for list="{{roles}}" as="r" hint-placeholder-count="5">
+            <button style="{{r.st}}; display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 10px; font-family: inherit; text-align: left"><span style="{{r.dot}}; width: 10px; height: 10px; border-radius: 99px; flex: none"></span><span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 600; color: var(--tx)">{{r.t}}</span><span style="font-size: 12px; color: var(--mu)">{{r.p}} прав · {{r.u}} пользователей</span></span><sc-if value="{{r.sys}}" hint-placeholder-val="{{false}}"><span style="padding: 2px 6px; border-radius: 6px; background: var(--s2); color: var(--mu); font-size: 11px; font-weight: 600">системная</span></sc-if></button>
+          </sc-for>
+        </nav>
+        <section style="flex: 999 1 520px; min-width: 0; border: 1px solid var(--bd); border-radius: 14px; background: var(--sf); display: flex; flex-direction: column">
+          <div style="padding: 18px 20px; border-bottom: 1px solid var(--bd); display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end">
+            <label style="flex: 1 1 240px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Название роли<input value="Moderator" style="height: 38px; padding: 0 12px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px"></label>
+            <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Цвет<span style="display: flex; gap: 6px"><span style="width: 38px; height: 38px; border-radius: 10px; background: #2563EB; outline: 2px solid var(--pr); outline-offset: 2px"></span><span style="width: 38px; height: 38px; border-radius: 10px; background: #16A34A"></span><span style="width: 38px; height: 38px; border-radius: 10px; background: #7C3AED"></span><span style="width: 38px; height: 38px; border-radius: 10px; background: #B45309"></span></span></label>
+            <button style="height: 38px; padding: 0 12px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--rdt); font-family: inherit; font-size: 13px; font-weight: 500">Удалить роль</button>
+          </div>
+          <div style="padding: 6px 20px 18px; display: flex; flex-direction: column">
+            <sc-for list="{{groups}}" as="g" hint-placeholder-count="6">
+              <div style="padding: 14px 0; border-bottom: 1px solid var(--bd); display: flex; gap: 16px; align-items: center">
+                <span style="width: 120px; flex: none; font-size: 12px; font-weight: 700; color: var(--mu); text-transform: uppercase; letter-spacing: 0.06em">{{g.area}}</span>
+                <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="display: flex; align-items: center; gap: 8px"><code style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500">{{g.key}}</code><sc-if value="{{g.danger}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 99px; background: var(--rdb); color: var(--rdt); font-size: 11px; font-weight: 700"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"></path></svg>Опасно</span></sc-if><sc-if value="{{g.changed}}" hint-placeholder-val="{{false}}"><span style="padding: 2px 7px; border-radius: 99px; background: var(--amb); color: var(--amt); font-size: 11px; font-weight: 700">изменено</span></sc-if></span><span style="font-size: 13px; color: var(--mu)">{{g.d}}</span></div>
+                <button role="switch" aria-checked="{{g.on}}" aria-label="{{g.key}}" style="{{g.sw}}; flex: none; width: 40px; height: 22px; padding: 2px; border: 0; border-radius: 99px; display: flex"><span style="width: 18px; height: 18px; border-radius: 99px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.2)"></span></button>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+      </div>
+    </div>
+    <div role="region" aria-label="Несохранённые изменения" style="position: sticky; bottom: 20px; margin: -90px 40px 20px; z-index: 3; display: flex; align-items: center; gap: 12px; padding: 12px 12px 12px 18px; border-radius: 14px; background: #1E1E24; color: #fff; box-shadow: 0 16px 40px rgba(10,10,30,0.25)"><span style="width: 8px; height: 8px; border-radius: 99px; background: #FBBF24"></span><span style="flex: 1; font-size: 14px">Несохранённые изменения · 1 право у роли Moderator</span><button style="height: 36px; padding: 0 14px; border: 1px solid #3F3F48; border-radius: 10px; background: transparent; color: #fff; font-family: inherit; font-size: 14px">Отменить</button><button style="height: 36px; padding: 0 14px; border: 0; border-radius: 10px; background: #5B54E0; color: #fff; font-family: inherit; font-size: 14px; font-weight: 600">Сохранить</button></div>
+  </main>
+
+  <sc-if value="{{mCreate}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; inset: 0; z-index: 10; background: var(--ov); display: flex; align-items: flex-start; justify-content: center; padding-top: 180px">
+      <div role="dialog" aria-modal="true" aria-labelledby="rc-t" style="width: 440px; box-sizing: border-box; padding: 22px; border-radius: 16px; background: var(--sf); border: 1px solid var(--bd); box-shadow: 0 24px 64px rgba(10,10,30,0.28); display: flex; flex-direction: column; gap: 14px">
+        <h2 id="rc-t" style="margin: 0; font-size: 18px">Создать роль</h2>
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Название<input value="Поддержка" style="height: 38px; padding: 0 12px; border: 1px solid var(--pr); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px; outline: 3px solid var(--prs)"></label>
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Скопировать права из<select style="height: 38px; padding: 0 10px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px"><option>Staff (1 право)</option></select></label>
+        <div style="display: flex; justify-content: flex-end; gap: 8px"><button style="height: 38px; padding: 0 14px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px">Отмена</button><button style="height: 38px; padding: 0 14px; border: 0; border-radius: 10px; background: var(--pr); color: #fff; font-family: inherit; font-size: 14px; font-weight: 600">Создать</button></div>
+      </div>
+    </div>
+  </sc-if>
+  <sc-if value="{{mDelete}}" hint-placeholder-val="{{false}}">
+    <div style="position: absolute; inset: 0; z-index: 10; background: var(--ov); display: flex; align-items: flex-start; justify-content: center; padding-top: 180px">
+      <div role="alertdialog" aria-modal="true" aria-labelledby="rd-t" style="width: 440px; box-sizing: border-box; padding: 22px; border-radius: 16px; background: var(--sf); border: 1px solid var(--bd); box-shadow: 0 24px 64px rgba(10,10,30,0.28); display: flex; flex-direction: column; gap: 14px">
+        <span style="width: 40px; height: 40px; border-radius: 12px; background: var(--rdb); color: var(--rdt); display: grid; place-items: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"></path></svg></span>
+        <h2 id="rd-t" style="margin: 0; font-size: 18px">Удалить роль Moderator?</h2>
+        <p style="margin: 0; font-size: 14px; line-height: 1.5; color: var(--mu)">Роль назначена 6 пользователям — они сразу потеряют эти права. Если других ролей у них нет, доступ к панели пропадёт.</p>
+        <div style="display: flex; justify-content: flex-end; gap: 8px"><button style="height: 38px; padding: 0 14px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px">Отмена</button><button style="height: 38px; padding: 0 14px; border: 0; border-radius: 10px; background: #DC2626; color: #fff; font-family: inherit; font-size: 14px; font-weight: 600">Удалить роль</button></div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"modal":{"editor":"enum","options":["none","create","delete"],"default":"none"},"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  th(d){const t=d?{bg:'#111115',sf:'#1A1A20',s2:'#22222A',tx:'#ECECEF',mu:'#A3A3AD',bd:'#2E2E37',pr:'#5B54E0',prs:'#25234B',prt:'#B4B0FF',amb:'#3B2A0A',amt:'#FCD34D',rdb:'#3D1517',rdt:'#FCA5A5',gnb:'#0E2F1D',gnt:'#86EFAC',ov:'rgba(0,0,0,0.62)'}:{bg:'#FAFAFB',sf:'#FFFFFF',s2:'#F4F4F6',tx:'#1E1E24',mu:'#6B6B76',bd:'#E4E4E7',pr:'#3730A3',prs:'#EEEEFB',prt:'#3730A3',amb:'#FEF3C7',amt:'#92400E',rdb:'#FEE2E2',rdt:'#B91C1C',gnb:'#DCFCE7',gnt:'#166534',ov:'rgba(20,20,30,0.45)'};return Object.keys(t).map(k=>'--'+k+':'+t[k]).join(';');}
+  renderVals() {
+    const r = (t, c, p, u, sel, sys) => ({ t, p, u, sys: !!sys, dot: 'background: ' + c, st: sel ? 'border: 1px solid var(--pr); background: var(--prs)' : 'border: 1px solid transparent; background: transparent' });
+    const g = (area, key, d, on, danger, changed) => ({ area, key, d, on, danger: !!danger, changed: !!changed, sw: on ? (danger ? 'background: #DC2626; justify-content: flex-end' : 'background: var(--pr); justify-content: flex-end') : 'background: var(--bd); justify-content: flex-start' });
+    const m = this.props.modal || 'none';
+    return {
+      tv: this.th(!!this.props.dark), dark: !!this.props.dark, mCreate: m === 'create', mDelete: m === 'delete',
+      roles: [r('System Admin', '#DC2626', 6, 1, false, true), r('Admin', '#7C3AED', 5, 3), r('Moderator', '#2563EB', 3, 6, true), r('Staff', '#16A34A', 1, 14), r('Поддержка', '#0891B2', 2, 4)],
+      groups: [
+        g('Панель', 'DASHBOARD_ACCESS', 'Вход в раздел администрирования', true),
+        g('Формы', 'FORMS_MANAGE', 'Активировать, деактивировать и удалять любые формы', false),
+        g('Заявки', 'RESPONSES_MANAGE', 'Просмотр и удаление заявок на всех серверах', true),
+        g('Пользователи', 'USERS_MODERATE', 'Тайм-ауты и баны пользователей платформы', true, false, true),
+        g('Роли', 'ROLES_MANAGE', 'Создание ролей и выдача их пользователям', false),
+        g('Система', 'SYSTEM_ADMIN', 'Полный доступ: настройки, мониторинг, обновления. Даёт все права выше.', false, true)
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

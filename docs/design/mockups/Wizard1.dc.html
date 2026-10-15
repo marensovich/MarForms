@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Мастер формы — основное</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="{{tv}}; min-height: 100vh; display: flex; flex-direction: column; background: var(--bg); color: var(--tx); font-family: Onest, 'Segoe UI', system-ui, sans-serif">
+  <dc-import name="WizStepper" step="{{1}}" dark="{{dark}}" hint-size="100%,88px"></dc-import>
+  <div style="flex: 1; width: 100%; max-width: 1120px; margin: 0 auto; padding: 40px 28px; box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+    <section style="flex: 999 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 22px">
+      <div style="display: flex; flex-direction: column; gap: 6px"><h1 style="margin: 0; font-size: 26px">Основная информация</h1><p style="margin: 0; font-size: 15px; color: var(--mu)">Название и описание увидят участники на странице формы и в превью ссылки в Discord.</p></div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <label for="t" style="font-size: 14px; font-weight: 600">Название <span style="color: var(--rdt)">*</span></label>
+        <input id="t" value="Заявка в LSPD" style="height: 48px; padding: 0 14px; border: 1.5px solid var(--pr); border-radius: 12px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 16px; outline: 3px solid var(--prs)">
+        <span style="font-size: 12px; color: var(--mu)">Ссылка: <span style="font-family: 'JetBrains Mono', monospace; color: var(--tx)">marforms.app/f/lspd-2026</span> · <button style="border: 0; background: none; padding: 0; color: var(--prt); font: inherit; font-weight: 600">Изменить</button></span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <label for="d" style="font-size: 14px; font-weight: 600">Описание</label>
+        <textarea id="d" rows="6" style="padding: 12px 14px; border: 1px solid var(--bd); border-radius: 12px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 15px; line-height: 1.55; resize: vertical">Полиция штата объявляет набор. Ответьте честно — анкету читает отдел кадров. Решение придёт в личные сообщения Discord и появится в «Моих заявках».</textarea>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--mu)"><span>Поддерживается **жирный**, *курсив* и ссылки</span><span style="font-family: 'JetBrains Mono', monospace">164 / 1000</span></div>
+      </div>
+    </section>
+    <aside style="flex: 1 1 320px; display: flex; flex-direction: column; gap: 10px">
+      <span style="font-size: 12px; font-weight: 600; color: var(--mu); text-transform: uppercase; letter-spacing: 0.06em">Так увидят участники</span>
+      <div style="padding: 18px; border: 1px solid var(--bd); border-radius: 16px; background: var(--sf); display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; align-items: center; gap: 8px"><span style="width: 28px; height: 28px; border-radius: 9px; background: #B45309; color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 11px">LS</span><span style="font-size: 13px; font-weight: 600">Los Santos RP</span></div>
+        <span style="font-size: 20px; font-weight: 700">Заявка в LSPD</span>
+        <span style="font-size: 14px; line-height: 1.5; color: var(--mu)">Полиция штата объявляет набор. Ответьте честно — анкету читает отдел кадров…</span>
+      </div>
+    </aside>
+  </div>
+  <footer style="position: sticky; bottom: 0; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 28px; background: var(--sf); border-top: 1px solid var(--bd)">
+    <a href="/WsForms.dc.html" style="height: 44px; padding: 0 16px; display: flex; align-items: center; border-radius: 12px; color: var(--tx); text-decoration: none; font-size: 14px; font-weight: 500">Отмена</a>
+    <a href="/Wizard2.dc.html" style="height: 44px; padding: 0 18px; display: flex; align-items: center; gap: 8px; border-radius: 12px; background: var(--pr); color: #fff; text-decoration: none; font-size: 14px; font-weight: 600">Далее: поля<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></a>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  th(d){const t=d?{bg:'#111115',sf:'#1A1A20',s2:'#22222A',tx:'#ECECEF',mu:'#A3A3AD',bd:'#2E2E37',pr:'#5B54E0',prs:'#25234B',prt:'#B4B0FF',amb:'#3B2A0A',amt:'#FCD34D',rdb:'#3D1517',rdt:'#FCA5A5',gnb:'#0E2F1D',gnt:'#86EFAC',ov:'rgba(0,0,0,0.62)'}:{bg:'#FAFAFB',sf:'#FFFFFF',s2:'#F4F4F6',tx:'#1E1E24',mu:'#6B6B76',bd:'#E4E4E7',pr:'#3730A3',prs:'#EEEEFB',prt:'#3730A3',amb:'#FEF3C7',amt:'#92400E',rdb:'#FEE2E2',rdt:'#B91C1C',gnb:'#DCFCE7',gnt:'#166534',ov:'rgba(20,20,30,0.45)'};return Object.keys(t).map(k=>'--'+k+':'+t[k]).join(';');}
+  renderVals() { return { tv: this.th(!!this.props.dark), dark: !!this.props.dark }; }
+}
+</script>
+</body>
+</html>

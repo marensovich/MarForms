@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Платформа — настройки</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="{{tv}}; position: relative; display: flex; flex-wrap: wrap; min-height: 100vh; background: var(--bg); color: var(--tx); font-family: Onest, 'Segoe UI', system-ui, sans-serif">
+  <div style="flex: 1 1 248px; max-width: 100%; background: var(--sf); border-right: 1px solid var(--bd)">
+    <dc-import name="Sidebar" active="settings" dark="{{dark}}" hint-size="248px,860px"></dc-import>
+  </div>
+  <main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+    <dc-import name="Topbar" page="Настройки" dark="{{dark}}" hint-size="100%,60px"></dc-import>
+    <div style="padding: 28px 40px 24px; display: flex; flex-direction: column; gap: 6px"><h1 style="margin: 0; font-size: 26px; letter-spacing: -0.01em">Настройки</h1><p style="margin: 0; font-size: 14px; color: var(--mu)">Общесистемные параметры. Действуют для всех серверов и пользователей.</p></div>
+    <div style="padding: 0 40px 40px; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+      <nav aria-label="Разделы настроек" style="flex: 0 1 200px; position: sticky; top: 20px; display: flex; flex-direction: column; gap: 2px; font-size: 14px">
+        <a href="#s-gen" style="padding: 8px 12px; border-radius: 9px; background: var(--prs); color: var(--prt); font-weight: 600; text-decoration: none">Общие</a>
+        <a href="#s-hook" style="padding: 8px 12px; border-radius: 9px; color: var(--tx); text-decoration: none">Вебхук журнала</a>
+        <a href="#s-filt" style="padding: 8px 12px; border-radius: 9px; color: var(--tx); text-decoration: none">Фильтры журнала</a>
+        <a href="#s-embed" style="padding: 8px 12px; border-radius: 9px; color: var(--tx); text-decoration: none; display: flex; justify-content: space-between">Общий embed<span style="width: 7px; height: 7px; margin-top: 7px; border-radius: 99px; background: #F59E0B"></span></a>
+        <a href="#s-ban" style="padding: 8px 12px; border-radius: 9px; color: var(--tx); text-decoration: none">Баны и ограничения</a>
+      </nav>
+      <div style="flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+
+        <section id="s-gen" style="padding: 22px 24px; border: 1px solid var(--bd); border-radius: 14px; background: var(--sf); display: flex; flex-direction: column; gap: 16px">
+          <div><h2 style="margin: 0 0 4px; font-size: 17px">Общие</h2><p style="margin: 0; font-size: 13px; color: var(--mu)">Название показывается на странице входа и на публичных формах.</p></div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
+            <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Название системы<input value="MarForms" style="height: 40px; padding: 0 12px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px"></label>
+            <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Контакт поддержки<input value="support@marforms.app" style="height: 40px; padding: 0 12px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px"></label>
+            <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Язык интерфейса по умолчанию<select style="height: 40px; padding: 0 10px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px"><option>Русский</option><option>English</option></select></label>
+          </div>
+        </section>
+
+        <section id="s-hook" style="padding: 22px 24px; border: 1px solid var(--bd); border-radius: 14px; background: var(--sf); display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; justify-content: space-between; gap: 12px"><div><h2 style="margin: 0 0 4px; font-size: 17px">Вебхук журнала</h2><p style="margin: 0; font-size: 13px; color: var(--mu)">Копия каждой записи журнала отправляется в канал Discord.</p></div><span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 99px; background: var(--gnb); color: var(--gnt); font-size: 12px; font-weight: 600"><span style="width: 6px; height: 6px; border-radius: 99px; background: currentColor"></span>Активен</span></div>
+          <div style="display: flex; gap: 10px"><label style="flex: 1; display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">URL вебхука<input value="https://discord.com/api/webhooks/1290…/Xk2f••••••••••" style="height: 40px; padding: 0 12px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: 'JetBrains Mono', monospace; font-size: 12px"></label><button style="align-self: flex-end; height: 40px; padding: 0 14px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px; font-weight: 500">Отправить тест</button></div>
+          <span style="font-size: 12px; color: var(--mu)">Последняя доставка: 15.10, 14:22 · 204 OK</span>
+        </section>
+
+        <section id="s-filt" style="padding: 22px 24px; border: 1px solid var(--bd); border-radius: 14px; background: var(--sf); display: flex; flex-direction: column; gap: 14px">
+          <div><h2 style="margin: 0 0 4px; font-size: 17px">Фильтры журнала</h2><p style="margin: 0; font-size: 13px; color: var(--mu)">Какие действия записывать. Отключённые не попадут ни в журнал, ни в вебхук.</p></div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 20px">
+            <sc-for list="{{filters}}" as="f" hint-placeholder-count="18">
+              <label style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; font-size: 13px; border-bottom: 1px solid var(--bd)">{{f.t}}<span role="switch" aria-checked="{{f.on}}" style="{{f.sw}}; flex: none; width: 34px; height: 20px; padding: 2px; box-sizing: border-box; border-radius: 99px; display: flex"><span style="width: 16px; height: 16px; border-radius: 99px; background: #fff"></span></span></label>
+            </sc-for>
+          </div>
+        </section>
+
+        <section id="s-embed" style="padding: 22px 24px; border: 1.5px solid #F59E0B; border-radius: 14px; background: var(--sf); display: flex; flex-direction: column; gap: 16px">
+          <div><h2 style="margin: 0 0 4px; font-size: 17px">Общий embed</h2><p style="margin: 0; font-size: 13px; color: var(--mu)">Блок брендинга, добавляемый к каждому уведомлению в Discord.</p></div>
+          <div style="display: flex; flex-wrap: wrap; gap: 24px">
+            <div style="flex: 1 1 320px; display: flex; flex-direction: column; gap: 12px">
+              <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Заголовок<input value="Новая заявка · {form.title}" style="height: 40px; padding: 0 12px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px"></label>
+              <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Текст<textarea rows="3" style="padding: 10px 12px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px; resize: none">{user.mention} отправил заявку на сервере {server.name}. Откройте её в панели, чтобы принять решение.</textarea></label>
+              <div style="display: flex; gap: 12px">
+                <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Цвет<span style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 10px; border: 1px solid var(--pr); border-radius: 10px; outline: 3px solid var(--prs)"><span style="width: 20px; height: 20px; border-radius: 6px; background: #4F46E5"></span><input value="#4F46E5" style="width: 80px; border: 0; background: transparent; color: var(--tx); font-family: 'JetBrains Mono', monospace; font-size: 13px; outline: 0"></span></label>
+                <label style="flex: 1; display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Футер<input value="MarForms · {date}" style="height: 40px; padding: 0 12px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px"></label>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 13px; font-weight: 600">Переменные</span><div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{vars}}" as="v" hint-placeholder-count="7"><button title="Вставить" style="padding: 4px 8px; border: 1px solid var(--bd); border-radius: 7px; background: var(--s2); color: var(--tx); font-family: 'JetBrains Mono', monospace; font-size: 12px">{{v}}</button></sc-for></div></div>
+            </div>
+            <div style="flex: 1 1 340px; display: flex; flex-direction: column; gap: 8px">
+              <span style="font-size: 12px; font-weight: 600; color: var(--mu); text-transform: uppercase; letter-spacing: 0.06em">Предпросмотр в Discord</span>
+              <div style="padding: 16px; border-radius: 12px; background: #313338; color: #DBDEE1; font-family: 'Segoe UI', system-ui, sans-serif; display: flex; gap: 12px">
+                <span style="flex: none; width: 40px; height: 40px; border-radius: 99px; background: #3730A3; color: #fff; display: grid; place-items: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M7 7h10M7 12h10M7 17h5"></path></svg></span>
+                <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+                  <span style="font-size: 14px"><b style="color: #fff">MarForms</b> <span style="padding: 1px 4px; border-radius: 3px; background: #5865F2; color: #fff; font-size: 10px; font-weight: 700">БОТ</span> <span style="font-size: 12px; color: #949BA4">Сегодня в 14:02</span></span>
+                  <div style="padding: 10px 14px; border-left: 4px solid #4F46E5; border-radius: 4px; background: #2B2D31; display: flex; flex-direction: column; gap: 6px">
+                    <b style="color: #fff; font-size: 14px">Новая заявка · Набор в LSPD</b>
+                    <span style="font-size: 13px; line-height: 1.4"><span style="padding: 0 2px; border-radius: 3px; background: rgba(88,101,242,0.3); color: #C9CDFB">@dmitry_ballas</span> отправил заявку на сервере Los Santos RP. Откройте её в панели, чтобы принять решение.</span>
+                    <span style="font-size: 11px; color: #949BA4">MarForms · 15.10.2026</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="s-ban" style="padding: 22px 24px; border: 1px solid var(--bd); border-radius: 14px; background: var(--sf); display: flex; flex-direction: column; gap: 16px">
+          <div><h2 style="margin: 0 0 4px; font-size: 17px">Баны и ограничения</h2><p style="margin: 0; font-size: 13px; color: var(--mu)">Что видит пользователь с ограниченным аккаунтом.</p></div>
+          <div style="display: flex; flex-wrap: wrap; gap: 24px">
+            <div style="flex: 1 1 320px; display: flex; flex-direction: column; gap: 12px">
+              <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Текст для ограниченных<textarea rows="4" style="padding: 10px 12px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px; resize: none">Ваш доступ к MarForms ограничен. Если считаете это ошибкой, напишите в поддержку и укажите свой Discord ID.</textarea></label>
+              <label style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600">Контакт для апелляций<input value="discord.gg/marforms-appeals" style="height: 40px; padding: 0 12px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px"></label>
+            </div>
+            <div style="flex: 1 1 340px; padding: 24px; border: 1px dashed var(--bd); border-radius: 12px; background: var(--bg); display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center">
+              <span style="width: 48px; height: 48px; border-radius: 14px; background: var(--rdb); color: var(--rdt); display: grid; place-items: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2zM7 11V7a5 5 0 0 1 10 0v4"></path></svg></span>
+              <span style="padding: 3px 9px; border-radius: 99px; background: var(--rdb); color: var(--rdt); font-size: 12px; font-weight: 600">Аккаунт ограничен</span>
+              <strong style="font-size: 17px">Доступ ограничен</strong>
+              <span style="font-size: 13px; line-height: 1.5; color: var(--mu); max-width: 320px">Ваш доступ к MarForms ограничен. Если считаете это ошибкой, напишите в поддержку и укажите свой Discord ID.</span>
+              <span style="font-size: 12px; color: var(--mu)">Причина: <b style="color: var(--tx)">Мультиаккаунты</b></span>
+              <span style="height: 36px; padding: 0 14px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); font-size: 13px; font-weight: 600; display: flex; align-items: center">discord.gg/marforms-appeals</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+    <div role="region" aria-label="Несохранённые изменения" style="position: sticky; bottom: 20px; margin: 0 40px 20px; z-index: 3; display: flex; align-items: center; gap: 12px; padding: 12px 12px 12px 18px; border-radius: 14px; background: #1E1E24; color: #fff; box-shadow: 0 16px 40px rgba(10,10,30,0.25)"><span style="width: 8px; height: 8px; border-radius: 99px; background: #FBBF24"></span><span style="flex: 1; font-size: 14px">Несохранённые изменения · Общий embed: цвет</span><button style="height: 36px; padding: 0 14px; border: 1px solid #3F3F48; border-radius: 10px; background: transparent; color: #fff; font-family: inherit; font-size: 14px">Сбросить</button><button style="height: 36px; padding: 0 14px; border: 0; border-radius: 10px; background: #5B54E0; color: #fff; font-family: inherit; font-size: 14px; font-weight: 600">Сохранить</button></div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":2120}}'>
+class Component extends DCLogic {
+  th(d){const t=d?{bg:'#111115',sf:'#1A1A20',s2:'#22222A',tx:'#ECECEF',mu:'#A3A3AD',bd:'#2E2E37',pr:'#5B54E0',prs:'#25234B',prt:'#B4B0FF',amb:'#3B2A0A',amt:'#FCD34D',rdb:'#3D1517',rdt:'#FCA5A5',gnb:'#0E2F1D',gnt:'#86EFAC',ov:'rgba(0,0,0,0.62)'}:{bg:'#FAFAFB',sf:'#FFFFFF',s2:'#F4F4F6',tx:'#1E1E24',mu:'#6B6B76',bd:'#E4E4E7',pr:'#3730A3',prs:'#EEEEFB',prt:'#3730A3',amb:'#FEF3C7',amt:'#92400E',rdb:'#FEE2E2',rdt:'#B91C1C',gnb:'#DCFCE7',gnt:'#166534',ov:'rgba(20,20,30,0.45)'};return Object.keys(t).map(k=>'--'+k+':'+t[k]).join(';');}
+  renderVals() {
+    const names = ['Вход', 'Бан', 'Роли изменены', 'Форма создана', 'Форма изменена', 'Форма удалена', 'Заявка создана', 'Заявка удалена', 'Заявка · решение', 'Модератор добавлен', 'Модератор удалён', 'Бан на сервере', 'Сервер подключён', 'Роль на сервере отозвана', 'Роль создана', 'Роль изменена', 'Роль удалена', 'Настройки изменены'];
+    const off = { 'Вход': 1, 'Заявка создана': 1 };
+    return {
+      tv: this.th(!!this.props.dark), dark: !!this.props.dark,
+      filters: names.map(t => ({ t, on: !off[t], sw: off[t] ? 'background: var(--bd); justify-content: flex-start' : 'background: var(--pr); justify-content: flex-end' })),
+      vars: ['{user.mention}', '{user.name}', '{user.id}', '{form.title}', '{form.url}', '{server.name}', '{status}', '{date}']
+    };
+  }
+}
+</script>
+</body>
+</html>

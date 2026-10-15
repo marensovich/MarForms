@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Мои серверы</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="{{tv}}; display: flex; flex-wrap: wrap; min-height: 100vh; background: var(--bg); color: var(--tx); font-family: Onest, 'Segoe UI', system-ui, sans-serif">
+  <div style="flex: 1 1 248px; max-width: 100%; background: var(--sf); border-right: 1px solid var(--bd)">
+    <dc-import name="Sidebar" active="servers" menu-open="{{true}}" dark="{{dark}}" hint-size="248px,860px"></dc-import>
+  </div>
+  <main style="flex: 999 1 560px; min-width: 0; padding: 32px 40px 48px; display: flex; flex-direction: column; gap: 24px; box-sizing: border-box">
+    <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <h1 style="margin: 0; font-size: 28px; letter-spacing: -0.01em">Мои серверы</h1>
+        <p style="margin: 0; font-size: 15px; color: var(--mu)">Серверы, где вы владелец или модератор. Бот MarForms нужен для проверки ролей и уведомлений.</p>
+      </div>
+      <div style="display: flex; gap: 10px">
+        <button style="height: 40px; padding: 0 14px; border: 1px solid var(--bd); border-radius: 12px; background: var(--sf); color: var(--tx); font-family: inherit; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>Обновить</button>
+        <button style="height: 40px; padding: 0 16px; border: 0; border-radius: 12px; background: var(--pr); color: #fff; font-family: inherit; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Добавить бота на сервер</button>
+      </div>
+    </div>
+
+    <sc-if value="{{hasServers}}" hint-placeholder-val="{{true}}">
+      <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between">
+        <div style="display: flex; border: 1px solid var(--bd); border-radius: 12px; padding: 3px; background: var(--sf)">
+          <button style="height: 32px; padding: 0 12px; border: 0; border-radius: 9px; background: var(--prs); color: var(--prt); font-family: inherit; font-size: 13px; font-weight: 600">Все · 5</button>
+          <button style="height: 32px; padding: 0 12px; border: 0; border-radius: 9px; background: transparent; color: var(--mu); font-family: inherit; font-size: 13px; font-weight: 500">Владелец · 2</button>
+          <button style="height: 32px; padding: 0 12px; border: 0; border-radius: 9px; background: transparent; color: var(--mu); font-family: inherit; font-size: 13px; font-weight: 500">Модератор · 3</button>
+        </div>
+        <label style="display: flex; align-items: center; gap: 8px; width: 280px; height: 40px; padding: 0 12px; border: 1px solid var(--bd); border-radius: 12px; background: var(--sf); color: var(--mu); box-sizing: border-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.35-4.35"></path></svg><input placeholder="Найти сервер" style="flex: 1; min-width: 0; border: 0; background: transparent; color: var(--tx); font-family: inherit; font-size: 14px; outline: 0"></label>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px">
+        <sc-for list="{{servers}}" as="s" hint-placeholder-count="5">
+          <article style="padding: 20px; border: 1px solid var(--bd); border-radius: 16px; background: var(--sf); display: flex; flex-direction: column; gap: 16px">
+            <div style="display: flex; align-items: center; gap: 12px">
+              <span style="{{s.icSt}}; flex: none; width: 48px; height: 48px; border-radius: 14px; color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 16px">{{s.ini}}</span>
+              <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><h2 style="margin: 0; font-size: 17px">{{s.name}}</h2><span style="font-size: 13px; color: var(--mu)">{{s.members}} участников</span></div>
+              <span style="padding: 4px 10px; border-radius: 999px; border: 1px solid var(--bd); font-size: 12px; font-weight: 600; color: var(--tx)">{{s.role}}</span>
+            </div>
+            <div style="{{s.botSt}}; display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px; font-size: 13px; font-weight: 500"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{s.botIc}}"></path></svg><span style="flex: 1">{{s.bot}}</span><sc-if value="{{s.hasFix}}" hint-placeholder-val="{{false}}"><a href="#" style="color: inherit; font-weight: 600">{{s.fix}}</a></sc-if></div>
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+              <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; color: var(--mu)">Активные формы</span><span style="font-size: 20px; font-weight: 600">{{s.forms}}</span></div>
+              <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 12px; color: var(--mu)">Ждут решения</span><span style="font-size: 20px; font-weight: 600">{{s.pending}}</span></div>
+            </div>
+            <a href="WsForms.dc.html" style="height: 40px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--bd); border-radius: 12px; color: var(--tx); text-decoration: none; font-size: 14px; font-weight: 600">Открыть сервер<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></a>
+          </article>
+        </sc-for>
+        <button style="min-height: 260px; border: 1.5px dashed var(--bd); border-radius: 16px; background: transparent; color: var(--mu); font-family: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px"><span style="width: 44px; height: 44px; border-radius: 14px; background: var(--prs); color: var(--prt); display: grid; place-items: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span><span style="font-size: 15px; font-weight: 600; color: var(--tx)">Добавить сервер</span><span style="font-size: 13px">Пригласите бота MarForms</span></button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{empty}}" hint-placeholder-val="{{false}}">
+      <div style="padding: 72px 24px; border: 1px solid var(--bd); border-radius: 16px; background: var(--sf); display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center">
+        <span style="width: 64px; height: 64px; border-radius: 20px; background: var(--prs); color: var(--prt); display: grid; place-items: center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 2h20v8H2zM2 14h20v8H2zM6 6h.01M6 18h.01"></path></svg></span>
+        <h2 style="margin: 0; font-size: 20px">У вас пока нет серверов</h2>
+        <p style="margin: 0; max-width: 440px; font-size: 15px; line-height: 1.5; color: var(--mu)">Добавьте бота MarForms на сервер, где у вас есть право «Управлять сервером», — или попросите владельца назначить вас модератором.</p>
+        <button style="height: 44px; padding: 0 18px; border: 0; border-radius: 12px; background: var(--pr); color: #fff; font-family: inherit; font-size: 15px; font-weight: 600">Добавить бота на сервер</button>
+      </div>
+    </sc-if>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"empty":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  th(d){const t=d?{bg:'#111115',sf:'#1A1A20',s2:'#22222A',tx:'#ECECEF',mu:'#A3A3AD',bd:'#2E2E37',pr:'#5B54E0',prs:'#25234B',prt:'#B4B0FF',amb:'#3B2A0A',amt:'#FCD34D',rdb:'#3D1517',rdt:'#FCA5A5',gnb:'#0E2F1D',gnt:'#86EFAC',ov:'rgba(0,0,0,0.62)'}:{bg:'#FAFAFB',sf:'#FFFFFF',s2:'#F4F4F6',tx:'#1E1E24',mu:'#6B6B76',bd:'#E4E4E7',pr:'#3730A3',prs:'#EEEEFB',prt:'#3730A3',amb:'#FEF3C7',amt:'#92400E',rdb:'#FEE2E2',rdt:'#B91C1C',gnb:'#DCFCE7',gnt:'#166534',ov:'rgba(20,20,30,0.45)'};return Object.keys(t).map(k=>'--'+k+':'+t[k]).join(';');}
+  renderVals() {
+    const B = {
+      ok: { bot: 'Бот подключён', botSt: 'background: var(--gnb); color: var(--gnt)', botIc: 'M20 6 9 17l-5-5' },
+      perm: { bot: 'Не хватает прав: Manage Roles', botSt: 'background: var(--amb); color: var(--amt)', botIc: 'M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01', fix: 'Выдать права' },
+      gone: { bot: 'Бот удалён с сервера', botSt: 'background: var(--rdb); color: var(--rdt)', botIc: 'M18 6 6 18M6 6l12 12', fix: 'Пригласить снова' }
+    };
+    const sv = (name, ini, c, members, role, b, forms, pending) => Object.assign({ name, ini, icSt: 'background: ' + c, members, role, forms, pending, hasFix: !!B[b].fix }, B[b]);
+    const empty = !!this.props.empty;
+    return {
+      tv: this.th(!!this.props.dark), dark: !!this.props.dark, empty, hasServers: !empty,
+      servers: [
+        sv('Los Santos RP', 'LS', '#B45309', '12 480', 'Владелец', 'ok', '4', '12'),
+        sv('Vinewood Life', 'VL', '#7C3AED', '3 215', 'Модератор', 'ok', '2', '3'),
+        sv('Grove Street RP', 'GS', '#15803D', '8 902', 'Модератор', 'perm', '3', '27'),
+        sv('Paleto Bay Community', 'PB', '#0E7490', '640', 'Владелец', 'gone', '0', '0'),
+        sv('Sandy Shores RP', 'SS', '#BE185D', '1 177', 'Модератор', 'ok', '1', '0')
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

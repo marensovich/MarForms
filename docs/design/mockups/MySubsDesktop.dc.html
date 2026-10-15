@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Мои заявки — desktop</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<div style="{{tv}}; position: relative; min-height: 100vh; display: flex; flex-direction: column; background: var(--bg); color: var(--tx); font-family: Onest, 'Segoe UI', system-ui, sans-serif">
+  <header style="background: var(--sf); border-bottom: 1px solid var(--bd)">
+    <div style="max-width: 1280px; margin: 0 auto; height: 60px; padding: 0 32px; display: flex; align-items: center; gap: 16px">
+      <a href="/LandingDesktop.dc.html" style="display: flex; align-items: center; gap: 10px; color: var(--tx); text-decoration: none; font-weight: 700; font-size: 16px"><span style="width: 28px; height: 28px; border-radius: 9px; background: var(--pr); color: #fff; display: grid; place-items: center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M7 7h10M7 12h10M7 17h5"></path></svg></span>MarForms</a>
+      <span style="flex: 1"></span>
+      <a href="#" aria-current="page" style="color: var(--prt); text-decoration: none; font-size: 14px; font-weight: 600">Мои заявки</a>
+      <span style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600"><span style="width: 30px; height: 30px; border-radius: 99px; background: #7C3AED; color: #fff; display: grid; place-items: center; font-size: 12px">D</span>dmitry_ballas</span>
+    </div>
+  </header>
+  <main style="width: 100%; max-width: 1280px; margin: 0 auto; padding: 36px 32px 64px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px"><div style="display: flex; flex-direction: column; gap: 6px"><h1 style="margin: 0; font-size: 28px; letter-spacing: -0.01em">Мои заявки</h1><p style="margin: 0; font-size: 15px; color: var(--mu)">Все заявки, которые вы отправили через MarForms.</p></div>
+      <div style="display: flex; border: 1px solid var(--bd); border-radius: 10px; padding: 3px; background: var(--sf)"><button style="height: 30px; padding: 0 12px; border: 0; border-radius: 8px; background: var(--prs); color: var(--prt); font-family: inherit; font-size: 13px; font-weight: 600">Все · 6</button><button style="height: 30px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: var(--mu); font-family: inherit; font-size: 13px">На рассмотрении · 2</button><button style="height: 30px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; color: var(--mu); font-family: inherit; font-size: 13px">С решением · 4</button></div>
+    </div>
+    <sc-if value="{{hasRows}}" hint-placeholder-val="{{true}}">
+      <div style="border: 1px solid var(--bd); border-radius: 14px; background: var(--sf); overflow-x: auto">
+        <table style="width: 100%; min-width: 760px; border-collapse: collapse; font-size: 14px">
+          <thead><tr style="text-align: left; color: var(--mu); font-size: 12px"><th style="padding: 12px 18px; border-bottom: 1px solid var(--bd); font-weight: 600">Форма</th><th style="padding: 12px; border-bottom: 1px solid var(--bd); font-weight: 600">Сервер</th><th style="padding: 12px; border-bottom: 1px solid var(--bd); font-weight: 600">Отправлена</th><th style="padding: 12px; border-bottom: 1px solid var(--bd); font-weight: 600">Статус</th><th style="padding: 12px; border-bottom: 1px solid var(--bd)"></th></tr></thead>
+          <tbody>
+            <sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+              <tr style="{{r.rowSt}}"><td style="padding: 14px 18px; border-bottom: 1px solid var(--bd); font-weight: 600">{{r.form}}</td><td style="padding: 14px 12px; border-bottom: 1px solid var(--bd)"><span style="display: inline-flex; align-items: center; gap: 8px"><span style="{{r.ic}}; width: 22px; height: 22px; border-radius: 7px; color: #fff; display: grid; place-items: center; font-size: 10px; font-weight: 700">{{r.ini}}</span>{{r.srv}}</span></td><td style="padding: 14px 12px; border-bottom: 1px solid var(--bd); color: var(--mu)">{{r.d}}</td><td style="padding: 14px 12px; border-bottom: 1px solid var(--bd)"><span style="{{r.bst}}; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 600"><span style="width: 6px; height: 6px; border-radius: 99px; background: currentColor"></span>{{r.st}}</span></td><td style="padding: 14px 18px 14px 12px; border-bottom: 1px solid var(--bd); text-align: right; color: var(--mu)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></td></tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+    </sc-if>
+    <sc-if value="{{empty}}" hint-placeholder-val="{{false}}">
+      <div style="padding: 80px 24px; border: 1px solid var(--bd); border-radius: 16px; background: var(--sf); display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center"><span style="width: 64px; height: 64px; border-radius: 20px; background: var(--prs); color: var(--prt); display: grid; place-items: center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg></span><h2 style="margin: 0; font-size: 20px">Вы ещё не отправляли заявок</h2><p style="margin: 0; max-width: 420px; font-size: 15px; line-height: 1.5; color: var(--mu)">Ссылки на формы публикует администрация серверов — ищите их в Discord. Вставьте ссылку на главной, чтобы открыть форму.</p><a href="/LandingDesktop.dc.html" style="height: 44px; padding: 0 18px; border-radius: 12px; background: var(--pr); color: #fff; text-decoration: none; font-size: 15px; font-weight: 600; display: flex; align-items: center">Открыть форму по ссылке</a></div>
+    </sc-if>
+  </main>
+
+  <sc-if value="{{drawer}}" hint-placeholder-val="{{true}}">
+    <div style="position: absolute; inset: 0; z-index: 10; background: var(--ov)"></div>
+    <aside role="dialog" aria-modal="true" aria-labelledby="ms-t" style="position: absolute; top: 0; right: 0; bottom: 0; z-index: 11; width: 520px; max-width: 100%; box-sizing: border-box; background: var(--sf); border-left: 1px solid var(--bd); display: flex; flex-direction: column">
+      <div style="padding: 20px 24px; border-bottom: 1px solid var(--bd); display: flex; gap: 12px; align-items: flex-start"><div style="flex: 1; display: flex; flex-direction: column; gap: 6px"><h2 id="ms-t" style="margin: 0; font-size: 19px">Набор в Weazel News</h2><span style="font-size: 13px; color: var(--mu)">Vinewood Life · отправлена 12 окт, 19:40</span><span style="align-self: flex-start; padding: 4px 10px; border-radius: 99px; background: var(--prs); color: var(--prt); font-size: 12px; font-weight: 600">Нужна доработка</span></div><button aria-label="Закрыть" style="width: 34px; height: 34px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--mu); display: grid; place-items: center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg></button></div>
+      <div style="flex: 1; overflow: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 18px">
+        <div style="padding: 14px 16px; border-radius: 12px; background: var(--prs); display: flex; flex-direction: column; gap: 6px"><span style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--prt)"><span style="width: 22px; height: 22px; border-radius: 99px; background: #9333EA; color: #fff; display: grid; place-items: center; font-size: 10px">L</span>Комментарий модератора · Lena Hart</span><span style="font-size: 14px; line-height: 1.55">Добавьте ссылку на пример вашего репортажа (видео или скрины) и укажите удобное время для стажировки. После этого отправьте заявку повторно.</span></div>
+        <dl style="margin: 0; display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; flex-direction: column; gap: 4px"><dt style="font-size: 12px; color: var(--mu)">Имя персонажа</dt><dd style="margin: 0; font-size: 15px">Dmitry Volkov</dd></div>
+          <div style="display: flex; flex-direction: column; gap: 4px"><dt style="font-size: 12px; color: var(--mu)">Опыт в журналистике</dt><dd style="margin: 0; font-size: 15px; line-height: 1.5">Вёл новостной канал на прошлом проекте, делал интервью с лидерами фракций.</dd></div>
+          <div style="display: flex; flex-direction: column; gap: 4px"><dt style="font-size: 12px; color: var(--mu)">Пример работ</dt><dd style="margin: 0; font-size: 15px; color: var(--mu)">— не заполнено</dd></div>
+        </dl>
+      </div>
+      <div style="padding: 16px 24px; border-top: 1px solid var(--bd); display: flex; gap: 10px"><a href="/FormDesktop.dc.html" style="flex: 1; height: 44px; border-radius: 12px; background: var(--pr); color: #fff; text-decoration: none; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center">Доработать и отправить</a></div>
+    </aside>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"empty":{"editor":"boolean","default":false},"drawer":{"editor":"boolean","default":true},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  th(d){const t=d?{bg:'#111115',sf:'#1A1A20',s2:'#22222A',tx:'#ECECEF',mu:'#A3A3AD',bd:'#2E2E37',pr:'#5B54E0',prs:'#25234B',prt:'#B4B0FF',amb:'#3B2A0A',amt:'#FCD34D',rdb:'#3D1517',rdt:'#FCA5A5',gnb:'#0E2F1D',gnt:'#86EFAC',ov:'rgba(0,0,0,0.62)'}:{bg:'#FAFAFB',sf:'#FFFFFF',s2:'#F4F4F6',tx:'#1E1E24',mu:'#6B6B76',bd:'#E4E4E7',pr:'#3730A3',prs:'#EEEEFB',prt:'#3730A3',amb:'#FEF3C7',amt:'#92400E',rdb:'#FEE2E2',rdt:'#B91C1C',gnb:'#DCFCE7',gnt:'#166534',ov:'rgba(20,20,30,0.45)'};return Object.keys(t).map(k=>'--'+k+':'+t[k]).join(';');}
+  renderVals() {
+    const S = { p: ['На рассмотрении', 'background: var(--amb); color: var(--amt)'], a: ['Принята', 'background: var(--gnb); color: var(--gnt)'], r: ['Отклонена', 'background: var(--rdb); color: var(--rdt)'], f: ['Нужна доработка', 'background: var(--prs); color: var(--prt)'] };
+    const r = (form, ini, c, srv, d, s, sel) => ({ form, ini, srv, d, ic: 'background: ' + c, st: S[s][0], bst: S[s][1], rowSt: sel ? 'background: var(--prs)' : '' });
+    const empty = !!this.props.empty;
+    return {
+      tv: this.th(!!this.props.dark), dark: !!this.props.dark, empty, hasRows: !empty, drawer: !empty && this.props.drawer !== false,
+      rows: [r('Набор в LSPD', 'LS', '#B45309', 'Los Santos RP', '15 окт 2026', 'p'), r('Набор в Weazel News', 'VL', '#7C3AED', 'Vinewood Life', '12 окт 2026', 'f', 1), r('Заявка на whitelist', 'VL', '#7C3AED', 'Vinewood Life', '28 сен 2026', 'a'), r('Банды · Ballas', 'GS', '#15803D', 'Grove Street RP', '02 сен 2026', 'r'), r('Апелляция бана', 'SS', '#BE185D', 'Sandy Shores RP', '19 авг 2026', 'a'), r('Анкета хелпера', 'EC', '#4338CA', 'Eclipse RP', '10 окт 2026', 'p')]
+    };
+  }
+}
+</script>
+</body>
+</html>

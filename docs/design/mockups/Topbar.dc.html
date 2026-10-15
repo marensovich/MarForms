@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Топбар панели</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+</helmet>
+<header style="{{tv}}; width: 100%; box-sizing: border-box; height: 60px; padding: 0 24px 0 40px; display: flex; align-items: center; gap: 16px; background: var(--sf); border-bottom: 1px solid var(--bd); color: var(--tx); font-family: Onest, 'Segoe UI', system-ui, sans-serif">
+  <nav aria-label="Хлебные крошки" style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--mu); white-space: nowrap; overflow: hidden">
+    <a href="/Servers.dc.html" style="color: var(--mu); text-decoration: none">{{root}}</a>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+    <span style="color: var(--tx); font-weight: 600">{{page}}</span>
+  </nav>
+  <button style="width: 300px; max-width: 40%; height: 36px; padding: 0 10px; border: 1px solid var(--bd); border-radius: 10px; background: var(--bg); color: var(--mu); font-family: inherit; font-size: 13px; display: flex; align-items: center; gap: 8px; text-align: left"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.35-4.35"></path></svg><span style="flex: 1">Поиск: формы, заявки, люди…</span><kbd style="padding: 2px 6px; border: 1px solid var(--bd); border-radius: 6px; background: var(--sf); font-family: 'JetBrains Mono', monospace; font-size: 11px">⌘K</kbd></button>
+  <button aria-label="Уведомления, 3 новых" style="position: relative; width: 36px; height: 36px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); display: grid; place-items: center"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"></path></svg><span style="position: absolute; top: 6px; right: 7px; width: 8px; height: 8px; border-radius: 99px; background: #DC2626; border: 2px solid var(--sf)"></span></button>
+  <button aria-haspopup="menu" style="height: 36px; padding: 0 8px 0 4px; border: 1px solid var(--bd); border-radius: 10px; background: var(--sf); color: var(--tx); font-family: inherit; display: flex; align-items: center; gap: 8px"><span style="width: 28px; height: 28px; border-radius: 99px; background: #0E7490; color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 600">К</span><span style="font-size: 13px; font-weight: 600">Кирилл Н.</span><span style="padding: 2px 7px; border-radius: 6px; background: var(--prs); color: var(--prt); font-size: 11px; font-weight: 700">{{level}}</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mu)" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
+</header>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"root":{"editor":"text","default":"Администрирование"},"page":{"editor":"text","default":"Формы"},"level":{"editor":"enum","options":["System Admin","Admin","Moderator","Staff"],"default":"System Admin"},"dark":{"editor":"boolean","default":false},"$preview":{"width":1192,"height":60}}'>
+class Component extends DCLogic {
+  th(d){const t=d?{bg:'#111115',sf:'#1A1A20',s2:'#22222A',tx:'#ECECEF',mu:'#A3A3AD',bd:'#2E2E37',pr:'#5B54E0',prs:'#25234B',prt:'#B4B0FF',amb:'#3B2A0A',amt:'#FCD34D',rdb:'#3D1517',rdt:'#FCA5A5',gnb:'#0E2F1D',gnt:'#86EFAC',ov:'rgba(0,0,0,0.62)'}:{bg:'#FAFAFB',sf:'#FFFFFF',s2:'#F4F4F6',tx:'#1E1E24',mu:'#6B6B76',bd:'#E4E4E7',pr:'#3730A3',prs:'#EEEEFB',prt:'#3730A3',amb:'#FEF3C7',amt:'#92400E',rdb:'#FEE2E2',rdt:'#B91C1C',gnb:'#DCFCE7',gnt:'#166534',ov:'rgba(20,20,30,0.45)'};return Object.keys(t).map(k=>'--'+k+':'+t[k]).join(';');}
+  renderVals() {
+    return { tv: this.th(!!this.props.dark), root: this.props.root ?? 'Администрирование', page: this.props.page ?? 'Формы', level: this.props.level ?? 'System Admin' };
+  }
+}
+</script>
+</body>
+</html>
