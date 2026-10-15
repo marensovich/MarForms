@@ -17,6 +17,9 @@ const GUILD_SECTION_KEYS: Record<string, string> = {
     forms: "shell.guild.forms",
     submissions: "shell.guild.submissions",
     audit: "shell.guild.audit",
+    moderators: "shell.guild.moderators",
+    bans: "shell.guild.bans",
+    billing: "shell.guild.billing",
 };
 
 export default function DashboardLayout() {
