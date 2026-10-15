@@ -221,6 +221,12 @@ export default function MySubmissionsPage() {
                                             <span className="whitespace-pre-wrap text-sm leading-snug">{s.moderatorComment}</span>
                                         </div>
                                     )}
+                                    {reviseLink(s) && (
+                                        <Link to={reviseLink(s)!}
+                                              className="flex h-11 items-center justify-center rounded-xl bg-pr text-sm font-semibold text-white hover:bg-prh">
+                                            {t("mySubmissions.reviseShort")}
+                                        </Link>
+                                    )}
                                 </article>
                             ))}
                         </div>
@@ -242,6 +248,11 @@ export default function MySubmissionsPage() {
             <SubmissionPanel id={openId} onClose={() => setOpenId(null)}/>
         </div>
     );
+}
+
+/** «Доработать и отправить»: the form with the answers, for a submission sent back (ТЗ ФТ-3.6.5, #119). */
+function reviseLink(s: MySubmission): string | null {
+    return s.status === "NEEDS_REVISION" && s.formSlug ? `/f/${s.formSlug}?revise=${s.id}` : null;
 }
 
 /** The side panel of one submission (ТЗ ФТ-3.6.4). */
@@ -272,8 +283,15 @@ function SubmissionPanel({id, onClose}: { id: string | null; onClose: () => void
         {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"});
     const fields = (detail?.schema?.fields ?? []).filter(f => f.type !== "SECTION_BREAK");
 
+    const revise = s ? reviseLink(s) : null;
     return (
         <Drawer open={id !== null} onClose={onClose}
+                footer={revise && (
+                    <Link to={revise}
+                          className="flex h-11 flex-1 items-center justify-center rounded-xl bg-pr text-[15px] font-semibold text-white hover:bg-prh">
+                        {t("mySubmissions.revise")}
+                    </Link>
+                )}
                 title={s ? s.formTitle ?? t("mySubmissions.untitled") : t("mySubmissions.loading")}
                 subtitle={s && (
                     <span className="flex flex-col items-start gap-1.5">

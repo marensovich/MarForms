@@ -18,6 +18,10 @@ vi.mock("../../api/forms", () => ({
     submitForm: vi.fn(),
     uploadFormFile: vi.fn(),
 }));
+const resubmit = vi.fn();
+vi.mock("../../api/moderation", () => ({
+    resubmitMySubmission: (...args: unknown[]) => resubmit(...args),
+}));
 
 const f = (id: string, type: FormField["type"], extra: Partial<FormField> = {}): FormField =>
     ({id, type, label: id, required: false, ...extra} as FormField);
@@ -119,6 +123,37 @@ describe("public form", () => {
         expect(sent).not.toHaveProperty("experience");
         expect(await screen.findByText("form.success.title")).toBeTruthy();
         expect(screen.getByText(/№ 1048/)).toBeTruthy();
+    });
+});
+
+describe("revising a submission", () => {
+    afterEach(() => {
+        cleanup();
+        resubmit.mockReset();
+        submit.mockReset();
+    });
+
+    it("opens with the earlier answers and the comment, and sends the same submission again", async () => {
+        resubmit.mockResolvedValue({id: "s1", number: 7, status: "PENDING", createdAt: "2026-10-15T14:02:00"});
+        const user = userEvent.setup();
+        render(
+            <AuthContext.Provider value={{user: null, loading: false, login: async () => {}, logout: () => {}, banData: null}}>
+                <MemoryRouter>
+                    <FormRenderer form={FORM} revision={{
+                        submissionId: "s1", answers: {name: "Dmitry", age: "17"}, comment: "Укажите реальный возраст",
+                        moderatorName: "Lena", files: {},
+                    }}/>
+                </MemoryRouter>
+            </AuthContext.Provider>,
+        );
+        expect(screen.getByRole("note").textContent).toContain("Укажите реальный возраст");
+        const age = screen.getByLabelText(/^age/) as HTMLInputElement;
+        expect(age.value).toBe("17");
+        await user.clear(age);
+        await user.type(age, "21");
+        await user.click(screen.getByRole("button", {name: "form.submit"}));
+        expect(resubmit).toHaveBeenCalledWith("s1", expect.objectContaining({name: "Dmitry", age: "21"}));
+        expect(submit).not.toHaveBeenCalled();
     });
 });
 

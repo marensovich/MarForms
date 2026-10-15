@@ -1,13 +1,14 @@
 import {useCallback, useEffect, useState} from "react";
-import {useParams} from "react-router-dom";
+import {useParams, useSearchParams} from "react-router-dom";
 import {useTranslation} from "react-i18next";
 import {useAuth} from "../hooks/useAuth";
 import {fetchPublicForm, type PublicForm} from "../api/forms";
 import {ApiError} from "../api/client";
 import LoadingScreen from "../components/LoadingScreen";
 import AccessScreen from "../components/access/AccessScreen";
-import FormRenderer from "../components/form/FormRenderer";
-import type {FormDefinition} from "../types/forms";
+import FormRenderer, {type Revision} from "../components/form/FormRenderer";
+import {getMySubmission} from "../api/moderation";
+import type {FormAnswers, FormDefinition} from "../types/forms";
 
 type LoadState =
     | { kind: "loading" }
@@ -28,6 +29,31 @@ export default function PublicFormPage() {
     const {user, loading: authLoading} = useAuth();
     const [state, setState] = useState<LoadState>({kind: "loading"});
     const [reload, setReload] = useState<{ n: number; refreshRoles: boolean }>({n: 0, refreshRoles: false});
+    // ?revise=<submission> from «Мои заявки»: the submission sent back for revision (#119).
+    const reviseId = useSearchParams()[0].get("revise");
+    const [revision, setRevision] = useState<Revision | null | "loading">(reviseId ? "loading" : null);
+
+    useEffect(() => {
+        // Signed out: the form's own access screen asks to sign in first.
+        if (!reviseId || authLoading || !user) return;
+        let cancelled = false;
+        getMySubmission(reviseId)
+            .then(d => {
+                if (cancelled) return;
+                const s = d.submission;
+                setRevision(s.status === "NEEDS_REVISION" && s.formSlug === slug ? {
+                    submissionId: s.id,
+                    answers: asFormAnswers(d.answers),
+                    comment: s.moderatorComment,
+                    moderatorName: s.moderatorName,
+                    files: Object.fromEntries(d.files.map(f => [f.id, f])),
+                } : null);
+            })
+            .catch(() => !cancelled && setRevision(null));
+        return () => {
+            cancelled = true;
+        };
+    }, [reviseId, slug, user, authLoading]);
 
     useEffect(() => {
         // Wait for the session to settle so viewerAccess reflects the login.
@@ -52,12 +78,14 @@ export default function PublicFormPage() {
         setReload(r => ({n: r.n + 1, refreshRoles}));
     }, []);
 
-    if (authLoading || state.kind === "loading") return <LoadingScreen label={t("formGate.loadingForm")}/>;
+    const active = user ? revision : null;
+    if (authLoading || state.kind === "loading" || active === "loading") return <LoadingScreen label={t("formGate.loadingForm")}/>;
     if (state.kind === "not_found") return <AccessScreen code="FORM_NOT_FOUND"/>;
     if (state.kind === "error") return <AccessScreen code="ERROR" error={state} onRetry={() => retry()}/>;
 
     const {form} = state;
-    if (form.viewerAccess !== "GRANTED") {
+    // The per-person limit counts the submission being revised; it isn't a new one.
+    if (form.viewerAccess !== "GRANTED" && !(active !== null && form.viewerAccess === "LIMIT_REACHED")) {
         const rolesCode = form.viewerAccess === "ROLE_REQUIRED" || form.viewerAccess === "ROLE_CHECK_FAILED";
         return (
             <AccessScreen code={form.viewerAccess} details={form.access}
@@ -80,5 +108,10 @@ export default function PublicFormPage() {
     return <FormRenderer form={definition} meta={{
         guildName: form.guildName, guildIconUrl: form.guildIconUrl, guildId: form.guildId,
         closesAt: form.closesAt, submissionLimitPerUser: form.submissionLimitPerUser,
-    }}/>;
+    }} revision={active ?? undefined}/>;
+}
+
+/** Stored answers as the form's controls hold them: numbers as text. */
+function asFormAnswers(answers: FormAnswers): FormAnswers {
+    return Object.fromEntries(Object.entries(answers).map(([k, v]) => [k, typeof v === "number" ? String(v) : v]));
 }

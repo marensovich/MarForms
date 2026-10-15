@@ -55,6 +55,7 @@ describe("my submissions", () => {
             ]},
             answers: {name: "Dmitry Volkov"},
             files: [],
+            history: [],
         });
         const user = userEvent.setup();
         show();
@@ -70,6 +71,8 @@ describe("my submissions", () => {
         expect(within(panel).getByText(/Lena Hart/)).toBeTruthy();
         expect(await within(panel).findByText("Dmitry Volkov")).toBeTruthy();
         expect(within(panel).getByText("mySubmissions.notFilled")).toBeTruthy();
+        // Sent back for revision: the form opens with the answers (#119).
+        expect(within(panel).getByRole("link", {name: "mySubmissions.revise"}).getAttribute("href")).toBe("/f/weazel?revise=s1");
     });
 
     it("explains where links come from when there is nothing yet", async () => {

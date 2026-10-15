@@ -26,10 +26,11 @@ interface Props {
  */
 export default function FileUploadField({field, value, onChange, onBlur, error}: Props) {
     const {t} = useTranslation();
-    const {slug, preview} = useContext(UploadContext);
+    const {slug, preview, knownFiles} = useContext(UploadContext);
     const inputRef = useRef<HTMLInputElement>(null);
     const abortRef = useRef<(() => void) | null>(null);
-    const [uploaded, setUploaded] = useState<UploadedFile | null>(null);
+    // A revised submission's file is shown as already there (#119).
+    const [uploaded, setUploaded] = useState<UploadedFile | null>(() => (value && knownFiles?.[value]) || null);
     const [uploading, setUploading] = useState<{ name: string; progress: number } | null>(null);
     const [uploadError, setUploadError] = useState<string | null>(null);
     const [dragOver, setDragOver] = useState(false);

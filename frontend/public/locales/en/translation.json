@@ -210,6 +210,10 @@
     "requiredNote": {
       "before": "Fields marked",
       "after": "are required."
+    },
+    "revision": {
+      "title": "A moderator sent this back for revision",
+      "hint": "Your previous answers are filled in. Fix them and send the submission again."
     }
   },
   "login": {
@@ -1245,7 +1249,9 @@
     "loadError": "Couldn't load submissions",
     "loading": "Loading…",
     "sentAt": "sent {{date}}",
-    "notFilled": "— not filled in"
+    "notFilled": "— not filled in",
+    "revise": "Revise and send",
+    "reviseShort": "Revise submission"
   },
   "theme": {
     "label": "Theme",

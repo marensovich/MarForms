@@ -146,6 +146,11 @@ export function getMySubmission(id: string): Promise<MySubmissionDetail> {
     return apiRequest(`/me/submissions/${id}`);
 }
 
+/** Sends a submission again after revision (#119); it goes back to pending. */
+export function resubmitMySubmission(id: string, answers: FormAnswers): Promise<{ id: string; number: number | null; status: SubmissionStatus; createdAt: string }> {
+    return apiRequest(`/me/submissions/${id}/resubmit`, {method: "POST", body: {answers}});
+}
+
 export type GuildAuditAction =
     | "SUBMISSION_DECIDED"
     | "MODERATOR_ADDED"

@@ -5,7 +5,8 @@ import i18n from "../../i18n";
 import {type FieldType, type FormAnswers, type FormDefinition, type FormField, isInputField} from "../../types/forms";
 import {DEFAULT_RATING_SCALE} from "./fields/RatingField";
 import type {SubmissionReceipt} from "../../api/forms";
-import {submitForm, submitPublicForm} from "../../api/forms";
+import {submitForm, submitPublicForm, type UploadedFile} from "../../api/forms";
+import {resubmitMySubmission} from "../../api/moderation";
 import {getAnonymousToken} from "../../auth/anonymousToken";
 import {visibleFieldIds} from "./conditions";
 import {UploadContext} from "./fields/uploadContext";
@@ -194,15 +195,29 @@ interface Props {
     preview?: boolean;
     /** Server, closing time and limit for the header (public page only). */
     meta?: FormMeta;
+    /**
+     * A submission sent back for revision (#119): the form opens with its
+     * answers and the moderator's comment, and sends it again instead of
+     * creating a new one.
+     */
+    revision?: Revision;
+}
+
+export interface Revision {
+    submissionId: string;
+    answers: FormAnswers;
+    comment: string | null;
+    moderatorName: string | null;
+    files: Record<string, UploadedFile>;
 }
 
 type SubmitStatus = "idle" | "submitting" | "success" | "error";
 
-export default function FormRenderer({form, preview = false, meta}: Props) {
+export default function FormRenderer({form, preview = false, meta, revision}: Props) {
     const {t} = useTranslation();
-    // Browser draft of the answers (ТЗ ФТ-3.3.8, #113); none in the builder preview.
-    const draft = useFormDraft(form.id, form.schema.fields, !preview);
-    const [answers, setAnswers] = useState<FormAnswers>(draft.initialAnswers);
+    // Browser draft of the answers (ТЗ ФТ-3.3.8, #113); none in the builder preview or a revision.
+    const draft = useFormDraft(form.id, form.schema.fields, !preview && !revision);
+    const [answers, setAnswers] = useState<FormAnswers>(revision?.answers ?? draft.initialAnswers);
     // After the first edit, fields shown by a condition appear without the staggered intro delay.
     const [hasInteracted, setHasInteracted] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -220,7 +235,8 @@ export default function FormRenderer({form, preview = false, meta}: Props) {
 
     // Branching (E3.1): fields hidden by their condition are not shown,
     // required, validated or sent.
-    const uploadContext = useMemo(() => ({slug: form.slug ?? null, preview}), [form.slug, preview]);
+    const uploadContext = useMemo(() => ({slug: form.slug ?? null, preview, knownFiles: revision?.files}),
+        [form.slug, preview, revision?.files]);
     const visibleIds = useMemo(() => visibleFieldIds(form.schema.fields, answers), [form.schema.fields, answers]);
     const visibleFields = useMemo(
         () => form.schema.fields.filter(f => visibleIds.has(f.id)),
@@ -293,7 +309,8 @@ export default function FormRenderer({form, preview = false, meta}: Props) {
         setSubmitStatus("submitting");
         setSubmitError(null);
         try {
-            if (form.slug) setReceipt(await submitPublicForm(form.slug, shownAnswers, idempotencyKey.current,
+            if (revision) setReceipt(await resubmitMySubmission(revision.submissionId, shownAnswers));
+            else if (form.slug) setReceipt(await submitPublicForm(form.slug, shownAnswers, idempotencyKey.current,
                 form.accessMode === "ANONYMOUS" ? getAnonymousToken() : undefined));
             else await submitForm(form.id, shownAnswers, idempotencyKey.current);
             draft.clear();
@@ -358,6 +375,15 @@ export default function FormRenderer({form, preview = false, meta}: Props) {
                 <main className="mx-auto flex w-full max-w-[720px] flex-1 flex-col gap-4 pb-10 sm:pt-8">
                     <FormIntro title={form.schema.title} description={form.schema.description} meta={meta}
                                minutes={minutes} anonymous={form.accessMode === "ANONYMOUS"}/>
+                    {revision && (
+                        <div role="note" className="mx-4 flex flex-col gap-1.5 rounded-xl bg-prs px-4 py-3.5 sm:mx-0">
+                            <span className="text-[13px] font-bold text-prt">
+                                {t("form.revision.title")}{revision.moderatorName && ` · ${revision.moderatorName}`}
+                            </span>
+                            {revision.comment && <span className="whitespace-pre-wrap text-sm leading-relaxed">{revision.comment}</span>}
+                            <span className="text-xs text-mu">{t("form.revision.hint")}</span>
+                        </div>
+                    )}
                     {requiredFields.length > 0 && (
                         <p className="m-0 px-4 text-[13px] text-mu sm:hidden">
                             {t("form.requiredNote.before")} <span className="font-bold text-rdt">*</span> {t("form.requiredNote.after")}
