@@ -12,21 +12,10 @@ import {
 } from "../../../api/moderation";
 import {ApiError} from "../../../api/client";
 import {describeApiError} from "../../../api/errors";
-import type {FormField} from "../../../types/forms";
 import {Modal, TabSkeleton} from "../shared";
 import {SubmissionStatusBadge} from "./SubmissionStatusBadge";
 import {formatBytes} from "../../form/fields/fileRules";
-
-function formatAnswer(field: FormField | undefined, value: unknown, t: (k: string) => string): string {
-    if (value === null || value === undefined || value === "") return "—";
-    if (Array.isArray(value)) return value.length ? value.join(", ") : "—";
-    if (typeof value === "boolean") return value ? t("moderation.card.yes") : t("moderation.card.no");
-    if (field?.type === "DATETIME" && typeof value === "string") {
-        const d = new Date(value);
-        return isNaN(d.getTime()) ? value : d.toLocaleString();
-    }
-    return String(value);
-}
+import {formatAnswer} from "../../submission/formatAnswer";
 
 function Rating({value, max}: { value: number; max: number }) {
     return (

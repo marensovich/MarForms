@@ -83,18 +83,47 @@ export function decideSubmission(
     });
 }
 
+/** A respondent's own submission (ТЗ 3.6). */
 export interface MySubmission {
     id: string;
+    /** Short number on the server ("№ 1048"). */
+    number: number | null;
     formId: string;
     formTitle: string | null;
+    formSlug: string | null;
+    guildId: string | null;
+    guildName: string | null;
+    guildIconUrl: string | null;
     status: SubmissionStatus;
     moderatorComment: string | null;
+    /** Who decided, if anyone has. */
+    moderatorName: string | null;
     createdAt: string;
     decidedAt: string | null;
 }
 
-export function getMySubmissions(page = 0, size = 20): Promise<PageResponse<MySubmission>> {
-    return apiRequest(`/me/submissions?page=${page}&size=${size}`);
+/** «Все · На рассмотрении · С решением» (ТЗ ФТ-3.6.2). */
+export type MySubmissionSegment = "all" | "pending" | "decided";
+
+export function getMySubmissions(page = 0, size = 20, segment: MySubmissionSegment = "all"): Promise<PageResponse<MySubmission>> {
+    const status = segment === "all" ? "" : `&status=${segment}`;
+    return apiRequest(`/me/submissions?page=${page}&size=${size}${status}`);
+}
+
+export function getMySubmissionCounts(): Promise<Record<MySubmissionSegment, number>> {
+    return apiRequest("/me/submissions/counts");
+}
+
+export interface MySubmissionDetail {
+    submission: MySubmission;
+    /** The questions it answered (its snapshot). */
+    schema: FormSchema | null;
+    answers: FormAnswers;
+    files: SubmissionFile[];
+}
+
+export function getMySubmission(id: string): Promise<MySubmissionDetail> {
+    return apiRequest(`/me/submissions/${id}`);
 }
 
 export type GuildAuditAction =

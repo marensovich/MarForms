@@ -1206,13 +1206,37 @@
   },
   "mySubmissions": {
     "title": "My submissions",
-    "subtitle": "The status of your submissions and moderators' comments",
-    "empty": "You haven't submitted anything yet",
-    "loadError": "Couldn't load your submissions",
+    "subtitle": "Every submission you have sent through MarForms.",
+    "segmentsLabel": "Show submissions",
+    "segment": {
+      "all": "All",
+      "pending": "Under review",
+      "decided": "Decided"
+    },
+    "status": {
+      "PENDING": "Under review",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected",
+      "NEEDS_REVISION": "Needs revision"
+    },
+    "columns": {
+      "form": "Form",
+      "server": "Server",
+      "sent": "Sent",
+      "status": "Status"
+    },
+    "open": "Open",
     "untitled": "Untitled form",
-    "sent": "Sent {{date}}",
-    "decided": "decided {{date}}",
-    "more": "Show more"
+    "comment": "Moderator comment",
+    "emptyTitle": "You haven't sent any submissions yet",
+    "emptyText": "Server staff publish form links — look for them in Discord. Paste a link on the home page to open a form.",
+    "openByLink": "Open a form by link",
+    "emptySegment": "No submissions here.",
+    "more": "Show more",
+    "loadError": "Couldn't load submissions",
+    "loading": "Loading…",
+    "sentAt": "sent {{date}}",
+    "notFilled": "— not filled in"
   },
   "theme": {
     "label": "Theme",
