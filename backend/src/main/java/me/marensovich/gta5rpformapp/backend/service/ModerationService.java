@@ -1,6 +1,13 @@
 package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import me.marensovich.gta5rpformapp.backend.exception.FieldValidationException;
+import me.marensovich.gta5rpformapp.backend.exception.DecisionConflictException;
+import me.marensovich.gta5rpformapp.backend.dto.submission.SubmissionEventDto;
+import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionEventRepository;
+import me.marensovich.gta5rpformapp.backend.database.entity.SubmissionEvent;
+import me.marensovich.gta5rpformapp.backend.data.forms.SubmissionEventType;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
 import me.marensovich.gta5rpformapp.backend.data.forms.SubmissionStatus;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
@@ -63,6 +70,7 @@ public class ModerationService {
     private final UserRepository userRepository;
     private final GuildMembershipRepository guildMembershipRepository;
     private final GuildRepository guildRepository;
+    private final SubmissionEventRepository submissionEventRepository;
     private final DiscordBotClient discordBotClient;
     private final FileService fileService;
     private final AuditLogService auditLogService;
@@ -78,7 +86,11 @@ public class ModerationService {
      * @since v.0.1
      */
     public record Filters(@Nullable Long guildId, @Nullable UUID formId,
-                          @Nullable SubmissionStatus status, @Nullable String query) {
+                          @Nullable SubmissionStatus status, @Nullable String query,
+                          @Nullable Long moderatorDiscordId) {
+        public Filters(@Nullable Long guildId, @Nullable UUID formId, @Nullable SubmissionStatus status, @Nullable String query) {
+            this(guildId, formId, status, query, null);
+        }
     }
 
     /**
@@ -115,6 +127,11 @@ public class ModerationService {
             spec = spec.and((root, q, cb) -> cb.equal(root.get("status"), status));
         }
 
+        if (filters.moderatorDiscordId() != null) {
+            Long moderator = filters.moderatorDiscordId();
+            spec = spec.and((root, q, cb) -> cb.equal(root.get("moderatorDiscordId"), moderator));
+        }
+
         String query = filters.query() == null ? "" : filters.query().trim();
         if (!query.isEmpty()) {
             if (query.matches("\\d+")) {
@@ -129,9 +146,11 @@ public class ModerationService {
         }
 
         Page<Submission> page = submissionRepository.findAll(spec, pageable);
-        Map<Long, String> usernames = usernamesOf(page.getContent().stream().map(Submission::getDiscordId).toList());
+        Map<Long, String> usernames = usernamesOf(page.getContent().stream()
+                .flatMap(s -> java.util.stream.Stream.of(s.getDiscordId(), s.getModeratorDiscordId())).toList());
         Map<UUID, String> titles = titlesOf(page.getContent().stream().map(Submission::getFormId).toList());
-        return page.map(s -> SubmissionDto.from(s, usernames.get(s.getDiscordId()), titles.get(s.getFormId())));
+        return page.map(s -> SubmissionDto.from(s, usernames.get(s.getDiscordId()), titles.get(s.getFormId()),
+                s.getModeratorDiscordId() == null ? null : usernames.get(s.getModeratorDiscordId())));
     }
 
     private static Specification<Submission> formIs(UUID formId) {
@@ -176,9 +195,11 @@ public class ModerationService {
         }
 
         String username = author != null ? author.username() : null;
-        return new SubmissionDetailDto(SubmissionDto.from(submission, username, form.getSchema().getTitle()),
+        return new SubmissionDetailDto(SubmissionDto.from(submission, username, form.getSchema().getTitle(),
+                moderatorName(submission)),
                 form.getId(), submission.questions(form), author,
-                fileService.forSubmission(submission.getId()).stream().map(SubmissionFileDto::from).toList());
+                fileService.forSubmission(submission.getId()).stream().map(SubmissionFileDto::from).toList(),
+                history(submission.getId()));
     }
 
     /**
@@ -202,22 +223,40 @@ public class ModerationService {
      * @since v.0.1
      */
     @Transactional
-    public SubmissionDto decide(UUID submissionId, DecisionRequest request, Long moderatorDiscordId) {
-        if (request.status() == SubmissionStatus.PENDING) {
-            throw new IllegalArgumentException("A decision must be APPROVED, REJECTED or NEEDS_REVISION");
-        }
+    public SubmissionDto decide(UUID submissionId, DecisionRequest request, Long moderatorDiscordId, boolean mayReopen) {
         Submission submission = get(submissionId);
         SubmissionStatus old = submission.getStatus();
-        if (request.expectedStatus() != null && request.expectedStatus() != old) {
-            throw new InvalidStateException("Another moderator has already decided on this submission (" + old + ")");
+        String comment = request.comment() == null || request.comment().isBlank() ? null : request.comment().trim();
+        boolean reopen = request.status() == SubmissionStatus.PENDING;
+
+        if (reopen) {
+            // Пересмотреть решение: only an approved or rejected submission, only by the owner.
+            if (old != SubmissionStatus.APPROVED && old != SubmissionStatus.REJECTED) {
+                throw new InvalidStateException("Only an approved or rejected submission can be reopened");
+            }
+            if (!mayReopen) {
+                throw new AccessDeniedException("Only the server owner can reopen a decision");
+            }
+        } else {
+            if (old != SubmissionStatus.PENDING || (request.expectedStatus() != null && request.expectedStatus() != old)) {
+                String decidedBy = submission.getModeratorDiscordId() == null ? null
+                        : userRepository.findByDiscordId(submission.getModeratorDiscordId()).map(User::getDiscordUsername).orElse(null);
+                throw new DecisionConflictException(old, decidedBy, submission.getDecidedAt());
+            }
+            if (comment == null && request.status() != SubmissionStatus.APPROVED) {
+                throw new FieldValidationException("A comment is required to reject or send back for revision",
+                        Map.of("comment", "required"));
+            }
         }
 
-        String comment = request.comment() == null || request.comment().isBlank() ? null : request.comment().trim();
         submission.setStatus(request.status());
-        submission.setModeratorComment(comment);
-        submission.setModeratorDiscordId(moderatorDiscordId);
-        submission.setDecidedAt(LocalDateTime.now());
+        submission.setModeratorComment(reopen ? null : comment);
+        submission.setModeratorDiscordId(reopen ? null : moderatorDiscordId);
+        submission.setDecidedAt(reopen ? null : LocalDateTime.now());
         Submission saved = submissionRepository.saveAndFlush(submission);
+        submissionEventRepository.save(SubmissionEvent.of(saved.getId(),
+                reopen ? SubmissionEventType.REOPENED : SubmissionEventType.DECIDED, old, saved.getStatus(),
+                moderatorDiscordId, comment));
 
         Form form = formRepository.findById(saved.getFormId()).orElse(null);
         String title = form != null ? form.getSchema().getTitle() : null;
@@ -227,6 +266,7 @@ public class ModerationService {
         metadata.put("to", saved.getStatus().name());
         if (comment != null) metadata.put("comment", comment);
         if (saved.getDiscordId() != null) metadata.put("authorDiscordId", saved.getDiscordId().toString());
+        // A reopened decision is logged the same way: its metadata reads APPROVED → PENDING.
         auditLogService.logGuildAction(form != null ? form.getServerId() : null, AuditAction.SUBMISSION_DECIDED,
                 "SUBMISSION", saved.getId().toString(), title, metadata,
                 "Status: " + old + " → " + saved.getStatus() + (comment != null ? "\nComment: " + comment : ""));
@@ -294,7 +334,29 @@ public class ModerationService {
         Map<Long, String> moderators = usernamesOf(Collections.singletonList(submission.getModeratorDiscordId()));
         return new MySubmissionDetailDto(mineRow(submission, form, guilds, moderators), submission.questions(form),
                 submission.getAnswers() != null ? submission.getAnswers() : Map.of(),
-                fileService.forSubmission(submission.getId()).stream().map(SubmissionFileDto::from).toList());
+                fileService.forSubmission(submission.getId()).stream().map(SubmissionFileDto::from).toList(),
+                history(submission.getId()));
+    }
+
+    /**
+     * A submission's history, oldest first, with the names of who acted (#118).
+     *
+     * @param submissionId the submission
+     * @return its events
+     * @since v.0.1
+     */
+    @Transactional(readOnly = true)
+    public List<SubmissionEventDto> history(UUID submissionId) {
+        List<SubmissionEvent> events = submissionEventRepository.findAllBySubmissionIdOrderByCreatedAtAscIdAsc(submissionId);
+        Map<Long, String> names = usernamesOf(events.stream().map(SubmissionEvent::getActorDiscordId).toList());
+        return events.stream()
+                .map(e -> SubmissionEventDto.from(e, e.getActorDiscordId() == null ? null : names.get(e.getActorDiscordId())))
+                .toList();
+    }
+
+    private String moderatorName(Submission submission) {
+        return submission.getModeratorDiscordId() == null ? null
+                : userRepository.findByDiscordId(submission.getModeratorDiscordId()).map(User::getDiscordUsername).orElse(null);
     }
 
     private static MySubmissionDto mineRow(Submission s, @Nullable Form form, Map<Long, Guild> guilds,

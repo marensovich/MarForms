@@ -167,6 +167,23 @@ public class GlobalExceptionHandler {
      * @return 409 (Conflict) with the error message
      * @since v.0.1
      */
+    /**
+     * A decision on a submission someone already decided (ТЗ ФТ-4.5.6).
+     *
+     * @param ex the conflict, with who decided and when
+     * @return 409 with {@code error}, {@code status}, {@code decidedBy}, {@code decidedAt}
+     * @since v.0.1
+     */
+    @ExceptionHandler(DecisionConflictException.class)
+    public ResponseEntity<Map<String, Object>> handleDecisionConflict(DecisionConflictException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("error", ex.getMessage());
+        body.put("status", ex.getStatus().name());
+        body.put("decidedBy", ex.getDecidedBy());
+        body.put("decidedAt", ex.getDecidedAt() != null ? ex.getDecidedAt().toString() : null);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
     @ExceptionHandler(InvalidStateException.class)
     public ResponseEntity<Map<String, String>> handleInvalidState(InvalidStateException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)

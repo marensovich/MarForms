@@ -2,6 +2,9 @@ package me.marensovich.gta5rpformapp.backend.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import me.marensovich.gta5rpformapp.backend.data.forms.SubmissionEventType;
+import me.marensovich.gta5rpformapp.backend.database.entity.SubmissionEvent;
+import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionEventRepository;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
 import me.marensovich.gta5rpformapp.backend.data.forms.AccessCode;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormAccessMode;
@@ -74,6 +77,7 @@ public class SubmissionService {
     private final FormAccessService formAccessService;
     private final FileService fileService;
     private final WebhookUrlCipher webhookUrlCipher;
+    private final SubmissionEventRepository submissionEventRepository;
 
     /**
      * Submits a response to a form, by form ID and submitter Discord ID —
@@ -192,6 +196,8 @@ public class SubmissionService {
         submission.setSchemaSnapshot(form.getSchema() == null ? null : SNAPSHOT_COPIER.convertValue(form.getSchema(), FormSchema.class));
         Submission saved = submissionRepository.save(submission);
         fileService.attach(files, saved.getId());
+        submissionEventRepository.save(SubmissionEvent.of(saved.getId(), SubmissionEventType.SUBMITTED, null,
+                saved.getStatus(), discordId, null));
 
         String discordUsername = author != null ? author.getDiscordUsername() : null;
         enqueueWebhookDeliveries(form, saved, withFileNames(clean, files), discordUsername, discordId);

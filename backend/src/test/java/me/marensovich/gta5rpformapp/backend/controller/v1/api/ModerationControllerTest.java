@@ -186,7 +186,12 @@ class ModerationControllerTest {
     }
 
     @Test
-    void decisionsRecordTheModeratorAndCanBeRevised() throws Exception {
+    void decisionsRecordTheModeratorAndFollowTheTransitions() throws Exception {
+        // Rejecting or sending back needs a comment; approving doesn't (ТЗ ФТ-4.5.4).
+        mvc.perform(as(moderator, post("/api/v1/submissions/{id}/decision", aliceSubmission.getId()))
+                        .content("{\"status\": \"NEEDS_REVISION\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fields.comment").exists());
         mvc.perform(as(moderator, post("/api/v1/submissions/{id}/decision", aliceSubmission.getId()))
                         .content("{\"status\": \"NEEDS_REVISION\", \"comment\": \"Add your age\"}"))
                 .andExpect(status().isOk())
@@ -195,15 +200,54 @@ class ModerationControllerTest {
                 .andExpect(jsonPath("$.moderatorComment").value("Add your age"))
                 .andExpect(jsonPath("$.decidedAt").exists());
 
+        // Decided already: the second decision learns who decided (ТЗ ФТ-4.5.6).
         mvc.perform(as(moderator, post("/api/v1/submissions/{id}/decision", aliceSubmission.getId()))
                         .content("{\"status\": \"APPROVED\"}"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("APPROVED"))
-                .andExpect(jsonPath("$.moderatorComment").doesNotExist());
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value("NEEDS_REVISION"))
+                .andExpect(jsonPath("$.decidedBy").value("mod"));
+        // Only an approved or rejected decision is reopened.
+        mvc.perform(as(moderator, post("/api/v1/submissions/{id}/decision", aliceSubmission.getId()))
+                        .content("{\"status\": \"PENDING\"}"))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void onlyTheOwnerReopensADecisionAndTheCardShowsTheHistory() throws Exception {
+        User owner = user(9L, "owner");
+        membership(owner, guildRepository.findById(GUILD).orElseThrow(), GuildRole.OWNER);
+        mvc.perform(as(moderator, post("/api/v1/submissions/{id}/decision", aliceSubmission.getId()))
+                        .content("{\"status\": \"APPROVED\"}"))
+                .andExpect(status().isOk());
 
         mvc.perform(as(moderator, post("/api/v1/submissions/{id}/decision", aliceSubmission.getId()))
                         .content("{\"status\": \"PENDING\"}"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
+        mvc.perform(as(owner, post("/api/v1/submissions/{id}/decision", aliceSubmission.getId()))
+                        .content("{\"status\": \"PENDING\", \"comment\": \"Wrong person\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("PENDING"))
+                .andExpect(jsonPath("$.decidedAt").doesNotExist());
+
+        mvc.perform(as(owner, get("/api/v1/submissions/{id}", aliceSubmission.getId())))
+                .andExpect(jsonPath("$.history.length()").value(2))
+                .andExpect(jsonPath("$.history[0].type").value("DECIDED"))
+                .andExpect(jsonPath("$.history[0].to").value("APPROVED"))
+                .andExpect(jsonPath("$.history[0].actorName").value("mod"))
+                .andExpect(jsonPath("$.history[1].type").value("REOPENED"))
+                .andExpect(jsonPath("$.history[1].comment").value("Wrong person"));
+        mvc.perform(as(owner, get("/api/v1/guilds/{g}/submissions", GUILD).param("moderator", "1")))
+                .andExpect(jsonPath("$.page.totalElements").value(0));
+    }
+
+    @Test
+    void theQueueNamesWhoDecidedAndFiltersByThem() throws Exception {
+        mvc.perform(as(moderator, post("/api/v1/submissions/{id}/decision", aliceSubmission.getId()))
+                        .content("{\"status\": \"REJECTED\", \"comment\": \"No\"}"))
+                .andExpect(status().isOk());
+        mvc.perform(as(moderator, get("/api/v1/guilds/{g}/submissions", GUILD).param("moderator", "1")))
+                .andExpect(jsonPath("$.page.totalElements").value(1))
+                .andExpect(jsonPath("$.content[0].moderatorUsername").value("mod"));
     }
 
     @Test

@@ -3,6 +3,7 @@ package me.marensovich.gta5rpformapp.backend.controller.v1.api;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.config.security.CustomUserDetails;
+import me.marensovich.gta5rpformapp.backend.config.security.GuildAccessGuard;
 import me.marensovich.gta5rpformapp.backend.data.forms.SubmissionStatus;
 import me.marensovich.gta5rpformapp.backend.dto.submission.DecisionRequest;
 import me.marensovich.gta5rpformapp.backend.dto.submission.MySubmissionCountsDto;
@@ -36,6 +37,7 @@ import java.util.UUID;
 public class ModerationController {
 
     private final ModerationService moderationService;
+    private final GuildAccessGuard guildAccess;
 
     /**
      * Every submission of a guild's forms, filterable (task #52) — the
@@ -46,6 +48,7 @@ public class ModerationController {
      * @param formId   optional: one form only
      * @param status   optional: one moderation status
      * @param query    optional: author Discord ID (exact) or part of the username
+     * @param moderator optional: who decided (Discord ID)
      * @param pageable pagination, newest first by default
      * @return the matching submissions
      * @since v.0.1
@@ -57,9 +60,10 @@ public class ModerationController {
             @RequestParam(required = false) UUID formId,
             @RequestParam(required = false) SubmissionStatus status,
             @RequestParam(required = false) String query,
+            @RequestParam(required = false) Long moderator,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        return moderationService.search(new ModerationService.Filters(guildId, formId, status, query), pageable);
+        return moderationService.search(new ModerationService.Filters(guildId, formId, status, query, moderator), pageable);
     }
 
     /**
@@ -89,7 +93,9 @@ public class ModerationController {
     @PostMapping("/submissions/{id}/decision")
     public SubmissionDto decide(@PathVariable UUID id, @Valid @RequestBody DecisionRequest request,
                                 @AuthenticationPrincipal CustomUserDetails principal) {
-        return moderationService.decide(id, request, principal.getDiscordId());
+        boolean mayReopen = principal.getAuthorities().stream().anyMatch(a -> "RESPONSES_MANAGE".equals(a.getAuthority()))
+                || guildAccess.hasRoleForSubmission(id, "OWNER");
+        return moderationService.decide(id, request, principal.getDiscordId(), mayReopen);
     }
 
     /**

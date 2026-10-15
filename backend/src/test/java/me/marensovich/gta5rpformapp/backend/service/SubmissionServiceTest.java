@@ -49,12 +49,15 @@ class SubmissionServiceTest {
     @Mock
     private me.marensovich.gta5rpformapp.backend.database.repository.GuildRepository guildRepository;
 
+    @Mock
+    private me.marensovich.gta5rpformapp.backend.database.repository.SubmissionEventRepository submissionEventRepository;
+
     private final WebhookUrlCipher cipher = new WebhookUrlCipher(new TokenCipher("", "test-secret"));
 
     private SubmissionService service() {
         return new SubmissionService(
                 submissionRepository, formRepository, userRepository, guildRepository, formService, webhookService, auditLogService, outboundJobService,
-                formAccessService, fileService, cipher);
+                formAccessService, fileService, cipher, submissionEventRepository);
     }
 
     private Form activeFormWithWebhooks(WebhookConfig... webhooks) {

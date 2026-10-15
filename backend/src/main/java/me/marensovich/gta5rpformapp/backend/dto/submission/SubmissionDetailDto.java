@@ -27,7 +27,8 @@ public record SubmissionDetailDto(
         UUID formId,
         FormSchema schema,
         Author author,
-        List<SubmissionFileDto> files
+        List<SubmissionFileDto> files,
+        List<SubmissionEventDto> history
 ) {
     /**
      * The submission's author as known to this guild.

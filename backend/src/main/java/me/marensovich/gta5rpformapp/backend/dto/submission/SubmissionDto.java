@@ -44,7 +44,8 @@ public record SubmissionDto(
         String moderatorComment,
         LocalDateTime decidedAt,
         String discordUsername,
-        String formTitle
+        String formTitle,
+        String moderatorUsername
 ) {
     /**
      * Converts a {@link Submission} entity to a {@link SubmissionDto}.
@@ -68,6 +69,21 @@ public record SubmissionDto(
      * @since v.0.1
      */
     public static SubmissionDto from(Submission submission, String discordUsername, String formTitle) {
+        return from(submission, discordUsername, formTitle, null);
+    }
+
+    /**
+     * Converts a {@link Submission} for the moderation queue, with who decided it (#118).
+     *
+     * @param submission        the submission entity to convert
+     * @param discordUsername   the author's username, may be {@code null}
+     * @param formTitle         the form's title, may be {@code null}
+     * @param moderatorUsername who decided, may be {@code null}
+     * @return the DTO
+     * @since v.0.1
+     */
+    public static SubmissionDto from(Submission submission, String discordUsername, String formTitle,
+                                     String moderatorUsername) {
         return new SubmissionDto(
                 submission.getId(),
                 submission.getFormId(),
@@ -79,7 +95,8 @@ public record SubmissionDto(
                 submission.getModeratorComment(),
                 submission.getDecidedAt(),
                 discordUsername,
-                formTitle
+                formTitle,
+                moderatorUsername
         );
     }
 }

@@ -13,6 +13,7 @@ import java.util.Map;
  * @param schema     the questions it answered (its snapshot, #117)
  * @param answers    the answers by field ID
  * @param files      the files it carries
+ * @param history    what happened to it, oldest first (#118)
  * @author marensovich
  * @since v.0.1
  */
@@ -20,6 +21,7 @@ public record MySubmissionDetailDto(
         MySubmissionDto submission,
         FormSchema schema,
         Map<String, Object> answers,
-        List<SubmissionFileDto> files
+        List<SubmissionFileDto> files,
+        List<SubmissionEventDto> history
 ) {
 }
