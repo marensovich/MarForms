@@ -4,13 +4,17 @@ import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
 import me.marensovich.gta5rpformapp.backend.data.forms.SubmissionStatus;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
+import me.marensovich.gta5rpformapp.backend.database.entity.Guild;
 import me.marensovich.gta5rpformapp.backend.database.entity.Submission;
 import me.marensovich.gta5rpformapp.backend.database.entity.User;
 import me.marensovich.gta5rpformapp.backend.database.repository.FormRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.GuildMembershipRepository;
+import me.marensovich.gta5rpformapp.backend.database.repository.GuildRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.UserRepository;
 import me.marensovich.gta5rpformapp.backend.dto.submission.DecisionRequest;
+import me.marensovich.gta5rpformapp.backend.dto.submission.MySubmissionCountsDto;
+import me.marensovich.gta5rpformapp.backend.dto.submission.MySubmissionDetailDto;
 import me.marensovich.gta5rpformapp.backend.dto.submission.MySubmissionDto;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmissionDetailDto;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmissionDto;
@@ -28,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +62,7 @@ public class ModerationService {
     private final FormRepository formRepository;
     private final UserRepository userRepository;
     private final GuildMembershipRepository guildMembershipRepository;
+    private final GuildRepository guildRepository;
     private final DiscordBotClient discordBotClient;
     private final FileService fileService;
     private final AuditLogService auditLogService;
@@ -240,10 +246,74 @@ public class ModerationService {
      * @since v.0.1
      */
     @Transactional(readOnly = true)
-    public Page<MySubmissionDto> mine(Long discordId, Pageable pageable) {
-        Page<Submission> page = submissionRepository.findAllByDiscordId(discordId, pageable);
-        Map<UUID, String> titles = titlesOf(page.getContent().stream().map(Submission::getFormId).toList());
-        return page.map(s -> MySubmissionDto.from(s, titles.get(s.getFormId())));
+    public Page<MySubmissionDto> mine(Long discordId, @Nullable MineFilter filter, Pageable pageable) {
+        Page<Submission> page = filter == null
+                ? submissionRepository.findAllByDiscordId(discordId, pageable)
+                : submissionRepository.findAllByDiscordIdAndStatusIn(discordId, filter.statuses, pageable);
+        List<Submission> rows = page.getContent();
+        Map<UUID, Form> forms = formRepository.findAllById(rows.stream().map(Submission::getFormId).collect(Collectors.toSet()))
+                .stream().collect(Collectors.toMap(Form::getId, f -> f));
+        Map<Long, Guild> guilds = guildRepository.findAllById(forms.values().stream().map(Form::getServerId)
+                        .filter(Objects::nonNull).collect(Collectors.toSet()))
+                .stream().collect(Collectors.toMap(Guild::getDiscordGuildId, g -> g));
+        Map<Long, String> moderators = usernamesOf(rows.stream().map(Submission::getModeratorDiscordId).toList());
+        return page.map(s -> mineRow(s, forms.get(s.getFormId()), guilds, moderators));
+    }
+
+    /**
+     * Counters of the «Мои заявки» segments.
+     *
+     * @param discordId the respondent
+     * @return all, pending and decided
+     * @since v.0.1
+     */
+    @Transactional(readOnly = true)
+    public MySubmissionCountsDto mineCounts(Long discordId) {
+        long all = submissionRepository.countByDiscordId(discordId);
+        long pending = submissionRepository.countByDiscordIdAndStatus(discordId, SubmissionStatus.PENDING);
+        return new MySubmissionCountsDto(all, pending, all - pending);
+    }
+
+    /**
+     * One of the respondent's own submissions with its answers (ТЗ ФТ-3.6.4).
+     *
+     * @param discordId    the respondent
+     * @param submissionId the submission
+     * @return the row, its questions as asked, answers and files
+     * @throws NotFoundException if there is no such submission of theirs
+     * @since v.0.1
+     */
+    @Transactional(readOnly = true)
+    public MySubmissionDetailDto mineDetail(Long discordId, UUID submissionId) {
+        Submission submission = submissionRepository.findById(submissionId)
+                .filter(s -> discordId.equals(s.getDiscordId()))
+                .orElseThrow(() -> new NotFoundException("Submission not found: " + submissionId));
+        Form form = formRepository.findById(submission.getFormId()).orElse(null);
+        Map<Long, Guild> guilds = form == null || form.getServerId() == null ? Map.of()
+                : guildRepository.findById(form.getServerId()).map(g -> Map.of(g.getDiscordGuildId(), g)).orElse(Map.of());
+        Map<Long, String> moderators = usernamesOf(Collections.singletonList(submission.getModeratorDiscordId()));
+        return new MySubmissionDetailDto(mineRow(submission, form, guilds, moderators), submission.questions(form),
+                submission.getAnswers() != null ? submission.getAnswers() : Map.of(),
+                fileService.forSubmission(submission.getId()).stream().map(SubmissionFileDto::from).toList());
+    }
+
+    private static MySubmissionDto mineRow(Submission s, @Nullable Form form, Map<Long, Guild> guilds,
+                                           Map<Long, String> moderators) {
+        Guild guild = form != null && form.getServerId() != null ? guilds.get(form.getServerId()) : null;
+        return MySubmissionDto.from(s, form, guild,
+                s.getModeratorDiscordId() != null ? moderators.get(s.getModeratorDiscordId()) : null);
+    }
+
+    /** The «Мои заявки» segments besides «Все». */
+    public enum MineFilter {
+        PENDING(Set.of(SubmissionStatus.PENDING)),
+        DECIDED(Set.of(SubmissionStatus.APPROVED, SubmissionStatus.REJECTED, SubmissionStatus.NEEDS_REVISION));
+
+        private final Set<SubmissionStatus> statuses;
+
+        MineFilter(Set<SubmissionStatus> statuses) {
+            this.statuses = statuses;
+        }
     }
 
     private Submission get(UUID id) {

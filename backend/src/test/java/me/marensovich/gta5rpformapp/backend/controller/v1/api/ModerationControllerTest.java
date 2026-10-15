@@ -224,4 +224,39 @@ class ModerationControllerTest {
                 .andExpect(jsonPath("$.page.totalElements").value(2))
                 .andExpect(jsonPath("$.content[0].moderatorDiscordId").doesNotExist());
     }
+
+    @Test
+    void myListNamesTheServerAndModeratorAndFiltersBySegment() throws Exception {
+        bobSubmission.setModeratorDiscordId(moderator.getDiscordId());
+        bobSubmission.setModeratorComment("Welcome");
+        submissionRepository.saveAndFlush(bobSubmission);
+
+        mvc.perform(as(bob, get("/api/v1/me/submissions").param("status", "decided")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements").value(1))
+                .andExpect(jsonPath("$.content[0].formTitle").value("Application"))
+                .andExpect(jsonPath("$.content[0].guildName").value("Guild " + GUILD))
+                .andExpect(jsonPath("$.content[0].guildId").value(String.valueOf(GUILD)))
+                .andExpect(jsonPath("$.content[0].moderatorName").value("mod"))
+                .andExpect(jsonPath("$.content[0].formSlug").value(form.getSlug()));
+        mvc.perform(as(bob, get("/api/v1/me/submissions").param("status", "pending")))
+                .andExpect(jsonPath("$.content[0].guildName").value("Guild " + OTHER_GUILD));
+        mvc.perform(as(bob, get("/api/v1/me/submissions").param("status", "everything")))
+                .andExpect(status().isBadRequest());
+        mvc.perform(as(bob, get("/api/v1/me/submissions/counts")))
+                .andExpect(jsonPath("$.all").value(2))
+                .andExpect(jsonPath("$.pending").value(1))
+                .andExpect(jsonPath("$.decided").value(1));
+    }
+
+    @Test
+    void myCardShowsMyAnswersAndNobodyElses() throws Exception {
+        mvc.perform(as(bob, get("/api/v1/me/submissions/{id}", bobSubmission.getId())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.answers.q").value("a"))
+                .andExpect(jsonPath("$.schema.title").value("Application"))
+                .andExpect(jsonPath("$.submission.status").value("APPROVED"));
+        mvc.perform(as(bob, get("/api/v1/me/submissions/{id}", aliceSubmission.getId())))
+                .andExpect(status().isNotFound());
+    }
 }

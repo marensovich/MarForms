@@ -1,5 +1,6 @@
 package me.marensovich.gta5rpformapp.backend.database.repository;
 
+import me.marensovich.gta5rpformapp.backend.data.forms.SubmissionStatus;
 import me.marensovich.gta5rpformapp.backend.database.entity.Submission;
 import me.marensovich.gta5rpformapp.backend.dto.submission.UserSubmissionCountDto;
 import org.springframework.data.domain.Page;
@@ -111,6 +112,13 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID>, J
      * @since v.0.1
      */
     Page<Submission> findAllByDiscordId(Long discordId, Pageable pageable);
+
+    /** A user's submissions in the given statuses («Мои заявки» segments, ТЗ ФТ-3.6.2). */
+    Page<Submission> findAllByDiscordIdAndStatusIn(Long discordId, Collection<SubmissionStatus> statuses, Pageable pageable);
+
+    long countByDiscordId(Long discordId);
+
+    long countByDiscordIdAndStatus(Long discordId, SubmissionStatus status);
 
     /**
      * Retrieves a paginated list of submissions for a specific form made by a specific user.

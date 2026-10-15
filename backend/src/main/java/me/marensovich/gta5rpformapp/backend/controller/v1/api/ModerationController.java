@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.config.security.CustomUserDetails;
 import me.marensovich.gta5rpformapp.backend.data.forms.SubmissionStatus;
 import me.marensovich.gta5rpformapp.backend.dto.submission.DecisionRequest;
+import me.marensovich.gta5rpformapp.backend.dto.submission.MySubmissionCountsDto;
+import me.marensovich.gta5rpformapp.backend.dto.submission.MySubmissionDetailDto;
 import me.marensovich.gta5rpformapp.backend.dto.submission.MySubmissionDto;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmissionDetailDto;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmissionDto;
@@ -102,8 +104,41 @@ public class ModerationController {
     @GetMapping("/me/submissions")
     public Page<MySubmissionDto> mine(
             @AuthenticationPrincipal CustomUserDetails principal,
+            @RequestParam(required = false) String status,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        return moderationService.mine(principal.getDiscordId(), pageable);
+        ModerationService.MineFilter filter = status == null || status.isBlank() ? null
+                : switch (status.toLowerCase(java.util.Locale.ROOT)) {
+                    case "pending" -> ModerationService.MineFilter.PENDING;
+                    case "decided" -> ModerationService.MineFilter.DECIDED;
+                    default -> throw new IllegalArgumentException("status must be pending or decided");
+                };
+        return moderationService.mine(principal.getDiscordId(), filter, pageable);
+    }
+
+    /**
+     * Counters of the «Все · На рассмотрении · С решением» segments (ТЗ ФТ-3.6.2).
+     *
+     * @param principal the current user
+     * @return the counters
+     * @since v.0.1
+     */
+    @GetMapping("/me/submissions/counts")
+    public MySubmissionCountsDto mineCounts(@AuthenticationPrincipal CustomUserDetails principal) {
+        return moderationService.mineCounts(principal.getDiscordId());
+    }
+
+    /**
+     * One of the current user's own submissions with its answers (ТЗ ФТ-3.6.4);
+     * 404 for anyone else's.
+     *
+     * @param principal the current user
+     * @param id        the submission
+     * @return the submission, its questions as asked, answers and files
+     * @since v.0.1
+     */
+    @GetMapping("/me/submissions/{id}")
+    public MySubmissionDetailDto mineDetail(@AuthenticationPrincipal CustomUserDetails principal, @PathVariable UUID id) {
+        return moderationService.mineDetail(principal.getDiscordId(), id);
     }
 }
