@@ -2,7 +2,7 @@
 // border-bd, bg-prs text-prt… — so an artboard's `var(--sf)` maps to `bg-sf`.
 const token = name => `rgb(var(--${name}) / <alpha-value>)`;
 const TOKENS = ["bg", "sf", "s2", "tx", "mu", "bd", "pr", "prh", "prs", "prt", "amb", "amt", "rdb", "rdt",
-    "gnb", "gnt", "inb", "int", "dg", "dgh", "ok", "okh", "wr", "wrh"];
+    "gnb", "gnt", "inb", "int", "dg", "dgh", "ok", "okh", "wr", "wrh", "inv"];
 
 export default {
     content: ["./index.html", "./src/**/*.{ts,tsx}"],
@@ -21,6 +21,16 @@ export default {
             fontFamily: {
                 sans: ["Onest", "Segoe UI", "system-ui", "-apple-system", "sans-serif"],
                 mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "monospace"],
+            },
+            // Shadows of the mockup's overlays (modals, drawers, popovers).
+            boxShadow: {
+                modal: "0 24px 64px rgba(10,10,30,0.28)",
+                drawer: "-20px 0 50px rgba(10,10,30,0.18)",
+                popover: "0 12px 32px rgba(20,20,40,0.12)",
+                palette: "0 24px 60px rgba(0,0,0,0.3)",
+            },
+            opacity: {
+                45: "0.45",
             },
             backdropBlur: {
                 xs: "2px",

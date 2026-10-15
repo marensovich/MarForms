@@ -1207,5 +1207,28 @@
     "light": "Light",
     "dark": "Dark",
     "system": "System"
+  },
+  "ui": {
+    "close": "Close",
+    "cancel": "Cancel",
+    "typeToConfirm": "To confirm, type",
+    "pickDate": "Pick a date",
+    "clear": "Clear",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "time": "Time",
+    "pagination": "Pages",
+    "pageOf": "Page {{page}} of {{pages}} · {{total}} total",
+    "prevPage": "Previous page",
+    "nextPage": "Next page",
+    "selected": "Selected: {{count}}",
+    "clearSelection": "Clear selection",
+    "selectAll": "Select all on this page",
+    "selectRow": "Select row",
+    "actions": "Actions",
+    "loadFailed": "Failed to load",
+    "retry": "Retry",
+    "nothingFound": "Nothing found",
+    "resetFilters": "Reset filters"
   }
 }

@@ -33,12 +33,16 @@
     --okh: 21 128 61;    /* #15803D */
     --wr: 217 119 6;     /* #D97706 warning dot / solid */
     --wrh: 180 83 9;     /* #B45309 */
+    --inv: 30 30 36;     /* #1E1E24 toasts and tooltips, same in both themes */
     --ov: rgba(20, 20, 30, 0.45);
     color-scheme: light;
 }
 
-/* data-theme is set before first paint by the inline script in index.html. */
-:root[data-theme="dark"] {
+/*
+ * data-theme is set on <html> before first paint by the inline script in index.html;
+ * any element can also opt in (toasts and tooltips render with dark tokens).
+ */
+[data-theme="dark"] {
     --bg: 17 17 21;      /* #111115 */
     --sf: 26 26 32;      /* #1A1A20 */
     --s2: 34 34 42;      /* #22222A */
@@ -69,4 +73,17 @@ body {
     background-color: rgb(var(--bg));
     color: rgb(var(--tx));
     font-family: 'Onest', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+@keyframes mf-skeleton {
+    0%, 100% { opacity: .5; }
+    50% { opacity: 1; }
+}
+
+.mf-skeleton {
+    animation: mf-skeleton 1.4s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mf-skeleton { animation: none; }
 }

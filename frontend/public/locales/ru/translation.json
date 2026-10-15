@@ -1221,5 +1221,28 @@
     "light": "Светлая",
     "dark": "Тёмная",
     "system": "Как в системе"
+  },
+  "ui": {
+    "close": "Закрыть",
+    "cancel": "Отмена",
+    "typeToConfirm": "Для подтверждения введите",
+    "pickDate": "Выберите дату",
+    "clear": "Очистить",
+    "prevMonth": "Предыдущий месяц",
+    "nextMonth": "Следующий месяц",
+    "time": "Время",
+    "pagination": "Страницы",
+    "pageOf": "Страница {{page}} из {{pages}} · {{total}} всего",
+    "prevPage": "Предыдущая страница",
+    "nextPage": "Следующая страница",
+    "selected": "Выбрано: {{count}}",
+    "clearSelection": "Снять выбор",
+    "selectAll": "Выбрать все на странице",
+    "selectRow": "Выбрать строку",
+    "actions": "Действия",
+    "loadFailed": "Ошибка загрузки",
+    "retry": "Повторить",
+    "nothingFound": "Ничего не найдено",
+    "resetFilters": "Сбросить фильтры"
   }
 }

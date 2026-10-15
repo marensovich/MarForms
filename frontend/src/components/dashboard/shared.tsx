@@ -1,3 +1,7 @@
+// Deprecated: the pre-redesign dashboard kit. New screens use src/ui (#105):
+// TabSkeleton → DataTable loading / Skeleton, EmptyState → ui EmptyState, Badge → ui Badge,
+// StatsCard → KpiCard, Modal → ui Modal, ConfirmModal → ConfirmDialog, ActionBtn → RowAction.
+// Removed once the last admin screen moves over (#142–#148).
 import {type ReactNode} from "react";
 import {motion} from "framer-motion";
 import {FiX} from "react-icons/fi";
