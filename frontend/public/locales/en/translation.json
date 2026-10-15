@@ -1409,5 +1409,21 @@
     "DECIDED": "{{status}}",
     "REOPENED": "Decision reopened",
     "RESUBMITTED": "Sent again"
+  },
+  "notifications": {
+    "label": "Notifications",
+    "labelUnread": "Notifications, {{count}} new",
+    "title": "Notifications",
+    "readAll": "Mark all read",
+    "empty": "Nothing new yet",
+    "loadError": "Couldn't load notifications",
+    "unread": "Unread",
+    "someone": "Anonymous",
+    "types": {
+      "NEW_SUBMISSION": "New submission to “{{form}}” from {{author}}",
+      "SUBMISSION_RESUBMITTED": "{{author}} revised and resent “{{form}}”",
+      "WEBHOOK_PROBLEM": "The webhook of “{{form}}” stopped working",
+      "BOT_REMOVED": "The bot was removed from {{server}}"
+    }
   }
 }

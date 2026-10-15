@@ -1,6 +1,7 @@
 import {useEffect, useState} from "react";
 import {AnimatePresence} from "framer-motion";
 import {useTranslation} from "react-i18next";
+import {useSearchParams} from "react-router-dom";
 import {FiArrowLeft, FiChevronLeft, FiChevronRight, FiInbox, FiRefreshCw, FiSearch, FiX} from "react-icons/fi";
 import {type DashboardForm, getGuildForms, getGuildModerators, type GuildModerator, type MyGuild} from "../../../api/dashboard";
 import {
@@ -42,8 +43,15 @@ export default function GuildModerationPanel({guild, onBack}: { guild: MyGuild; 
     const [totalPages, setTotalPages] = useState(0);
     const [totalElements, setTotalElements] = useState(0);
     const [reloadKey, setReloadKey] = useState(0);
-    // ?submission=<id> (from the ⌘K search) opens that card straight away.
-    const [openId, setOpenId] = useState<string | null>(() => new URLSearchParams(window.location.search).get("submission"));
+    // ?submission=<id> (from the ⌘K search or a notification) opens that card, also on this page.
+    const [searchParams] = useSearchParams();
+    const linked = searchParams.get("submission");
+    const [openId, setOpenId] = useState<string | null>(linked);
+    const [lastLinked, setLastLinked] = useState(linked);
+    if (linked !== lastLinked) {
+        setLastLinked(linked);
+        if (linked) setOpenId(linked);
+    }
 
     useEffect(() => {
         getGuildModerators(guild.guildId).then(setModerators).catch(() => setModerators([]));

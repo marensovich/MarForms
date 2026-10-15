@@ -1429,5 +1429,21 @@
     "DECIDED": "{{status}}",
     "REOPENED": "Решение пересмотрено",
     "RESUBMITTED": "Отправлена повторно"
+  },
+  "notifications": {
+    "label": "Уведомления",
+    "labelUnread": "Уведомления, {{count}} новых",
+    "title": "Уведомления",
+    "readAll": "Прочитать все",
+    "empty": "Пока ничего нового",
+    "loadError": "Не удалось загрузить уведомления",
+    "unread": "Не прочитано",
+    "someone": "Аноним",
+    "types": {
+      "NEW_SUBMISSION": "Новая заявка «{{form}}» от {{author}}",
+      "SUBMISSION_RESUBMITTED": "{{author}} доработал и снова отправил заявку «{{form}}»",
+      "WEBHOOK_PROBLEM": "Вебхук формы «{{form}}» перестал работать",
+      "BOT_REMOVED": "Бот удалён с сервера {{server}}"
+    }
   }
 }

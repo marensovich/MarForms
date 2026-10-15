@@ -3,6 +3,7 @@ import {useTranslation} from "react-i18next";
 import {FiChevronRight, FiSearch} from "react-icons/fi";
 import {Link} from "react-router-dom";
 import UserMenu from "./UserMenu";
+import NotificationBell from "./NotificationBell";
 
 export interface Crumb {
     label: string;
@@ -11,7 +12,7 @@ export interface Crumb {
 
 const IS_MAC = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
 
-// Docs: docs/design/mockups/Topbar.dc.html. Notifications (#123) join here.
+// Docs: docs/design/mockups/Topbar.dc.html.
 export default function Topbar({crumbs, onSearch}: { crumbs: Crumb[]; onSearch: () => void }) {
     const {t} = useTranslation();
     return (
@@ -39,6 +40,7 @@ export default function Topbar({crumbs, onSearch}: { crumbs: Crumb[]; onSearch: 
                 <span className="flex-1 truncate">{t("palette.placeholder")}</span>
                 <kbd className="rounded-md border border-bd bg-sf px-1.5 py-0.5 font-mono text-[11px]">{IS_MAC ? "⌘K" : "Ctrl K"}</kbd>
             </button>
+            <NotificationBell/>
             <UserMenu variant="topbar"/>
         </header>
     );
