@@ -10,6 +10,7 @@ import AdminRoute from "./shell/AdminRoute";
 import GuildWorkspaceRoute from "./shell/GuildWorkspaceRoute";
 import ServersTab from "./components/dashboard/ServersTab";
 import MySubmissionsPage from "./pages/MySubmissionsPage";
+import HomeRedirect from "./pages/HomeRedirect";
 import AccessScreen from "./components/access/AccessScreen";
 import {useAuth} from "./hooks/useAuth.ts";
 
@@ -32,6 +33,7 @@ export default function App() {
             <Route path="/f/:slug" element={<PublicFormPage/>}/>
 
             <Route element={<ProtectedRoute/>}>
+                <Route path="/home" element={<HomeRedirect/>}/>
                 <Route element={<DashboardLayout/>}>
                     <Route path="/dashboard" element={<ToServers/>}/>
                     <Route path="/dashboard/servers" element={<ServersTab/>}/>

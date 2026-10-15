@@ -47,24 +47,66 @@
     "loadingForm": "Loading form…"
   },
   "landing": {
-    "mySubmissions": "My submissions",
-    "subtitle": "Moderated application forms for your Discord community.",
-    "directLinkTitle": "You need a direct link",
-    "directLinkDesc": "MarForms doesn't have a public form directory. You need a direct link to access a specific form — ask staff in your Discord server.",
-    "staffTitle": "Are you staff?",
-    "staffDesc": "Dashboard access requires a role with the correct permissions. Contact your system administrator to get access.",
-    "openFormLabel": "Open a form by link",
-    "openFormPlaceholder": "https://…/forms/abc123  or  abc123",
-    "openFormButton": "Open",
-    "openFormError": "Could not recognise the form link.",
-    "howItWorks": "How it works",
-    "step1Title": "Staff creates a form",
-    "step1Desc": "Admins build forms with custom fields using the dashboard.",
-    "step2Title": "Link is shared",
-    "step2Desc": "A direct link is posted in your Discord server by staff.",
-    "step3Title": "Members apply",
-    "step3Desc": "Community members fill out the form after signing in.",
-    "footer": "MarForms · Discord Application System · Form links only"
+    "mainMenu": "Main menu",
+    "nav": {
+      "how": "How it works",
+      "staff": "For servers",
+      "mySubmissions": "My submissions"
+    },
+    "signIn": "Sign in",
+    "panel": "Dashboard",
+    "badge": "For RP servers and Discord communities",
+    "title": "Moderated application forms for your Discord community",
+    "lead": "Faction recruitment, whitelists, reports and appeals — with Discord role checks, a moderation queue and channel notifications.",
+    "openLabel": "Open a form by link",
+    "openPlaceholder": "marforms.app/f/… or a form code",
+    "openButton": "Open",
+    "openError": "This doesn't look like a form link. Paste a marforms.app/f/… link or a form code.",
+    "noCatalog": "There is no public catalogue — your server's staff give you the link to a form.",
+    "shotLabel": "Screenshot of the moderation panel",
+    "shot": {
+      "title": "Submissions · LSPD recruitment",
+      "citizen": "Citizen",
+      "trainee": "Trainee",
+      "blacklist": "Blacklist",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "how": {
+      "title": "How it works",
+      "step1Title": "Get the link",
+      "step1Desc": "Server staff post the form link in a Discord channel or on the project's forum.",
+      "step2Title": "Sign in and fill it in",
+      "step2Desc": "Sign in with Discord — MarForms checks that you're on the server and have the right role.",
+      "step3Title": "Wait for the decision",
+      "step3Desc": "Track the status in “My submissions”; the bot DMs you when a moderator answers."
+    },
+    "staff": {
+      "eyebrow": "For server staff",
+      "title": "Recruitment and moderation in one panel",
+      "connect": "Connect a server",
+      "builderTitle": "Form builder",
+      "builderDesc": "15 field types, sections and conditional logic: a question appears only after the right answer.",
+      "rolesTitle": "Role-based access",
+      "rolesDesc": "Allowed and denied Discord roles. A denial always beats an allowance.",
+      "queueTitle": "Moderation queue",
+      "queueDesc": "Approve, reject or send back for revision with a comment — in one window.",
+      "notifyTitle": "Discord notifications",
+      "notifyDesc": "Webhooks to server channels and a DM to the author about the decision.",
+      "auditTitle": "Audit log",
+      "auditDesc": "Who decided, changed a form or issued a ban, and when.",
+      "bansTitle": "Bans and moderators",
+      "bansDesc": "A moderator list and ban list for each server."
+    },
+    "footer": {
+      "copyright": "© 2026 MarForms. Not affiliated with Discord Inc. or Rockstar Games.",
+      "label": "Footer",
+      "terms": "Terms",
+      "privacy": "Privacy",
+      "support": "Support",
+      "status": "Status"
+    }
   },
   "form": {
     "file": {

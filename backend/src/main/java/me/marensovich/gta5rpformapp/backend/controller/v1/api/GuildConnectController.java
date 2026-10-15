@@ -71,6 +71,10 @@ public class GuildConnectController {
                 + "?client_id=" + discordClientId
                 + "&scope=" + encode("bot applications.commands")
                 + "&permissions=" + BOT_PERMISSIONS
+                // Discord sends the browser back with guild_id only in the code flow; the
+                // redirect_uri must be listed under OAuth2 > Redirects, or Discord answers
+                // "Invalid OAuth2 redirect_uri" before the consent screen.
+                + "&response_type=code"
                 + "&redirect_uri=" + encode(botInstallRedirectUri)
                 + "&state=" + encode(state);
         return Map.of("url", url);

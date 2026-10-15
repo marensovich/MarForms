@@ -29,7 +29,8 @@ export default function AuthCallback() {
             .then(token => login(token))
             .then(() => {
                 const redirectPath = consumeRedirectPath();
-                navigate(redirectPath ?? "/", {replace: true});
+                // No page to return to: the panel or «Мои заявки», by role.
+                navigate(redirectPath ?? "/home", {replace: true});
             })
             .catch(() => navigate("/login", {replace: true}));
     }, [searchParams, login, navigate]);

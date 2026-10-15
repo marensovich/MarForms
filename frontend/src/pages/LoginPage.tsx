@@ -5,6 +5,8 @@ import {FiFileText, FiShield, FiZap} from "react-icons/fi";
 import {useTranslation} from "react-i18next";
 import {fetchPublicSettings} from "../api/settings";
 import {useEffect, useState} from "react";
+import {Navigate} from "react-router-dom";
+import {useAuth} from "../hooks/useAuth";
 
 const FEATURE_ICONS = [FiFileText, FiShield, FiZap];
 const FEATURE_KEYS = ["formBuilder", "roleControl", "instantDelivery"] as const;
@@ -12,12 +14,16 @@ const FEATURE_KEYS = ["formBuilder", "roleControl", "instantDelivery"] as const;
 export default function LoginPage() {
     const {t} = useTranslation();
     const [systemName, setSystemName] = useState("MarForms");
+    const {user, loading} = useAuth();
 
     useEffect(() => {
         fetchPublicSettings()
             .then(s => { if (s.systemName) setSystemName(s.systemName); })
             .catch(() => {});
     }, []);
+
+    // Already signed in: straight to the panel or «Мои заявки».
+    if (!loading && user) return <Navigate to="/home" replace/>;
 
     return (
         <div
