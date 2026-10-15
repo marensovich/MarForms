@@ -2,7 +2,8 @@ import {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {AnimatePresence} from "framer-motion";
 import {useTranslation} from "react-i18next";
-import {FiChevronRight, FiCreditCard, FiExternalLink, FiInbox, FiList, FiServer, FiSlash, FiUsers} from "react-icons/fi";
+import {FiChevronRight, FiCreditCard, FiExternalLink, FiInbox, FiList, FiServer, FiSlash, FiUsers, FiX} from "react-icons/fi";
+import {ApiError} from "../../api/client";
 import {getGuildConnectUrl, getMyGuilds, type MyGuild} from "../../api/dashboard";
 import {ActionBtn, Badge, EmptyState, TabSkeleton} from "./shared";
 import ModeratorsModal from "./ModeratorsModal";
@@ -25,6 +26,14 @@ export default function ServersTab() {
     const [bansGuild, setBansGuild] = useState<MyGuild | null>(null);
     const [billingGuild, setBillingGuild] = useState<MyGuild | null>(null);
     const [checkoutResult, setCheckoutResult] = useState<"success" | "cancel" | null>(null);
+    // The result of a bot install: Discord comes back to /dashboard/servers?connectedGuild=… (#151).
+    const [connectBanner, setConnectBanner] = useState<{ type: "success" | "error"; guildId?: string; reason?: string } | null>(() => {
+        const params = new URLSearchParams(window.location.search);
+        const connectedGuild = params.get("connectedGuild");
+        const connectError = params.get("guildConnectError");
+        if (connectedGuild) return {type: "success", guildId: connectedGuild};
+        return connectError ? {type: "error", reason: connectError} : null;
+    });
 
     useEffect(() => {
         let cancelled = false;
@@ -35,6 +44,9 @@ export default function ServersTab() {
                 setGuilds(staffGuilds);
                 // Back from Stripe Checkout: reopen that server's billing with the outcome.
                 const params = new URLSearchParams(window.location.search);
+                if (params.has("connectedGuild") || params.has("guildConnectError")) {
+                    window.history.replaceState(null, "", window.location.pathname);
+                }
                 const returning = staffGuilds.find(g => g.guildId === params.get("billing") && g.role === "OWNER");
                 if (returning) {
                     const result = params.get("checkout");
@@ -56,6 +68,8 @@ export default function ServersTab() {
         try {
             const {url} = await getGuildConnectUrl();
             window.location.href = url;
+        } catch (e) {
+            setConnectBanner({type: "error", reason: e instanceof ApiError && e.status === 429 ? "tooMany" : "start"});
         } finally {
             setConnecting(false);
         }
@@ -77,6 +91,25 @@ export default function ServersTab() {
                     {t("forms.connectServer")}
                 </button>
             </div>
+
+            {connectBanner && (
+                <div role={connectBanner.type === "error" ? "alert" : "status"}
+                     className={`mb-6 flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm ${
+                         connectBanner.type === "success" ? "border-gnb bg-gnb text-gnt" : "border-rdb bg-rdb text-rdt"}`}>
+                    <span>
+                        {connectBanner.type === "success"
+                            ? t("forms.connectSuccess", {guildId: connectBanner.guildId})
+                            : connectBanner.reason === "manager" ? t("forms.connectErrorManager")
+                                : connectBanner.reason === "bot" ? t("forms.connectErrorBot")
+                                    : connectBanner.reason === "tooMany" ? t("forms.connectErrorTooMany")
+                                        : t("forms.connectError")}
+                    </span>
+                    <button type="button" onClick={() => setConnectBanner(null)} aria-label={t("common.close")}
+                            className="flex-shrink-0 opacity-70 hover:opacity-100">
+                        <FiX size={14}/>
+                    </button>
+                </div>
+            )}
 
             {loading ? (
                 <TabSkeleton rows={3}/>

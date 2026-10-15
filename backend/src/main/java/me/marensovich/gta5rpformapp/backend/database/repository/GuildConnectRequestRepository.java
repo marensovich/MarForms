@@ -25,4 +25,7 @@ public interface GuildConnectRequestRepository extends JpaRepository<GuildConnec
     @Transactional
     @Query("DELETE FROM GuildConnectRequest r WHERE r.expiresAt < :now")
     int deleteExpired(LocalDateTime now);
+
+    /** Unexpired installs a user has started and not finished (expired ones are deleted first). */
+    long countByDiscordId(Long discordId);
 }

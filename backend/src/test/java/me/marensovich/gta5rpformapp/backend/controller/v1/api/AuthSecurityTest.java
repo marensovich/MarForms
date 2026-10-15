@@ -43,7 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AuthSecurityTest {
 
     private static final long GUILD = 9301L;
-    private static final String DASHBOARD = "http://localhost:5173/dashboard";
+    private static final String DASHBOARD = "http://localhost:5173/dashboard/servers";
 
     @Autowired
     private MockMvc mvc;
@@ -128,6 +128,19 @@ class AuthSecurityTest {
         mvc.perform(get("/api/v1/guilds/connect/callback").param("guild_id", String.valueOf(GUILD)).param("state", state))
                 .andExpect(redirectedUrl(DASHBOARD + "?guildConnectError=bot"));
         assertThat(ownsGuild()).isFalse();
+    }
+
+    @Test
+    void anyUserMayStartAnInstallButNotEndlessly() throws Exception {
+        // installer has no platform role (#151): Discord decides in the callback.
+        String jwt = jwtUtil.generateToken(installer.getDiscordId());
+        for (int i = 0; i < 10; i++) {
+            mvc.perform(get("/api/v1/guilds/connect").header("Authorization", "Bearer " + jwt))
+                    .andExpect(status().isOk());
+        }
+        mvc.perform(get("/api/v1/guilds/connect").header("Authorization", "Bearer " + jwt))
+                .andExpect(status().isTooManyRequests());
+        mvc.perform(get("/api/v1/guilds/connect")).andExpect(status().isUnauthorized());
     }
 
     private boolean ownsGuild() {

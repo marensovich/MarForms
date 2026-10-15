@@ -7,7 +7,6 @@ import me.marensovich.gta5rpformapp.backend.config.security.CustomUserDetails;
 import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.service.GuildConnectService;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,13 +56,13 @@ public class GuildConnectController {
 
     /**
      * Builds the Discord "add bot to server" URL for the current user, with a
-     * fresh one-time nonce as {@code state}.
+     * fresh one-time nonce as {@code state}. Open to any signed-in user: who may
+     * connect a guild is decided by Discord in the callback (owner or Manage Server, #151).
      *
      * @param principal the signed-in user
      * @return a map with a single {@code url} key to redirect the browser to
      * @since v.0.1
      */
-    @PreAuthorize("hasAuthority('FORMS_MANAGE')")
     @GetMapping
     public Map<String, String> connectUrl(@AuthenticationPrincipal CustomUserDetails principal) {
         String state = guildConnectService.start(principal.getDiscordId());
@@ -98,12 +97,12 @@ public class GuildConnectController {
     ) throws IOException {
         GuildConnectService.Outcome outcome = guildConnectService.complete(state, guildId);
         switch (outcome) {
-            case CONNECTED -> response.sendRedirect(frontendUrl + "/dashboard?connectedGuild=" + guildId);
-            case NOT_GUILD_MANAGER -> response.sendRedirect(frontendUrl + "/dashboard?guildConnectError=manager");
-            case BOT_NOT_IN_GUILD -> response.sendRedirect(frontendUrl + "/dashboard?guildConnectError=bot");
+            case CONNECTED -> response.sendRedirect(frontendUrl + "/dashboard/servers?connectedGuild=" + guildId);
+            case NOT_GUILD_MANAGER -> response.sendRedirect(frontendUrl + "/dashboard/servers?guildConnectError=manager");
+            case BOT_NOT_IN_GUILD -> response.sendRedirect(frontendUrl + "/dashboard/servers?guildConnectError=bot");
             case INVALID_STATE -> {
                 log.warn("Bot-install callback with a missing, unknown or reused state");
-                response.sendRedirect(frontendUrl + "/dashboard?guildConnectError=state");
+                response.sendRedirect(frontendUrl + "/dashboard/servers?guildConnectError=state");
             }
         }
     }

@@ -30,7 +30,6 @@ import {
     FiToggleLeft,
     FiToggleRight,
     FiTrash2,
-    FiX,
 } from "react-icons/fi";
 
 type StatusFilter = "all" | "active" | "inactive";
@@ -162,7 +161,6 @@ export default function FormsTab() {
     const [responsesForm, setResponsesForm] = useState<DashboardForm | null>(null);
     const [editForm, setEditForm] = useState<DashboardForm | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<DashboardForm | null>(null);
-    const [connectBanner, setConnectBanner] = useState<{ type: "success" | "error"; guildId?: string; reason?: string } | null>(null);
     const [connecting, setConnecting] = useState(false);
     const [guilds, setGuilds] = useState<MyGuild[]>([]);
     const [guildsLoading, setGuildsLoading] = useState(true);
@@ -178,24 +176,6 @@ export default function FormsTab() {
 
     useEffect(() => {
         loadGuilds();
-    }, []);
-
-    useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const connectedGuild = params.get("connectedGuild");
-        const connectError = params.get("guildConnectError");
-        if (connectedGuild) {
-            setConnectBanner({type: "success", guildId: connectedGuild});
-            loadGuilds();
-        } else if (connectError) {
-            setConnectBanner({type: "error", reason: connectError});
-        }
-        if (connectedGuild || connectError) {
-            params.delete("connectedGuild");
-            params.delete("guildConnectError");
-            const query = params.toString();
-            window.history.replaceState({}, "", window.location.pathname + (query ? `?${query}` : ""));
-        }
     }, []);
 
     const handleConnect = async () => {
@@ -273,25 +253,6 @@ export default function FormsTab() {
             </div>
 
             {/* Connect result banner */}
-            {connectBanner && (
-                <div className={`mb-6 flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm ${
-                    connectBanner.type === "success"
-                        ? "border-gnb bg-gnb text-gnt"
-                        : "border-rdb bg-rdb text-rdt"
-                }`}>
-                    <span>
-                        {connectBanner.type === "success"
-                            ? t("forms.connectSuccess", {guildId: connectBanner.guildId})
-                            : connectBanner.reason === "manager" ? t("forms.connectErrorManager")
-                                : connectBanner.reason === "bot" ? t("forms.connectErrorBot")
-                                    : t("forms.connectError")}
-                    </span>
-                    <button onClick={() => setConnectBanner(null)} className="flex-shrink-0 opacity-70 hover:opacity-100">
-                        <FiX size={14}/>
-                    </button>
-                </div>
-            )}
-
             {/* Connected servers */}
             {!guildsLoading && guilds.length > 0 && (
                 <div className="mb-6">

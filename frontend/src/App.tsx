@@ -49,14 +49,8 @@ export default function App() {
         </Routes>
     );
 }
-/**
- * Old /dashboard links land on the servers page, keeping the query (billing return).
- * The guild-connect callback (/dashboard?connectedGuild=…) shows its result banner on
- * the platform forms page, where the connect button is until #151.
- */
+/** Old /dashboard links land on the servers page, keeping the query (billing and bot-install returns). */
 function ToServers() {
     const {search} = useLocation();
-    const params = new URLSearchParams(search);
-    const connectResult = params.has("connectedGuild") || params.has("guildConnectError");
-    return <Navigate to={{pathname: connectResult ? "/admin/forms" : "/dashboard/servers", search}} replace/>;
+    return <Navigate to={{pathname: "/dashboard/servers", search}} replace/>;
 }

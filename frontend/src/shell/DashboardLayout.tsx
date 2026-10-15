@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {useTranslation} from "react-i18next";
-import {matchPath, Navigate, Outlet, useLocation, useNavigate} from "react-router-dom";
+import {matchPath, Outlet, useLocation, useNavigate} from "react-router-dom";
 import {getMyGuilds, type MyGuild} from "../api/dashboard";
 import LoadingScreen from "../components/LoadingScreen";
 import {useAuth} from "../hooks/useAuth";
@@ -83,12 +83,10 @@ export default function DashboardLayout() {
         return [servers];
     }, [location.pathname, guilds, t]);
 
-    // Owners and moderators of a server get in without the platform DASHBOARD_ACCESS permission.
+    // Owners and moderators of a server get in without the platform DASHBOARD_ACCESS permission;
+    // anyone signed in may open «Мои серверы» to connect a server (#151).
     const platformStaff = user?.permissions.includes("DASHBOARD_ACCESS") ?? false;
     if (!platformStaff && guilds === null) return <LoadingScreen/>;
-    if (!platformStaff && guilds !== null && guilds.length === 0 && !user?.permissions.includes("FORMS_MANAGE")) {
-        return <Navigate to="/" replace/>;
-    }
 
     return (
         <div className="flex min-h-screen bg-bg text-tx">

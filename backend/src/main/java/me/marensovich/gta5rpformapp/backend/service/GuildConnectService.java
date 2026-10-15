@@ -8,6 +8,7 @@ import me.marensovich.gta5rpformapp.backend.database.entity.GuildConnectRequest;
 import me.marensovich.gta5rpformapp.backend.database.entity.User;
 import me.marensovich.gta5rpformapp.backend.database.repository.GuildConnectRequestRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.UserRepository;
+import me.marensovich.gta5rpformapp.backend.exception.TooManyRequestsException;
 import me.marensovich.gta5rpformapp.backend.service.discord.DiscordBotClient;
 import me.marensovich.gta5rpformapp.backend.service.discord.DiscordBotClient.GuildManagerCheck;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +38,8 @@ import java.util.Map;
 public class GuildConnectService {
 
     static final Duration REQUEST_TTL = Duration.ofMinutes(15);
+    /** Open installs per user within {@link #REQUEST_TTL}; any user may start one (#151). */
+    static final int MAX_OPEN_REQUESTS = 10;
 
     private final GuildConnectRequestRepository requestRepository;
     private final UserRepository userRepository;
@@ -75,10 +78,14 @@ public class GuildConnectService {
      *
      * @param discordId the signed-in user's Discord ID
      * @return the nonce to send as OAuth {@code state}
+     * @throws TooManyRequestsException if the user has too many unfinished installs
      * @since v.0.1
      */
     public String start(Long discordId) {
         requestRepository.deleteExpired(LocalDateTime.now());
+        if (requestRepository.countByDiscordId(discordId) >= MAX_OPEN_REQUESTS) {
+            throw new TooManyRequestsException("Too many server connections started — try again in a few minutes");
+        }
         String nonce = Sha256.randomToken();
 
         GuildConnectRequest request = new GuildConnectRequest();

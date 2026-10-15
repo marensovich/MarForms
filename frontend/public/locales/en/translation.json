@@ -18,7 +18,8 @@
     "unknown": "Unknown",
     "confirm": "Confirm",
     "clearFilters": "Clear filters",
-    "remove": "Remove"
+    "remove": "Remove",
+    "close": "Close"
   },
   "nav": {
     "servers": "Servers",
@@ -233,6 +234,7 @@
     "connectError": "Could not connect the server. Please try again.",
     "connectErrorManager": "Server not connected: only its owner or a member with Manage Server can connect it.",
     "connectErrorBot": "Server not connected: the bot did not join it. Please install the bot again.",
+    "connectErrorTooMany": "Too many unfinished connections. Wait a few minutes and try again.",
     "guilds": {
       "title": "Connected servers",
       "connected": "Connected",
