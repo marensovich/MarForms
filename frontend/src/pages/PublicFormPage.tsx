@@ -90,7 +90,7 @@ export default function PublicFormPage() {
         return (
             <AccessScreen code={form.viewerAccess} details={form.access}
                           form={{slug: form.slug, title: form.schema.title, guildName: form.guildName, guildIconUrl: form.guildIconUrl}}
-                          onRetry={() => retry(rolesCode)}/>
+                          reminderSet={form.reminderSet} onRetry={() => retry(rolesCode)}/>
         );
     }
 

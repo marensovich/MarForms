@@ -1,8 +1,9 @@
-import type {ReactNode} from "react";
+import {type ReactNode, useState} from "react";
 import {useTranslation} from "react-i18next";
 import {
     FiAlertCircle,
     FiArchive,
+    FiBell,
     FiCheck,
     FiClock,
     FiLock,
@@ -14,7 +15,7 @@ import {
     FiXCircle,
 } from "react-icons/fi";
 import {Link, useNavigate} from "react-router-dom";
-import type {AccessDetails} from "../../api/forms";
+import {type AccessDetails, remindWhenOpen} from "../../api/forms";
 import {loginWithDiscord} from "../../api/auth";
 import {saveRedirectPath} from "../../auth/redirectStorage";
 import {useAuth} from "../../hooks/useAuth";
@@ -46,12 +47,15 @@ export interface AccessScreenProps {
     onRetry?: () => void;
     /** ACCOUNT_RESTRICTED: the platform's text for restricted users. */
     restrictionMessage?: string;
+    /** NOT_OPEN_YET: the viewer already asked to be reminded (#121). */
+    reminderSet?: boolean;
 }
 
-export default function AccessScreen({code, details, form, error, onRetry, restrictionMessage}: AccessScreenProps) {
+export default function AccessScreen({code, details, form, error, onRetry, restrictionMessage, reminderSet}: AccessScreenProps) {
     const {t, i18n} = useTranslation();
     const navigate = useNavigate();
-    const {logout} = useAuth();
+    const {user, logout} = useAuth();
+    const [reminder, setReminder] = useState<"idle" | "busy" | "set" | "failed">(reminderSet ? "set" : "idle");
     const config = ACCESS_SCREENS[code];
     const locale = i18n?.language || "ru";
     const server = form?.guildName ?? t("accessScreen.theServer");
@@ -91,6 +95,17 @@ export default function AccessScreen({code, details, form, error, onRetry, restr
                 return;
             case "otherLink":
                 navigate("/");
+                return;
+            case "remind":
+                if (!form) return;
+                // Signed out: sign in first, then come back to this form.
+                if (!user) {
+                    saveRedirectPath(`/f/${form.slug}`);
+                    loginWithDiscord();
+                    return;
+                }
+                setReminder("busy");
+                remindWhenOpen(form.slug).then(() => setReminder("set")).catch(() => setReminder("failed"));
         }
     };
 
@@ -148,7 +163,13 @@ export default function AccessScreen({code, details, form, error, onRetry, restr
                                 <Button variant="discord" size="lg" onClick={() => run("login")} icon={<DiscordLogo size={20}/>} className="w-full sm:w-auto">
                                     {t("accessScreen.actions.login")}
                                 </Button>
-                            ) : config.primary && (config.primary !== "previousSubmission" || details?.previousSubmissionId) && (
+                            ) : config.primary === "remind" ? (form && (
+                                <Button size="lg" onClick={() => run("remind")} disabled={reminder === "set"} loading={reminder === "busy"}
+                                        icon={reminder === "set" ? <FiCheck aria-hidden="true"/> : <FiBell aria-hidden="true"/>}
+                                        className="w-full sm:w-auto">
+                                    {t(reminder === "set" ? "accessScreen.actions.reminded" : "accessScreen.actions.remind")}
+                                </Button>
+                            )) : config.primary && (config.primary !== "previousSubmission" || details?.previousSubmissionId) && (
                                 <Button size="lg" onClick={() => run(config.primary!)} className="w-full sm:w-auto">
                                     {t(`accessScreen.actions.${config.primary}`)}
                                 </Button>
@@ -157,6 +178,9 @@ export default function AccessScreen({code, details, form, error, onRetry, restr
                                 {t(`accessScreen.actions.${config.secondary}`)}
                             </Button>
                         </div>
+                        {reminder === "failed" && (
+                            <p role="alert" className="m-0 text-[13px] text-rdt">{t("accessScreen.remindFailed")}</p>
+                        )}
                     </section>
                     <span className="self-center font-mono text-xs text-mu">{technicalCode(code, error)}</span>
                 </div>

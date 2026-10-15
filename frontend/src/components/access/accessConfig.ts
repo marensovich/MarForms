@@ -6,7 +6,8 @@ import type {ViewerAccess} from "../../api/forms";
 export type AccessScreenCode = Exclude<ViewerAccess, "GRANTED"> | "ERROR";
 export type AccessTone = "primary" | "amber" | "red" | "neutral";
 export type AccessIcon = "lock" | "user" | "ban" | "shield" | "x" | "refresh" | "clock" | "box" | "search" | "alert" | "check";
-export type AccessAction = "login" | "checkRoles" | "retry" | "mySubmissions" | "previousSubmission" | "home" | "logout" | "otherLink";
+export type AccessAction = "login" | "checkRoles" | "retry" | "mySubmissions" | "previousSubmission" | "home" | "logout" | "otherLink"
+    | "remind";
 
 export interface AccessScreenConfig {
     tone: AccessTone;
@@ -24,7 +25,7 @@ export const ACCESS_SCREENS: Record<AccessScreenCode, AccessScreenConfig> = {
     ROLE_REQUIRED: {tone: "amber", icon: "shield", primary: "checkRoles", secondary: "mySubmissions", server: true},
     ROLE_DENIED: {tone: "red", icon: "x", secondary: "mySubmissions", server: true},
     ROLE_CHECK_FAILED: {tone: "amber", icon: "refresh", primary: "checkRoles", secondary: "mySubmissions", server: true},
-    NOT_OPEN_YET: {tone: "primary", icon: "clock", secondary: "home", server: true},
+    NOT_OPEN_YET: {tone: "primary", icon: "clock", primary: "remind", secondary: "home", server: true},
     FORM_CLOSED: {tone: "neutral", icon: "lock", secondary: "mySubmissions", server: true},
     FORM_ARCHIVED: {tone: "neutral", icon: "box", secondary: "mySubmissions", server: true},
     FORM_NOT_FOUND: {tone: "neutral", icon: "search", primary: "home", secondary: "mySubmissions", server: false},

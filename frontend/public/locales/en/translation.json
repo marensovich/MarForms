@@ -1331,7 +1331,9 @@
       "previousSubmission": "Open my submission",
       "home": "Home",
       "logout": "Sign out",
-      "otherLink": "Enter another link"
+      "otherLink": "Enter another link",
+      "remind": "Remind me in Discord",
+      "reminded": "We'll remind you in Discord"
     },
     "AUTH_REQUIRED": {
       "badge": "Sign-in needed",
@@ -1398,7 +1400,8 @@
       "badge": "Already submitted",
       "title": "You have already applied",
       "text": "You can't submit this form again. Its status is in My submissions."
-    }
+    },
+    "remindFailed": "Couldn't save the reminder. Try again."
   },
   "submissionHistory": {
     "title": "History",

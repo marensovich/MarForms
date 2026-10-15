@@ -80,6 +80,7 @@ public class FormService {
     private final PlanLimitService planLimitService;
     private final me.marensovich.gta5rpformapp.backend.service.files.FileService fileService;
     private final org.springframework.transaction.support.TransactionTemplate transactionTemplate;
+    private final me.marensovich.gta5rpformapp.backend.database.repository.FormReminderRepository formReminderRepository;
 
     // ── Lookup ──────────────────────────────────────────────────────────────
 
@@ -356,6 +357,7 @@ public class FormService {
         // the respondents' data is left behind out of everyone's reach (#103).
         fileService.deleteForForm(formId);
         long removed = submissionRepository.deleteAllByFormId(formId);
+        formReminderRepository.deleteAllByFormId(formId);
         formRepository.delete(form);
         if (form.getServerId() != null) {
             auditLogService.logGuildAction(form.getServerId(), AuditAction.FORM_DELETED, "FORM", formId.toString(),

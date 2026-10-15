@@ -38,6 +38,13 @@ export interface PublicForm {
     guildId: string | null;
     viewerAccess: ViewerAccess;
     access: AccessDetails;
+    /** The viewer asked to be reminded in Discord when the form opens (#121). */
+    reminderSet?: boolean;
+}
+
+/** «Напомнить в Discord»: the bot DMs the link when the form opens (#121). Needs a session. */
+export function remindWhenOpen(slug: string): Promise<void> {
+    return apiRequest(`/public/forms/${encodeURIComponent(slug)}/reminders`, {method: "POST"});
 }
 
 export interface SubmissionReceipt {

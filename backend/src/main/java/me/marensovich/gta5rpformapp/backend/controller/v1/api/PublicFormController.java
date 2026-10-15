@@ -18,6 +18,7 @@ import me.marensovich.gta5rpformapp.backend.exception.NotFoundException;
 import me.marensovich.gta5rpformapp.backend.service.SubmissionService;
 import me.marensovich.gta5rpformapp.backend.service.files.FileService;
 import me.marensovich.gta5rpformapp.backend.service.forms.FormAccessService;
+import me.marensovich.gta5rpformapp.backend.service.forms.FormReminderService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -51,6 +52,7 @@ public class PublicFormController {
     private final FormAccessService formAccessService;
     private final SubmissionService submissionService;
     private final FileService fileService;
+    private final FormReminderService formReminderService;
 
     /**
      * The form as a respondent sees it (task #48), plus whether the current
@@ -75,7 +77,24 @@ public class PublicFormController {
         return PublicFormDto.from(form, SubmissionService.notAcceptingReason(form),
                 guild != null ? guild.getName() : null, guild != null ? guild.iconUrl() : null,
                 formAccessService.evaluate(form, principal != null ? principal.getUser() : null,
-                        SubmissionService.hashAnonymousToken(form, anonymousToken), refreshRoles));
+                        SubmissionService.hashAnonymousToken(form, anonymousToken), refreshRoles),
+                formReminderService.isSubscribed(form, principal != null ? principal.getDiscordId() : null));
+    }
+
+    /**
+     * «Напомнить в Discord» (#121): the bot DMs the signed-in user the form's link
+     * when it opens. One reminder per user and form; asking again changes nothing.
+     *
+     * @param slug      the public slug
+     * @param principal the signed-in user
+     * @return 204; 401 signed out, 409 if the form isn't waiting to open
+     * @since v.0.1
+     */
+    @PostMapping("/forms/{slug}/reminders")
+    public ResponseEntity<Void> remind(@PathVariable String slug, @AuthenticationPrincipal CustomUserDetails principal) {
+        if (principal == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        formReminderService.subscribe(findVisible(slug), principal.getDiscordId());
+        return ResponseEntity.noContent().build();
     }
 
     /**

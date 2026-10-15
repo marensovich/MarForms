@@ -104,3 +104,39 @@ describe("AccessScreen", () => {
         expect(technicalCode("FORM_CLOSED")).toBe("FORM_CLOSED");
     });
 });
+
+const remind = vi.fn();
+vi.mock("../../api/forms", () => ({remindWhenOpen: (slug: string) => remind(slug)}));
+
+describe("remind me when the form opens (#121)", () => {
+    afterEach(() => remind.mockReset());
+
+    it("subscribes a signed-in user and says it will remind", async () => {
+        remind.mockResolvedValue(undefined);
+        const user = userEvent.setup();
+        render(
+            <AuthContext.Provider value={{
+                user: {id: "1", discordUsername: "d", avatarUrl: null, role: "", guildIds: [], permissions: [], permissionsHash: "h"},
+                loading: false, login: async () => {}, logout: () => {}, banData: null,
+            }}>
+                <MemoryRouter><AccessScreen code="NOT_OPEN_YET" form={FORM} details={{opensAt: "2026-10-20T18:00:00"}}/></MemoryRouter>
+            </AuthContext.Provider>,
+        );
+        await user.click(screen.getByRole("button", {name: "accessScreen.actions.remind"}));
+        expect(remind).toHaveBeenCalledWith("lspd");
+        expect(await screen.findByRole("button", {name: "accessScreen.actions.reminded"})).toHaveProperty("disabled", true);
+    });
+
+    it("asks a visitor to sign in first", async () => {
+        const user = userEvent.setup();
+        show(<AccessScreen code="NOT_OPEN_YET" form={FORM} details={{opensAt: "2026-10-20T18:00:00"}}/>);
+        await user.click(screen.getByRole("button", {name: "accessScreen.actions.remind"}));
+        expect(login).toHaveBeenCalled();
+        expect(remind).not.toHaveBeenCalled();
+    });
+
+    it("shows a reminder already set", () => {
+        show(<AccessScreen code="NOT_OPEN_YET" form={FORM} reminderSet/>);
+        expect(screen.getByRole("button", {name: "accessScreen.actions.reminded"})).toHaveProperty("disabled", true);
+    });
+});

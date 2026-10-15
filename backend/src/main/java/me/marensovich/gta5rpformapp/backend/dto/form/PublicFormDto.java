@@ -52,10 +52,19 @@ public record PublicFormDto(
         String guildName,
         String guildIconUrl,
         AccessCode viewerAccess,
-        AccessDetailsDto access
+        AccessDetailsDto access,
+        boolean reminderSet
 ) {
     public static PublicFormDto from(Form form, String notAcceptingReason, String guildName, String guildIconUrl,
                                      FormAccessService.Decision decision) {
+        return from(form, notAcceptingReason, guildName, guildIconUrl, decision, false);
+    }
+
+    /**
+     * As above, with whether the viewer asked to be reminded when the form opens (#121).
+     */
+    public static PublicFormDto from(Form form, String notAcceptingReason, String guildName, String guildIconUrl,
+                                     FormAccessService.Decision decision, boolean reminderSet) {
         return new PublicFormDto(
                 form.getId(),
                 form.getSlug(),
@@ -72,7 +81,8 @@ public record PublicFormDto(
                 guildName,
                 guildIconUrl,
                 decision.code(),
-                decision.details()
+                decision.details(),
+                reminderSet
         );
     }
 }
