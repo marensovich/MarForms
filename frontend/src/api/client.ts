@@ -7,18 +7,35 @@ export const API: string = import.meta.env.VITE_API_URL ?? "http://localhost:809
 
 export class ApiError extends Error {
     public status: number;
+    /** The JSON error body, when the server sent one: {error, code, details, correlationId…}. */
+    public body: { error?: string; code?: string; details?: unknown; correlationId?: string } | null;
 
     constructor(status: number, message: string) {
         super(message);
         this.status = status;
         this.name = "ApiError";
+        try {
+            const parsed = JSON.parse(message);
+            this.body = parsed && typeof parsed === "object" ? parsed : null;
+        } catch {
+            this.body = null;
+        }
+    }
+
+    /** Access code of a refused form action (ТЗ 3.5, #110), if any. */
+    get code(): string | undefined {
+        return this.body?.code;
     }
 }
 
 export interface BannedError {
     banned: true;
+    code?: "ACCOUNT_RESTRICTED";
     message: string;
     contact: string;
+    permanent?: boolean;
+    /** End of a time-out (local ISO), absent when permanent. */
+    until?: string | null;
 }
 
 export class BanError extends Error {

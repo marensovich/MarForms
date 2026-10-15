@@ -100,7 +100,22 @@ public class FormAccessService {
      * @since v.0.1
      */
     public Decision evaluate(Form form, @Nullable User user, @Nullable String anonymousTokenHash) {
-        Decision blocked = checkWithoutLimit(form, user);
+        return evaluate(form, user, anonymousTokenHash, false);
+    }
+
+    /**
+     * As {@link #evaluate(Form, User, String)}; {@code refreshRoles} re-reads the
+     * member's Discord roles past the cache — "check my roles again" (ТЗ 3.5).
+     *
+     * @param form               the form
+     * @param user               the current user, or {@code null}
+     * @param anonymousTokenHash the hashed Anonymous-Token, if sent
+     * @param refreshRoles       skip the role cache's TTL
+     * @return the outcome with its details
+     * @since v.0.1
+     */
+    public Decision evaluate(Form form, @Nullable User user, @Nullable String anonymousTokenHash, boolean refreshRoles) {
+        Decision blocked = checkWithoutLimit(form, user, refreshRoles);
         if (!blocked.granted()) return blocked;
         return checkLimit(form, form.getAccessMode() == FormAccessMode.ANONYMOUS ? null : user, anonymousTokenHash);
     }
@@ -114,7 +129,7 @@ public class FormAccessService {
      * @since v.0.1
      */
     public AccessCode check(Form form, @Nullable User user) {
-        return checkWithoutLimit(form, user).code();
+        return checkWithoutLimit(form, user, false).code();
     }
 
     /**
@@ -128,7 +143,7 @@ public class FormAccessService {
      * @since v.0.1
      */
     public void requireAccess(Form form, @Nullable User user) {
-        Decision decision = checkWithoutLimit(form, user);
+        Decision decision = checkWithoutLimit(form, user, false);
         if (!decision.granted()) throw refusal(decision);
     }
 
@@ -158,7 +173,7 @@ public class FormAccessService {
         return new FormAccessException(decision.code(), message, decision.details());
     }
 
-    private Decision checkWithoutLimit(Form form, @Nullable User user) {
+    private Decision checkWithoutLimit(Form form, @Nullable User user, boolean refreshRoles) {
         if (user != null && user.isCurrentlyBanned()) {
             // Normally unreachable: the JWT filter already refuses a restricted account.
             return new Decision(AccessCode.ACCOUNT_RESTRICTED, AccessDetailsDto.restriction(null, null,
@@ -187,7 +202,7 @@ public class FormAccessService {
 
         guildMembershipService.ensureMembership(user.getDiscordId(), form.getServerId(), GuildRole.RESPONDENT);
         // Refreshed only once the TTL has lapsed (#64).
-        List<Long> roles = guildMembershipService.syncDiscordRolesIfStale(user.getDiscordId(), form.getServerId())
+        List<Long> roles = guildMembershipService.syncDiscordRoles(user.getDiscordId(), form.getServerId(), refreshRoles)
                 .map(GuildMembership::getDiscordRoles)
                 .orElse(null);
         if (form.getAccessMode() != FormAccessMode.ROLE_GATED) return Decision.of(AccessCode.GRANTED);

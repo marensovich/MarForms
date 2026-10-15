@@ -46,61 +46,6 @@
     "checkingAccess": "Checking access…",
     "loadingForm": "Loading form…"
   },
-  "accessStates": {
-    "footer": "MarForms · Discord Application Forms",
-    "notAuthenticated": {
-      "badge": "Authentication required",
-      "title": "Sign in required",
-      "description": "This form requires you to sign in with Discord before you can continue. You'll be redirected back here after signing in.",
-      "signIn": "Sign in with Discord",
-      "redirectNote": "You'll be redirected back to this form after signing in"
-    },
-    "banned": {
-      "badge": "Access denied",
-      "title": "You can't fill in this server's forms",
-      "description": "The server's moderators have restricted your access to its forms. If you think this is a mistake, contact the server staff."
-    },
-    "notInGuild": {
-      "badge": "Access restricted",
-      "title": "Server membership required",
-      "description": "This form is linked to a Discord server that you are not a member of. Join the server first, then try opening the form link again.",
-      "hint": "Join the linked Discord server to gain access to this form."
-    },
-    "formInactive": {
-      "badge": "Submissions closed",
-      "title": "Form is closed",
-      "description": "This form is no longer accepting new responses. It may have been closed by the administrator or has reached its submission limit.",
-      "hint": "If you believe this is a mistake, contact the server staff."
-    },
-    "formNotFound": {
-      "badge": "404 · Not found",
-      "title": "Form not found",
-      "description": "The form you're looking for doesn't exist or has been permanently deleted. Double-check the link you were given.",
-      "hint": "Make sure you're using the correct link from your Discord server."
-    },
-    "formError": {
-      "badge": "Server error",
-      "title": "Something went wrong",
-      "description": "We couldn't load this form due to a server error. This is likely a temporary issue — please try again in a moment.",
-      "tryAgain": "Try again"
-    },
-    "roleGate": {
-      "badge": "Access restricted",
-      "ROLE_REQUIRED": {
-        "title": "This form needs a Discord role",
-        "description": "Only members with certain roles on this Discord server can fill in this form, and you don't have any of them. If you think you should, ask the server staff."
-      },
-      "ROLE_DENIED": {
-        "title": "Your roles don't allow this form",
-        "description": "One of your roles on this Discord server is not allowed to fill in this form. If you think this is a mistake, contact the server staff."
-      },
-      "ROLE_CHECK_FAILED": {
-        "title": "We couldn't check your roles",
-        "description": "This form depends on your Discord roles, and we couldn't read them right now. Try again in a few minutes."
-      }
-    },
-    "limitReached": "You have already submitted this form. Its status is in My submissions."
-  },
   "landing": {
     "mySubmissions": "My submissions",
     "subtitle": "Moderated application forms for your Discord community.",
@@ -210,13 +155,6 @@
       "instantDelivery": "Instant Delivery",
       "instantDeliveryDesc": "Responses sent to Discord channels"
     }
-  },
-  "banned": {
-    "title": "Account Restricted",
-    "subtitle": "Your access to {{systemName}} has been restricted by an administrator.",
-    "restrictionReason": "Restriction reason",
-    "contactAppeals": "Contact for appeals",
-    "footer": "{{systemName}} · Access Management"
   },
   "forms": {
     "title": "Forms",
@@ -1263,5 +1201,88 @@
     "newForm": "New form",
     "queue": "Go to the moderation queue",
     "toggleTheme": "Toggle theme"
+  },
+  "accessScreen": {
+    "theServer": "this server",
+    "reason": "Reason",
+    "until": "Until",
+    "appeals": "Appeals",
+    "permanent": "permanent",
+    "actions": {
+      "login": "Sign in with Discord",
+      "checkRoles": "Check my roles again",
+      "retry": "Retry",
+      "mySubmissions": "My submissions",
+      "previousSubmission": "Open my submission",
+      "home": "Home",
+      "logout": "Sign out",
+      "otherLink": "Enter another link"
+    },
+    "AUTH_REQUIRED": {
+      "badge": "Sign-in needed",
+      "title": "Sign in to open the form",
+      "text": "The form is for server members. We check your role through Discord — no password needed."
+    },
+    "NOT_GUILD_MEMBER": {
+      "badge": "Not on the server",
+      "title": "You are not a member of the server",
+      "text": "Only members of {{server}} can fill in this form. Join the server and open the link again."
+    },
+    "GUILD_BANNED": {
+      "badge": "Banned on the server",
+      "title": "You are banned on this server",
+      "text": "The staff of {{server}} have restricted your submissions. The server decides this, not MarForms."
+    },
+    "ROLE_REQUIRED": {
+      "badge": "Role needed",
+      "title": "You don't have the required role",
+      "text": "Members with one of these Discord roles can apply:"
+    },
+    "ROLE_DENIED": {
+      "badge": "Denied role",
+      "title": "Your role closes this form to you",
+      "text": "You have a role that is not allowed to apply. A denial beats an allowance."
+    },
+    "ROLE_CHECK_FAILED": {
+      "badge": "Discord didn't answer",
+      "title": "We couldn't check your roles",
+      "text": "Discord is not returning your roles right now. It usually passes within a minute."
+    },
+    "NOT_OPEN_YET": {
+      "badge": "Soon",
+      "title": "Submissions haven't opened yet",
+      "text": "The form opens on {{date}}. Keep the link."
+    },
+    "FORM_CLOSED": {
+      "badge": "Closed",
+      "title": "Submissions are closed",
+      "text": "Recruitment ended on {{date}}. Watch the server's announcements in Discord.",
+      "textNoDate": "This form no longer takes submissions. Watch the server's announcements in Discord."
+    },
+    "FORM_ARCHIVED": {
+      "badge": "Archived",
+      "title": "The form was archived",
+      "text": "This form is no longer used. If you applied, its status is in My submissions."
+    },
+    "FORM_NOT_FOUND": {
+      "badge": "404",
+      "title": "Form not found",
+      "text": "Check the link: it may have a typo, or the form was deleted."
+    },
+    "ERROR": {
+      "badge": "Error",
+      "title": "Something went wrong",
+      "text": "We couldn't load the form. Try again in a few seconds."
+    },
+    "ACCOUNT_RESTRICTED": {
+      "badge": "Account restricted",
+      "title": "Access restricted",
+      "text": "Your access to MarForms is restricted. If you think this is a mistake, contact support with your Discord ID."
+    },
+    "LIMIT_REACHED": {
+      "badge": "Already submitted",
+      "title": "You have already applied",
+      "text": "You can't submit this form again. Its status is in My submissions."
+    }
   }
 }

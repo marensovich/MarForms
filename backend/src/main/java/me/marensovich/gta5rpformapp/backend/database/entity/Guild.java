@@ -50,6 +50,18 @@ public class Guild {
     private String iconHash;
 
     /**
+     * The server icon on Discord's CDN.
+     *
+     * @return the URL, or {@code null} if the server has no icon
+     * @since v.0.1
+     */
+    @Transient
+    public String iconUrl() {
+        return iconHash == null ? null
+                : "https://cdn.discordapp.com/icons/" + Long.toUnsignedString(discordGuildId) + "/" + iconHash + ".png?size=128";
+    }
+
+    /**
      * Whether the bot currently has access to this server.
      *
      * @see GuildBotStatus

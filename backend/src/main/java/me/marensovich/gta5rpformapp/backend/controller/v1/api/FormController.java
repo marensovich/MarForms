@@ -76,7 +76,7 @@ public class FormController {
             return platformManager || guildAccessGuard.hasRoleForForm(formId, "OWNER") ? full : full.withMaskedWebhooks();
         }
         if (form.getStatus() == FormStatus.DRAFT) throw new NotFoundException("Form not found: " + formId);
-        return PublicFormDto.from(form, SubmissionService.notAcceptingReason(form), null,
+        return PublicFormDto.from(form, SubmissionService.notAcceptingReason(form), null, null,
                 formAccessService.evaluate(form, principal != null ? principal.getUser() : null, null));
     }
 

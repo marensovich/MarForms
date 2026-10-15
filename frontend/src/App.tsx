@@ -10,7 +10,7 @@ import AdminRoute from "./shell/AdminRoute";
 import GuildWorkspaceRoute from "./shell/GuildWorkspaceRoute";
 import ServersTab from "./components/dashboard/ServersTab";
 import MySubmissionsPage from "./pages/MySubmissionsPage";
-import BannedScreen from "./components/BannedScreen.tsx";
+import AccessScreen from "./components/access/AccessScreen";
 import {useAuth} from "./hooks/useAuth.ts";
 
 export default function App() {
@@ -18,7 +18,9 @@ export default function App() {
     const {banData} = useAuth();
 
     if (banData) {
-        return <BannedScreen message={banData.message} contact={banData.contact}/>;
+        // ACCOUNT_RESTRICTED (ТЗ 3.5): the auth filter refuses every request of a restricted account.
+        return <AccessScreen code="ACCOUNT_RESTRICTED" restrictionMessage={banData.message}
+                             details={{until: banData.until ?? undefined, appealsContact: banData.contact || undefined}}/>;
     }
 
     return (

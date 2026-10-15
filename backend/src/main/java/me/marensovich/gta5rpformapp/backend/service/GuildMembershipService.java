@@ -235,11 +235,26 @@ public class GuildMembershipService {
      */
     @Transactional
     public Optional<GuildMembership> syncDiscordRolesIfStale(Long userDiscordId, Long guildDiscordId) {
+        return syncDiscordRoles(userDiscordId, guildDiscordId, false);
+    }
+
+    /**
+     * As {@link #syncDiscordRolesIfStale}, but {@code force} skips the TTL — the
+     * respondent's "check my roles again" after getting a role (ТЗ 3.5, #111).
+     *
+     * @param userDiscordId  the Discord ID of the member
+     * @param guildDiscordId the Discord guild snowflake ID
+     * @param force          refresh even if the cached roles are fresh
+     * @return the membership (possibly with refreshed roles), or empty if there is none
+     * @since v.0.1
+     */
+    @Transactional
+    public Optional<GuildMembership> syncDiscordRoles(Long userDiscordId, Long guildDiscordId, boolean force) {
         return guildMembershipRepository
                 .findByUser_DiscordIdAndGuild_DiscordGuildId(userDiscordId, guildDiscordId)
                 .map(membership -> {
                     LocalDateTime syncedAt = membership.getDiscordRolesSyncedAt();
-                    if (syncedAt != null && syncedAt.isAfter(LocalDateTime.now().minus(memberRolesTtl))) {
+                    if (!force && syncedAt != null && syncedAt.isAfter(LocalDateTime.now().minus(memberRolesTtl))) {
                         return membership;
                     }
                     return discordBotClient.fetchMemberRoleIds(guildDiscordId, userDiscordId)

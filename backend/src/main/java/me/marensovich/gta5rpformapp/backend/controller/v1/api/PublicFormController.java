@@ -56,8 +56,10 @@ public class PublicFormController {
      * The form as a respondent sees it (task #48), plus whether the current
      * viewer may fill it in.
      *
-     * @param slug      the public slug
-     * @param principal the logged-in user, or {@code null}
+     * @param slug           the public slug
+     * @param anonymousToken the browser's Anonymous-Token, for the limit of an anonymous form
+     * @param refreshRoles   re-read the viewer's Discord roles past the cache ("check again")
+     * @param principal      the logged-in user, or {@code null}
      * @return the public view of the form
      * @throws me.marensovich.gta5rpformapp.backend.exception.FormAccessException FORM_NOT_FOUND if no
      *                                                                         published-at-some-point form has this slug
@@ -66,12 +68,14 @@ public class PublicFormController {
     @GetMapping("/forms/{slug}")
     public PublicFormDto get(@PathVariable String slug,
                              @RequestHeader(value = "Anonymous-Token", required = false) String anonymousToken,
+                             @RequestParam(defaultValue = "false") boolean refreshRoles,
                              @AuthenticationPrincipal CustomUserDetails principal) {
         Form form = findVisible(slug);
-        String guildName = guildRepository.findById(form.getServerId()).map(Guild::getName).orElse(null);
-        return PublicFormDto.from(form, SubmissionService.notAcceptingReason(form), guildName,
+        Guild guild = guildRepository.findById(form.getServerId()).orElse(null);
+        return PublicFormDto.from(form, SubmissionService.notAcceptingReason(form),
+                guild != null ? guild.getName() : null, guild != null ? guild.iconUrl() : null,
                 formAccessService.evaluate(form, principal != null ? principal.getUser() : null,
-                        SubmissionService.hashAnonymousToken(form, anonymousToken)));
+                        SubmissionService.hashAnonymousToken(form, anonymousToken), refreshRoles));
     }
 
     /**
@@ -108,7 +112,7 @@ public class PublicFormController {
      * filled in (E3.2, ADR 0003); the returned {@code id} is that field's
      * answer on submit. Same access rules as submitting.
      *
-     * @param slug      the public slug
+     * @param slug           the public slug
      * @param fieldId   the field the file is for
      * @param file      the file
      * @param principal the logged-in user, or {@code null}

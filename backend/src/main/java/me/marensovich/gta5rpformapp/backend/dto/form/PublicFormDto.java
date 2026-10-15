@@ -27,6 +27,7 @@ import java.util.UUID;
  * @param closesAt               closing time, if scheduled
  * @param submissionLimitPerUser per-respondent limit, if any
  * @param guildName              the server the form belongs to, if known
+ * @param guildIconUrl           that server's icon, if it has one
  * @param viewerAccess           whether the current viewer may fill it in: GRANTED or the
  *                               refusal code of ТЗ 3.5 (#110)
  * @param access                 what the refusal's screen shows (opening time, roles, ban…)
@@ -47,10 +48,11 @@ public record PublicFormDto(
         LocalDateTime closesAt,
         Integer submissionLimitPerUser,
         String guildName,
+        String guildIconUrl,
         AccessCode viewerAccess,
         AccessDetailsDto access
 ) {
-    public static PublicFormDto from(Form form, String notAcceptingReason, String guildName,
+    public static PublicFormDto from(Form form, String notAcceptingReason, String guildName, String guildIconUrl,
                                      FormAccessService.Decision decision) {
         return new PublicFormDto(
                 form.getId(),
@@ -65,6 +67,7 @@ public record PublicFormDto(
                 form.getClosesAt(),
                 form.getSubmissionLimitPerUser(),
                 guildName,
+                guildIconUrl,
                 decision.code(),
                 decision.details()
         );

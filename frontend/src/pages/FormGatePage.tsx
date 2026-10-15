@@ -4,7 +4,7 @@ import {useTranslation} from "react-i18next";
 import {resolveFormLink} from "../api/forms";
 import {ApiError} from "../api/client";
 import LoadingScreen from "../components/LoadingScreen";
-import {FormErrorState, FormNotFoundState} from "../components/AccessStates";
+import AccessScreen from "../components/access/AccessScreen";
 
 /**
  * Old by-ID links (`/forms/{id}`) — still shared in Discord from before
@@ -29,5 +29,5 @@ export default function FormGatePage() {
 
     if (!result) return <LoadingScreen label={t("formGate.loadingForm")}/>;
     if (result.slug) return <Navigate to={`/f/${result.slug}`} replace/>;
-    return result.failed === "not_found" ? <FormNotFoundState/> : <FormErrorState/>;
+    return result.failed === "not_found" ? <AccessScreen code="FORM_NOT_FOUND"/> : <AccessScreen code="ERROR" onRetry={() => window.location.reload()}/>;
 }

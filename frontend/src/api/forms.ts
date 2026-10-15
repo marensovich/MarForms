@@ -1,5 +1,6 @@
 // src/api/forms.ts
 import {API, ApiError, apiRequest} from "./client";
+import {peekAnonymousToken} from "../auth/anonymousToken";
 import type {FormAccessMode, FormAnswers, FormDefinition, FormSchema, FormStatus} from "../types/forms";
 
 /** Access codes of ТЗ 3.5 (#110), checked in this order on the server. */
@@ -33,6 +34,7 @@ export interface PublicForm {
     closesAt: string | null;
     submissionLimitPerUser: number | null;
     guildName: string | null;
+    guildIconUrl: string | null;
     viewerAccess: ViewerAccess;
     access: AccessDetails;
 }
@@ -43,8 +45,14 @@ export interface SubmissionReceipt {
     createdAt: string;
 }
 
-export function fetchPublicForm(slug: string, signal?: AbortSignal): Promise<PublicForm> {
-    return apiRequest<PublicForm>(`/public/forms/${encodeURIComponent(slug)}`, {signal});
+/**
+ * The public view of a form with the viewer's access code (#110). `refreshRoles`
+ * re-reads the viewer's Discord roles past the cache ("check my roles again").
+ */
+export function fetchPublicForm(slug: string, signal?: AbortSignal, refreshRoles = false): Promise<PublicForm> {
+    const token = peekAnonymousToken();
+    return apiRequest<PublicForm>(`/public/forms/${encodeURIComponent(slug)}${refreshRoles ? "?refreshRoles=true" : ""}`,
+        {signal, headers: token ? {"Anonymous-Token": token} : undefined});
 }
 
 /** Old `/forms/{id}` links → the form's public slug (works without a session). */
