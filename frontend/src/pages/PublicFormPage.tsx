@@ -53,12 +53,25 @@ export default function PublicFormPage() {
     if (state.kind === "error") return <FormErrorState/>;
 
     const {form} = state;
-    if (!form.acceptingSubmissions) return <FormInactiveState reason={form.notAcceptingReason}/>;
-    if (form.viewerAccess === "LOGIN_REQUIRED") return <NotAuthenticatedState redirectPath={`/f/${form.slug}`}/>;
-    if (form.viewerAccess === "NOT_IN_GUILD") return <NotInGuildState/>;
-    if (form.viewerAccess === "BANNED") return <BannedState/>;
-    if (form.viewerAccess === "ROLE_REQUIRED" || form.viewerAccess === "ROLE_DENIED"
-        || form.viewerAccess === "ROLES_UNAVAILABLE") return <RoleGateState reason={form.viewerAccess}/>;
+    // The full screen per code comes with #111; until then the existing states cover them.
+    switch (form.viewerAccess) {
+        case "NOT_OPEN_YET":
+        case "FORM_CLOSED":
+        case "FORM_ARCHIVED":
+            return <FormInactiveState reason={form.notAcceptingReason}/>;
+        case "LIMIT_REACHED":
+            return <FormInactiveState reason={t("accessStates.limitReached")}/>;
+        case "AUTH_REQUIRED":
+            return <NotAuthenticatedState redirectPath={`/f/${form.slug}`}/>;
+        case "NOT_GUILD_MEMBER":
+            return <NotInGuildState/>;
+        case "GUILD_BANNED":
+            return <BannedState/>;
+        case "ROLE_REQUIRED":
+        case "ROLE_DENIED":
+        case "ROLE_CHECK_FAILED":
+            return <RoleGateState reason={form.viewerAccess}/>;
+    }
 
     const definition: FormDefinition = {
         id: form.id,

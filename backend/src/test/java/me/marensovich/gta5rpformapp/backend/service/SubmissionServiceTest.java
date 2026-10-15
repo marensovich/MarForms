@@ -128,12 +128,18 @@ class SubmissionServiceTest {
         Form form = activeFormWithWebhooks();
         form.setStatus(me.marensovich.gta5rpformapp.backend.data.forms.FormStatus.CLOSED);
         when(formService.getById(form.getId())).thenReturn(form);
+        // The form's status is part of the access check (ТЗ 3.5, #110).
+        org.mockito.Mockito.doThrow(FormAccessService.refusal(new FormAccessService.Decision(
+                        me.marensovich.gta5rpformapp.backend.data.forms.AccessCode.FORM_CLOSED,
+                        me.marensovich.gta5rpformapp.backend.dto.form.AccessDetailsDto.NONE)))
+                .when(formAccessService).requireAccess(org.mockito.ArgumentMatchers.eq(form), org.mockito.ArgumentMatchers.any());
 
         try {
             service().submit(form.getId(), 123L, new SubmitFormRequest(Map.of()));
-            org.junit.jupiter.api.Assertions.fail("expected InvalidStateException");
-        } catch (me.marensovich.gta5rpformapp.backend.exception.InvalidStateException expected) {
-            // expected
+            org.junit.jupiter.api.Assertions.fail("expected FormAccessException");
+        } catch (me.marensovich.gta5rpformapp.backend.exception.FormAccessException expected) {
+            org.junit.jupiter.api.Assertions.assertEquals(
+                    me.marensovich.gta5rpformapp.backend.data.forms.AccessCode.FORM_CLOSED, expected.getCode());
         }
 
         verifyNoInteractions(submissionRepository, outboundJobService);

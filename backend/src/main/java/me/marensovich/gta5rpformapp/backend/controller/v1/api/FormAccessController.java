@@ -2,6 +2,7 @@ package me.marensovich.gta5rpformapp.backend.controller.v1.api;
 
 import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.config.security.CustomUserDetails;
+import me.marensovich.gta5rpformapp.backend.data.forms.AccessCode;
 import me.marensovich.gta5rpformapp.backend.service.FormService;
 import me.marensovich.gta5rpformapp.backend.service.forms.FormAccessService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -48,6 +49,6 @@ public class FormAccessController {
     ) {
         var form = formService.getById(formId);
         var access = formAccessService.check(form, principal != null ? principal.getUser() : null);
-        return Map.of("hasAccess", access == FormAccessService.Access.GRANTED);
+        return Map.of("hasAccess", access == AccessCode.GRANTED);
     }
 }

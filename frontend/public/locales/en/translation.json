@@ -94,11 +94,12 @@
         "title": "Your roles don't allow this form",
         "description": "One of your roles on this Discord server is not allowed to fill in this form. If you think this is a mistake, contact the server staff."
       },
-      "ROLES_UNAVAILABLE": {
+      "ROLE_CHECK_FAILED": {
         "title": "We couldn't check your roles",
         "description": "This form depends on your Discord roles, and we couldn't read them right now. Try again in a few minutes."
       }
-    }
+    },
+    "limitReached": "You have already submitted this form. Its status is in My submissions."
   },
   "landing": {
     "mySubmissions": "My submissions",

@@ -103,7 +103,7 @@ class PublicFormControllerTest {
 
         String body = mvc.perform(get("/api/v1/public/forms/{s}", "auth-form"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.viewerAccess").value("LOGIN_REQUIRED"))
+                .andExpect(jsonPath("$.viewerAccess").value("AUTH_REQUIRED"))
                 .andExpect(jsonPath("$.acceptingSubmissions").value(true))
                 .andReturn().getResponse().getContentAsString();
         assertThat(body).doesNotContain("SECRET-TOKEN").doesNotContain("webhooks");

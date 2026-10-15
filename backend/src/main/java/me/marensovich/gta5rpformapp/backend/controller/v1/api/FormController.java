@@ -77,7 +77,7 @@ public class FormController {
         }
         if (form.getStatus() == FormStatus.DRAFT) throw new NotFoundException("Form not found: " + formId);
         return PublicFormDto.from(form, SubmissionService.notAcceptingReason(form), null,
-                formAccessService.check(form, principal != null ? principal.getUser() : null));
+                formAccessService.evaluate(form, principal != null ? principal.getUser() : null, null));
     }
 
     /**

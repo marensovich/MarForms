@@ -1,10 +1,12 @@
 package me.marensovich.gta5rpformapp.backend.config.JWT;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import me.marensovich.gta5rpformapp.backend.config.security.CustomUserDetails;
+import me.marensovich.gta5rpformapp.backend.data.forms.AccessCode;
 import me.marensovich.gta5rpformapp.backend.data.settings.SystemSettings;
 import me.marensovich.gta5rpformapp.backend.database.entity.User;
 import me.marensovich.gta5rpformapp.backend.database.repository.UserRepository;
@@ -16,6 +18,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -32,6 +36,8 @@ import java.util.Optional;
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private static final ObjectMapper JSON = new ObjectMapper();
 
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
@@ -90,11 +96,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SystemSettings settings = settingsService.getSettings();
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     response.setContentType("application/json;charset=UTF-8");
-                    response.getWriter().write(String.format(
-                            "{\"banned\":true,\"message\":\"%s\",\"contact\":\"%s\"}",
-                            settings.banMessage().replace("\"", "\\\""),
-                            settings.banAdminContact().replace("\"", "\\\"")
-                    ));
+                    // ACCOUNT_RESTRICTED of ТЗ 3.5 (#110): the client shows it as an access screen.
+                    Map<String, Object> body = new LinkedHashMap<>();
+                    body.put("banned", true);
+                    body.put("code", AccessCode.ACCOUNT_RESTRICTED.name());
+                    body.put("message", settings.banMessage());
+                    body.put("contact", settings.banAdminContact());
+                    body.put("permanent", user.isBannedPermanently());
+                    body.put("until", user.isBannedPermanently() || user.getBannedUntil() == null
+                            ? null : user.getBannedUntil().toString());
+                    response.getWriter().write(JSON.writeValueAsString(body));
                     return;
                 }
 

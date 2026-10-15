@@ -156,9 +156,9 @@ export function BannedState() {
  * A role-gated form refused the viewer (E2.1, #65): explains why instead of
  * a bare 403 — a missing role, a denied role, or roles that couldn't be read.
  */
-export function RoleGateState({reason}: { reason: "ROLE_REQUIRED" | "ROLE_DENIED" | "ROLES_UNAVAILABLE" }) {
+export function RoleGateState({reason}: { reason: "ROLE_REQUIRED" | "ROLE_DENIED" | "ROLE_CHECK_FAILED" }) {
     const {t} = useTranslation();
-    const unavailable = reason === "ROLES_UNAVAILABLE";
+    const unavailable = reason === "ROLE_CHECK_FAILED";
     return (
         <StateLayout
             icon={unavailable ? <FiRefreshCw size={28}/> : <FiShield size={28}/>}

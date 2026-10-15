@@ -1,21 +1,32 @@
 package me.marensovich.gta5rpformapp.backend.service.forms;
 
 import lombok.RequiredArgsConstructor;
+import me.marensovich.gta5rpformapp.backend.data.forms.AccessCode;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormAccessMode;
 import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import me.marensovich.gta5rpformapp.backend.database.entity.GuildMembership;
+import me.marensovich.gta5rpformapp.backend.database.entity.Submission;
 import me.marensovich.gta5rpformapp.backend.database.entity.User;
-import me.marensovich.gta5rpformapp.backend.exception.FormAccessDeniedException;
-import me.marensovich.gta5rpformapp.backend.exception.LoginRequiredException;
-import me.marensovich.gta5rpformapp.backend.service.BanListService;
+import me.marensovich.gta5rpformapp.backend.database.repository.BanListRepository;
+import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionRepository;
+import me.marensovich.gta5rpformapp.backend.dto.form.AccessDetailsDto;
+import me.marensovich.gta5rpformapp.backend.exception.FormAccessException;
 import me.marensovich.gta5rpformapp.backend.service.GuildMembershipService;
+import me.marensovich.gta5rpformapp.backend.service.SettingsService;
 import me.marensovich.gta5rpformapp.backend.service.UserService;
+import me.marensovich.gta5rpformapp.backend.service.discord.DiscordBotClient;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Decides whether a viewer may fill a form in — shared by the public form
@@ -33,12 +44,14 @@ import java.util.Set;
  *     lapsed (#64): any denied role refuses ({@code ROLE_DENIED}, deny wins),
  *     and a non-empty allow list needs one of its roles ({@code ROLE_REQUIRED}).
  *     If the roles were never fetched and the bot can't fetch them now,
- *     access is refused ({@code ROLES_UNAVAILABLE}) rather than guessed.</li>
+ *     access is refused ({@code ROLE_CHECK_FAILED}) rather than guessed.</li>
  *     <li>{@code ANONYMOUS}: anyone; nothing about the viewer is looked at
  *     or recorded (E2.3), so no ban or membership checks either.</li>
  * </ul>
  * In the other modes a logged-in user on the guild's ban list is refused
- * ({@code BANNED}, E2.2) before anything else is checked.
+ * ({@code GUILD_BANNED}, E2.2). Before any of this the form itself must take
+ * submissions, and afterwards the per-person limit applies; the codes and
+ * their order are those of ТЗ 3.5 ({@link AccessCode}, #110).
  * On success for a logged-in user, the {@code RESPONDENT} membership is
  * upserted and their Discord roles refreshed if stale (#34).
  *
@@ -51,83 +64,194 @@ import java.util.Set;
 public class FormAccessService {
 
     /**
-     * Outcome of an access check.
+     * An access outcome: the code of ТЗ 3.5 and what its screen shows.
+     *
+     * @param code    the first failing check, or GRANTED
+     * @param details the code's details; {@link AccessDetailsDto#NONE} if it has none
      */
-    public enum Access {
-        GRANTED,
-        LOGIN_REQUIRED,
-        NOT_IN_GUILD,
-        BANNED,
-        /** ROLE_GATED: the member has none of the allowed roles. */
-        ROLE_REQUIRED,
-        /** ROLE_GATED: the member has a denied role. */
-        ROLE_DENIED,
-        /** ROLE_GATED: the member's roles couldn't be determined. */
-        ROLES_UNAVAILABLE
+    public record Decision(AccessCode code, AccessDetailsDto details) {
+
+        static Decision of(AccessCode code) {
+            return new Decision(code, AccessDetailsDto.NONE);
+        }
+
+        public boolean granted() {
+            return code == AccessCode.GRANTED;
+        }
     }
 
     private final UserService userService;
     private final GuildMembershipService guildMembershipService;
-    private final BanListService banListService;
+    private final BanListRepository banListRepository;
+    private final SubmissionRepository submissionRepository;
+    private final SettingsService settingsService;
+    private final DiscordBotClient discordBotClient;
 
     /**
-     * Checks whether {@code user} may fill {@code form} in.
+     * Decides whether {@code user} may fill {@code form} in, checking in the
+     * order of ТЗ 3.5: platform account → form status → login → membership →
+     * server ban → roles → per-person limit.
+     *
+     * @param form               the form
+     * @param user               the current user, or {@code null} if not logged in
+     * @param anonymousTokenHash the browser's hashed Anonymous-Token for the
+     *                           limit of an anonymous form, if sent
+     * @return the outcome with its details
+     * @since v.0.1
+     */
+    public Decision evaluate(Form form, @Nullable User user, @Nullable String anonymousTokenHash) {
+        Decision blocked = checkWithoutLimit(form, user);
+        if (!blocked.granted()) return blocked;
+        return checkLimit(form, form.getAccessMode() == FormAccessMode.ANONYMOUS ? null : user, anonymousTokenHash);
+    }
+
+    /**
+     * The outcome code only, without the per-person limit.
+     *
+     * @param form the form
+     * @param user the current user, or {@code null}
+     * @return the code
+     * @since v.0.1
+     */
+    public AccessCode check(Form form, @Nullable User user) {
+        return checkWithoutLimit(form, user).code();
+    }
+
+    /**
+     * Throws unless the user may fill the form in — for the endpoints that
+     * accept answers and files. The per-person limit is not checked here:
+     * submission intake counts it under a row lock.
      *
      * @param form the form
      * @param user the current user, or {@code null} if not logged in
-     * @return the outcome
+     * @throws FormAccessException with the refusal's code and details
      * @since v.0.1
      */
-    public Access check(Form form, @Nullable User user) {
-        if (form.getAccessMode() == FormAccessMode.ANONYMOUS) {
-            return Access.GRANTED;
-        }
-        if (user == null) {
-            return form.getAccessMode() == FormAccessMode.OPEN ? Access.GRANTED : Access.LOGIN_REQUIRED;
-        }
+    public void requireAccess(Form form, @Nullable User user) {
+        Decision decision = checkWithoutLimit(form, user);
+        if (!decision.granted()) throw refusal(decision);
+    }
 
-        if (banListService.isBanned(form.getServerId(), user.getDiscordId())) {
-            return Access.BANNED;
+    /**
+     * The exception for a refused decision, with a message the respondent can act on.
+     *
+     * @param decision a refusal
+     * @return the exception to throw
+     * @since v.0.1
+     */
+    public static FormAccessException refusal(Decision decision) {
+        String message = switch (decision.code()) {
+            case ACCOUNT_RESTRICTED -> "Your MarForms account is restricted";
+            case NOT_OPEN_YET -> "This form is not open yet";
+            case FORM_CLOSED -> "This form is closed and no longer accepts submissions";
+            case FORM_ARCHIVED -> "This form has been archived";
+            case FORM_NOT_FOUND -> "Form not found";
+            case AUTH_REQUIRED -> "Log in with Discord to fill in this form";
+            case NOT_GUILD_MEMBER -> "You must be a member of this server to fill in this form";
+            case GUILD_BANNED -> "You are banned from submitting forms on this server";
+            case ROLE_REQUIRED -> "You don't have a Discord role this form requires";
+            case ROLE_DENIED -> "One of your Discord roles is not allowed to fill in this form";
+            case ROLE_CHECK_FAILED -> "We couldn't check your Discord roles — try again later";
+            case LIMIT_REACHED -> "You have already used all your submissions for this form";
+            case GRANTED -> throw new IllegalArgumentException("Not a refusal");
+        };
+        return new FormAccessException(decision.code(), message, decision.details());
+    }
+
+    private Decision checkWithoutLimit(Form form, @Nullable User user) {
+        if (user != null && user.isCurrentlyBanned()) {
+            // Normally unreachable: the JWT filter already refuses a restricted account.
+            return new Decision(AccessCode.ACCOUNT_RESTRICTED, AccessDetailsDto.restriction(null, null,
+                    user.isBannedPermanently() ? null : user.getBannedUntil(), settingsService.getSettings().banAdminContact()));
         }
+        Decision status = checkStatus(form);
+        if (status != null) return status;
+
+        // Anonymous forms look at nothing about the viewer (E2.3).
+        if (form.getAccessMode() == FormAccessMode.ANONYMOUS) return Decision.of(AccessCode.GRANTED);
+        boolean open = form.getAccessMode() == FormAccessMode.OPEN;
+        if (user == null) return Decision.of(open ? AccessCode.GRANTED : AccessCode.AUTH_REQUIRED);
 
         boolean member = user.isMemberOfGuild(form.getServerId());
         if (!member && userService.resyncGuildsWithStoredToken(user)) {
             member = user.isMemberOfGuild(form.getServerId());
         }
+        if (!member && !open) return Decision.of(AccessCode.NOT_GUILD_MEMBER);
 
-        if (member) {
-            guildMembershipService.ensureMembership(user.getDiscordId(), form.getServerId(), GuildRole.RESPONDENT);
-            // Refreshed only once the TTL has lapsed (#64).
-            List<Long> roles = guildMembershipService.syncDiscordRolesIfStale(user.getDiscordId(), form.getServerId())
-                    .map(GuildMembership::getDiscordRoles)
-                    .orElse(null);
-            return form.getAccessMode() == FormAccessMode.ROLE_GATED ? checkRoleGate(form, roles) : Access.GRANTED;
+        var ban = banListRepository.findByGuildIdAndDiscordId(form.getServerId(), user.getDiscordId());
+        if (ban.isPresent()) {
+            return new Decision(AccessCode.GUILD_BANNED, AccessDetailsDto.restriction(ban.get().getReason(),
+                    ban.get().getCreatedAt(), null, settingsService.getSettings().banAdminContact()));
         }
-        return form.getAccessMode() == FormAccessMode.OPEN ? Access.GRANTED : Access.NOT_IN_GUILD;
+        if (!member) return Decision.of(AccessCode.GRANTED);
+
+        guildMembershipService.ensureMembership(user.getDiscordId(), form.getServerId(), GuildRole.RESPONDENT);
+        // Refreshed only once the TTL has lapsed (#64).
+        List<Long> roles = guildMembershipService.syncDiscordRolesIfStale(user.getDiscordId(), form.getServerId())
+                .map(GuildMembership::getDiscordRoles)
+                .orElse(null);
+        if (form.getAccessMode() != FormAccessMode.ROLE_GATED) return Decision.of(AccessCode.GRANTED);
+
+        AccessCode gate = checkRoleGate(form, roles);
+        return switch (gate) {
+            case ROLE_REQUIRED -> new Decision(gate, AccessDetailsDto.roles(roleRefs(form.getServerId(), form.getAllowedRoleIds())));
+            case ROLE_DENIED -> new Decision(gate, AccessDetailsDto.roles(roleRefs(form.getServerId(),
+                    roles.stream().filter(form.getDeniedRoleIds()::contains).toList())));
+            default -> Decision.of(gate);
+        };
     }
 
-    /**
-     * Like {@link #check}, but throws unless access is granted — for the
-     * endpoints that accept answers and files.
-     *
-     * @param form the form
-     * @param user the current user, or {@code null} if not logged in
-     * @throws LoginRequiredException     if the form needs a Discord login
-     * @throws FormAccessDeniedException  for any other refusal, with a message
-     *                                    the respondent can act on
-     * @since v.0.1
-     */
-    public void requireAccess(Form form, @Nullable User user) {
-        switch (check(form, user)) {
-            case LOGIN_REQUIRED -> throw new LoginRequiredException("Log in with Discord to fill in this form");
-            case NOT_IN_GUILD -> throw new FormAccessDeniedException("You must be a member of this server to fill in this form");
-            case BANNED -> throw new FormAccessDeniedException("You are banned from submitting forms on this server");
-            case ROLE_REQUIRED -> throw new FormAccessDeniedException("You don't have a Discord role this form requires");
-            case ROLE_DENIED -> throw new FormAccessDeniedException("One of your Discord roles is not allowed to fill in this form");
-            case ROLES_UNAVAILABLE -> throw new FormAccessDeniedException("We couldn't check your Discord roles — try again later");
-            case GRANTED -> {
+    /** Form status and opening window; {@code null} when the form takes submissions. */
+    private static @Nullable Decision checkStatus(Form form) {
+        return switch (form.getStatus()) {
+            case DRAFT -> Decision.of(AccessCode.FORM_NOT_FOUND);
+            case ARCHIVED -> Decision.of(AccessCode.FORM_ARCHIVED);
+            case CLOSED -> Decision.of(AccessCode.FORM_CLOSED);
+            case PUBLISHED -> {
+                LocalDateTime now = LocalDateTime.now();
+                if (form.getOpensAt() != null && now.isBefore(form.getOpensAt())) {
+                    yield new Decision(AccessCode.NOT_OPEN_YET, AccessDetailsDto.opening(form.getOpensAt()));
+                }
+                if (form.getClosesAt() != null && now.isAfter(form.getClosesAt())) {
+                    yield new Decision(AccessCode.FORM_CLOSED, AccessDetailsDto.closing(form.getClosesAt()));
+                }
+                yield null;
             }
+        };
+    }
+
+    /** LIMIT_REACHED once the user (or the anonymous browser) has used up the per-person limit. */
+    private Decision checkLimit(Form form, @Nullable User user, @Nullable String anonymousTokenHash) {
+        Integer limit = form.getSubmissionLimitPerUser();
+        if (limit == null) return Decision.of(AccessCode.GRANTED);
+        if (user != null) {
+            if (submissionRepository.countByFormIdAndDiscordId(form.getId(), user.getDiscordId()) < limit) {
+                return Decision.of(AccessCode.GRANTED);
+            }
+            UUID latest = submissionRepository
+                    .findAllByFormIdAndDiscordId(form.getId(), user.getDiscordId(),
+                            PageRequest.of(0, 1, Sort.by(Sort.Direction.DESC, "createdAt")))
+                    .stream().findFirst().map(Submission::getId).orElse(null);
+            return new Decision(AccessCode.LIMIT_REACHED, AccessDetailsDto.previous(latest));
         }
+        if (anonymousTokenHash != null
+                && submissionRepository.countByFormIdAndAnonymousToken(form.getId(), anonymousTokenHash) >= limit) {
+            return Decision.of(AccessCode.LIMIT_REACHED);
+        }
+        return Decision.of(AccessCode.GRANTED);
+    }
+
+    /** Role chips for an access screen; names stay {@code null} if the bot can't read the server's roles. */
+    private List<AccessDetailsDto.RoleRef> roleRefs(Long guildId, Collection<Long> roleIds) {
+        Map<Long, DiscordBotClient.DiscordRole> known = discordBotClient.fetchRoles(guildId);
+        return roleIds.stream()
+                .sorted()
+                .map(id -> {
+                    var role = known.get(id);
+                    return new AccessDetailsDto.RoleRef(Long.toUnsignedString(id),
+                            role != null ? role.name() : null, role != null ? role.color() : 0);
+                })
+                .toList();
     }
 
     /**
@@ -138,11 +262,11 @@ public class FormAccessService {
      * @return the outcome
      * @since v.0.1
      */
-    static Access checkRoleGate(Form form, @Nullable List<Long> roles) {
-        if (roles == null) return Access.ROLES_UNAVAILABLE;
-        if (roles.stream().anyMatch(form.getDeniedRoleIds()::contains)) return Access.ROLE_DENIED;
+    static AccessCode checkRoleGate(Form form, @Nullable List<Long> roles) {
+        if (roles == null) return AccessCode.ROLE_CHECK_FAILED;
+        if (roles.stream().anyMatch(form.getDeniedRoleIds()::contains)) return AccessCode.ROLE_DENIED;
         Set<Long> allowed = form.getAllowedRoleIds();
-        if (!allowed.isEmpty() && roles.stream().noneMatch(allowed::contains)) return Access.ROLE_REQUIRED;
-        return Access.GRANTED;
+        if (!allowed.isEmpty() && roles.stream().noneMatch(allowed::contains)) return AccessCode.ROLE_REQUIRED;
+        return AccessCode.GRANTED;
     }
 }

@@ -2,8 +2,22 @@
 import {API, ApiError, apiRequest} from "./client";
 import type {FormAccessMode, FormAnswers, FormDefinition, FormSchema, FormStatus} from "../types/forms";
 
-export type ViewerAccess = "GRANTED" | "LOGIN_REQUIRED" | "NOT_IN_GUILD" | "BANNED"
-    | "ROLE_REQUIRED" | "ROLE_DENIED" | "ROLES_UNAVAILABLE";
+/** Access codes of ТЗ 3.5 (#110), checked in this order on the server. */
+export type ViewerAccess = "GRANTED" | "ACCOUNT_RESTRICTED" | "NOT_OPEN_YET" | "FORM_CLOSED" | "FORM_ARCHIVED"
+    | "FORM_NOT_FOUND" | "AUTH_REQUIRED" | "NOT_GUILD_MEMBER" | "GUILD_BANNED" | "ROLE_REQUIRED" | "ROLE_DENIED"
+    | "ROLE_CHECK_FAILED" | "LIMIT_REACHED";
+
+/** What an access screen shows besides its code; only the current code's fields are set. */
+export interface AccessDetails {
+    opensAt?: string;
+    closesAt?: string;
+    reason?: string;
+    since?: string;
+    until?: string;
+    appealsContact?: string;
+    roles?: { id: string; name: string | null; color: number }[];
+    previousSubmissionId?: string;
+}
 
 /** What a respondent may see of a form — never webhooks or channels. */
 export interface PublicForm {
@@ -20,6 +34,7 @@ export interface PublicForm {
     submissionLimitPerUser: number | null;
     guildName: string | null;
     viewerAccess: ViewerAccess;
+    access: AccessDetails;
 }
 
 export interface SubmissionReceipt {

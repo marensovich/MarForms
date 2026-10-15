@@ -3,19 +3,21 @@ package me.marensovich.gta5rpformapp.backend.controller.v1.api;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.config.security.CustomUserDetails;
+import me.marensovich.gta5rpformapp.backend.data.forms.AccessCode;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormStatus;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import me.marensovich.gta5rpformapp.backend.database.entity.Guild;
 import me.marensovich.gta5rpformapp.backend.database.repository.FormRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.GuildRepository;
+import me.marensovich.gta5rpformapp.backend.dto.form.AccessDetailsDto;
 import me.marensovich.gta5rpformapp.backend.dto.form.PublicFormDto;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmissionFileDto;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmissionReceiptDto;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmitFormRequest;
 import me.marensovich.gta5rpformapp.backend.exception.NotFoundException;
+import me.marensovich.gta5rpformapp.backend.service.SubmissionService;
 import me.marensovich.gta5rpformapp.backend.service.files.FileService;
 import me.marensovich.gta5rpformapp.backend.service.forms.FormAccessService;
-import me.marensovich.gta5rpformapp.backend.service.SubmissionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -57,15 +59,19 @@ public class PublicFormController {
      * @param slug      the public slug
      * @param principal the logged-in user, or {@code null}
      * @return the public view of the form
-     * @throws NotFoundException if no published-at-some-point form has this slug
+     * @throws me.marensovich.gta5rpformapp.backend.exception.FormAccessException FORM_NOT_FOUND if no
+     *                                                                         published-at-some-point form has this slug
      * @since v.0.1
      */
     @GetMapping("/forms/{slug}")
-    public PublicFormDto get(@PathVariable String slug, @AuthenticationPrincipal CustomUserDetails principal) {
+    public PublicFormDto get(@PathVariable String slug,
+                             @RequestHeader(value = "Anonymous-Token", required = false) String anonymousToken,
+                             @AuthenticationPrincipal CustomUserDetails principal) {
         Form form = findVisible(slug);
         String guildName = guildRepository.findById(form.getServerId()).map(Guild::getName).orElse(null);
         return PublicFormDto.from(form, SubmissionService.notAcceptingReason(form), guildName,
-                formAccessService.check(form, principal != null ? principal.getUser() : null));
+                formAccessService.evaluate(form, principal != null ? principal.getUser() : null,
+                        SubmissionService.hashAnonymousToken(form, anonymousToken)));
     }
 
     /**
@@ -141,6 +147,6 @@ public class PublicFormController {
     private Form findVisible(String slug) {
         return formRepository.findBySlug(slug)
                 .filter(f -> f.getStatus() != FormStatus.DRAFT)
-                .orElseThrow(() -> new NotFoundException("Form not found"));
+                .orElseThrow(() -> FormAccessService.refusal(new FormAccessService.Decision(AccessCode.FORM_NOT_FOUND, AccessDetailsDto.NONE)));
     }
 }

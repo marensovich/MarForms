@@ -164,7 +164,7 @@ class GuildBanControllerTest {
 
         mvc.perform(as(respondent, get("/api/v1/public/forms/{s}", "ban-form")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.viewerAccess").value("BANNED"));
+                .andExpect(jsonPath("$.viewerAccess").value("GUILD_BANNED"));
         mvc.perform(as(respondent, post("/api/v1/public/forms/{s}/submissions", "ban-form")).content(answers))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.error").value("You are banned from submitting forms on this server"));

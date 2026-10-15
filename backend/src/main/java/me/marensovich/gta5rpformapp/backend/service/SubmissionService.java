@@ -2,28 +2,33 @@ package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
+import me.marensovich.gta5rpformapp.backend.data.forms.AccessCode;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormAccessMode;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormStatus;
 import me.marensovich.gta5rpformapp.backend.data.forms.WebhookConfig;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import me.marensovich.gta5rpformapp.backend.database.entity.Submission;
-import me.marensovich.gta5rpformapp.backend.database.entity.User;
-import me.marensovich.gta5rpformapp.backend.exception.InvalidStateException;
 import me.marensovich.gta5rpformapp.backend.database.entity.SubmissionFile;
+import me.marensovich.gta5rpformapp.backend.database.entity.User;
+import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionRepository;
+import me.marensovich.gta5rpformapp.backend.database.repository.UserRepository;
+import me.marensovich.gta5rpformapp.backend.dto.form.AccessDetailsDto;
+import me.marensovich.gta5rpformapp.backend.dto.submission.SubmitFormRequest;
+import me.marensovich.gta5rpformapp.backend.dto.submission.UserSubmissionCountDto;
+import me.marensovich.gta5rpformapp.backend.exception.FormAccessException;
+import me.marensovich.gta5rpformapp.backend.exception.InvalidStateException;
+import me.marensovich.gta5rpformapp.backend.exception.NotFoundException;
 import me.marensovich.gta5rpformapp.backend.service.discord.WebhookUrlCipher;
 import me.marensovich.gta5rpformapp.backend.service.files.FileService;
 import me.marensovich.gta5rpformapp.backend.service.forms.FormAccessService;
 import me.marensovich.gta5rpformapp.backend.service.forms.SubmissionAnswerValidator;
-import org.springframework.lang.Nullable;
-import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionRepository;
-import me.marensovich.gta5rpformapp.backend.database.repository.UserRepository;
-import me.marensovich.gta5rpformapp.backend.dto.submission.SubmitFormRequest;
-import me.marensovich.gta5rpformapp.backend.dto.submission.UserSubmissionCountDto;
-import me.marensovich.gta5rpformapp.backend.exception.NotFoundException;
 import me.marensovich.gta5rpformapp.backend.service.jobs.OutboundJobService;
 import me.marensovich.gta5rpformapp.backend.service.jobs.WebhookDeliveryPayload;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -136,9 +141,7 @@ public class SubmissionService {
             }
         }
 
-        String notAccepting = notAcceptingReason(form);
-        if (notAccepting != null) throw new InvalidStateException(notAccepting);
-
+        // Form status and opening window come first, then login, membership, ban and roles (ТЗ 3.5).
         formAccessService.requireAccess(form, user);
 
         // Anonymous forms never record who submitted, even if they are logged in.
@@ -159,9 +162,13 @@ public class SubmissionService {
                 : 0;
         if (form.getSubmissionLimitPerUser() != null && (discordId != null || tokenHash != null)
                 && previous >= form.getSubmissionLimitPerUser()) {
-            throw new InvalidStateException(form.getSubmissionLimitPerUser() == 1
+            UUID latest = discordId == null ? null : submissionRepository
+                    .findAllByFormIdAndDiscordId(form.getId(), discordId, PageRequest.of(0, 1, Sort.by(Sort.Direction.DESC, "createdAt")))
+                    .stream().findFirst().map(Submission::getId).orElse(null);
+            throw new FormAccessException(AccessCode.LIMIT_REACHED, form.getSubmissionLimitPerUser() == 1
                     ? "You have already submitted this form"
-                    : "You have reached the limit of " + form.getSubmissionLimitPerUser() + " submissions for this form");
+                    : "You have reached the limit of " + form.getSubmissionLimitPerUser() + " submissions for this form",
+                    latest != null ? AccessDetailsDto.previous(latest) : AccessDetailsDto.NONE);
         }
 
         Map<String, Object> clean = SubmissionAnswerValidator.validate(form.getSchema(), answers);
@@ -212,7 +219,7 @@ public class SubmissionService {
      * if no usable token was sent. Salting with the form ID keeps one
      * browser's submissions to different forms unlinkable.
      */
-    private static @Nullable String hashAnonymousToken(Form form, @Nullable String token) {
+    public static @Nullable String hashAnonymousToken(Form form, @Nullable String token) {
         if (token == null) return null;
         String t = token.trim();
         if (t.length() < 16 || t.length() > 128) return null;

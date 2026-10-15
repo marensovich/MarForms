@@ -1,5 +1,6 @@
 package me.marensovich.gta5rpformapp.backend.dto.form;
 
+import me.marensovich.gta5rpformapp.backend.data.forms.AccessCode;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormAccessMode;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormSchema;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormStatus;
@@ -26,7 +27,9 @@ import java.util.UUID;
  * @param closesAt               closing time, if scheduled
  * @param submissionLimitPerUser per-respondent limit, if any
  * @param guildName              the server the form belongs to, if known
- * @param viewerAccess           whether the current viewer may fill it in
+ * @param viewerAccess           whether the current viewer may fill it in: GRANTED or the
+ *                               refusal code of ТЗ 3.5 (#110)
+ * @param access                 what the refusal's screen shows (opening time, roles, ban…)
  * @author marensovich
  * @version v.0.1
  * @since v.0.1
@@ -44,10 +47,11 @@ public record PublicFormDto(
         LocalDateTime closesAt,
         Integer submissionLimitPerUser,
         String guildName,
-        FormAccessService.Access viewerAccess
+        AccessCode viewerAccess,
+        AccessDetailsDto access
 ) {
     public static PublicFormDto from(Form form, String notAcceptingReason, String guildName,
-                                     FormAccessService.Access viewerAccess) {
+                                     FormAccessService.Decision decision) {
         return new PublicFormDto(
                 form.getId(),
                 form.getSlug(),
@@ -61,7 +65,8 @@ public record PublicFormDto(
                 form.getClosesAt(),
                 form.getSubmissionLimitPerUser(),
                 guildName,
-                viewerAccess
+                decision.code(),
+                decision.details()
         );
     }
 }

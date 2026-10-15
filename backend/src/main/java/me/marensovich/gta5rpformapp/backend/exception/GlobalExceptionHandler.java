@@ -1,16 +1,18 @@
 package me.marensovich.gta5rpformapp.backend.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import me.marensovich.gta5rpformapp.backend.data.forms.AccessCode;
+import me.marensovich.gta5rpformapp.backend.dto.form.AccessDetailsDto;
+import me.marensovich.gta5rpformapp.backend.service.files.FileRules;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.mapping.PropertyReferenceException;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.web.ErrorResponse;
-import me.marensovich.gta5rpformapp.backend.service.files.FileRules;
 import org.springframework.http.HttpStatus;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -105,16 +107,20 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles {@link FormAccessDeniedException}: unlike a generic 403, the
-     * respondent is told why (not a member of the server, banned).
+     * Handles {@link FormAccessException}: unlike a generic 403, the respondent
+     * is told why, with the access code of ТЗ 3.5 and its details (#110).
      *
      * @param ex the exception
-     * @return a {@link ResponseEntity} with status 403 (Forbidden) and the message
+     * @return the code's status ({@link AccessCode#httpStatus()}) with error, code and details
      * @since v.0.1
      */
-    @ExceptionHandler(FormAccessDeniedException.class)
-    public ResponseEntity<Map<String, String>> handleFormAccessDenied(FormAccessDeniedException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage()));
+    @ExceptionHandler(FormAccessException.class)
+    public ResponseEntity<Map<String, Object>> handleFormAccess(FormAccessException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("error", ex.getMessage());
+        body.put("code", ex.getCode().name());
+        if (ex.getDetails() != null && !ex.getDetails().equals(AccessDetailsDto.NONE)) body.put("details", ex.getDetails());
+        return ResponseEntity.status(ex.getCode().httpStatus()).body(body);
     }
 
     /**
@@ -167,18 +173,6 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", ex.getMessage()));
     }
 
-    /**
-     * Handles {@link LoginRequiredException}.
-     *
-     * @param ex the exception containing the error message
-     * @return 401 (Unauthorized) with the error message
-     * @since v.0.1
-     */
-    @ExceptionHandler(LoginRequiredException.class)
-    public ResponseEntity<Map<String, String>> handleLoginRequired(LoginRequiredException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("error", ex.getMessage()));
-    }
 
     /**
      * Handles a unique-constraint race — e.g. two identical submissions with
