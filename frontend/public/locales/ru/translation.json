@@ -1072,13 +1072,16 @@
     "filter": {
       "allStatuses": "Все",
       "allForms": "Все формы",
-      "searchPlaceholder": "Ник или Discord ID"
+      "searchPlaceholder": "Ник или Discord ID",
+      "moderator": "Модератор",
+      "anyModerator": "Любой модератор"
     },
     "columns": {
       "author": "Автор",
       "form": "Форма",
       "submitted": "Отправлена",
-      "status": "Статус"
+      "status": "Статус",
+      "moderator": "Модератор"
     },
     "status": {
       "PENDING": "На рассмотрении",
@@ -1089,7 +1092,8 @@
     "decide": {
       "APPROVED": "Принять",
       "NEEDS_REVISION": "На доработку",
-      "REJECTED": "Отклонить"
+      "REJECTED": "Отклонить",
+      "reopen": "Пересмотреть решение"
     },
     "card": {
       "download": "Скачать",
@@ -1108,7 +1112,12 @@
       "submissionCount_other": "{{count}} заявки в эту форму",
       "removedField": "поле удалено из формы",
       "lastDecision": "Последнее решение: {{date}}, модератор {{moderator}}",
-      "commentPlaceholder": "Комментарий для автора (необязательно)"
+      "commentPlaceholder": "Комментарий для автора (необязательно)",
+      "commentRequired": "Чтобы отклонить или вернуть на доработку, напишите комментарий автору.",
+      "commentHint": "Комментарий обязателен для «Отклонить» и «На доработку».",
+      "conflictBy": "Решение уже принял {{name}} {{date}}. Карточка обновлена.",
+      "reopenPlaceholder": "Почему решение пересматривается (необязательно)",
+      "awaitingRevision": "Заявка на доработке — ждём, пока автор исправит и отправит её снова."
     }
   },
   "bans": {
@@ -1401,5 +1410,12 @@
       "title": "Вы уже подали заявку",
       "text": "Повторно отправить заявку на эту форму нельзя. Её статус — в «Мои заявки»."
     }
+  },
+  "submissionHistory": {
+    "title": "История",
+    "SUBMITTED": "Отправлена",
+    "DECIDED": "{{status}}",
+    "REOPENED": "Решение пересмотрено",
+    "RESUBMITTED": "Отправлена повторно"
   }
 }

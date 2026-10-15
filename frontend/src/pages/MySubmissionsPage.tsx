@@ -15,6 +15,7 @@ import {describeApiError} from "../api/errors";
 import UserMenu from "../shell/UserMenu";
 import {Avatar, Badge, Drawer, SegmentedControl, ServerIcon, Skeleton, type Tone} from "../ui";
 import {formatAnswer} from "../components/submission/formatAnswer";
+import SubmissionHistory from "../components/submission/SubmissionHistory";
 import {formatBytes} from "../components/form/fields/fileRules";
 
 // Docs: docs/design/mockups/MySubsDesktop.dc.html (desktop, panel), MySubmissions.dc.html (390 px),
@@ -315,6 +316,7 @@ function SubmissionPanel({id, onClose}: { id: string | null; onClose: () => void
                     })}
                 </dl>
             )}
+            {detail && <SubmissionHistory events={detail.history ?? []}/>}
         </Drawer>
     );
 }

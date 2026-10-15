@@ -2,7 +2,7 @@ import {useEffect, useState} from "react";
 import {AnimatePresence} from "framer-motion";
 import {useTranslation} from "react-i18next";
 import {FiArrowLeft, FiChevronLeft, FiChevronRight, FiInbox, FiRefreshCw, FiSearch, FiX} from "react-icons/fi";
-import {type DashboardForm, getGuildForms, type MyGuild} from "../../../api/dashboard";
+import {type DashboardForm, getGuildForms, getGuildModerators, type GuildModerator, type MyGuild} from "../../../api/dashboard";
 import {
     getGuildSubmissions,
     type ModerationSubmission,
@@ -20,6 +20,8 @@ interface Filters {
     formId: string;
     status: SubmissionStatus | "";
     query: string;
+    /** Who decided (Discord ID). */
+    moderator: string;
 }
 
 /**
@@ -33,7 +35,8 @@ export default function GuildModerationPanel({guild, onBack}: { guild: MyGuild; 
     const [rows, setRows] = useState<ModerationSubmission[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [filters, setFilters] = useState<Filters>({formId: "", status: "PENDING", query: ""});
+    const [filters, setFilters] = useState<Filters>({formId: "", status: "PENDING", query: "", moderator: ""});
+    const [moderators, setModerators] = useState<GuildModerator[]>([]);
     const [queryInput, setQueryInput] = useState("");
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
@@ -41,6 +44,10 @@ export default function GuildModerationPanel({guild, onBack}: { guild: MyGuild; 
     const [reloadKey, setReloadKey] = useState(0);
     // ?submission=<id> (from the ⌘K search) opens that card straight away.
     const [openId, setOpenId] = useState<string | null>(() => new URLSearchParams(window.location.search).get("submission"));
+
+    useEffect(() => {
+        getGuildModerators(guild.guildId).then(setModerators).catch(() => setModerators([]));
+    }, [guild.guildId]);
 
     useEffect(() => {
         getGuildForms(guild.guildId, true)
@@ -54,6 +61,7 @@ export default function GuildModerationPanel({guild, onBack}: { guild: MyGuild; 
             formId: filters.formId || undefined,
             status: filters.status || undefined,
             query: filters.query || undefined,
+            moderator: filters.moderator || undefined,
             page,
             size: PAGE_SIZE,
         })
@@ -85,7 +93,8 @@ export default function GuildModerationPanel({guild, onBack}: { guild: MyGuild; 
 
     const onDecided = (updated: ModerationSubmission) => {
         setRows(list => list.map(r => r.id === updated.id
-            ? {...r, ...updated, discordUsername: r.discordUsername, formTitle: r.formTitle}
+            ? {...r, ...updated, discordUsername: r.discordUsername, formTitle: r.formTitle,
+                moderatorUsername: updated.moderatorUsername ?? null}
             : r));
     };
 
@@ -141,6 +150,15 @@ export default function GuildModerationPanel({guild, onBack}: { guild: MyGuild; 
                     <option value="">{t("moderation.filter.allForms")}</option>
                     {forms.map(f => <option key={f.id} value={f.id}>{f.title}</option>)}
                 </select>
+                <select
+                    value={filters.moderator}
+                    onChange={e => updateFilters({moderator: e.target.value})}
+                    aria-label={t("moderation.filter.moderator")}
+                    className="rounded-lg border border-bd bg-sf px-3 py-2 text-xs text-mu outline-none focus:border-pr"
+                >
+                    <option value="">{t("moderation.filter.anyModerator")}</option>
+                    {moderators.map(m => <option key={m.discordId} value={m.discordId}>{m.username}</option>)}
+                </select>
                 <div className="flex items-center gap-1.5 rounded-lg border border-bd bg-sf px-3 py-2">
                     <FiSearch size={12} className="flex-shrink-0 text-mu"/>
                     <input
@@ -184,6 +202,7 @@ export default function GuildModerationPanel({guild, onBack}: { guild: MyGuild; 
                             <th className="px-5 py-3 font-medium">{t("moderation.columns.form")}</th>
                             <th className="px-5 py-3 font-medium">{t("moderation.columns.submitted")}</th>
                             <th className="px-5 py-3 font-medium">{t("moderation.columns.status")}</th>
+                            <th className="px-5 py-3 font-medium">{t("moderation.columns.moderator")}</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -207,6 +226,7 @@ export default function GuildModerationPanel({guild, onBack}: { guild: MyGuild; 
                                         </p>
                                     )}
                                 </td>
+                                <td className="px-5 py-3 text-xs text-mu">{r.moderatorUsername ?? "—"}</td>
                             </tr>
                         ))}
                         </tbody>
@@ -250,6 +270,7 @@ export default function GuildModerationPanel({guild, onBack}: { guild: MyGuild; 
                         submissionId={openId}
                         onClose={() => setOpenId(null)}
                         onDecided={onDecided}
+                        canReopen={guild.role === "OWNER"}
                     />
                 )}
             </AnimatePresence>

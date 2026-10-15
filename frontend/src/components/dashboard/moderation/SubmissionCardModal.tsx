@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 import {useTranslation} from "react-i18next";
-import {FiCheck, FiCornerUpLeft, FiDownload, FiFile, FiStar, FiX} from "react-icons/fi";
+import {FiCheck, FiCornerUpLeft, FiDownload, FiFile, FiRotateCcw, FiStar, FiX} from "react-icons/fi";
 import {
     decideSubmission,
     type DecisionStatus,
@@ -16,6 +16,7 @@ import {Modal, TabSkeleton} from "../shared";
 import {SubmissionStatusBadge} from "./SubmissionStatusBadge";
 import {formatBytes} from "../../form/fields/fileRules";
 import {formatAnswer} from "../../submission/formatAnswer";
+import SubmissionHistory from "../../submission/SubmissionHistory";
 
 function Rating({value, max}: { value: number; max: number }) {
     return (
@@ -82,22 +83,28 @@ const DECISIONS: { status: DecisionStatus; icon: typeof FiCheck; cls: string }[]
     {status: "REJECTED", icon: FiX, cls: "bg-dg hover:bg-dgh text-white"},
 ];
 
+/** Decisions that need a comment (ТЗ ФТ-4.5.4). */
+const NEEDS_COMMENT: DecisionStatus[] = ["REJECTED", "NEEDS_REVISION"];
+
 /**
- * The moderation card (task #55): answers labelled by the form schema, the
- * author's guild profile and Approve / Request revision / Reject with an
- * optional comment. Reports the updated submission so the list can patch
- * its row in place.
+ * The moderation card (task #55): answers labelled by the questions the
+ * submission answered, the author's guild profile, the history (#118) and the
+ * decision: Approve, or Request revision / Reject with a comment, only while
+ * pending. The owner may reopen an approved or rejected decision. Reports the
+ * updated submission so the list can patch its row in place.
  */
-export default function SubmissionCardModal({submissionId, onClose, onDecided}: {
+export default function SubmissionCardModal({submissionId, onClose, onDecided, canReopen = false}: {
     submissionId: string;
     onClose: () => void;
     onDecided: (updated: ModerationSubmission) => void;
+    /** The server's owner (or platform staff): may send a decision back to pending. */
+    canReopen?: boolean;
 }) {
     const {t} = useTranslation();
     const [detail, setDetail] = useState<SubmissionDetail | null>(null);
     const [loadError, setLoadError] = useState<string | null>(null);
     const [comment, setComment] = useState("");
-    const [busy, setBusy] = useState<DecisionStatus | null>(null);
+    const [busy, setBusy] = useState<DecisionStatus | "PENDING" | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [reloadKey, setReloadKey] = useState(0);
 
@@ -117,19 +124,29 @@ export default function SubmissionCardModal({submissionId, onClose, onDecided}: 
         };
     }, [submissionId, reloadKey, t]);
 
-    const decide = async (status: DecisionStatus) => {
+    const decide = async (status: DecisionStatus | "PENDING") => {
         if (!detail || busy) return;
+        if (status !== "PENDING" && NEEDS_COMMENT.includes(status) && !comment.trim()) {
+            setError(t("moderation.card.commentRequired"));
+            return;
+        }
         setBusy(status);
         setError(null);
         try {
             const updated = await decideSubmission(detail.submission.id, status, comment, detail.submission.status);
-            setDetail({...detail, submission: {...detail.submission, ...updated}});
             setComment("");
             onDecided(updated);
+            setReloadKey(k => k + 1);
         } catch (e) {
             if (e instanceof ApiError && e.status === 409) {
-                // Another moderator decided first: show what is there now.
-                setError(t("moderation.card.conflict"));
+                // Another moderator decided first: say who and when, and show what is there now.
+                const body = e.body as { decidedBy?: string | null; decidedAt?: string | null } | null;
+                setError(body?.decidedBy
+                    ? t("moderation.card.conflictBy", {
+                        name: body.decidedBy,
+                        date: body.decidedAt ? new Date(body.decidedAt).toLocaleString() : "",
+                    })
+                    : t("moderation.card.conflict"));
                 setReloadKey(k => k + 1);
             } else {
                 setError(describeApiError(e, t("moderation.card.decideError")));
@@ -140,6 +157,8 @@ export default function SubmissionCardModal({submissionId, onClose, onDecided}: 
     };
 
     const submission = detail?.submission;
+    const showDecision = submission !== undefined
+        && (submission.status === "PENDING" || (canReopen && submission.status !== "NEEDS_REVISION"));
     const author = detail?.author;
     const fieldsById = new Map((detail?.schema.fields ?? []).map(f => [f.id, f]));
     // Answers in form order, then any answers for fields since removed.
@@ -243,48 +262,56 @@ export default function SubmissionCardModal({submissionId, onClose, onDecided}: 
                         ))}
                     </div>
 
-                    {/* Previous decision */}
-                    {submission.decidedAt && (
-                        <div className="rounded-lg border border-bd bg-bg px-3 py-2 text-xs text-mu">
-                            {t("moderation.card.lastDecision", {
-                                date: new Date(submission.decidedAt).toLocaleString(),
-                                moderator: submission.moderatorDiscordId ?? "—",
-                            })}
-                            {submission.moderatorComment && (
-                                <p className="mt-1 whitespace-pre-wrap text-tx">«{submission.moderatorComment}»</p>
+                    <SubmissionHistory events={detail.history ?? []}/>
+
+                    {/* Decision: only while pending; the owner may reopen a final one (ТЗ 4.5). */}
+                    {showDecision && (
+                        <div className="border-t border-bd pt-4">
+                            <textarea
+                                value={comment}
+                                onChange={e => setComment(e.target.value)}
+                                maxLength={2000}
+                                rows={2}
+                                aria-label={t("moderation.card.commentPlaceholder")}
+                                placeholder={t(submission.status === "PENDING"
+                                    ? "moderation.card.commentPlaceholder" : "moderation.card.reopenPlaceholder")}
+                                className="w-full resize-y rounded-lg border border-bd px-3 py-2 text-sm text-tx outline-none placeholder:text-mu/70 focus:border-pr"
+                            />
+                            {error && (
+                                <p role="alert" className="mt-2 rounded-lg border border-rdb bg-rdb px-3 py-2 text-xs text-rdt">
+                                    {error}
+                                </p>
+                            )}
+                            <div className="mt-3 flex flex-wrap justify-end gap-2">
+                                {submission.status === "PENDING" ? DECISIONS.map(({status, icon: Icon, cls}) => (
+                                    <button
+                                        key={status}
+                                        onClick={() => decide(status)}
+                                        disabled={busy !== null}
+                                        className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${cls}`}
+                                    >
+                                        <Icon size={14}/>
+                                        {busy === status ? t("common.saving") : t(`moderation.decide.${status}`)}
+                                    </button>
+                                )) : (
+                                    <button onClick={() => decide("PENDING")} disabled={busy !== null}
+                                            className="flex items-center gap-1.5 rounded-lg border border-bd bg-sf px-4 py-2 text-sm font-medium text-tx hover:bg-s2 disabled:opacity-40">
+                                        <FiRotateCcw size={14}/>
+                                        {busy === "PENDING" ? t("common.saving") : t("moderation.decide.reopen")}
+                                    </button>
+                                )}
+                            </div>
+                            {submission.status === "PENDING" && (
+                                <p className="mt-2 text-right text-[11px] text-mu">{t("moderation.card.commentHint")}</p>
                             )}
                         </div>
                     )}
-
-                    {/* Decision */}
-                    <div className="border-t border-bd pt-4">
-                        <textarea
-                            value={comment}
-                            onChange={e => setComment(e.target.value)}
-                            maxLength={2000}
-                            rows={2}
-                            placeholder={t("moderation.card.commentPlaceholder")}
-                            className="w-full resize-y rounded-lg border border-bd px-3 py-2 text-sm text-tx outline-none placeholder:text-mu/70 focus:border-pr"
-                        />
-                        {error && (
-                            <p className="mt-2 rounded-lg border border-rdb bg-rdb px-3 py-2 text-xs text-rdt">
-                                {error}
-                            </p>
-                        )}
-                        <div className="mt-3 flex flex-wrap justify-end gap-2">
-                            {DECISIONS.map(({status, icon: Icon, cls}) => (
-                                <button
-                                    key={status}
-                                    onClick={() => decide(status)}
-                                    disabled={busy !== null || submission.status === status && !comment.trim()}
-                                    className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${cls}`}
-                                >
-                                    <Icon size={14}/>
-                                    {busy === status ? t("common.saving") : t(`moderation.decide.${status}`)}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+                    {submission.status === "NEEDS_REVISION" && (
+                        <p className="border-t border-bd pt-4 text-xs text-mu">{t("moderation.card.awaitingRevision")}</p>
+                    )}
+                    {!showDecision && error && (
+                        <p role="alert" className="rounded-lg border border-rdb bg-rdb px-3 py-2 text-xs text-rdt">{error}</p>
+                    )}
                 </div>
             )}
         </Modal>

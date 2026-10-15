@@ -1058,13 +1058,16 @@
     "filter": {
       "allStatuses": "All",
       "allForms": "All forms",
-      "searchPlaceholder": "Username or Discord ID"
+      "searchPlaceholder": "Username or Discord ID",
+      "moderator": "Moderator",
+      "anyModerator": "Any moderator"
     },
     "columns": {
       "author": "Author",
       "form": "Form",
       "submitted": "Submitted",
-      "status": "Status"
+      "status": "Status",
+      "moderator": "Moderator"
     },
     "status": {
       "PENDING": "Pending",
@@ -1075,7 +1078,8 @@
     "decide": {
       "APPROVED": "Approve",
       "NEEDS_REVISION": "Request revision",
-      "REJECTED": "Reject"
+      "REJECTED": "Reject",
+      "reopen": "Reopen decision"
     },
     "card": {
       "download": "Download",
@@ -1092,7 +1096,12 @@
       "submissionCount_other": "{{count}} submissions to this form",
       "removedField": "field removed from the form",
       "lastDecision": "Last decision: {{date}} by moderator {{moderator}}",
-      "commentPlaceholder": "Comment for the author (optional)"
+      "commentPlaceholder": "Comment for the author (optional)",
+      "commentRequired": "Write a comment to the author to reject or send back for revision.",
+      "commentHint": "A comment is required to reject or send back.",
+      "conflictBy": "{{name}} already decided {{date}}. The card is refreshed.",
+      "reopenPlaceholder": "Why the decision is reopened (optional)",
+      "awaitingRevision": "Sent back for revision — waiting for the author to fix and send it again."
     }
   },
   "bans": {
@@ -1381,5 +1390,12 @@
       "title": "You have already applied",
       "text": "You can't submit this form again. Its status is in My submissions."
     }
+  },
+  "submissionHistory": {
+    "title": "History",
+    "SUBMITTED": "Sent",
+    "DECIDED": "{{status}}",
+    "REOPENED": "Decision reopened",
+    "RESUBMITTED": "Sent again"
   }
 }

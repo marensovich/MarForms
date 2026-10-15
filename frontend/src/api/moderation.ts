@@ -18,6 +18,20 @@ export interface ModerationSubmission {
     decidedAt: string | null;
     discordUsername: string | null;
     formTitle: string | null;
+    /** Who decided (#118). */
+    moderatorUsername?: string | null;
+}
+
+export type SubmissionEventType = "SUBMITTED" | "DECIDED" | "REOPENED" | "RESUBMITTED";
+
+/** A step of a submission's history (#118). */
+export interface SubmissionEvent {
+    type: SubmissionEventType;
+    from: SubmissionStatus | null;
+    to: SubmissionStatus;
+    actorName: string | null;
+    comment: string | null;
+    at: string;
 }
 
 export interface DiscordRoleInfo {
@@ -42,12 +56,15 @@ export interface SubmissionDetail {
     schema: FormSchema;
     author: SubmissionAuthor | null;
     files?: SubmissionFile[];
+    history: SubmissionEvent[];
 }
 
 export interface ModerationFilters {
     formId?: string;
     status?: SubmissionStatus;
     query?: string;
+    /** Who decided (Discord ID). */
+    moderator?: string;
     page?: number;
     size?: number;
 }
@@ -63,6 +80,7 @@ export function getGuildSubmissions(
     if (filters.formId) p.set("formId", filters.formId);
     if (filters.status) p.set("status", filters.status);
     if (filters.query) p.set("query", filters.query);
+    if (filters.moderator) p.set("moderator", filters.moderator);
     return apiRequest(`/guilds/${guildId}/submissions?${p}`);
 }
 
@@ -72,7 +90,8 @@ export function getSubmissionDetail(id: string): Promise<SubmissionDetail> {
 
 export function decideSubmission(
     id: string,
-    status: DecisionStatus,
+    /** PENDING reopens an approved or rejected decision (owner only). */
+    status: DecisionStatus | "PENDING",
     comment?: string,
     /** The status on screen: the server refuses (409) if another moderator decided since. */
     expectedStatus?: string
@@ -120,6 +139,7 @@ export interface MySubmissionDetail {
     schema: FormSchema | null;
     answers: FormAnswers;
     files: SubmissionFile[];
+    history: SubmissionEvent[];
 }
 
 export function getMySubmission(id: string): Promise<MySubmissionDetail> {
