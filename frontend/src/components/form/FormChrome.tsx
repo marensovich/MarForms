@@ -13,6 +13,7 @@ export interface FormMeta {
     guildIconUrl?: string | null;
     closesAt?: string | null;
     submissionLimitPerUser?: number | null;
+    guildId?: string | null;
 }
 
 function Logo() {
@@ -147,11 +148,16 @@ export function SubmitBar({errorCount, draftSavedAt, submitting, preview, onSubm
     );
 }
 
-/** "Заявка отправлена" (ФТ-3.3.9). The submission number and review time come with #114. */
-export function SuccessCard({title, guildName, receipt}: {
+/**
+ * "Заявка отправлена" (ФТ-3.3.9, #114): form and server, the review time the author
+ * gave, the submission's short number and time; on a phone "Вернуться в Discord".
+ */
+export function SuccessCard({title, guildName, guildId, reviewTime, receipt}: {
     title: string;
     guildName?: string | null;
-    receipt?: { id: string; createdAt: string } | null;
+    guildId?: string | null;
+    reviewTime?: string | null;
+    receipt?: { id: string; number?: number | null; createdAt: string } | null;
 }) {
     const {t, i18n} = useTranslation();
     const when = receipt?.createdAt
@@ -163,20 +169,27 @@ export function SuccessCard({title, guildName, receipt}: {
                 <span className="grid h-16 w-16 place-items-center rounded-[20px] bg-gnb text-gnt" aria-hidden="true"><FiCheck size={28}/></span>
                 <h1 className="m-0 text-[26px] font-bold">{t("form.success.title")}</h1>
                 <p className="m-0 text-[15px] leading-relaxed text-mu">
-                    {[`«${title}»`, guildName].filter(Boolean).join(" · ")}. {t("form.success.text")}
+                    {[`«${title}»`, guildName].filter(Boolean).join(" · ")}. {reviewTime ? t("form.success.textWithTime", {time: reviewTime}) : t("form.success.text")}
                 </p>
                 {receipt && (
                     <span className="rounded-[10px] bg-s2 px-3 py-1.5 font-mono text-xs text-mu">
-                        № {receipt.id.slice(0, 8)}{when && <> · {when}</>}
+                        № {receipt.number ?? receipt.id.slice(0, 8)}{when && <> · {when}</>}
                     </span>
                 )}
                 <div className="flex w-full flex-col gap-2.5 pt-1.5 sm:w-auto sm:flex-row">
                     <Link to="/me/submissions" className="inline-flex h-11 items-center justify-center rounded-xl bg-pr px-[18px] text-[15px] font-semibold text-white no-underline hover:bg-prh">
                         {t("shell.mySubmissions")}
                     </Link>
-                    <Link to="/" className="inline-flex h-11 items-center justify-center rounded-xl border border-bd px-[18px] text-[15px] font-medium text-tx no-underline hover:bg-s2">
+                    <Link to="/" className={cx("h-11 items-center justify-center rounded-xl border border-bd px-[18px] text-[15px] font-medium text-tx no-underline hover:bg-s2",
+                        guildId ? "hidden sm:inline-flex" : "inline-flex")}>
                         {t("form.success.home")}
                     </Link>
+                    {guildId && (
+                        <a href={`https://discord.com/channels/${guildId}`}
+                           className="inline-flex h-11 items-center justify-center rounded-xl border border-bd px-[18px] text-[15px] font-medium text-tx no-underline hover:bg-s2 sm:hidden">
+                            {t("form.success.backToDiscord")}
+                        </a>
+                    )}
                 </div>
             </div>
         </main>

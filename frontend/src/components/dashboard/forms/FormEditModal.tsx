@@ -75,6 +75,8 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
 
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
+    // Kept as loaded: the full-screen editor (#137) gets the input for it.
+    const [reviewTime, setReviewTime] = useState<string | null>(null);
     const [fields, setFields] = useState<FormField[]>([]);
     const [webhooks, setWebhooks] = useState<WebhookConfig[]>([]);
     const [access, setAccess] = useState<AccessSettings | null>(null);
@@ -85,6 +87,7 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
                 setDefinition(def);
                 setTitle(def.schema.title);
                 setDescription(def.schema.description ?? "");
+                setReviewTime(def.schema.reviewTime ?? null);
                 setFields(def.schema.fields ?? []);
                 setWebhooks(def.webhooks ?? []);
                 setAccess(accessOf(def));
@@ -105,7 +108,7 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
             // One request: fields, webhooks and access settings succeed or fail together,
             // and a form changed elsewhere since it was opened is refused (409), not overwritten.
             const payload: UpdateFormPayload = {
-                schema: {title: title.trim(), description, fields},
+                schema: {title: title.trim(), description, reviewTime, fields},
                 webhooks: webhooks.filter(w => w.url.trim()),
                 version: definition.version,
                 ...(accessChanged ? {
@@ -251,6 +254,7 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
                                     draft={{
                                         title,
                                         description,
+                                        reviewTime: reviewTime ?? "",
                                         fields,
                                         serverId: definition ? String(definition.serverId) : "",
                                         channelsIds: [],
@@ -319,6 +323,7 @@ export default function FormEditModal({form, onClose, onUpdated}: Props) {
                                     draft={{
                                         title,
                                         description,
+                                        reviewTime: reviewTime ?? "",
                                         fields,
                                         serverId: definition ? String(definition.serverId) : "",
                                         channelsIds: [],

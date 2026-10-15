@@ -318,7 +318,8 @@ export default function FormRenderer({form, preview = false, meta}: Props) {
         return (
             <div className="flex min-h-screen flex-col bg-bg font-sans text-tx">
                 <FormHeader/>
-                <SuccessCard title={form.schema.title} guildName={meta?.guildName} receipt={receipt}/>
+                <SuccessCard title={form.schema.title} guildName={meta?.guildName} guildId={meta?.guildId}
+                             reviewTime={form.schema.reviewTime} receipt={receipt}/>
             </div>
         );
     }

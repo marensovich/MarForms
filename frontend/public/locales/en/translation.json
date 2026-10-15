@@ -113,7 +113,9 @@
       "description": "Your response to \"{{formTitle}}\" has been recorded and sent to the server.",
       "closeNote": "You can now close this tab. Thank you for your submission.",
       "text": "Moderators will review it soon. Its status will be in My submissions.",
-      "home": "Home"
+      "home": "Home",
+      "textWithTime": "Moderators will review it {{time}}. Its status will be in My submissions.",
+      "backToDiscord": "Back to Discord"
     },
     "draftSaved": "Draft saved in your browser · {{time}}",
     "placeholder": {
@@ -788,7 +790,10 @@
       "descOptional": "optional",
       "descPlaceholder": "Explain the purpose of this form, what it's for, or any instructions for the user filling it out.",
       "descHint": "Shown at the top of the form page — helps users understand what they're filling out.",
-      "preview": "Preview"
+      "preview": "Preview",
+      "reviewTimeLabel": "Review time",
+      "reviewTimePlaceholder": "usually within 1–2 days",
+      "reviewTimeHint": "Shown to the respondent after they submit."
     },
     "server": {
       "hint": "Configure which Discord server and channels will have access to this form.",

@@ -130,6 +130,15 @@ public class Submission {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     /**
+     * Short number for people, sequential within the form's server ("Заявка #1048", #114);
+     * {@code null} only for forms of a server the platform has no record of.
+     *
+     * @since v.0.1
+     */
+    @Column(updatable = false)
+    private Long number;
+
+    /**
      * The submitted answers as a key-value map.
      * <p>
      * Stored as JSON in the database using Hibernate's JSON mapping.

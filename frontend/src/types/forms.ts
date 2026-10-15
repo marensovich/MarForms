@@ -66,6 +66,8 @@ export interface FieldCondition {
 export interface FormSchema {
     title: string;
     description: string;
+    /** How long a review usually takes, shown on the success page ("обычно 1–2 дня", #114). */
+    reviewTime?: string | null;
     fields: FormField[];
 }
 

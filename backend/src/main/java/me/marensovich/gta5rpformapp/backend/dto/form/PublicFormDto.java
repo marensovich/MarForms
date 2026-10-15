@@ -26,6 +26,7 @@ import java.util.UUID;
  * @param opensAt                opening time, if scheduled
  * @param closesAt               closing time, if scheduled
  * @param submissionLimitPerUser per-respondent limit, if any
+ * @param guildId                the server's Discord ID, as a string ("Вернуться в Discord")
  * @param guildName              the server the form belongs to, if known
  * @param guildIconUrl           that server's icon, if it has one
  * @param viewerAccess           whether the current viewer may fill it in: GRANTED or the
@@ -47,6 +48,7 @@ public record PublicFormDto(
         LocalDateTime opensAt,
         LocalDateTime closesAt,
         Integer submissionLimitPerUser,
+        String guildId,
         String guildName,
         String guildIconUrl,
         AccessCode viewerAccess,
@@ -66,6 +68,7 @@ public record PublicFormDto(
                 form.getOpensAt(),
                 form.getClosesAt(),
                 form.getSubmissionLimitPerUser(),
+                form.getServerId() != null ? Long.toUnsignedString(form.getServerId()) : null,
                 guildName,
                 guildIconUrl,
                 decision.code(),

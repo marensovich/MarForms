@@ -61,7 +61,7 @@ class PostgresIntegrationTest {
     void everyMigrationAppliesAndTheEntitiesMatchTheSchema() {
         // The context only starts if ddl-auto=validate accepts the migrated schema.
         assertThat(flyway.info().pending()).isEmpty();
-        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("21");
+        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("22");
     }
 
     @Test

@@ -77,6 +77,18 @@ export default function StepBasicInfo({draft, onChange}: Props) {
                 </p>
             </div>
 
+            {/* Expected review time (ТЗ ФТ-3.3.9, #114) */}
+            <div>
+                <label htmlFor="wizard-review-time" className="mb-2 block text-sm font-medium text-tx">
+                    {t("wizard.basicInfo.reviewTimeLabel")}
+                    <span className="ml-1.5 text-xs font-normal text-mu">{t("wizard.basicInfo.descOptional")}</span>
+                </label>
+                <input id="wizard-review-time" type="text" value={draft.reviewTime} maxLength={120}
+                       onChange={e => onChange({reviewTime: e.target.value})}
+                       placeholder={t("wizard.basicInfo.reviewTimePlaceholder")} className={inputCls}/>
+                <p className="mt-1.5 text-[11px] text-mu/70">{t("wizard.basicInfo.reviewTimeHint")}</p>
+            </div>
+
             {/* Preview card */}
             {draft.title.trim() && (
                 <div className="rounded-xl border border-bd bg-bg p-4">

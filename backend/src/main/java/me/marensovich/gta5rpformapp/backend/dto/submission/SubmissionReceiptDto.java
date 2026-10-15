@@ -11,14 +11,15 @@ import java.util.UUID;
  * "thank you" screen, nothing about other submissions.
  *
  * @param id        the submission's ID
+ * @param number    its short number on the server ("№ 1048", #114)
  * @param status    its moderation status (starts as {@code PENDING})
  * @param createdAt when it was received
  * @author marensovich
  * @version v.0.1
  * @since v.0.1
  */
-public record SubmissionReceiptDto(UUID id, SubmissionStatus status, LocalDateTime createdAt) {
+public record SubmissionReceiptDto(UUID id, Long number, SubmissionStatus status, LocalDateTime createdAt) {
     public static SubmissionReceiptDto from(Submission submission) {
-        return new SubmissionReceiptDto(submission.getId(), submission.getStatus(), submission.getCreatedAt());
+        return new SubmissionReceiptDto(submission.getId(), submission.getNumber(), submission.getStatus(), submission.getCreatedAt());
     }
 }

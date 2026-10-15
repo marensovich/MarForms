@@ -35,12 +35,15 @@ export interface PublicForm {
     submissionLimitPerUser: number | null;
     guildName: string | null;
     guildIconUrl: string | null;
+    guildId: string | null;
     viewerAccess: ViewerAccess;
     access: AccessDetails;
 }
 
 export interface SubmissionReceipt {
     id: string;
+    /** Short number on the server ("№ 1048"), null for a server the platform doesn't know. */
+    number: number | null;
     status: "PENDING" | "APPROVED" | "REJECTED" | "NEEDS_REVISION";
     createdAt: string;
 }

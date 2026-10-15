@@ -99,7 +99,7 @@ describe("public form", () => {
 
     it("shows a conditional field right after its trigger, marked, and never sends a hidden one", async () => {
         const user = userEvent.setup();
-        submit.mockResolvedValue({id: "1234567890", status: "PENDING", createdAt: "2026-10-15T14:02:00"});
+        submit.mockResolvedValue({id: "1234567890", number: 1048, status: "PENDING", createdAt: "2026-10-15T14:02:00"});
         show();
         await user.type(screen.getByLabelText(/^name/), "Dmitry Volkov");
         await user.type(screen.getByLabelText(/^age/), "21");
@@ -118,7 +118,7 @@ describe("public form", () => {
         expect(sent).toMatchObject({name: "Dmitry Volkov", age: "21", experienced: false});
         expect(sent).not.toHaveProperty("experience");
         expect(await screen.findByText("form.success.title")).toBeTruthy();
-        expect(screen.getByText(/№ 12345678/)).toBeTruthy();
+        expect(screen.getByText(/№ 1048/)).toBeTruthy();
     });
 });
 

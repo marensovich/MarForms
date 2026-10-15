@@ -163,6 +163,16 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID>, J
     List<UserSubmissionCountDto> findUserSubmissionCounts();
 
     /**
+     * The highest submission number on a server — the next one is this plus one (#114).
+     *
+     * @param guildId the server
+     * @return the highest number, or {@code null} if the server has none yet
+     * @since v.0.1
+     */
+    @Query("select max(s.number) from Submission s where s.formId in (select f.id from Form f where f.serverId = :guildId)")
+    Long maxNumberInGuild(Long guildId);
+
+    /**
      * Newest submissions of the given authors — the ⌘K search by author (#107).
      * Anonymous submissions have no author and never match.
      *

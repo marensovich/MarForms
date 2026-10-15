@@ -1,5 +1,6 @@
 package me.marensovich.gta5rpformapp.backend.data.forms;
 
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -35,6 +36,13 @@ public class FormSchema {
      * @since v.0.1
      */
     private String description;
+
+    /**
+     * How long a review usually takes, in the author's words ("обычно в течение 1–2 дней"),
+     * shown on the respondent's success page (#114); {@code null} if not set.
+     */
+    @Size(max = 120)
+    private String reviewTime;
 
     /**
      * A list of field rows, where each row contains a list of {@link FormField} objects.

@@ -24,7 +24,7 @@ export function getGuildForms(guildId: string, includeArchived = false): Promise
 }
 
 export interface CreateGuildFormPayload {
-    schema: { title: string; description: string; fields: unknown[] };
+    schema: { title: string; description: string; reviewTime?: string | null; fields: unknown[] };
     channelsIds?: string[];
     webhooks?: WebhookConfig[];
     accessMode?: FormAccessMode;
@@ -104,6 +104,7 @@ export interface CreateFormPayload {
     schema: {
         title: string;
         description: string;
+        reviewTime?: string | null;
         fields: unknown[];
     };
 }
@@ -214,7 +215,7 @@ export function toggleFormActive(formId: string, active: boolean): Promise<Dashb
 }
 
 export interface UpdateFormPayload {
-    schema?: { title: string; description: string; fields: unknown[] };
+    schema?: { title: string; description: string; reviewTime?: string | null; fields: unknown[] };
     webhooks?: WebhookConfig[];
     channelsIds?: string[];
     active?: boolean;

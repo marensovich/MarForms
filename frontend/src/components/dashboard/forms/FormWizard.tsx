@@ -26,6 +26,7 @@ interface Props {
 export interface FormDraft {
     title: string;
     description: string;
+    reviewTime: string;
     fields: FormField[];
     serverId: string;
     channelsIds: string[];
@@ -45,6 +46,7 @@ const STEPS = [
 const EMPTY_DRAFT: FormDraft = {
     title: "",
     description: "",
+    reviewTime: "",
     fields: [],
     serverId: "",
     channelsIds: [],
@@ -97,7 +99,7 @@ export default function FormWizard({onClose, onCreated, guildId}: Props) {
                     accessMode: draft.accessMode,
                     allowedRoleIds: draft.allowedRoleIds,
                     deniedRoleIds: draft.deniedRoleIds,
-                    schema: {title: draft.title, description: draft.description, fields: draft.fields},
+                    schema: {title: draft.title, description: draft.description, reviewTime: draft.reviewTime.trim() || null, fields: draft.fields},
                 });
                 onCreated();
                 return;
@@ -109,6 +111,7 @@ export default function FormWizard({onClose, onCreated, guildId}: Props) {
                 schema: {
                     title: draft.title,
                     description: draft.description,
+                    reviewTime: draft.reviewTime.trim() || null,
                     fields: draft.fields,
                 },
             });

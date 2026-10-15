@@ -10,6 +10,7 @@ import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import me.marensovich.gta5rpformapp.backend.database.entity.Submission;
 import me.marensovich.gta5rpformapp.backend.database.entity.SubmissionFile;
 import me.marensovich.gta5rpformapp.backend.database.entity.User;
+import me.marensovich.gta5rpformapp.backend.database.repository.GuildRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.UserRepository;
 import me.marensovich.gta5rpformapp.backend.dto.form.AccessDetailsDto;
@@ -60,6 +61,7 @@ public class SubmissionService {
     private final SubmissionRepository submissionRepository;
     private final me.marensovich.gta5rpformapp.backend.database.repository.FormRepository formRepository;
     private final UserRepository userRepository;
+    private final GuildRepository guildRepository;
     private final FormService formService;
     private final WebhookService webhookService;
     private final AuditLogService auditLogService;
@@ -180,6 +182,7 @@ public class SubmissionService {
         submission.setAnswers(clean);
         submission.setIdempotencyKey(key);
         submission.setAnonymousToken(tokenHash);
+        submission.setNumber(nextNumber(form.getServerId()));
         Submission saved = submissionRepository.save(submission);
         fileService.attach(files, saved.getId());
 
@@ -192,6 +195,19 @@ public class SubmissionService {
                 "Form: " + form.getSchema().getTitle() + " (" + form.getId() + ")\nSubmission ID: " + saved.getId());
 
         return new SubmitResult(saved, true);
+    }
+
+    /**
+     * The next short number on the form's server (#114). The server's row is
+     * locked until the transaction ends, so concurrent submissions queue for it.
+     *
+     * @param guildId the form's server
+     * @return the number, or {@code null} for a server the platform has no record of
+     */
+    private @Nullable Long nextNumber(Long guildId) {
+        if (guildId == null || guildRepository.lockById(guildId).isEmpty()) return null;
+        Long max = submissionRepository.maxNumberInGuild(guildId);
+        return max == null ? 1L : max + 1;
     }
 
     /**
