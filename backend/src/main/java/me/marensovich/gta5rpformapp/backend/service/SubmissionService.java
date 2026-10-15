@@ -1,9 +1,11 @@
 package me.marensovich.gta5rpformapp.backend.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
 import me.marensovich.gta5rpformapp.backend.data.forms.AccessCode;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormAccessMode;
+import me.marensovich.gta5rpformapp.backend.data.forms.FormSchema;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormStatus;
 import me.marensovich.gta5rpformapp.backend.data.forms.WebhookConfig;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
@@ -57,6 +59,9 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class SubmissionService {
+
+    /** Deep-copies the form's schema into a submission's snapshot. */
+    private static final ObjectMapper SNAPSHOT_COPIER = new ObjectMapper();
 
     private final SubmissionRepository submissionRepository;
     private final me.marensovich.gta5rpformapp.backend.database.repository.FormRepository formRepository;
@@ -183,6 +188,8 @@ public class SubmissionService {
         submission.setIdempotencyKey(key);
         submission.setAnonymousToken(tokenHash);
         submission.setNumber(nextNumber(form.getServerId()));
+        // The questions as answered (#117): later edits of the form don't change this submission.
+        submission.setSchemaSnapshot(form.getSchema() == null ? null : SNAPSHOT_COPIER.convertValue(form.getSchema(), FormSchema.class));
         Submission saved = submissionRepository.save(submission);
         fileService.attach(files, saved.getId());
 

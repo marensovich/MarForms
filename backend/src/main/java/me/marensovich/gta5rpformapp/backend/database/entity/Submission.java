@@ -2,6 +2,7 @@ package me.marensovich.gta5rpformapp.backend.database.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import me.marensovich.gta5rpformapp.backend.data.forms.FormSchema;
 import me.marensovich.gta5rpformapp.backend.data.forms.SubmissionStatus;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -137,6 +138,30 @@ public class Submission {
      */
     @Column(updatable = false)
     private Long number;
+
+    /**
+     * The form's questions as they were when this was submitted (#117): labels,
+     * types, sections and options. Shown instead of the form's current schema, so
+     * later edits don't change earlier submissions; {@code null} never after V23.
+     *
+     * @since v.0.1
+     */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "schema_snapshot", updatable = false)
+    private FormSchema schemaSnapshot;
+
+    /**
+     * The questions to show this submission with: its snapshot, or the form's
+     * schema for a row from before snapshots.
+     *
+     * @param form the submission's form (may be {@code null} if deleted)
+     * @return the schema to read the answers by, or {@code null}
+     * @since v.0.1
+     */
+    public FormSchema questions(Form form) {
+        if (schemaSnapshot != null) return schemaSnapshot;
+        return form != null ? form.getSchema() : null;
+    }
 
     /**
      * The submitted answers as a key-value map.

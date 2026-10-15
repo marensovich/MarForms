@@ -171,7 +171,7 @@ public class ModerationService {
 
         String username = author != null ? author.username() : null;
         return new SubmissionDetailDto(SubmissionDto.from(submission, username, form.getSchema().getTitle()),
-                form.getId(), form.getSchema(), author,
+                form.getId(), submission.questions(form), author,
                 fileService.forSubmission(submission.getId()).stream().map(SubmissionFileDto::from).toList());
     }
 
