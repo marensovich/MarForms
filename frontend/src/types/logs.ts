@@ -2,6 +2,8 @@ export type AuditAction =
     | "USER_LOGIN"
     | "USER_BANNED"
     | "USER_UNBANNED"
+    | "USER_TIMED_OUT"
+    | "USER_TIMEOUT_LIFTED"
     | "USER_ROLES_UPDATED"
     | "FORM_CREATED"
     | "FORM_UPDATED"

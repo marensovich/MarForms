@@ -55,6 +55,12 @@ public enum AuditAction {
      */
     USER_UNBANNED,
 
+    /** A platform time-out: no submissions and no panel until it ends (ТЗ 6.3). */
+    USER_TIMED_OUT,
+
+    /** A platform time-out lifted before its end. */
+    USER_TIMEOUT_LIFTED,
+
     /**
      * User roles updated event.
      * <p>

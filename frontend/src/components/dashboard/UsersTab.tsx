@@ -1,450 +1,438 @@
-import {useCallback, useEffect, useState} from "react";
+import {type ReactElement, useEffect, useState} from "react";
+import {useTranslation} from "react-i18next";
+import {FiCopy, FiSearch} from "react-icons/fi";
+import {ApiError} from "../../api/client";
+import {type DashboardRole, getRoles} from "../../api/dashboard";
+import {describeApiError} from "../../api/errors";
 import {
     assignUserRoles,
     banUser,
-    type DashboardRole,
-    type DashboardUser,
-    getRoles,
-    getUsers,
+    getPlatformUsers,
+    getRestrictions,
+    getUserStats,
+    liftTimeout,
+    type PlatformUser,
+    type Restriction,
+    timeoutUser,
     unbanUser,
-} from "../../api/dashboard";
-import {ActionBtn, Badge, ConfirmModal, EmptyState, Modal, StatsCard, TabSkeleton} from "./shared";
-import {
-    FiCheckCircle,
-    FiClock,
-    FiFilter,
-    FiSearch,
-    FiShield,
-    FiSlash,
-    FiUserCheck,
-    FiUsers,
-    FiUserX,
-} from "react-icons/fi";
-import {useTranslation} from "react-i18next";
+    type UserFilters,
+    type UserStats,
+} from "../../api/users";
+import {useAuth} from "../../hooks/useAuth";
+import {Avatar, Button, ConfirmDialog, cx, DataTable, EmptyState, Field, KpiCard, Modal, RoleChip, Textarea, Tooltip, useToast} from "../../ui";
+import FilterSelect from "./moderation/FilterSelect";
 
-function UserAvatar({name}: { name: string }) {
-    const clean = name.replace(/#\d+$/, "");
-    const parts = clean.split(/[\s_]+/);
-    const letters = parts.length >= 2 ? parts[0][0] + parts[1][0] : clean.slice(0, 2);
-    const hue = [...name].reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
-    return (
-        <div
-            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-            style={{background: `hsl(${hue}, 45%, 42%)`}}
-        >
-            {letters.toUpperCase()}
-        </div>
-    );
-}
+// Docs: docs/design/mockups/AdminUsers.dc.html (+ Roles, Timeout, Ban, Unban), R1024Users, DarkAdmin; ТЗ 2.3, 6.3.
 
-function RolesModal({
-                        user,
-                        roles,
-                        onClose,
-                        onSave,
-                    }: {
-    user: DashboardUser;
-    roles: DashboardRole[];
-    onClose: () => void;
-    onSave: (roleIds: string[]) => Promise<void>;
-}) {
-    const [selected, setSelected] = useState<string[]>(user.roles.map(r => r.id));
-    const [saving, setSaving] = useState(false);
+const PAGE_SIZE = 25;
+const PRESETS = [10, 60, 1440, 10080];
+const DEFAULT_COLOR = "rgb(var(--mu))";
 
-    const toggle = (id: string) =>
-        setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+type Status = "" | NonNullable<UserFilters["status"]>;
 
-    const handleSave = async () => {
-        setSaving(true);
-        try {
-            await onSave(selected);
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const {t} = useTranslation();
-
-    return (
-        <Modal
-            title={t("users.rolesModal.title")}
-            subtitle={user.discordUsername}
-            onClose={onClose}
-            width="max-w-sm"
-        >
-            {roles.length === 0 ? (
-                <p className="py-4 text-center text-sm text-mu">{t("users.rolesModal.noRoles")}</p>
-            ) : (
-                <div className="mb-5 flex flex-col gap-1.5">
-                    {roles.map(role => {
-                        const active = selected.includes(role.id);
-                        return (
-                            <label
-                                key={role.id}
-                                onClick={() => toggle(role.id)}
-                                className={`flex cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 transition-all ${
-                                    active
-                                        ? "border-prs bg-prs"
-                                        : "border-bd hover:border-bd hover:bg-bg"
-                                }`}
-                            >
-                                <div
-                                    className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
-                                        active ? "border-pr bg-pr" : "border-bd"
-                                    }`}>
-                                    {active && <FiCheckCircle size={10} className="text-white"/>}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-tx">{role.name}</p>
-                                    <p className="text-xs text-mu">{t("users.rolesModal.permissionCount", {count: role.permissions.length})}</p>
-                                </div>
-                            </label>
-                        );
-                    })}
-                </div>
-            )}
-            <div className="flex gap-2">
-                <button
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="flex-1 rounded-xl bg-pr py-2.5 text-sm font-medium text-white transition-colors hover:bg-prh disabled:opacity-60"
-                >
-                    {saving ? t("users.rolesModal.saving") : t("users.rolesModal.save")}
-                </button>
-                <button
-                    onClick={onClose}
-                    className="rounded-xl border border-bd px-4 py-2.5 text-sm text-mu transition-colors hover:text-tx"
-                >
-                    {t("common.cancel")}
-                </button>
-            </div>
-        </Modal>
-    );
-}
-
-function TimeoutModal({
-                          user,
-                          onClose,
-                          onConfirm,
-                      }: {
-    user: DashboardUser;
-    onClose: () => void;
-    onConfirm: (minutes: number) => Promise<void>;
-}) {
-    const [minutes, setMinutes] = useState("60");
-    const [saving, setSaving] = useState(false);
-    const presets = [15, 60, 360, 1440, 10080];
-
-    const handleConfirm = async () => {
-        const n = Number(minutes);
-        if (!n || n <= 0) return;
-        setSaving(true);
-        try {
-            await onConfirm(n);
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const {t} = useTranslation();
-
-    return (
-        <Modal
-            title={t("users.timeoutModal.title")}
-            subtitle={t("users.timeoutModal.subtitle", {username: user.discordUsername})}
-            onClose={onClose}
-            width="max-w-sm"
-        >
-            <div className="mb-4">
-                <p className="mb-2 text-xs text-mu">{t("users.timeoutModal.durationLabel")}</p>
-                <input
-                    type="number"
-                    min="1"
-                    value={minutes}
-                    onChange={e => setMinutes(e.target.value)}
-                    className="w-full rounded-xl border border-bd bg-bg px-4 py-2.5 text-sm text-tx outline-none focus:border-pr transition-colors"
-                />
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                    {presets.map(p => (
-                        <button
-                            key={p}
-                            onClick={() => setMinutes(String(p))}
-                            className={`rounded-lg px-2.5 py-1 text-xs transition-colors ${
-                                minutes === String(p)
-                                    ? "bg-prs text-prt"
-                                    : "bg-s2 text-mu hover:bg-bd hover:text-tx"
-                            }`}
-                        >
-                            {p < 60 ? `${p}m` : p < 1440 ? `${p / 60}h` : p < 10080 ? `${p / 1440}d` : `${p / 10080}w`}
-                        </button>
-                    ))}
-                </div>
-            </div>
-            <div className="flex gap-2">
-                <button
-                    onClick={handleConfirm}
-                    disabled={saving || !Number(minutes) || Number(minutes) <= 0}
-                    className="flex-1 rounded-xl bg-wr py-2.5 text-sm font-medium text-white transition-colors hover:bg-wrh disabled:opacity-60"
-                >
-                    {saving ? t("users.timeoutModal.applying") : t("users.timeoutModal.apply")}
-                </button>
-                <button
-                    onClick={onClose}
-                    className="rounded-xl border border-bd px-4 py-2.5 text-sm text-mu transition-colors hover:text-tx"
-                >
-                    {t("common.cancel")}
-                </button>
-            </div>
-        </Modal>
-    );
-}
-
+/**
+ * Платформа · Пользователи (ТЗ 6.3): KPIs, search by username or Discord ID,
+ * filters by platform role and status, and per row «Роли», «Тайм-аут» and
+ * «Бан» / «Разбан». A time-out closes the panel and sending submissions, a
+ * ban the whole platform; both carry a reason the user sees. Actions on a
+ * user of a higher platform role are off, with the reason in a tooltip (2.3).
+ */
 export default function UsersTab() {
-    const {t} = useTranslation();
-    const [users, setUsers] = useState<DashboardUser[]>([]);
-    const [roles, setRoles] = useState<DashboardRole[]>([]);
-    const [loading, setLoading] = useState(true);
+    const {t, i18n} = useTranslation();
+    const toast = useToast();
+    const {user: me} = useAuth();
+    const canModerate = me?.permissions.includes("USERS_MODERATE") ?? false;
+    const canAssign = me?.permissions.includes("ROLES_MANAGE") ?? false;
+    const [query, setQuery] = useState("");
     const [search, setSearch] = useState("");
-    const [filterRoleId, setFilterRoleId] = useState<string>("");
-    const [totalElements, setTotalElements] = useState(0);
+    const [roleId, setRoleId] = useState("");
+    const [status, setStatus] = useState<Status>("");
+    const [page, setPage] = useState(0);
+    const [reloadKey, setReloadKey] = useState(0);
+    const [data, setData] = useState<{ key: string; rows: PlatformUser[]; total: number; pages: number } | null>(null);
+    const [error, setError] = useState<{ message: string; code?: string } | null>(null);
+    const [stats, setStats] = useState<UserStats | null>(null);
+    const [roles, setRoles] = useState<DashboardRole[]>([]);
+    const [editingRoles, setEditingRoles] = useState<PlatformUser | null>(null);
+    const [timingOut, setTimingOut] = useState<PlatformUser | null>(null);
+    const [banning, setBanning] = useState<PlatformUser | null>(null);
+    const [unbanning, setUnbanning] = useState<PlatformUser | null>(null);
+    const [lifting, setLifting] = useState<PlatformUser | null>(null);
 
-    const [assigningUser, setAssigningUser] = useState<DashboardUser | null>(null);
-    const [timeoutUser, setTimeoutUser] = useState<DashboardUser | null>(null);
-    const [banTarget, setBanTarget] = useState<DashboardUser | null>(null);
+    // The search box applies once typing pauses.
+    useEffect(() => {
+        const id = setTimeout(() => {
+            setSearch(query.trim());
+            setPage(0);
+        }, 300);
+        return () => clearTimeout(id);
+    }, [query]);
 
-    const loadUsers = useCallback(async () => {
-        setLoading(true);
-        try {
-            const data = await getUsers(0, 20, search || undefined, filterRoleId || undefined);
-            setUsers(data.content);
-            setTotalElements(data.page.totalElements);
-        } finally {
-            setLoading(false);
-        }
-    }, [search, filterRoleId]);
+    const key = JSON.stringify({search, roleId, status, page, reloadKey});
+    useEffect(() => {
+        let cancelled = false;
+        getPlatformUsers({q: search || undefined, roleId: roleId || undefined, status: status || undefined, page, size: PAGE_SIZE})
+            .then(r => {
+                if (cancelled) return;
+                setData({key, rows: r.content, total: r.page.totalElements, pages: r.page.totalPages});
+                setError(null);
+            })
+            .catch(e => !cancelled && setError({
+                message: describeApiError(e, t("adminUsers.loadError")),
+                code: e instanceof ApiError ? `HTTP ${e.status}` : undefined,
+            }));
+        return () => {
+            cancelled = true;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- key carries every input
+    }, [key, t]);
 
     useEffect(() => {
-        getRoles().then(setRoles);
+        getUserStats().then(setStats).catch(() => undefined);
+    }, [reloadKey]);
+    useEffect(() => {
+        getRoles().then(setRoles).catch(() => undefined);
     }, []);
 
-    useEffect(() => {
-        const t = setTimeout(() => loadUsers(), 300);
-        return () => clearTimeout(t);
-    }, [loadUsers]);
+    const reload = () => setReloadKey(k => k + 1);
+    const loading = !error && data?.key !== key;
+    const rows = data?.key === key ? data.rows : [];
+    const filtered = search !== "" || roleId !== "" || status !== "";
+    const n = (v: number) => v.toLocaleString(i18n.language);
+    const when = (iso: string) => new Date(iso).toLocaleString(i18n.language, {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"});
+    const roleColor = (id: string, color: string | null | undefined) => color ?? roles.find(r => r.id === id)?.color ?? DEFAULT_COLOR;
 
-    const handleBanConfirm = async () => {
-        if (!banTarget) return;
-        if (banTarget.currentlyBanned) {
-            await unbanUser(banTarget.discordId);
-        } else {
-            await banUser(banTarget.discordId, {permanent: true});
+    const act = async (action: () => Promise<PlatformUser>, done: string) => {
+        try {
+            await action();
+            toast({tone: "success", text: done});
+            reload();
+            return true;
+        } catch (e) {
+            toast({tone: "error", text: describeApiError(e, t("adminUsers.actionError"))});
+            return false;
         }
-        setBanTarget(null);
-        await loadUsers();
     };
+    const copyId = (id: string) => navigator.clipboard.writeText(id)
+        .then(() => toast({tone: "success", text: t("adminUsers.idCopied")})).catch(() => undefined);
 
-    const handleTimeout = async (user: DashboardUser, minutes: number) => {
-        await banUser(user.discordId, {permanent: false, timeoutMinutes: minutes});
-        setTimeoutUser(null);
-        await loadUsers();
+    /** A row action; off with the reason in a tooltip when the hierarchy or the caller's rights forbid it. */
+    const action = (label: string, onClick: () => void, blockedBy: string | null, tone: "plain" | "danger" = "plain"): ReactElement => {
+        const btn = (
+            <button type="button" aria-disabled={blockedBy ? true : undefined}
+                    onClick={() => !blockedBy && onClick()}
+                    className={cx("h-[30px] rounded-lg border px-2.5 text-[13px] font-medium",
+                        blockedBy ? "cursor-not-allowed border-bd bg-s2 text-mu opacity-60"
+                            : tone === "danger" ? "border-rdb bg-rdb text-rdt hover:brightness-95" : "border-bd bg-sf text-tx hover:bg-s2")}>
+                {label}
+            </button>
+        );
+        return blockedBy ? <Tooltip content={blockedBy}>{btn}</Tooltip> : btn;
     };
-
-    const handleAssignRoles = async (roleIds: string[]) => {
-        if (!assigningUser) return;
-        await assignUserRoles(assigningUser.discordId, roleIds);
-        setAssigningUser(null);
-        await loadUsers();
-    };
-
-    const getBanStatus = (user: DashboardUser) => {
-        if (user.bannedPermanently) return {label: t("users.banStatus.banned"), color: "red" as const};
-        if (user.bannedUntil && new Date(user.bannedUntil) > new Date()) {
-            return {label: t("users.banStatus.timeout"), color: "orange" as const};
-        }
-        return {label: t("users.banStatus.active"), color: "green" as const};
-    };
-
-    const bannedCount = users.filter(u => u.currentlyBanned).length;
-    const activeCount = users.filter(u => !u.currentlyBanned).length;
+    const why = (u: PlatformUser, needed: boolean) =>
+        !needed ? t("adminUsers.noRight") : u.self ? t("adminUsers.notYourself") : u.outranked ? t("adminUsers.hierarchy") : null;
 
     return (
-        <div>
-            {/* Header */}
-            <div className="mb-6 flex items-start justify-between">
-                <div>
-                    <h1 className="text-xl font-semibold text-tx">{t("users.title")}</h1>
-                    <p className="mt-0.5 text-sm text-mu">{t("users.subtitle")}</p>
-                </div>
+        <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-1.5">
+                <h1 className="m-0 text-[26px] font-bold tracking-[-0.01em]">{t("adminUsers.title")}</h1>
+                <p className="m-0 text-sm text-mu">{t("adminUsers.subtitle")}</p>
             </div>
 
-            {/* Stats */}
-            {!loading && (
-                <div className="mb-6 grid grid-cols-3 gap-4">
-                    <StatsCard
-                        label={t("users.stats.totalUsers")}
-                        value={totalElements}
-                        sub={t("users.stats.registeredAccounts")}
-                        icon={<FiUsers size={16}/>}
-                        accentColor="rgb(var(--prt))"
-                    />
-                    <StatsCard
-                        label={t("users.stats.active")}
-                        value={activeCount}
-                        sub={t("users.stats.onThisPage")}
-                        icon={<FiUserCheck size={16}/>}
-                        accentColor="rgb(var(--gnt))"
-                    />
-                    <StatsCard
-                        label={t("users.stats.restricted")}
-                        value={bannedCount}
-                        sub={t("users.stats.bannedOrTimeout")}
-                        icon={<FiUserX size={16}/>}
-                        accentColor="rgb(var(--rdt))"
-                    />
-                </div>
-            )}
-
-            {/* Filters */}
-            <div className="mb-4 flex gap-3">
-                <div className="relative flex-1">
-                    <FiSearch size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-mu"/>
-                    <input
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        placeholder={t("users.searchPlaceholder")}
-                        className="w-full rounded-xl border border-bd bg-sf py-2.5 pl-9 pr-4 text-sm text-tx placeholder-mu/70 outline-none transition-colors focus:border-pr"
-                    />
-                </div>
-                <div className="relative">
-                    <FiFilter size={13}
-                              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-mu"/>
-                    <select
-                        value={filterRoleId}
-                        onChange={e => setFilterRoleId(e.target.value)}
-                        className="appearance-none rounded-xl border border-bd bg-sf py-2.5 pl-9 pr-8 text-sm text-tx outline-none focus:border-pr transition-colors"
-                    >
-                        <option value="">{t("users.allRoles")}</option>
-                        {roles.map(role => (
-                            <option key={role.id} value={role.id}>{role.name}</option>
-                        ))}
-                    </select>
-                </div>
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
+                <KpiCard label={t("adminUsers.kpi.total")} value={stats ? n(stats.total) : "—"}
+                         extra={stats ? t("adminUsers.kpi.lastWeek", {value: n(stats.lastWeek)}) : undefined}/>
+                <KpiCard label={t("adminUsers.kpi.active")} value={stats ? n(stats.active30) : "—"}
+                         extra={stats && stats.total ? t("adminUsers.kpi.share", {value: Math.round(stats.active30 / stats.total * 100)}) : undefined}/>
+                <KpiCard label={t("adminUsers.kpi.restricted")} value={stats ? n(stats.banned + stats.timedOut) : "—"}
+                         extra={stats ? `${t("adminUsers.kpi.bans", {count: stats.banned, value: n(stats.banned)})} · ${t("adminUsers.kpi.timeouts", {count: stats.timedOut, value: n(stats.timedOut)})}` : undefined}/>
             </div>
 
-            {/* Table */}
-            {loading ? (
-                <TabSkeleton/>
-            ) : users.length === 0 ? (
-                <EmptyState message={t("users.noUsers")} icon={<FiUsers/>}/>
-            ) : (
-                <div className="overflow-hidden rounded-xl border border-bd">
-                    <table className="w-full text-sm">
-                        <thead>
-                        <tr className="border-b border-bd bg-bg">
-                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-mu">{t("users.table.user")}</th>
-                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-mu">{t("users.table.discordId")}</th>
-                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-mu">{t("users.table.roles")}</th>
-                            <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-mu">{t("users.table.status")}</th>
-                            <th className="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-mu">{t("users.table.actions")}</th>
-                        </tr>
-                        </thead>
-                        <tbody className="divide-y divide-bd">
-                        {users.map(user => {
-                            const banStatus = getBanStatus(user);
-                            return (
-                                <tr key={user.id} className="transition-colors hover:bg-bg">
-                                    <td className="px-5 py-3.5">
-                                        <div className="flex items-center gap-3">
-                                            <UserAvatar name={user.discordUsername}/>
-                                            <div>
-                                                <p className="font-medium text-tx">{user.discordUsername}</p>
-                                                {user.bannedUntil && !user.bannedPermanently && new Date(user.bannedUntil) > new Date() && (
-                                                    <p className="mt-0.5 text-xs text-amt">
-                                                        {t("users.until", {date: new Date(user.bannedUntil).toLocaleString()})}
-                                                    </p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-5 py-3.5">
-                                        <span className="font-mono text-xs text-mu">{user.discordId}</span>
-                                    </td>
-                                    <td className="px-5 py-3.5">
-                                        <div className="flex flex-wrap gap-1">
-                                            {user.roles.length === 0 ? (
-                                                <span className="text-xs text-mu">{t("users.noRoles")}</span>
-                                            ) : (
-                                                user.roles.map(role => (
-                                                    <Badge key={role.id} color="indigo">{role.name}</Badge>
-                                                ))
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="px-5 py-3.5">
-                                        <Badge color={banStatus.color} dot>{banStatus.label}</Badge>
-                                    </td>
-                                    <td className="px-5 py-3.5">
-                                        <div className="flex items-center justify-end gap-1">
-                                            <ActionBtn onClick={() => setAssigningUser(user)} variant="ghost">
-                                                <FiShield size={11} className="inline mr-1"/>{t("users.actions.roles")}
-                                            </ActionBtn>
-                                            {!user.currentlyBanned && (
-                                                <ActionBtn onClick={() => setTimeoutUser(user)} variant="warning">
-                                                    <FiClock size={11} className="inline mr-1"/>{t("users.actions.timeout")}
-                                                </ActionBtn>
-                                            )}
-                                            <ActionBtn
-                                                onClick={() => setBanTarget(user)}
-                                                variant={user.currentlyBanned ? "success" : "danger"}
-                                            >
-                                                {user.currentlyBanned
-                                                    ? <><FiCheckCircle size={11} className="inline mr-1"/>{t("users.actions.unban")}</>
-                                                    : <><FiSlash size={11} className="inline mr-1"/>{t("users.actions.ban")}</>}
-                                            </ActionBtn>
-                                        </div>
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                        </tbody>
-                    </table>
-                    {totalElements > users.length && (
-                        <div className="border-t border-bd bg-bg px-5 py-3">
-                            <p className="text-xs text-mu">
-                                {t("users.showing", {count: users.length, total: totalElements})}
-                            </p>
-                        </div>
-                    )}
-                </div>
-            )}
+            <div className="flex flex-wrap items-center gap-2.5">
+                <label className="flex h-[38px] flex-[1_1_240px] items-center gap-2 rounded-[10px] border border-bd bg-sf px-3 text-mu focus-within:border-pr">
+                    <FiSearch size={15} aria-hidden="true"/>
+                    <input value={query} onChange={e => setQuery(e.target.value)} aria-label={t("adminUsers.search")}
+                           placeholder={t("adminUsers.searchPlaceholder")}
+                           className="min-w-0 flex-1 border-0 bg-transparent text-[13px] text-tx outline-none placeholder:text-mu"/>
+                </label>
+                <FilterSelect label={t("adminUsers.role")} value={roleId} strong={roleId !== ""}
+                              onChange={v => {
+                                  setRoleId(v);
+                                  setPage(0);
+                              }}>
+                    <option value="">{t("adminUsers.any")}</option>
+                    {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                </FilterSelect>
+                <FilterSelect label={t("adminUsers.status")} value={status} strong={status !== ""}
+                              onChange={v => {
+                                  setStatus(v as Status);
+                                  setPage(0);
+                              }}>
+                    <option value="">{t("adminUsers.anyStatus")}</option>
+                    <option value="active">{t("adminUsers.statusName.ACTIVE")}</option>
+                    <option value="timeout">{t("adminUsers.statusName.TIMEOUT")}</option>
+                    <option value="banned">{t("adminUsers.statusName.BANNED")}</option>
+                </FilterSelect>
+            </div>
 
-            {assigningUser && (
-                <RolesModal
-                    user={assigningUser}
-                    roles={roles}
-                    onClose={() => setAssigningUser(null)}
-                    onSave={handleAssignRoles}
-                />
+            <DataTable<PlatformUser>
+                caption={t("adminUsers.title")}
+                rows={rows}
+                rowKey={u => u.discordId}
+                loading={loading}
+                skeletonRows={8}
+                error={error}
+                onRetry={reload}
+                minWidth={900}
+                empty={(
+                    <EmptyState title={t("ui.nothingFound")} text={filtered ? t("adminUsers.emptyFiltered") : t("adminUsers.empty")}
+                                action={filtered ? (
+                                    <button type="button" className="font-semibold text-prt hover:underline" onClick={() => {
+                                        setQuery("");
+                                        setRoleId("");
+                                        setStatus("");
+                                    }}>{t("ui.resetFilters")}</button>
+                                ) : undefined}/>
+                )}
+                columns={[
+                    {key: "user", header: t("adminUsers.col.user"), render: u => (
+                        <span className="flex min-w-0 items-center gap-2.5">
+                            <Avatar name={u.username} src={u.avatarUrl} size={32}/>
+                            <span className="truncate font-semibold">{u.username}</span>
+                        </span>
+                    )},
+                    {key: "id", header: t("adminUsers.col.id"), width: "210px", render: u => (
+                        <button type="button" onClick={() => copyId(u.discordId)} title={t("adminUsers.copyId")}
+                                aria-label={t("adminUsers.copyIdOf", {id: u.discordId})}
+                                className="group inline-flex items-center gap-1.5 font-mono text-xs text-mu hover:text-tx">
+                            {u.discordId}<FiCopy size={12} aria-hidden="true" className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"/>
+                        </button>
+                    )},
+                    {key: "roles", header: t("adminUsers.col.roles"), render: u => u.roles.length ? (
+                        <span className="flex flex-wrap gap-1.5">
+                            {u.roles.map(r => <RoleChip key={r.id} name={r.name} color={roleColor(r.id, r.color)} className="py-0.5 text-xs"/>)}
+                        </span>
+                    ) : <span className="text-mu">—</span>},
+                    {key: "status", header: t("adminUsers.col.status"), width: "190px", render: u => (
+                        <span title={u.reason ?? undefined}
+                              className={cx("inline-flex items-center gap-1.5 rounded-full px-[9px] py-[3px] text-xs font-semibold",
+                                  u.status === "ACTIVE" ? "bg-gnb text-gnt" : u.status === "TIMEOUT" ? "bg-amb text-amt" : "bg-rdb text-rdt")}>
+                            <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true"/>
+                            {u.status === "TIMEOUT" && u.until ? t("adminUsers.timeoutUntil", {date: when(u.until)}) : t(`adminUsers.statusName.${u.status}`)}
+                        </span>
+                    )},
+                    {key: "actions", header: t("adminUsers.col.actions"), width: "250px", align: "right", render: u => (
+                        <span className="inline-flex flex-wrap justify-end gap-1.5">
+                            {action(t("adminUsers.roles"), () => setEditingRoles(u), canAssign ? null : t("adminUsers.noRight"))}
+                            {u.status === "TIMEOUT"
+                                ? action(t("adminUsers.liftTimeout"), () => setLifting(u), why(u, canModerate))
+                                : action(t("adminUsers.timeout"), () => setTimingOut(u), u.status === "BANNED" ? t("adminUsers.alreadyBanned") : why(u, canModerate))}
+                            {u.status === "BANNED"
+                                ? action(t("adminUsers.unban"), () => setUnbanning(u), canModerate ? null : t("adminUsers.noRight"))
+                                : action(t("adminUsers.ban"), () => setBanning(u), why(u, canModerate), "danger")}
+                        </span>
+                    )},
+                ]}
+                pagination={{page, pageCount: data?.pages ?? 0, total: data?.total ?? 0, onPageChange: setPage}}
+            />
+
+            {editingRoles && (
+                <RolesModal user={editingRoles} roles={roles}
+                            onClose={() => setEditingRoles(null)}
+                            onSave={ids => act(() => assignUserRoles(editingRoles.discordId, ids), t("adminUsers.rolesSaved", {name: editingRoles.username}))}/>
             )}
-            {timeoutUser && (
-                <TimeoutModal
-                    user={timeoutUser}
-                    onClose={() => setTimeoutUser(null)}
-                    onConfirm={mins => handleTimeout(timeoutUser, mins)}
-                />
+            {timingOut && (
+                <TimeoutModal user={timingOut} when={when}
+                              onClose={() => setTimingOut(null)}
+                              onSave={(minutes, reason) => act(() => timeoutUser(timingOut.discordId, minutes, reason),
+                                  t("adminUsers.timedOut", {name: timingOut.username}))}/>
             )}
-            {banTarget && (
-                <ConfirmModal
-                    title={banTarget.currentlyBanned ? t("users.banModal.unbanTitle") : t("users.banModal.banTitle")}
-                    message={banTarget.currentlyBanned
-                        ? t("users.banModal.unbanMessage", {username: banTarget.discordUsername})
-                        : t("users.banModal.banMessage", {username: banTarget.discordUsername})}
-                    confirmLabel={banTarget.currentlyBanned ? t("users.banModal.unbanConfirm") : t("users.banModal.banConfirm")}
-                    confirmColor={banTarget.currentlyBanned ? "indigo" : "red"}
-                    onConfirm={handleBanConfirm}
-                    onCancel={() => setBanTarget(null)}
-                />
-            )}
+            {banning && <BanDialog user={banning} onClose={() => setBanning(null)}
+                                   onBan={reason => act(() => banUser(banning.discordId, reason), t("adminUsers.banned", {name: banning.username}))}/>}
+            {unbanning && <UnbanDialog user={unbanning} when={when} onClose={() => setUnbanning(null)}
+                                       onUnban={() => act(() => unbanUser(unbanning.discordId), t("adminUsers.unbanned", {name: unbanning.username}))}/>}
+            <ConfirmDialog open={lifting !== null} tone="primary" title={t("adminUsers.liftTitle", {name: lifting?.username ?? ""})}
+                           text={t("adminUsers.liftText")} confirmLabel={t("adminUsers.liftTimeout")}
+                           onConfirm={async () => {
+                               const u = lifting!;
+                               setLifting(null);
+                               await act(() => liftTimeout(u.discordId), t("adminUsers.timeoutLifted", {name: u.username}));
+                           }}
+                           onCancel={() => setLifting(null)}/>
         </div>
+    );
+}
+
+/** «Назначить роли»: every platform role with how many rights it gives (AdminUsersRoles.dc.html). */
+function RolesModal({user, roles, onClose, onSave}: {
+    user: PlatformUser;
+    roles: DashboardRole[];
+    onClose: () => void;
+    onSave: (roleIds: string[]) => Promise<boolean>;
+}) {
+    const {t} = useTranslation();
+    const [picked, setPicked] = useState(() => new Set(user.roles.map(r => r.id)));
+    const [busy, setBusy] = useState(false);
+    const toggle = (id: string) => setPicked(prev => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return next;
+    });
+    return (
+        <Modal open onClose={onClose} width={460} title={t("adminUsers.rolesTitle")} description={`${user.username} · ${user.discordId}`}
+               footer={(
+                   <>
+                       <Button variant="secondary" onClick={onClose}>{t("common.cancel")}</Button>
+                       <Button loading={busy} onClick={async () => {
+                           setBusy(true);
+                           const ok = await onSave([...picked]);
+                           setBusy(false);
+                           if (ok) onClose();
+                       }}>{t("common.save")}</Button>
+                   </>
+               )}>
+            <ul className="m-0 flex list-none flex-col gap-1 p-0">
+                {roles.map(r => (
+                    <li key={r.id}>
+                        <label className={cx("flex cursor-pointer items-center gap-3 rounded-[10px] px-3 py-2.5", picked.has(r.id) ? "bg-prs" : "hover:bg-s2")}>
+                            <input type="checkbox" checked={picked.has(r.id)} onChange={() => toggle(r.id)} className="h-4 w-4 accent-pr"/>
+                            <span className="h-2.5 w-2.5 flex-none rounded-full" style={{background: r.color ?? DEFAULT_COLOR}} aria-hidden="true"/>
+                            <span className="flex-1 text-sm font-medium">{r.name}</span>
+                            <span className="text-xs text-mu">{t("adminUsers.rightsCount", {count: r.permissions.length})}</span>
+                        </label>
+                    </li>
+                ))}
+            </ul>
+        </Modal>
+    );
+}
+
+/** «Тайм-аут»: presets or minutes, a required reason, and when it ends (AdminUsersTimeout.dc.html). */
+function TimeoutModal({user, when, onClose, onSave}: {
+    user: PlatformUser;
+    when: (iso: string) => string;
+    onClose: () => void;
+    onSave: (minutes: number, reason: string) => Promise<boolean>;
+}) {
+    const {t} = useTranslation();
+    const [preset, setPreset] = useState<number | "custom">(60);
+    const [custom, setCustom] = useState("");
+    const [reason, setReason] = useState("");
+    const [busy, setBusy] = useState(false);
+    const [now] = useState(() => Date.now());
+    const minutes = preset === "custom" ? Number(custom) : preset;
+    const valid = Number.isInteger(minutes) && minutes >= 1 && minutes <= 525_600;
+    const ends = valid ? new Date(now + minutes * 60_000) : null;
+    const label = (m: number) => m < 60 ? t("adminUsers.preset.min", {count: m}) : m < 1440 ? t("adminUsers.preset.hour", {count: m / 60})
+        : t("adminUsers.preset.day", {count: m / 1440});
+    const chip = (on: boolean) => cx("h-9 rounded-[10px] border px-3 text-[13px] font-medium",
+        on ? "border-pr bg-prs text-prt" : "border-bd bg-sf text-tx hover:bg-s2");
+    return (
+        <Modal open onClose={onClose} width={480} title={t("adminUsers.timeoutTitle", {name: user.username})}
+               description={t("adminUsers.timeoutText")}
+               footer={(
+                   <>
+                       <Button variant="secondary" onClick={onClose}>{t("common.cancel")}</Button>
+                       <Button disabled={!valid || !reason.trim()} loading={busy} onClick={async () => {
+                           setBusy(true);
+                           const ok = await onSave(minutes, reason.trim());
+                           setBusy(false);
+                           if (ok) onClose();
+                       }}>{t("adminUsers.giveTimeout")}</Button>
+                   </>
+               )}>
+            <div className="flex flex-col gap-4">
+                <fieldset className="m-0 flex flex-col gap-2 border-0 p-0">
+                    <legend className="mb-2 p-0 text-[13px] font-semibold">{t("adminUsers.duration")}</legend>
+                    <div className="flex flex-wrap gap-2">
+                        {PRESETS.map(m => (
+                            <button key={m} type="button" aria-pressed={preset === m} onClick={() => setPreset(m)} className={chip(preset === m)}>
+                                {label(m)}
+                            </button>
+                        ))}
+                        <button type="button" aria-pressed={preset === "custom"} onClick={() => setPreset("custom")} className={chip(preset === "custom")}>
+                            {t("adminUsers.preset.custom")}
+                        </button>
+                    </div>
+                    {preset === "custom" && (
+                        <label className="flex items-center gap-2 text-[13px] text-mu">
+                            {t("adminUsers.orMinutes")}
+                            <input type="number" min={1} max={525600} value={custom} onChange={e => setCustom(e.target.value)} autoFocus
+                                   className="h-9 w-28 rounded-[10px] border border-bd bg-sf px-3 text-sm text-tx outline-none focus:border-pr"/>
+                        </label>
+                    )}
+                </fieldset>
+                <Field label={t("adminUsers.reason")} required>
+                    <Textarea value={reason} onChange={e => setReason(e.target.value)} rows={3} maxLength={500}/>
+                </Field>
+                <p className="m-0 text-xs text-mu">
+                    {ends ? t("adminUsers.endsAt", {date: when(ends.toISOString())}) : t("adminUsers.badMinutes")}
+                </p>
+            </div>
+        </Modal>
+    );
+}
+
+/** «Забанить … на платформе?» with the reason the user will see (AdminUsersBan.dc.html). */
+function BanDialog({user, onClose, onBan}: { user: PlatformUser; onClose: () => void; onBan: (reason: string) => Promise<boolean> }) {
+    const {t} = useTranslation();
+    const [reason, setReason] = useState("");
+    return (
+        <ConfirmDialog open title={t("adminUsers.banTitle", {name: user.username})} text={t("adminUsers.banText")}
+                       confirmLabel={t("adminUsers.ban")}
+                       onConfirm={async () => {
+                           if (await onBan(reason.trim())) onClose();
+                       }}
+                       onCancel={onClose}>
+            <Field label={t("adminUsers.banReason")}>
+                <Textarea value={reason} onChange={e => setReason(e.target.value)} rows={3} maxLength={500}/>
+            </Field>
+        </ConfirmDialog>
+    );
+}
+
+/** «Разбанить …?» with who banned, when and why (AdminUsersUnban.dc.html), and the earlier restrictions. */
+function UnbanDialog({user, when, onClose, onUnban}: {
+    user: PlatformUser;
+    when: (iso: string) => string;
+    onClose: () => void;
+    onUnban: () => Promise<boolean>;
+}) {
+    const {t} = useTranslation();
+    const [history, setHistory] = useState<Restriction[] | null>(null);
+    useEffect(() => {
+        let cancelled = false;
+        getRestrictions(user.discordId).then(h => !cancelled && setHistory(h)).catch(() => !cancelled && setHistory([]));
+        return () => {
+            cancelled = true;
+        };
+    }, [user.discordId]);
+    const ban = history?.find(r => r.type === "BAN" && !r.liftedAt);
+    const text = ban
+        ? t("adminUsers.unbanText", {date: when(ban.createdAt), by: ban.createdByName ?? "—", reason: ban.reason ?? t("adminUsers.noReason")})
+        : t("adminUsers.unbanPlain");
+    return (
+        <ConfirmDialog open tone="primary" title={t("adminUsers.unbanTitle", {name: user.username})} text={history ? text : t("adminUsers.loadingHistory")}
+                       confirmLabel={t("adminUsers.unban")}
+                       onConfirm={async () => {
+                           if (await onUnban()) onClose();
+                       }}
+                       onCancel={onClose}>
+            {history && history.length > 1 && (
+                <div className="flex flex-col gap-1.5">
+                    <span className="text-xs font-semibold text-mu">{t("adminUsers.history")}</span>
+                    <ul className="m-0 flex max-h-40 list-none flex-col gap-1.5 overflow-y-auto p-0 text-[13px]">
+                        {history.filter(r => r !== ban).map((r, i) => (
+                            <li key={i} className="rounded-lg bg-s2 px-3 py-2">
+                                <span className="font-semibold">{t(`adminUsers.kind.${r.type}`)}</span>
+                                {" · "}{when(r.createdAt)}{r.createdByName && ` · ${r.createdByName}`}
+                                {r.reason && <span className="block text-mu">«{r.reason}»</span>}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+        </ConfirmDialog>
     );
 }

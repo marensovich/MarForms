@@ -14,6 +14,7 @@ import HomeRedirect from "./pages/HomeRedirect";
 import AccessScreen from "./components/access/AccessScreen";
 import FormEditorPage, {NewFormPage} from "./components/builder/FormEditorPage";
 import {useAuth} from "./hooks/useAuth.ts";
+import PanelGate from "./shell/PanelGate";
 
 export default function App() {
 
@@ -22,7 +23,7 @@ export default function App() {
     if (banData) {
         // ACCOUNT_RESTRICTED (ТЗ 3.5): the auth filter refuses every request of a restricted account.
         return <AccessScreen code="ACCOUNT_RESTRICTED" restrictionMessage={banData.message}
-                             details={{until: banData.until ?? undefined, appealsContact: banData.contact || undefined}}/>;
+                             details={{until: banData.until ?? undefined, reason: banData.reason ?? undefined, appealsContact: banData.contact || undefined}}/>;
     }
 
     return (
@@ -35,18 +36,21 @@ export default function App() {
 
             <Route element={<ProtectedRoute/>}>
                 <Route path="/home" element={<HomeRedirect/>}/>
-                <Route element={<DashboardLayout/>}>
-                    <Route path="/dashboard" element={<ToServers/>}/>
-                    <Route path="/dashboard/servers" element={<ServersTab/>}/>
-                    <Route path="/dashboard/servers/:guildId" element={<Navigate to="forms" replace/>}/>
-                    <Route path="/dashboard/servers/:guildId/:section" element={<GuildWorkspaceRoute/>}/>
-                    <Route path="/admin" element={<ToServers/>}/>
-                    <Route path="/admin/:section" element={<AdminRoute/>}/>
-                </Route>
                 <Route path="/me/submissions" element={<MySubmissionsPage/>}/>
-                {/* The builder takes the whole screen (FormEdit.dc.html): outside the panel's layout. */}
-                <Route path="/dashboard/forms/:formId/edit" element={<FormEditorPage/>}/>
-                <Route path="/dashboard/servers/:guildId/forms/new" element={<NewFormPage/>}/>
+                {/* A time-out closes the panel, not the user's own pages (ТЗ 6.3). */}
+                <Route element={<PanelGate/>}>
+                    <Route element={<DashboardLayout/>}>
+                        <Route path="/dashboard" element={<ToServers/>}/>
+                        <Route path="/dashboard/servers" element={<ServersTab/>}/>
+                        <Route path="/dashboard/servers/:guildId" element={<Navigate to="forms" replace/>}/>
+                        <Route path="/dashboard/servers/:guildId/:section" element={<GuildWorkspaceRoute/>}/>
+                        <Route path="/admin" element={<ToServers/>}/>
+                        <Route path="/admin/:section" element={<AdminRoute/>}/>
+                    </Route>
+                    {/* The builder takes the whole screen (FormEdit.dc.html): outside the panel's layout. */}
+                    <Route path="/dashboard/forms/:formId/edit" element={<FormEditorPage/>}/>
+                    <Route path="/dashboard/servers/:guildId/forms/new" element={<NewFormPage/>}/>
+                </Route>
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace/>}/>

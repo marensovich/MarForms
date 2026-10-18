@@ -140,6 +140,29 @@ public class User {
      */
     private LocalDateTime bannedUntil;
 
+    /** Why the user is banned or timed out; the user sees it (ТЗ 6.3). */
+    @Column(name = "restriction_reason", columnDefinition = "TEXT")
+    private String restrictionReason;
+
+    /** The last request the user made, for «активные за 30 дней» (ТЗ 6.3). */
+    @Column(name = "last_seen_at")
+    private LocalDateTime lastSeenAt;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    /** A ban: the whole platform is closed to the user (ТЗ 6.3). */
+    @Transient
+    public boolean isBanned() {
+        return bannedPermanently;
+    }
+
+    /** A time-out: no submissions and no panel until {@link #getBannedUntil()} (ТЗ 6.3). */
+    @Transient
+    public boolean isTimedOut() {
+        return !bannedPermanently && bannedUntil != null && bannedUntil.isAfter(LocalDateTime.now());
+    }
+
     /**
      * Checks if the user is currently banned.
      * <p>

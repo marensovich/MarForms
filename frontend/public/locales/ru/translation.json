@@ -314,65 +314,6 @@
       "backToList": "Назад к списку"
     }
   },
-  "users": {
-    "title": "Пользователи",
-    "subtitle": "Управление доступом, ролями и ограничениями",
-    "stats": {
-      "totalUsers": "Всего пользователей",
-      "registeredAccounts": "зарегистрированных аккаунтов",
-      "active": "Активные",
-      "onThisPage": "на этой странице",
-      "restricted": "Ограниченные",
-      "bannedOrTimeout": "в бане или таймауте"
-    },
-    "searchPlaceholder": "Поиск по имени или Discord ID…",
-    "allRoles": "Все роли",
-    "table": {
-      "user": "Пользователь",
-      "discordId": "Discord ID",
-      "roles": "Роли",
-      "status": "Статус",
-      "actions": "Действия"
-    },
-    "banStatus": {
-      "banned": "Забанен",
-      "timeout": "Таймаут",
-      "active": "Активен"
-    },
-    "until": "до {{date}}",
-    "noRoles": "Нет ролей",
-    "showing": "Показано {{count}} из {{total}} пользователей",
-    "noUsers": "Пользователи не найдены.",
-    "actions": {
-      "roles": "Роли",
-      "timeout": "Таймаут",
-      "ban": "Бан",
-      "unban": "Разбан"
-    },
-    "rolesModal": {
-      "title": "Назначить роли",
-      "noRoles": "Ролей нет.",
-      "permissionCount_one": "{{count}} право",
-      "permissionCount_other": "{{count}} прав",
-      "save": "Сохранить роли",
-      "saving": "Сохранение…"
-    },
-    "timeoutModal": {
-      "title": "Таймаут пользователя",
-      "subtitle": "Временно ограничить {{username}}",
-      "durationLabel": "Длительность (минуты)",
-      "apply": "Применить таймаут",
-      "applying": "Применение…"
-    },
-    "banModal": {
-      "banTitle": "Забанить пользователя",
-      "unbanTitle": "Разбанить пользователя",
-      "banMessage": "Перманентно забанить {{username}}? Они потеряют доступ ко всем формам.",
-      "unbanMessage": "Снять бан с {{username}}? Доступ будет восстановлен немедленно.",
-      "banConfirm": "Забанить навсегда",
-      "unbanConfirm": "Разбанить"
-    }
-  },
   "roles": {
     "title": "Роли",
     "subtitle": "Наборы прав и их назначение пользователям",
@@ -468,7 +409,9 @@
       "BOT_REMOVED": "Бот удалён с сервера",
       "BOT_RECONNECTED": "Бот вернулся на сервер",
       "BOT_PERMISSIONS_MISSING": "Боту не хватает прав",
-      "WEBHOOK_FAILING": "Уведомления формы не доставляются"
+      "WEBHOOK_FAILING": "Уведомления формы не доставляются",
+      "USER_TIMED_OUT": "Тайм-аут",
+      "USER_TIMEOUT_LIFTED": "Снятие тайм-аута"
     }
   },
   "system": {
@@ -592,7 +535,9 @@
         "BOT_REMOVED": "Бот удалён с сервера",
         "BOT_RECONNECTED": "Бот вернулся на сервер",
         "BOT_PERMISSIONS_MISSING": "Боту не хватает прав",
-        "WEBHOOK_FAILING": "Уведомления формы не доставляются"
+        "WEBHOOK_FAILING": "Уведомления формы не доставляются",
+        "USER_TIMED_OUT": "Тайм-аут",
+        "USER_TIMEOUT_LIFTED": "Снятие тайм-аута"
       }
     },
     "globalEmbed": {
@@ -2119,5 +2064,107 @@
     "loadError": "Не удалось загрузить заявки",
     "empty": "Заявок пока нет",
     "emptyFiltered": "С такими фильтрами заявок нет."
+  },
+  "adminUsers": {
+    "title": "Пользователи",
+    "subtitle": "Все, кто входил через Discord. Ограничения действуют на всей платформе.",
+    "kpi": {
+      "total": "Всего пользователей",
+      "lastWeek": "+{{value}} за 7 дней",
+      "active": "Активные за 30 дней",
+      "share": "{{value}}% от всех",
+      "restricted": "Ограниченные",
+      "bans_one": "{{value}} бан",
+      "bans_few": "{{value}} бана",
+      "bans_many": "{{value}} банов",
+      "bans_other": "{{value}} бана",
+      "timeouts_one": "{{value}} тайм-аут",
+      "timeouts_few": "{{value}} тайм-аута",
+      "timeouts_many": "{{value}} тайм-аутов",
+      "timeouts_other": "{{value}} тайм-аута"
+    },
+    "search": "Поиск пользователей",
+    "searchPlaceholder": "Ник или Discord ID",
+    "role": "Роль",
+    "any": "любая",
+    "status": "Статус",
+    "anyStatus": "любой",
+    "statusName": {
+      "ACTIVE": "Активен",
+      "TIMEOUT": "Тайм-аут",
+      "BANNED": "Забанен"
+    },
+    "timeoutUntil": "Тайм-аут до {{date}}",
+    "col": {
+      "user": "Пользователь",
+      "id": "Discord ID",
+      "roles": "Роли платформы",
+      "status": "Статус",
+      "actions": "Действия"
+    },
+    "copyId": "Копировать ID",
+    "copyIdOf": "Копировать Discord ID {{id}}",
+    "idCopied": "Discord ID скопирован",
+    "roles": "Роли",
+    "timeout": "Тайм-аут",
+    "liftTimeout": "Снять тайм-аут",
+    "ban": "Бан",
+    "unban": "Разбан",
+    "hierarchy": "Модератор не может забанить администратора платформы.",
+    "notYourself": "Нельзя ограничить самого себя.",
+    "noRight": "Нет права на это действие.",
+    "alreadyBanned": "Пользователь уже забанен.",
+    "rolesTitle": "Назначить роли",
+    "rightsCount_one": "{{count}} право",
+    "rightsCount_few": "{{count}} права",
+    "rightsCount_many": "{{count}} прав",
+    "rightsCount_other": "{{count}} права",
+    "rolesSaved": "Роли {{name}} сохранены",
+    "timeoutTitle": "Тайм-аут для {{name}}",
+    "timeoutText": "На время тайм-аута нельзя отправлять заявки и входить в панель.",
+    "duration": "Длительность",
+    "preset": {
+      "min_one": "{{count}} мин",
+      "min_few": "{{count}} мин",
+      "min_many": "{{count}} мин",
+      "min_other": "{{count}} мин",
+      "hour_one": "{{count}} час",
+      "hour_few": "{{count}} часа",
+      "hour_many": "{{count}} часов",
+      "hour_other": "{{count}} часа",
+      "day_one": "{{count}} день",
+      "day_few": "{{count}} дня",
+      "day_many": "{{count}} дней",
+      "day_other": "{{count}} дня",
+      "custom": "Своё"
+    },
+    "orMinutes": "или минут:",
+    "reason": "Причина",
+    "endsAt": "Закончится {{date}} · пользователь увидит причину",
+    "badMinutes": "Укажите от 1 до 525 600 минут.",
+    "giveTimeout": "Выдать тайм-аут",
+    "timedOut": "{{name}} получил тайм-аут",
+    "liftTitle": "Снять тайм-аут с {{name}}?",
+    "liftText": "Доступ к панели и отправке заявок восстановится сразу.",
+    "timeoutLifted": "Тайм-аут {{name}} снят",
+    "banTitle": "Забанить {{name}} на платформе?",
+    "banText": "Пользователь не сможет открывать формы и входить в панель ни на одном сервере. Его заявки сохранятся.",
+    "banReason": "Причина (видна пользователю)",
+    "banned": "{{name}} забанен",
+    "unbanTitle": "Разбанить {{name}}?",
+    "unbanText": "Забанен {{date}} модератором {{by}}. Причина: «{{reason}}». Доступ восстановится сразу.",
+    "unbanPlain": "Доступ восстановится сразу.",
+    "noReason": "не указана",
+    "unbanned": "{{name}} разбанен",
+    "history": "Ранее",
+    "kind": {
+      "BAN": "Бан",
+      "TIMEOUT": "Тайм-аут"
+    },
+    "loadingHistory": "Загружаем историю…",
+    "actionError": "Действие не выполнено",
+    "loadError": "Не удалось загрузить пользователей",
+    "empty": "Пользователей пока нет",
+    "emptyFiltered": "С такими фильтрами пользователей нет."
   }
 }

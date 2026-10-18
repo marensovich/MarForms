@@ -177,7 +177,7 @@ public class FormAccessService {
     private Decision checkWithoutLimit(Form form, @Nullable User user, boolean refreshRoles) {
         if (user != null && user.isCurrentlyBanned()) {
             // Normally unreachable: the JWT filter already refuses a restricted account.
-            return new Decision(AccessCode.ACCOUNT_RESTRICTED, AccessDetailsDto.restriction(null, null,
+            return new Decision(AccessCode.ACCOUNT_RESTRICTED, AccessDetailsDto.restriction(user.getRestrictionReason(), null,
                     user.isBannedPermanently() ? null : user.getBannedUntil(), settingsService.getSettings().banAdminContact()));
         }
         Decision status = checkStatus(form);

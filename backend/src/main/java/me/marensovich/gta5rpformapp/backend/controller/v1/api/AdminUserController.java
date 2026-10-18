@@ -1,28 +1,37 @@
 package me.marensovich.gta5rpformapp.backend.controller.v1.api;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import me.marensovich.gta5rpformapp.backend.database.entity.Role;
+import me.marensovich.gta5rpformapp.backend.database.entity.User;
+import me.marensovich.gta5rpformapp.backend.database.entity.UserRestriction;
 import me.marensovich.gta5rpformapp.backend.dto.user.AssignRolesRequest;
 import me.marensovich.gta5rpformapp.backend.dto.user.BanUserRequest;
-import me.marensovich.gta5rpformapp.backend.dto.user.UserSummaryDto;
+import me.marensovich.gta5rpformapp.backend.dto.user.TimeoutRequest;
+import me.marensovich.gta5rpformapp.backend.service.AuditLogService;
 import me.marensovich.gta5rpformapp.backend.service.UserService;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 /**
- * REST controller for administrative user management operations.
- * <p>
- * Provides endpoints for managing users with administrative privileges.
- * Different authorities are required for different operations:
- * <ul>
- *     <li>{@code USERS_MODERATE} — for viewing, banning, and unbanning users</li>
- *     <li>{@code ROLES_MANAGE} — for assigning roles to users</li>
- * </ul>
- * </p>
+ * The platform's «Пользователи» (ТЗ 6.3): everyone who signed in with
+ * Discord, their platform roles and restrictions. A ban closes the whole
+ * platform, a time-out only sending submissions and the panel; both carry a
+ * reason the user sees, and the hierarchy of ТЗ 2.3 applies to both and to
+ * taking roles away.
  *
  * @author marensovich
  * @version v.0.1
@@ -34,100 +43,113 @@ import java.util.UUID;
 public class AdminUserController {
 
     private final UserService userService;
+    private final AuditLogService auditLogService;
 
-    /**
-     * Retrieves a paginated list of all users with optional filtering.
-     * <p>
-     * Supports filtering by:
-     * <ul>
-     *     <li><b>Search</b> — matches against {@code discordUsername} (case-insensitive, partial match)
-     *     or {@code discordId} (partial match)</li>
-     *     <li><b>Role ID</b> — filters users who have a specific role assigned</li>
-     * </ul>
-     * </p>
-     * <p>
-     * Requires the {@code USERS_MODERATE} authority.
-     * </p>
-     *
-     * @param search   optional search string for username or Discord ID (case-insensitive)
-     * @param roleId   optional role UUID to filter users by role
-     * @param pageable pagination parameters (page, size, sort)
-     * @return a {@link Page} of {@link UserSummaryDto} containing user summaries
-     * @since v.0.1
-     */
-    @PreAuthorize("hasAuthority('USERS_MODERATE')")
-    @GetMapping
-    public Page<UserSummaryDto> list(
-            @RequestParam(required = false) String search,
-            @RequestParam(required = false) UUID roleId,
-            Pageable pageable
-    ) {
-        return userService.listAll(search, roleId, pageable).map(UserSummaryDto::from);
+    /** A platform role as a chip. */
+    public record RoleChip(UUID id, String name, String color) {
     }
 
     /**
-     * Assigns roles to a specific user.
-     * <p>
-     * Replaces the user's current roles with the specified set of roles.
-     * </p>
-     * <p>
-     * Requires the {@code ROLES_MANAGE} authority.
-     * </p>
+     * A row of the users table.
      *
-     * @param discordId the Discord ID of the user to update
-     * @param request   the {@link AssignRolesRequest} containing the role IDs to assign
-     * @return a {@link UserSummaryDto} containing the updated user information
+     * @param status    {@code ACTIVE}, {@code TIMEOUT} or {@code BANNED}
+     * @param until     the end of a time-out
+     * @param reason    why the user is restricted
+     * @param outranked the caller stands no higher than the user (ТЗ 2.3): no ban, time-out or taking roles
+     * @param self      the row is the caller
+     */
+    public record UserRow(@JsonSerialize(using = ToStringSerializer.class) Long discordId, String username, String avatarUrl,
+                          List<RoleChip> roles, String status, LocalDateTime until, String reason,
+                          LocalDateTime lastSeenAt, boolean outranked, boolean self) {
+    }
+
+    /** A ban or time-out in the history the «Разбан» dialog shows. */
+    public record RestrictionRow(String type, String reason, LocalDateTime endsAt, LocalDateTime createdAt,
+                                 @JsonSerialize(using = ToStringSerializer.class) Long createdBy, String createdByName,
+                                 LocalDateTime liftedAt, String liftedByName) {
+        static RestrictionRow from(UserRestriction r) {
+            return new RestrictionRow(r.getType().name(), r.getReason(), r.getEndsAt(), r.getCreatedAt(), r.getCreatedBy(),
+                    r.getCreatedByName(), r.getLiftedAt(), r.getLiftedByName());
+        }
+    }
+
+    /**
+     * The users, newest first.
+     *
+     * @param q      part of the username, or the Discord ID
+     * @param roleId one platform role
+     * @param status {@code active}, {@code timeout} or {@code banned}
+     * @param page   0-based
+     * @param size   at most 100
+     * @return the page
      * @since v.0.1
      */
+    @PreAuthorize("hasAuthority('USERS_MODERATE') or hasAuthority('ROLES_MANAGE')")
+    @GetMapping
+    public Page<UserRow> list(@RequestParam(required = false) String q,
+                              @RequestParam(required = false) UUID roleId,
+                              @RequestParam(required = false) String status,
+                              @RequestParam(defaultValue = "0") int page,
+                              @RequestParam(defaultValue = "25") int size) {
+        PageRequest request = PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 100),
+                Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id")));
+        return userService.search(q, roleId, status, request).map(this::row);
+    }
+
+    /** All users and new this week, active in 30 days, bans and time-outs (ТЗ 6.3 KPI). */
+    @PreAuthorize("hasAuthority('USERS_MODERATE') or hasAuthority('ROLES_MANAGE')")
+    @GetMapping("/stats")
+    public Map<String, Long> stats() {
+        return userService.stats();
+    }
+
+    /** The user's bans and time-outs, the latest first. */
+    @PreAuthorize("hasAuthority('USERS_MODERATE')")
+    @GetMapping("/{discordId}/restrictions")
+    public List<RestrictionRow> restrictions(@PathVariable Long discordId) {
+        return userService.restrictions(discordId).stream().map(RestrictionRow::from).toList();
+    }
+
     @PreAuthorize("hasAuthority('ROLES_MANAGE')")
     @PutMapping("/{discordId}/roles")
-    public UserSummaryDto assignRoles(
-            @PathVariable Long discordId,
-            @Valid @RequestBody AssignRolesRequest request
-    ) {
-        return UserSummaryDto.from(userService.assignRoles(discordId, request));
+    public UserRow assignRoles(@PathVariable Long discordId, @Valid @RequestBody AssignRolesRequest request) {
+        return row(userService.assignRoles(discordId, request));
     }
 
-    /**
-     * Bans a specific user.
-     * <p>
-     * Supports both permanent and temporary bans. For temporary bans,
-     * a positive timeout duration must be provided in the request.
-     * </p>
-     * <p>
-     * Requires the {@code USERS_MODERATE} authority.
-     * </p>
-     *
-     * @param discordId the Discord ID of the user to ban
-     * @param request   the {@link BanUserRequest} containing the ban configuration
-     * @return a {@link UserSummaryDto} containing the updated user information with ban status
-     * @since v.0.1
-     */
     @PreAuthorize("hasAuthority('USERS_MODERATE')")
     @PostMapping("/{discordId}/ban")
-    public UserSummaryDto ban(
-            @PathVariable Long discordId,
-            @RequestBody BanUserRequest request
-    ) {
-        return UserSummaryDto.from(userService.ban(discordId, request));
+    public UserRow ban(@PathVariable Long discordId, @Valid @RequestBody BanUserRequest request) {
+        return row(userService.ban(discordId, request));
     }
 
-    /**
-     * Unbans a specific user.
-     * <p>
-     * Removes both permanent and temporary ban status from the user.
-     * </p>
-     * <p>
-     * Requires the {@code USERS_MODERATE} authority.
-     * </p>
-     *
-     * @param discordId the Discord ID of the user to unban
-     * @return a {@link UserSummaryDto} containing the updated user information with ban status removed
-     * @since v.0.1
-     */
     @PreAuthorize("hasAuthority('USERS_MODERATE')")
     @PostMapping("/{discordId}/unban")
-    public UserSummaryDto unban(@PathVariable Long discordId) {
-        return UserSummaryDto.from(userService.unban(discordId));
+    public UserRow unban(@PathVariable Long discordId) {
+        return row(userService.unban(discordId));
+    }
+
+    @PreAuthorize("hasAuthority('USERS_MODERATE')")
+    @PostMapping("/{discordId}/timeout")
+    public UserRow timeout(@PathVariable Long discordId, @Valid @RequestBody TimeoutRequest request) {
+        return row(userService.timeout(discordId, request));
+    }
+
+    @PreAuthorize("hasAuthority('USERS_MODERATE')")
+    @DeleteMapping("/{discordId}/timeout")
+    public UserRow liftTimeout(@PathVariable Long discordId) {
+        return row(userService.liftTimeout(discordId));
+    }
+
+    private UserRow row(User u) {
+        String status = u.isBanned() ? "BANNED" : u.isTimedOut() ? "TIMEOUT" : "ACTIVE";
+        List<RoleChip> roles = u.getRoles().stream()
+                .sorted(Comparator.comparingInt((Role r) -> -UserService.rank(Set.of(r))).thenComparing(Role::getName))
+                .map(r -> new RoleChip(r.getId(), r.getName(), r.getColor()))
+                .toList();
+        String avatar = u.getDiscordAvatar() == null ? null
+                : "https://cdn.discordapp.com/avatars/" + u.getDiscordId() + "/" + u.getDiscordAvatar() + ".png?size=64";
+        return new UserRow(u.getDiscordId(), u.getDiscordUsername(), avatar, roles, status,
+                u.isTimedOut() ? u.getBannedUntil() : null, status.equals("ACTIVE") ? null : u.getRestrictionReason(),
+                u.getLastSeenAt(), !userService.outranks(u), Objects.equals(auditLogService.currentActorId(), u.getDiscordId()));
     }
 }

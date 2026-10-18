@@ -87,31 +87,6 @@ export function deleteGuildForm(guildId: string, formId: string): Promise<void> 
     return apiRequest(`/guilds/${guildId}/forms/${formId}`, {method: "DELETE"});
 }
 
-export interface DashboardUser {
-    id: number;
-    discordId: string;
-    discordUsername: string;
-    roles: DashboardRole[];
-    bannedPermanently: boolean;
-    bannedUntil: string | null;
-    currentlyBanned: boolean;
-}
-
-export function getUsers(
-    page = 0,
-    size = 20,
-    search?: string,
-    roleId?: string
-): Promise<PageResponse<DashboardUser>> {
-    const params = new URLSearchParams({
-        page: String(page),
-        size: String(size),
-        ...(search ? {search} : {}),
-        ...(roleId ? {roleId} : {}),
-    });
-    return apiRequest(`/admin/users?${params}`);
-}
-
 export function updateRole(
     roleId: string,
     payload: { name?: string; permissions?: string[] }
@@ -317,30 +292,11 @@ export function getFormSubmissions(
 }
 
 
-export function assignUserRoles(discordId: string, roleIds: string[]): Promise<DashboardUser> {
-    return apiRequest(`/admin/users/${discordId}/roles`, {
-        method: "PUT",
-        body: {roleIds},
-    });
-}
-
-export function banUser(
-    discordId: string,
-    payload: { permanent: boolean; timeoutMinutes?: number }
-): Promise<DashboardUser> {
-    return apiRequest(`/admin/users/${discordId}/ban`, {
-        method: "POST",
-        body: payload,
-    });
-}
-
-export function unbanUser(discordId: string): Promise<DashboardUser> {
-    return apiRequest(`/admin/users/${discordId}/unban`, {method: "POST"});
-}
-
 export interface DashboardRole {
     id: string;
     name: string;
+    /** Chip colour, #RRGGBB. */
+    color?: string | null;
     permissions: string[];
 }
 

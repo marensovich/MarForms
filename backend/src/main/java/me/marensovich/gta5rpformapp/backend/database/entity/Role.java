@@ -56,6 +56,10 @@ public class Role {
      * @see Permission
      * @since v.0.1
      */
+    /** The chip colour, #RRGGBB; {@code null} for the default. */
+    @Column(length = 7)
+    private String color;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
     @CollectionTable(

@@ -60,7 +60,10 @@ public class UserController {
                         .map(r -> r.getName())
                         .collect(Collectors.toSet()),
                 permissions,
-                hash
+                hash,
+                principal.getUser().isTimedOut()
+                        ? new MeResponse.Timeout(principal.getUser().getBannedUntil(), principal.getUser().getRestrictionReason())
+                        : null
         );
     }
 

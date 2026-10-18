@@ -36,6 +36,10 @@ export interface BannedError {
     permanent?: boolean;
     /** End of a time-out (local ISO), absent when permanent. */
     until?: string | null;
+    /** A time-out rather than a ban: only the panel and sending submissions are closed. */
+    timeout?: boolean;
+    /** Why, as the moderator wrote it. */
+    reason?: string | null;
 }
 
 export class BanError extends Error {

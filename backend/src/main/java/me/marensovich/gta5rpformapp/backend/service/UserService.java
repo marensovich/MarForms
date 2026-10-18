@@ -1,8 +1,21 @@
 package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.RequiredArgsConstructor;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
+import me.marensovich.gta5rpformapp.backend.database.entity.UserRestriction;
+import me.marensovich.gta5rpformapp.backend.database.repository.UserRestrictionRepository;
+import me.marensovich.gta5rpformapp.backend.dto.user.TimeoutRequest;
+import me.marensovich.gta5rpformapp.backend.exception.HierarchyException;
+import me.marensovich.gta5rpformapp.backend.exception.InvalidStateException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.access.AccessDeniedException;
 import me.marensovich.gta5rpformapp.backend.data.roles.Permission;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
 import me.marensovich.gta5rpformapp.backend.database.entity.Role;
@@ -46,6 +59,7 @@ public class UserService {
     private final DiscordApiClient discordApiClient;
     private final DiscordTokenService discordTokenService;
     private final AuditLogService auditLogService;
+    private final UserRestrictionRepository restrictionRepository;
 
     /**
      * Finds an existing user by Discord ID or creates a new one if not found.
@@ -86,30 +100,6 @@ public class UserService {
             changed = true;
         }
         if (changed) userRepository.save(user);
-    }
-
-    /**
-     * Retrieves a paginated list of all users with optional search and role filters.
-     * <p>
-     * Supports filtering by:
-     * <ul>
-     *     <li><b>Search</b> — matches against {@code discordUsername} (case-insensitive, partial match)
-     *     or {@code discordId} (partial match)</li>
-     *     <li><b>Role ID</b> — filters users who have a specific role assigned</li>
-     * </ul>
-     * The search string is normalized by trimming whitespace. Empty or blank search strings
-     * are treated as {@code null} (no search filter).
-     * </p>
-     *
-     * @param search   optional search string for username or Discord ID (case-insensitive)
-     * @param roleId   optional role UUID to filter users by role
-     * @param pageable pagination parameters (page, size, sort)
-     * @return a {@link Page} of {@link User} entities matching the filters
-     * @since v.0.1
-     */
-    public Page<User> listAll(String search, UUID roleId, Pageable pageable) {
-        String normalizedSearch = (search != null && !search.isBlank()) ? search.trim() : null;
-        return userRepository.findAllWithFilters(normalizedSearch, roleId, pageable);
     }
 
     /**
@@ -181,15 +171,19 @@ public class UserService {
     }
 
     /**
-     * Assigns roles to a user.
+     * Replaces a user's platform roles (ТЗ 6.3 «Назначить роли»).
      * <p>
-     * Replaces the user's current roles with the specified set.
+     * Hierarchy (ТЗ 2.3): roles can't be taken from a user of a higher platform
+     * role; only a system administrator grants or takes a role with
+     * {@code SYSTEM_ADMIN}; and the last holder of {@code SYSTEM_ADMIN} keeps it.
      * </p>
      *
      * @param discordId the Discord ID of the user to update
      * @param request   the {@link AssignRolesRequest} containing the role IDs to assign
      * @return the updated {@link User} entity
-     * @throws NotFoundException if the user or any of the roles do not exist
+     * @throws NotFoundException     if the user or any of the roles do not exist
+     * @throws HierarchyException    if the hierarchy forbids it
+     * @throws InvalidStateException if the last system administrator would lose the role
      * @since v.0.1
      */
     @Transactional
@@ -201,16 +195,33 @@ public class UserService {
             roles.add(roleService.getById(roleId));
         }
 
+        Set<Role> removed = new HashSet<>(user.getRoles());
+        removed.removeAll(roles);
+        Set<Role> added = new HashSet<>(roles);
+        added.removeAll(user.getRoles());
+        if (!removed.isEmpty() && !outranks(user)) {
+            throw new HierarchyException("You can't take roles from a user with a higher platform role");
+        }
+        boolean touchesSystemAdmin = Stream.concat(removed.stream(), added.stream())
+                .anyMatch(r -> r.getPermissions().contains(Permission.SYSTEM_ADMIN));
+        if (touchesSystemAdmin && !currentUserHas(Permission.SYSTEM_ADMIN)) {
+            throw new HierarchyException("Only a system administrator can grant or take the System Admin permission");
+        }
+        boolean losesSystemAdmin = rank(user.getRoles()) == 3 && rank(roles) < 3;
+        if (losesSystemAdmin && userRepository.countWithPermission(Permission.SYSTEM_ADMIN) <= 1) {
+            throw new InvalidStateException("The last system administrator keeps the System Admin role");
+        }
+
         String oldRoleNames = user.getRoles().stream()
                 .map(Role::getName)
                 .sorted()
-                .collect(java.util.stream.Collectors.joining(", "));
+                .collect(Collectors.joining(", "));
         user.setRoles(roles);
         User saved = userRepository.save(user);
         String newRoleNames = roles.stream()
                 .map(Role::getName)
                 .sorted()
-                .collect(java.util.stream.Collectors.joining(", "));
+                .collect(Collectors.joining(", "));
         String details = "Roles: [" + (oldRoleNames.isBlank() ? "none" : oldRoleNames)
                 + "] → [" + (newRoleNames.isBlank() ? "none" : newRoleNames) + "]";
         auditLogService.logByCurrentUser(AuditAction.USER_ROLES_UPDATED,
@@ -219,91 +230,247 @@ public class UserService {
     }
 
     /**
-     * Bans a user.
-     * <p>
-     * Supports both permanent and temporary bans. For temporary bans,
-     * a positive timeout duration must be provided.
-     * </p>
+     * Bans a user from the whole platform (ТЗ 6.3): no forms, no panel, on any
+     * server, until unbanned. Their submissions stay. A time-out in force ends.
      *
-     * @param discordId the Discord ID of the user to ban
-     * @param request   the {@link BanUserRequest} containing ban configuration
-     * @return the updated {@link User} entity
-     * @throws NotFoundException        if the user does not exist
-     * @throws IllegalArgumentException if a temporary ban is requested without a positive timeout
+     * @param discordId the user
+     * @param request   the reason, which the user sees
+     * @return the user
+     * @throws HierarchyException if the user has a higher platform role
      * @since v.0.1
      */
     @Transactional
     public User ban(Long discordId, BanUserRequest request) {
         User user = getByDiscordId(discordId);
-        requireMayBan(user);
+        requireMayRestrict(user);
 
-        if (request.permanent()) {
-            user.setBannedPermanently(true);
-            user.setBannedUntil(null);
-        } else {
-            if (request.timeoutMinutes() == null || request.timeoutMinutes() <= 0) {
-                throw new IllegalArgumentException("timeoutMinutes must be a positive number for a temporary ban");
-            }
-            user.setBannedUntil(LocalDateTime.now().plusMinutes(request.timeoutMinutes()));
-        }
-
+        String reason = blankToNull(request.reason());
+        liftOpen(user, UserRestriction.Type.TIMEOUT);
+        user.setBannedPermanently(true);
+        user.setBannedUntil(null);
+        user.setRestrictionReason(reason);
         User saved = userRepository.save(user);
-        String details = request.permanent()
-                ? "Banned permanently"
-                : "Banned for " + request.timeoutMinutes() + " minutes";
-        auditLogService.logByCurrentUser(AuditAction.USER_BANNED,
-                String.valueOf(discordId), saved.getDiscordUsername(), details);
+        record(saved, UserRestriction.Type.BAN, reason, null);
+        auditLogService.logByCurrentUser(AuditAction.USER_BANNED, String.valueOf(discordId), saved.getDiscordUsername(),
+                reason != null ? "Banned: " + reason : "Banned");
         return saved;
     }
 
     /**
-     * Platform ban hierarchy (#103): nobody bans themselves, and only a
-     * system administrator bans someone who can manage roles or the system —
-     * otherwise a moderator could lock the administrators out, with only the
-     * database to undo it.
+     * Times a user out (ТЗ 6.3): for the given minutes they can't send
+     * submissions or open the panel; they still see their own submissions.
+     *
+     * @param discordId the user
+     * @param request   how long and why (the user sees it)
+     * @return the user
+     * @throws HierarchyException    if the user has a higher platform role
+     * @throws InvalidStateException if the user is banned
+     * @since v.0.1
      */
-    private void requireMayBan(User target) {
-        Long actorId = auditLogService.currentActorId();
-        if (actorId != null && actorId.equals(target.getDiscordId())) {
-            throw new IllegalArgumentException("You can't ban yourself");
-        }
-        boolean targetIsAdmin = target.getRoles().stream()
-                .flatMap(role -> role.getPermissions().stream())
-                .anyMatch(p -> p == Permission.ROLES_MANAGE || p == Permission.SYSTEM_ADMIN);
-        if (targetIsAdmin && !currentUserHas(Permission.SYSTEM_ADMIN)) {
-            throw new AccessDeniedException("Only a system administrator can ban an administrator");
-        }
-    }
+    @Transactional
+    public User timeout(Long discordId, TimeoutRequest request) {
+        User user = getByDiscordId(discordId);
+        requireMayRestrict(user);
+        if (user.isBanned()) throw new InvalidStateException("The user is banned; a time-out would change nothing");
 
-    private static boolean currentUserHas(Permission permission) {
-        var auth = SecurityContextHolder.getContext().getAuthentication();
-        return auth != null && auth.getAuthorities().stream().anyMatch(a -> permission.name().equals(a.getAuthority()));
+        String reason = request.reason().trim();
+        LocalDateTime until = LocalDateTime.now().plusMinutes(request.minutes());
+        liftOpen(user, UserRestriction.Type.TIMEOUT);
+        user.setBannedUntil(until);
+        user.setRestrictionReason(reason);
+        User saved = userRepository.save(user);
+        record(saved, UserRestriction.Type.TIMEOUT, reason, until);
+        auditLogService.logByCurrentUser(AuditAction.USER_TIMED_OUT, String.valueOf(discordId), saved.getDiscordUsername(),
+                "Timed out for " + request.minutes() + " min until " + until.withNano(0) + ": " + reason);
+        return saved;
     }
 
     /**
-     * Unbans a user.
-     * <p>
-     * Removes both permanent and temporary ban status from the user.
-     * </p>
+     * Ends a time-out early.
      *
-     * @param discordId the Discord ID of the user to unban
-     * @return the updated {@link User} entity
-     * @throws NotFoundException if the user does not exist
+     * @param discordId the user
+     * @return the user
+     * @throws InvalidStateException if the user isn't timed out
+     * @since v.0.1
+     */
+    @Transactional
+    public User liftTimeout(Long discordId) {
+        User user = getByDiscordId(discordId);
+        if (!user.isTimedOut()) throw new InvalidStateException("The user isn't timed out");
+        requireMayRestrict(user);
+        liftOpen(user, UserRestriction.Type.TIMEOUT);
+        user.setBannedUntil(null);
+        user.setRestrictionReason(null);
+        User saved = userRepository.save(user);
+        auditLogService.logByCurrentUser(AuditAction.USER_TIMEOUT_LIFTED, String.valueOf(discordId), saved.getDiscordUsername(),
+                "Time-out lifted");
+        return saved;
+    }
+
+    /**
+     * Lifts a ban (and a time-out); access comes back at once.
+     *
+     * @param discordId the user
+     * @return the user
      * @since v.0.1
      */
     @Transactional
     public User unban(Long discordId) {
         User user = getByDiscordId(discordId);
         String prevBan = user.isBannedPermanently()
-                ? "was permanently banned"
+                ? "was banned" + (user.getRestrictionReason() != null ? ": " + user.getRestrictionReason() : "")
                 : user.getBannedUntil() != null
-                  ? "was temporarily banned until " + user.getBannedUntil()
-                  : "was banned";
+                  ? "was timed out until " + user.getBannedUntil()
+                  : "wasn't restricted";
+        liftOpen(user, UserRestriction.Type.BAN);
+        liftOpen(user, UserRestriction.Type.TIMEOUT);
         user.setBannedPermanently(false);
         user.setBannedUntil(null);
+        user.setRestrictionReason(null);
         User saved = userRepository.save(user);
         auditLogService.logByCurrentUser(AuditAction.USER_UNBANNED,
                 String.valueOf(discordId), saved.getDiscordUsername(), prevBan);
         return saved;
+    }
+
+    /** A user's bans and time-outs, the latest first (the «Разбан» dialog shows them). */
+    public List<UserRestriction> restrictions(Long discordId) {
+        return restrictionRepository.findAllByUserDiscordIdOrderByCreatedAtDesc(discordId);
+    }
+
+    /**
+     * The platform's users (ТЗ 6.3), filtered on the server.
+     *
+     * @param q        part of the username, or the Discord ID
+     * @param roleId   one platform role, or any
+     * @param status   {@code active}, {@code timeout}, {@code banned}, or any
+     * @param pageable the page
+     * @return the page
+     * @since v.0.1
+     */
+    public Page<User> search(String q, UUID roleId, String status, Pageable pageable) {
+        return userRepository.findAll((root, query, cb) -> {
+            List<Predicate> p = new ArrayList<>();
+            if (q != null && !q.isBlank()) {
+                String text = q.trim();
+                String like = "%" + text.toLowerCase(Locale.ROOT).replace("%", "\\%").replace("_", "\\_") + "%";
+                Predicate byName = cb.like(cb.lower(root.get("discordUsername")), like, '\\');
+                p.add(text.matches("\\d{1,19}") ? cb.or(byName, cb.equal(root.get("discordId"), Long.parseLong(text))) : byName);
+            }
+            if (roleId != null) {
+                Subquery<Long> sub = query.subquery(Long.class);
+                Root<User> u = sub.from(User.class);
+                sub.select(u.get("id")).where(cb.equal(u.join("roles").get("id"), roleId));
+                p.add(root.get("id").in(sub));
+            }
+            LocalDateTime now = LocalDateTime.now();
+            Predicate banned = cb.isTrue(root.get("bannedPermanently"));
+            Predicate timedOut = cb.and(cb.not(banned), cb.greaterThan(root.get("bannedUntil"), now));
+            switch (status == null ? "" : status) {
+                case "banned" -> p.add(banned);
+                case "timeout" -> p.add(timedOut);
+                case "active" -> p.add(cb.and(cb.not(banned), cb.or(cb.isNull(root.get("bannedUntil")),
+                        cb.lessThanOrEqualTo(root.get("bannedUntil"), now))));
+                default -> {
+                }
+            }
+            return cb.and(p.toArray(Predicate[]::new));
+        }, pageable);
+    }
+
+    /** The KPIs of ТЗ 6.3: all users and new ones this week, active in 30 days, bans and time-outs. */
+    public Map<String, Long> stats() {
+        LocalDateTime now = LocalDateTime.now();
+        return Map.of(
+                "total", userRepository.count(),
+                "lastWeek", userRepository.count((r, q, cb) -> cb.greaterThanOrEqualTo(r.get("createdAt"), now.minusDays(7))),
+                "active30", userRepository.count((r, q, cb) -> cb.greaterThanOrEqualTo(r.get("lastSeenAt"), now.minusDays(30))),
+                "banned", userRepository.count((r, q, cb) -> cb.isTrue(r.get("bannedPermanently"))),
+                "timedOut", userRepository.count((r, q, cb) -> cb.and(cb.isFalse(r.get("bannedPermanently")),
+                        cb.greaterThan(r.get("bannedUntil"), now))));
+    }
+
+    /**
+     * A user's platform level (ТЗ 2.3): 3 system administrator, 2 administrator
+     * (manages roles), 1 any other right, 0 none.
+     *
+     * @param roles the user's roles
+     * @return the level
+     * @since v.0.1
+     */
+    public static int rank(Set<Role> roles) {
+        Set<Permission> p = roles.stream().flatMap(r -> r.getPermissions().stream()).collect(Collectors.toSet());
+        if (p.contains(Permission.SYSTEM_ADMIN)) return 3;
+        if (p.contains(Permission.ROLES_MANAGE)) return 2;
+        return p.isEmpty() ? 0 : 1;
+    }
+
+    /** The caller's level, from their authorities. */
+    private static int callerRank() {
+        if (currentUserHas(Permission.SYSTEM_ADMIN)) return 3;
+        if (currentUserHas(Permission.ROLES_MANAGE)) return 2;
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.getAuthorities().stream().anyMatch(a -> isPermission(a.getAuthority())) ? 1 : 0;
+    }
+
+    /**
+     * Whether the caller stands above the user (ТЗ 2.3): a system administrator
+     * above everyone, anyone else only above lower levels.
+     *
+     * @param target the user acted on
+     * @return {@code true} if the caller may ban, time out or take roles from them
+     * @since v.0.1
+     */
+    public boolean outranks(User target) {
+        int caller = callerRank();
+        return caller == 3 || caller > rank(target.getRoles());
+    }
+
+    private void requireMayRestrict(User target) {
+        Long actorId = auditLogService.currentActorId();
+        if (actorId != null && actorId.equals(target.getDiscordId())) {
+            throw new IllegalArgumentException("You can't restrict yourself");
+        }
+        if (!outranks(target)) {
+            throw new HierarchyException("A moderator can't restrict a platform administrator");
+        }
+    }
+
+    private void record(User user, UserRestriction.Type type, String reason, LocalDateTime until) {
+        UserRestriction r = new UserRestriction();
+        r.setUserDiscordId(user.getDiscordId());
+        r.setType(type);
+        r.setReason(reason);
+        r.setEndsAt(until);
+        r.setCreatedBy(auditLogService.currentActorId());
+        r.setCreatedByName(auditLogService.currentActorUsername());
+        restrictionRepository.save(r);
+    }
+
+    /** Marks the restriction of this kind still in force as lifted by the caller; one that ran out simply ended. */
+    private void liftOpen(User user, UserRestriction.Type type) {
+        LocalDateTime now = LocalDateTime.now();
+        restrictionRepository.findFirstByUserDiscordIdAndTypeAndLiftedAtIsNullOrderByCreatedAtDesc(user.getDiscordId(), type)
+                .filter(r -> r.getEndsAt() == null || r.getEndsAt().isAfter(now))
+                .ifPresent(r -> {
+                    r.setLiftedAt(now);
+                    r.setLiftedBy(auditLogService.currentActorId());
+                    r.setLiftedByName(auditLogService.currentActorUsername());
+                    restrictionRepository.save(r);
+                });
+    }
+
+    private static String blankToNull(String s) {
+        return s == null || s.isBlank() ? null : s.trim();
+    }
+
+    private static boolean isPermission(String authority) {
+        for (Permission p : Permission.values()) if (p.name().equals(authority)) return true;
+        return false;
+    }
+
+    private static boolean currentUserHas(Permission permission) {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.getAuthorities().stream().anyMatch(a -> permission.name().equals(a.getAuthority()));
     }
 }

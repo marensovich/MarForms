@@ -19,6 +19,7 @@ import java.util.Set;
  * @param permissions     the set of permissions granted to the user
  * @param permissionsHash a hash value representing the user's permission set
  *                        for frontend permission caching and quick checks
+ * @param timeout         the time-out in force, {@code null} if none
  * @author marensovich
  * @version v.0.1
  * @since v.0.1
@@ -29,6 +30,10 @@ public record MeResponse(
         String discordUsername,
         Set<String> roles,
         Set<Permission> permissions,
-        long permissionsHash
+        long permissionsHash,
+        Timeout timeout
 ) {
+    /** A platform time-out in force (ТЗ 6.3): the panel is closed until it ends; the user sees why. */
+    public record Timeout(java.time.LocalDateTime until, String reason) {
+    }
 }

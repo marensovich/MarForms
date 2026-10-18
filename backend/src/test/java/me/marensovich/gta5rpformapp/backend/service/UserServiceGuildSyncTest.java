@@ -37,7 +37,7 @@ class UserServiceGuildSyncTest {
     private AuditLogService auditLogService;
 
     private UserService service() {
-        return new UserService(userRepository, roleService, discordApiClient, discordTokenService, auditLogService);
+        return new UserService(userRepository, roleService, discordApiClient, discordTokenService, auditLogService, null);
     }
 
     private User user() {

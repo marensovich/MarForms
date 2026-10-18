@@ -385,6 +385,8 @@ public class AuditLogService {
             case USER_LOGIN -> "🔵 User Login";
             case USER_BANNED -> "🔴 User Banned";
             case USER_UNBANNED -> "🟢 User Unbanned";
+            case USER_TIMED_OUT -> "🟠 User Timed Out";
+            case USER_TIMEOUT_LIFTED -> "🟢 Time-out Lifted";
             case USER_ROLES_UPDATED -> "🟡 User Roles Updated";
             case FORM_CREATED -> "🟢 Form Created";
             case FORM_UPDATED -> "🔵 Form Updated";
@@ -420,12 +422,12 @@ public class AuditLogService {
      */
     private int actionColor(AuditAction action) {
         return switch (action) {
-            case USER_UNBANNED, FORM_CREATED, SUBMISSION_CREATED, ROLE_CREATED, MODERATOR_ADDED, GUILD_BAN_REMOVED, GUILD_CONNECTED -> 0x57F287;
+            case USER_UNBANNED, USER_TIMEOUT_LIFTED, FORM_CREATED, SUBMISSION_CREATED, ROLE_CREATED, MODERATOR_ADDED, GUILD_BAN_REMOVED, GUILD_CONNECTED -> 0x57F287;
             case USER_BANNED, FORM_DELETED, SUBMISSION_DELETED, ROLE_DELETED, MODERATOR_REMOVED, GUILD_BAN_ADDED, GUILD_ROLE_REVOKED -> 0xED4245;
             case USER_LOGIN, FORM_UPDATED, ROLE_UPDATED -> 0x5865F2;
             case USER_ROLES_UPDATED, SETTINGS_UPDATED -> 0xFEE75C;
             case SUBMISSION_DECIDED -> 0xEB459E;
-            case SUBMISSION_DM_FAILED, BOT_PERMISSIONS_MISSING, WEBHOOK_FAILING -> 0xFEE75C;
+            case SUBMISSION_DM_FAILED, BOT_PERMISSIONS_MISSING, WEBHOOK_FAILING, USER_TIMED_OUT -> 0xFEE75C;
             case FORM_STATUS_CHANGED -> 0x5865F2;
             case BOT_REMOVED -> 0xED4245;
             case BOT_RECONNECTED -> 0x57F287;

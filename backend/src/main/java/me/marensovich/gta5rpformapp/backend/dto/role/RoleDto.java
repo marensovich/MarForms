@@ -14,6 +14,7 @@ import java.util.UUID;
  *
  * @param id          the unique identifier of the role
  * @param name        the display name of the role
+ * @param color       the chip colour, #RRGGBB, or {@code null}
  * @param permissions the set of permissions assigned to the role
  * @author marensovich
  * @version v.0.1
@@ -22,6 +23,7 @@ import java.util.UUID;
 public record RoleDto(
         UUID id,
         String name,
+        String color,
         Set<Permission> permissions
 ) {
     /**
@@ -32,6 +34,6 @@ public record RoleDto(
      * @since v.0.1
      */
     public static RoleDto from(Role role) {
-        return new RoleDto(role.getId(), role.getName(), role.getPermissions());
+        return new RoleDto(role.getId(), role.getName(), role.getColor(), role.getPermissions());
     }
 }

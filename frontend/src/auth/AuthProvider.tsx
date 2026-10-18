@@ -51,6 +51,7 @@ export function AuthProvider({children}: { children: ReactNode }) {
                     discordUsername: me.discordUsername,
                     permissions: me.permissions,
                     permissionsHash: me.permissionsHash,
+                    timeout: me.timeout ?? null,
                 };
             });
         } catch (err) {

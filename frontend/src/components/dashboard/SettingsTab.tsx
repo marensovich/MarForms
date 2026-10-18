@@ -25,6 +25,8 @@ const ACTION_META: Record<AuditAction, { dot: string }> = {
     USER_LOGIN: {dot: "bg-pr"},
     USER_BANNED: {dot: "bg-dg"},
     USER_UNBANNED: {dot: "bg-ok"},
+    USER_TIMED_OUT: {dot: "bg-wr"},
+    USER_TIMEOUT_LIFTED: {dot: "bg-ok"},
     USER_ROLES_UPDATED: {dot: "bg-wr"},
     FORM_CREATED: {dot: "bg-ok"},
     FORM_UPDATED: {dot: "bg-pr"},
@@ -52,7 +54,7 @@ const ACTION_META: Record<AuditAction, { dot: string }> = {
 
 const ACTION_GROUPS: { label: string; actions: AuditAction[] }[] = [
     {label: "Authentication", actions: ["USER_LOGIN"]},
-    {label: "Users", actions: ["USER_BANNED", "USER_UNBANNED", "USER_ROLES_UPDATED"]},
+    {label: "Users", actions: ["USER_BANNED", "USER_UNBANNED", "USER_TIMED_OUT", "USER_TIMEOUT_LIFTED", "USER_ROLES_UPDATED"]},
     {label: "Forms", actions: ["FORM_CREATED", "FORM_UPDATED", "FORM_STATUS_CHANGED", "FORM_DELETED"]},
     {label: "Submissions", actions: ["SUBMISSION_CREATED", "SUBMISSION_DELETED", "SUBMISSION_DECIDED", "SUBMISSION_DM_FAILED"]},
     {label: "Roles", actions: ["ROLE_CREATED", "ROLE_UPDATED", "ROLE_DELETED"]},

@@ -8,6 +8,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -25,9 +26,11 @@ public class CustomUserDetails implements UserDetails {
     }
 
     public Set<Permission> getPermissions() {
-        return user.getRoles().stream()
+        Set<Permission> permissions = user.getRoles().stream()
                 .flatMap(role -> role.getPermissions().stream())
                 .collect(Collectors.toSet());
+        // SYSTEM_ADMIN includes every right above it (ТЗ 2.2).
+        return permissions.contains(Permission.SYSTEM_ADMIN) ? EnumSet.allOf(Permission.class) : permissions;
     }
 
     @Override

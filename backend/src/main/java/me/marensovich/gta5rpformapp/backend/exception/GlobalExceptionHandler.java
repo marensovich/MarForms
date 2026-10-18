@@ -57,6 +57,12 @@ public class GlobalExceptionHandler {
      * @return a {@link ResponseEntity} with status 403 (Forbidden) and a generic error message
      * @since v.0.1
      */
+    /** A platform-hierarchy refusal (ТЗ 2.3): 403 with why, for the tooltip and the toast. */
+    @ExceptionHandler(HierarchyException.class)
+    public ResponseEntity<Map<String, String>> handleHierarchy(HierarchyException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", ex.getMessage(), "code", "HIERARCHY"));
+    }
+
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Map<String, String>> handleAccessDenied(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)

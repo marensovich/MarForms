@@ -306,65 +306,6 @@
       "backToList": "Back to list"
     }
   },
-  "users": {
-    "title": "Users",
-    "subtitle": "Manage user access, roles, and restrictions",
-    "stats": {
-      "totalUsers": "Total Users",
-      "registeredAccounts": "registered accounts",
-      "active": "Active",
-      "onThisPage": "on this page",
-      "restricted": "Restricted",
-      "bannedOrTimeout": "banned or in timeout"
-    },
-    "searchPlaceholder": "Search by username or Discord ID…",
-    "allRoles": "All roles",
-    "table": {
-      "user": "User",
-      "discordId": "Discord ID",
-      "roles": "Roles",
-      "status": "Status",
-      "actions": "Actions"
-    },
-    "banStatus": {
-      "banned": "Banned",
-      "timeout": "Timeout",
-      "active": "Active"
-    },
-    "until": "until {{date}}",
-    "noRoles": "No roles",
-    "showing": "Showing {{count}} of {{total}} users",
-    "noUsers": "No users found.",
-    "actions": {
-      "roles": "Roles",
-      "timeout": "Timeout",
-      "ban": "Ban",
-      "unban": "Unban"
-    },
-    "rolesModal": {
-      "title": "Assign Roles",
-      "noRoles": "No roles available.",
-      "permissionCount_one": "{{count}} permission",
-      "permissionCount_other": "{{count}} permissions",
-      "save": "Save roles",
-      "saving": "Saving…"
-    },
-    "timeoutModal": {
-      "title": "Timeout User",
-      "subtitle": "Temporarily restrict {{username}}",
-      "durationLabel": "Duration (minutes)",
-      "apply": "Apply timeout",
-      "applying": "Applying…"
-    },
-    "banModal": {
-      "banTitle": "Ban user",
-      "unbanTitle": "Unban user",
-      "banMessage": "Permanently ban {{username}}? They will be unable to access any forms.",
-      "unbanMessage": "Remove the ban from {{username}}? They will regain access immediately.",
-      "banConfirm": "Ban permanently",
-      "unbanConfirm": "Unban"
-    }
-  },
   "roles": {
     "title": "Roles",
     "subtitle": "Define permission sets and assign them to users",
@@ -460,7 +401,9 @@
       "BOT_REMOVED": "Bot removed from server",
       "BOT_RECONNECTED": "Bot back on server",
       "BOT_PERMISSIONS_MISSING": "Bot lacks permissions",
-      "WEBHOOK_FAILING": "Form notifications failing"
+      "WEBHOOK_FAILING": "Form notifications failing",
+      "USER_TIMED_OUT": "User Timed Out",
+      "USER_TIMEOUT_LIFTED": "Time-out Lifted"
     }
   },
   "system": {
@@ -583,7 +526,9 @@
         "BOT_REMOVED": "Bot removed from server",
         "BOT_RECONNECTED": "Bot back on server",
         "BOT_PERMISSIONS_MISSING": "Bot lacks permissions",
-        "WEBHOOK_FAILING": "Form notifications failing"
+        "WEBHOOK_FAILING": "Form notifications failing",
+        "USER_TIMED_OUT": "User Timed Out",
+        "USER_TIMEOUT_LIFTED": "Time-out Lifted"
       }
     },
     "globalEmbed": {
@@ -2071,5 +2016,95 @@
     "loadError": "Couldn't load submissions",
     "empty": "No submissions yet",
     "emptyFiltered": "No submissions match these filters."
+  },
+  "adminUsers": {
+    "title": "Users",
+    "subtitle": "Everyone who signed in with Discord. Restrictions apply across the platform.",
+    "kpi": {
+      "total": "All users",
+      "lastWeek": "+{{value}} in 7 days",
+      "active": "Active in 30 days",
+      "share": "{{value}}% of all",
+      "restricted": "Restricted",
+      "bans_one": "{{value}} ban",
+      "bans_other": "{{value}} bans",
+      "timeouts_one": "{{value}} time-out",
+      "timeouts_other": "{{value}} time-outs"
+    },
+    "search": "Search users",
+    "searchPlaceholder": "Username or Discord ID",
+    "role": "Role",
+    "any": "any",
+    "status": "Status",
+    "anyStatus": "any",
+    "statusName": {
+      "ACTIVE": "Active",
+      "TIMEOUT": "Timed out",
+      "BANNED": "Banned"
+    },
+    "timeoutUntil": "Timed out until {{date}}",
+    "col": {
+      "user": "User",
+      "id": "Discord ID",
+      "roles": "Platform roles",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "copyId": "Copy ID",
+    "copyIdOf": "Copy Discord ID {{id}}",
+    "idCopied": "Discord ID copied",
+    "roles": "Roles",
+    "timeout": "Time-out",
+    "liftTimeout": "Lift time-out",
+    "ban": "Ban",
+    "unban": "Unban",
+    "hierarchy": "A moderator can't ban a platform administrator.",
+    "notYourself": "You can't restrict yourself.",
+    "noRight": "You don't have the right to do this.",
+    "alreadyBanned": "The user is already banned.",
+    "rolesTitle": "Assign roles",
+    "rightsCount_one": "{{count}} right",
+    "rightsCount_other": "{{count}} rights",
+    "rolesSaved": "{{name}}'s roles saved",
+    "timeoutTitle": "Time-out for {{name}}",
+    "timeoutText": "While timed out, they can't send submissions or open the panel.",
+    "duration": "Duration",
+    "preset": {
+      "min_one": "{{count}} min",
+      "min_other": "{{count}} min",
+      "hour_one": "{{count}} hour",
+      "hour_other": "{{count}} hours",
+      "day_one": "{{count}} day",
+      "day_other": "{{count}} days",
+      "custom": "Custom"
+    },
+    "orMinutes": "or minutes:",
+    "reason": "Reason",
+    "endsAt": "Ends {{date}} · the user will see the reason",
+    "badMinutes": "Enter 1 to 525,600 minutes.",
+    "giveTimeout": "Time out",
+    "timedOut": "{{name}} is timed out",
+    "liftTitle": "Lift {{name}}'s time-out?",
+    "liftText": "The panel and sending submissions open again at once.",
+    "timeoutLifted": "{{name}}'s time-out lifted",
+    "banTitle": "Ban {{name}} from the platform?",
+    "banText": "They won't be able to open forms or the panel on any server. Their submissions stay.",
+    "banReason": "Reason (the user sees it)",
+    "banned": "{{name}} is banned",
+    "unbanTitle": "Unban {{name}}?",
+    "unbanText": "Banned {{date}} by {{by}}. Reason: «{{reason}}». Access comes back at once.",
+    "unbanPlain": "Access comes back at once.",
+    "noReason": "none given",
+    "unbanned": "{{name}} is unbanned",
+    "history": "Earlier",
+    "kind": {
+      "BAN": "Ban",
+      "TIMEOUT": "Time-out"
+    },
+    "loadingHistory": "Loading the history…",
+    "actionError": "Action failed",
+    "loadError": "Couldn't load users",
+    "empty": "No users yet",
+    "emptyFiltered": "No users match these filters."
   }
 }

@@ -199,14 +199,28 @@ class AccessCodesTest {
     }
 
     @Test
-    void accountRestrictedComesFromTheAuthFilterWithItsEnd() throws Exception {
+    void aBanComesFromTheAuthFilter() throws Exception {
         form("any", FormStatus.PUBLISHED, FormAccessMode.AUTHENTICATED);
-        member.setBannedUntil(LocalDateTime.now().plusHours(3));
+        member.setBannedPermanently(true);
+        member.setRestrictionReason("Читы");
         userRepository.save(member);
         mvc.perform(as(member, get("/api/v1/public/forms/{s}", "any"))).andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value("ACCOUNT_RESTRICTED"))
-                .andExpect(jsonPath("$.permanent").value(false))
-                .andExpect(jsonPath("$.until", notNullValue()));
+                .andExpect(jsonPath("$.permanent").value(true))
+                .andExpect(jsonPath("$.reason").value("Читы"));
+    }
+
+    @Test
+    void aTimedOutUserSeesTheFormButCantSendWithTheEndAndTheReason() throws Exception {
+        form("any", FormStatus.PUBLISHED, FormAccessMode.AUTHENTICATED);
+        member.setBannedUntil(LocalDateTime.now().plusHours(3));
+        member.setRestrictionReason("Спам");
+        userRepository.save(member);
+        page(member, "any").andExpect(jsonPath("$.viewerAccess").value("ACCOUNT_RESTRICTED"))
+                .andExpect(jsonPath("$.access.until", notNullValue()))
+                .andExpect(jsonPath("$.access.reason").value("Спам"));
+        submit(member, "any").andExpect(status().is4xxClientError())
+                .andExpect(jsonPath("$.code").value("ACCOUNT_RESTRICTED"));
     }
 
     private ResultActions page(User user, String slug) throws Exception {

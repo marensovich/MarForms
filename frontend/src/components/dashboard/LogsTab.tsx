@@ -46,6 +46,20 @@ const ACTION_META: Record<AuditAction, ActionMeta> = {
         border: "border-gnb",
         dot: "bg-ok"
     },
+    USER_TIMED_OUT: {
+        label: "User Timed Out",
+        bg: "bg-amb",
+        text: "text-amt",
+        border: "border-amb",
+        dot: "bg-wr"
+    },
+    USER_TIMEOUT_LIFTED: {
+        label: "Time-out Lifted",
+        bg: "bg-gnb",
+        text: "text-gnt",
+        border: "border-gnb",
+        dot: "bg-ok"
+    },
     USER_ROLES_UPDATED: {
         label: "Roles Updated",
         bg: "bg-amb",

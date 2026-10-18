@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -92,7 +93,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 User user = userOpt.get();
                 CustomUserDetails userDetails = new CustomUserDetails(user);
 
-                if (!userDetails.isEnabled()) {
+                // A ban closes everything; a time-out only the panel and sending submissions (ТЗ 6.3, #144).
+                if (user.isBanned() || (user.isTimedOut() && !openWhileTimedOut(request))) {
                     SystemSettings settings = settingsService.getSettings();
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     response.setContentType("application/json;charset=UTF-8");
@@ -105,6 +107,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     body.put("permanent", user.isBannedPermanently());
                     body.put("until", user.isBannedPermanently() || user.getBannedUntil() == null
                             ? null : user.getBannedUntil().toString());
+                    body.put("timeout", user.isTimedOut());
+                    body.put("reason", user.getRestrictionReason());
                     response.getWriter().write(JSON.writeValueAsString(body));
                     return;
                 }
@@ -117,10 +121,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                // «Активные за 30 дней» (ТЗ 6.3): the latest request, at most once in five minutes.
+                LocalDateTime now = LocalDateTime.now();
+                if (user.getLastSeenAt() == null || user.getLastSeenAt().isBefore(now.minusMinutes(5))) {
+                    userRepository.touch(user.getId(), now);
+                }
             }
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * What a timed-out user still reaches (ТЗ 6.3): signing in and out, public
+     * form pages (sending is refused there with the reason), their own profile,
+     * submissions and notifications. Everything else is the panel.
+     */
+    static boolean openWhileTimedOut(HttpServletRequest request) {
+        String path = request.getRequestURI().substring(request.getContextPath().length());
+        return path.startsWith("/api/v1/auth/") || path.startsWith("/api/v1/public/") || path.equals("/api/v1/settings/public")
+                || path.equals("/api/v1/me") || path.startsWith("/api/v1/me/submissions") || path.startsWith("/api/v1/me/notifications");
     }
 
     /**
