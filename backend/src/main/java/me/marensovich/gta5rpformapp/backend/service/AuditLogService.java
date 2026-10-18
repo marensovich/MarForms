@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.marensovich.gta5rpformapp.backend.config.security.CustomUserDetails;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
+import me.marensovich.gta5rpformapp.backend.data.audit.AuditDiff;
 import me.marensovich.gta5rpformapp.backend.database.entity.AuditLog;
 import me.marensovich.gta5rpformapp.backend.database.repository.AuditLogRepository;
 import me.marensovich.gta5rpformapp.backend.service.discord.DiscordWebhookUrl;
@@ -41,6 +42,8 @@ public class AuditLogService {
 
     private static final String LOG_WEBHOOK_KEY = "log.webhook.url";
     private static final String LOG_ENABLED_ACTIONS_KEY = "log.enabled.actions";
+    /** How long the journal keeps an entry (ТЗ 6.5). */
+    public static final int RETENTION_DAYS = 365;
     private static final DateTimeFormatter TS_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private final AuditLogRepository auditLogRepository;
@@ -65,10 +68,24 @@ public class AuditLogService {
      */
     public void log(AuditAction action, Long actorId, String actorUsername,
                     String targetId, String targetName, String details) {
+        log(action, actorId, actorUsername, targetId, targetName, details, null);
+    }
+
+    /**
+     * Like {@link #log(AuditAction, Long, String, String, String, String)},
+     * with structured details — the diff of a change ({@link AuditDiff}, ТЗ 6.5).
+     *
+     * @param metadata structured details, may be {@code null}
+     * @since v.0.1
+     */
+    public void log(AuditAction action, Long actorId, String actorUsername,
+                    String targetId, String targetName, String details, Map<String, Object> metadata) {
         if (!isActionEnabled(action)) return;
         AuditLog entry = buildEntry(action, actorId, actorUsername, targetId, targetName, details);
+        entry.setMetadata(metadata);
         auditLogRepository.save(entry);
         events.publishEvent(new AuditLogDispatcher.Dispatch(entry));
+        events.publishEvent(new AuditLogStream.Saved(entry));
     }
 
     /**
@@ -83,7 +100,17 @@ public class AuditLogService {
      */
     public void logByCurrentUser(AuditAction action,
                                  String targetId, String targetName, String details) {
-        log(action, currentActorId(), currentActorUsername(), targetId, targetName, details);
+        log(action, currentActorId(), currentActorUsername(), targetId, targetName, details, null);
+    }
+
+    /**
+     * Like {@link #logByCurrentUser(AuditAction, String, String, String)}, with what changed.
+     *
+     * @param diff the change's fields, before and after
+     * @since v.0.1
+     */
+    public void logByCurrentUser(AuditAction action, String targetId, String targetName, String details, AuditDiff diff) {
+        log(action, currentActorId(), currentActorUsername(), targetId, targetName, details, diff.into(null));
     }
 
     /**
@@ -123,6 +150,7 @@ public class AuditLogService {
         entry.setMetadata(metadata);
         auditLogRepository.save(entry);
         if (isActionEnabled(action)) events.publishEvent(new AuditLogDispatcher.Dispatch(entry));
+        events.publishEvent(new AuditLogStream.Saved(entry));
     }
 
     /**
@@ -177,25 +205,66 @@ public class AuditLogService {
     // ── Query ───────────────────────────────────────────────────────────────
 
     /**
-     * Retrieves a paginated list of audit logs with optional filters.
+     * The platform journal (ТЗ 6.5), newest first.
      *
-     * @param action         optional filter by action type
-     * @param actorDiscordId optional filter by actor Discord ID
-     * @param pageable       pagination parameters
-     * @return a {@link Page} of {@link AuditLog} entities matching the filters
+     * @param actions     the actions to show; empty or {@code null} = any
+     * @param participant a Discord ID: who acted <b>or</b> who was acted on
+     * @param from        the first day, inclusive
+     * @param to          the last day, inclusive
+     * @param pageable    the page
+     * @return the entries
      * @since v.0.1
      */
-    public Page<AuditLog> listAll(AuditAction action, Long actorDiscordId, Pageable pageable) {
-        if (action != null && actorDiscordId != null) {
-            return auditLogRepository.findAllByActionAndActorDiscordId(action, actorDiscordId, pageable);
-        }
-        if (action != null) {
-            return auditLogRepository.findAllByAction(action, pageable);
-        }
-        if (actorDiscordId != null) {
-            return auditLogRepository.findAllByActorDiscordId(actorDiscordId, pageable);
-        }
-        return auditLogRepository.findAll(pageable);
+    public Page<AuditLog> search(Set<AuditAction> actions, Long participant, java.time.LocalDate from, java.time.LocalDate to,
+                                 Pageable pageable) {
+        return auditLogRepository.findAll((root, query, cb) -> {
+            List<jakarta.persistence.criteria.Predicate> p = new ArrayList<>();
+            if (actions != null && !actions.isEmpty()) p.add(root.get("action").in(actions));
+            if (participant != null) {
+                p.add(cb.or(cb.equal(root.get("actorDiscordId"), participant), cb.equal(root.get("targetId"), String.valueOf(participant))));
+            }
+            if (from != null) p.add(cb.greaterThanOrEqualTo(root.get("createdAt"), from.atStartOfDay()));
+            if (to != null) p.add(cb.lessThan(root.get("createdAt"), to.plusDays(1).atStartOfDay()));
+            return cb.and(p.toArray(jakarta.persistence.criteria.Predicate[]::new));
+        }, pageable);
+    }
+
+    /**
+     * The journal's KPIs (ТЗ 6.5): all entries; and today's entries, decisions
+     * on submissions, bans and time-outs, and changes of rights.
+     *
+     * @return the counts
+     * @since v.0.1
+     */
+    public Map<String, Long> stats() {
+        LocalDateTime today = java.time.LocalDate.now().atStartOfDay();
+        return Map.of(
+                "total", auditLogRepository.count(),
+                "today", countSince(today, null),
+                "decisions", countSince(today, Set.of(AuditAction.SUBMISSION_DECIDED)),
+                "restrictions", countSince(today, Set.of(AuditAction.USER_BANNED, AuditAction.USER_TIMED_OUT, AuditAction.GUILD_BAN_ADDED)),
+                "rights", countSince(today, Set.of(AuditAction.USER_ROLES_UPDATED, AuditAction.ROLE_CREATED, AuditAction.ROLE_UPDATED,
+                        AuditAction.ROLE_DELETED)));
+    }
+
+    private long countSince(LocalDateTime since, Set<AuditAction> actions) {
+        return auditLogRepository.count((root, query, cb) -> actions == null
+                ? cb.greaterThanOrEqualTo(root.get("createdAt"), since)
+                : cb.and(cb.greaterThanOrEqualTo(root.get("createdAt"), since), root.get("action").in(actions)));
+    }
+
+    /**
+     * Drops entries older than 365 days (ТЗ 6.5), every night.
+     *
+     * @return how many were dropped
+     * @since v.0.1
+     */
+    @org.springframework.scheduling.annotation.Scheduled(cron = "0 30 3 * * *")
+    @org.springframework.transaction.annotation.Transactional
+    public int purgeExpired() {
+        int dropped = auditLogRepository.deleteOlderThan(LocalDateTime.now().minusDays(RETENTION_DAYS));
+        if (dropped > 0) log.info("Audit log retention: dropped {} entries older than {} days", dropped, RETENTION_DAYS);
+        return dropped;
     }
 
     // ── Security context helpers ────────────────────────────────────────────

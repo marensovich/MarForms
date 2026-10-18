@@ -2,6 +2,7 @@ package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
+import me.marensovich.gta5rpformapp.backend.data.audit.AuditDiff;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormAccessMode;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormField;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormSchema;
@@ -241,6 +242,7 @@ public class FormService {
             throw new FormConflictException(form.getUpdatedBy() == null ? null : userRepository.findByDiscordId(form.getUpdatedBy())
                     .map(me.marensovich.gta5rpformapp.backend.database.entity.User::getDiscordUsername).orElse(null), form.getUpdatedAt());
         }
+        com.fasterxml.jackson.databind.JsonNode before = AuditDiff.snapshot(auditView(form));
         if (request.settings() != null) applySettings(form, request.settings());
 
         String oldTitle = editable(form).getTitle();
@@ -297,7 +299,8 @@ public class FormService {
         // Publishing or closing reads as its own journal line; the content changes as another.
         if (oldStatus != saved.getStatus()) logStatusChange(saved, oldStatus);
         if (!changed.isEmpty() || oldStatus == saved.getStatus()) {
-            logForm(saved, AuditAction.FORM_UPDATED, Map.of("changes", changed),
+            logForm(saved, AuditAction.FORM_UPDATED,
+                    new AuditDiff().deep("", before, auditView(saved)).into(Map.of("changes", changed)),
                     changes.isEmpty() ? null : String.join("\n", changes));
         }
         return saved;
@@ -317,10 +320,12 @@ public class FormService {
     @Transactional
     public Form updateSettings(UUID formId, FormSettingsRequest request) {
         Form form = getById(formId);
+        com.fasterxml.jackson.databind.JsonNode before = AuditDiff.snapshot(auditView(form));
         applySettings(form, request);
         stamp(form);
         Form saved = formRepository.save(form);
-        logForm(saved, AuditAction.FORM_UPDATED, Map.of("changes", List.of("access")),
+        logForm(saved, AuditAction.FORM_UPDATED,
+                new AuditDiff().deep("", before, auditView(saved)).into(Map.of("changes", List.of("access"))),
                 "Access settings: " + request.accessMode());
         return saved;
     }
@@ -432,10 +437,13 @@ public class FormService {
         Form form = getById(formId);
         requireNotArchived(form);
         if (form.getDraftSchema() == null) throw new InvalidStateException("There are no unpublished changes");
+        com.fasterxml.jackson.databind.JsonNode before = AuditDiff.snapshot(form.getSchema());
         applyDraft(form);
         stamp(form);
         Form saved = formRepository.save(form);
-        logForm(saved, AuditAction.FORM_UPDATED, Map.of("changes", List.of("published")), "Changes published");
+        logForm(saved, AuditAction.FORM_UPDATED,
+                new AuditDiff().deep("schema", before, saved.getSchema()).into(Map.of("changes", List.of("published"))),
+                "Changes published");
         return saved;
     }
 
@@ -625,13 +633,31 @@ public class FormService {
      * every guild action, to the platform's; a form with no server only to
      * the platform's.
      */
+    /** What a form's journal diff compares (ТЗ 6.5): everything its editor changes; webhook URLs get masked by AuditDiff. */
+    private static Map<String, Object> auditView(Form form) {
+        Map<String, Object> view = new java.util.LinkedHashMap<>();
+        view.put("slug", form.getSlug());
+        view.put("status", form.getStatus());
+        view.put("accessMode", form.getAccessMode());
+        view.put("submissionLimitPerUser", form.getSubmissionLimitPerUser());
+        view.put("opensAt", form.getOpensAt());
+        view.put("closesAt", form.getClosesAt());
+        view.put("allowedRoleIds", new java.util.TreeSet<>(form.getAllowedRoleIds()).stream().map(String::valueOf).toList());
+        view.put("deniedRoleIds", new java.util.TreeSet<>(form.getDeniedRoleIds()).stream().map(String::valueOf).toList());
+        view.put("channelsIds", new java.util.TreeSet<>(form.getChannelsIds()).stream().map(String::valueOf).toList());
+        view.put("schema", editable(form));
+        view.put("webhooks", form.getWebhooks());
+        return view;
+    }
+
     private void logForm(Form form, AuditAction action, Map<String, Object> metadata, String details) {
         String title = form.getSchema() != null ? form.getSchema().getTitle() : null;
         if (form.getServerId() != null) {
             auditLogService.logGuildAction(form.getServerId(), action, "FORM", form.getId().toString(), title,
                     metadata, details);
         } else {
-            auditLogService.logByCurrentUser(action, form.getId().toString(), title, details);
+            auditLogService.log(action, auditLogService.currentActorId(), auditLogService.currentActorUsername(),
+                    form.getId().toString(), title, details, metadata);
         }
     }
 
@@ -720,6 +746,7 @@ public class FormService {
     }
 
     private Form saveFields(Form form, List<FormField> fields, String auditDetail) {
+        com.fasterxml.jackson.databind.JsonNode before = AuditDiff.snapshot(editableFields(form));
         FormSchema base = editable(form);
         FormSchema schema = objectMapper.convertValue(base, FormSchema.class);
         schema.setFields(fields);
@@ -727,7 +754,8 @@ public class FormService {
         setEditable(form, schema);
         stamp(form);
         Form saved = formRepository.save(form);
-        logForm(saved, AuditAction.FORM_UPDATED, Map.of("changes", List.of("fields")), auditDetail);
+        logForm(saved, AuditAction.FORM_UPDATED,
+                new AuditDiff().deep("fields", before, editableFields(saved)).into(Map.of("changes", List.of("fields"))), auditDetail);
         return saved;
     }
 

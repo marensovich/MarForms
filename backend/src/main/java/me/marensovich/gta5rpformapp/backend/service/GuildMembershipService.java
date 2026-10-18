@@ -3,6 +3,7 @@ package me.marensovich.gta5rpformapp.backend.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
+import me.marensovich.gta5rpformapp.backend.data.audit.AuditDiff;
 import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.database.entity.Guild;
 import me.marensovich.gta5rpformapp.backend.database.entity.GuildMembership;
@@ -194,7 +195,8 @@ public class GuildMembershipService {
             membership.setModeratorAddedAt(LocalDateTime.now());
             membership = guildMembershipRepository.save(membership);
             auditLogService.logGuildAction(guildDiscordId, AuditAction.MODERATOR_ADDED, "USER",
-                    user.getDiscordId().toString(), user.getDiscordUsername(), null, null);
+                    user.getDiscordId().toString(), user.getDiscordUsername(),
+                    new AuditDiff().add("role", GuildRole.RESPONDENT, GuildRole.MODERATOR).into(null), null);
         }
         return ModeratorDto.from(membership);
     }
@@ -219,7 +221,8 @@ public class GuildMembershipService {
         membership.setModeratorAddedAt(null);
         guildMembershipRepository.save(membership);
         auditLogService.logGuildAction(guildDiscordId, AuditAction.MODERATOR_REMOVED, "USER",
-                userDiscordId.toString(), membership.getUser().getDiscordUsername(), null, null);
+                userDiscordId.toString(), membership.getUser().getDiscordUsername(),
+                new AuditDiff().add("role", GuildRole.MODERATOR, GuildRole.RESPONDENT).into(null), null);
     }
 
     /**

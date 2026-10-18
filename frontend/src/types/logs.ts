@@ -28,21 +28,24 @@ export type AuditAction =
     | "BOT_PERMISSIONS_MISSING"
     | "WEBHOOK_FAILING";
 
+/** A field a change changed (ТЗ 6.5): before and after, secrets masked. */
+export interface AuditChange {
+    field: string;
+    before: string | null;
+    after: string | null;
+}
+
 export interface AuditLogEntry {
     id: string;
     action: AuditAction;
     actorDiscordId: string | null;
     actorUsername: string | null;
+    actorAvatarUrl: string | null;
     targetId: string | null;
     targetName: string | null;
+    targetType: string | null;
+    guildId: string | null;
     details: string | null;
+    diff: AuditChange[];
     createdAt: string;
-}
-
-export interface AuditLogPage {
-    content: AuditLogEntry[];
-    totalElements: number;
-    totalPages: number;
-    number: number;
-    size: number;
 }

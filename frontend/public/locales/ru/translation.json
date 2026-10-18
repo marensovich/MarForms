@@ -315,26 +315,6 @@
     }
   },
   "logs": {
-    "title": "Журнал действий",
-    "subtitle": "Полная история всех системных действий",
-    "entries": "{{count}} записей",
-    "live": "Live",
-    "refresh": "Обновить",
-    "allActions": "Все события",
-    "discordIdFilter": "Discord ID…",
-    "clearFilters": "Сбросить фильтры",
-    "columns": {
-      "time": "Время",
-      "action": "Событие",
-      "actor": "Исполнитель",
-      "target": "Цель",
-      "details": "Детали"
-    },
-    "noLogs": "Записей не найдено",
-    "expandHint": "· Нажмите на строку с изменениями для просмотра diff",
-    "pagination": {
-      "page": "Страница {{page}} из {{total}}"
-    },
     "actions": {
       "USER_LOGIN": "Вход",
       "USER_BANNED": "Бан пользователя",
@@ -2194,5 +2174,53 @@
     "emptyText": "Создайте первую роль кнопкой выше.",
     "rootOnly": "Роль с SYSTEM_ADMIN меняет и удаляет только системный администратор.",
     "rootOnlyRight": "SYSTEM_ADMIN выдаёт только системный администратор"
+  },
+  "adminLogs": {
+    "title": "Журнал",
+    "subtitle": "Все действия пользователей и персонала. Записи хранятся 365 дней.",
+    "entries_one": "{{value}} запись",
+    "entries_few": "{{value}} записи",
+    "entries_many": "{{value}} записей",
+    "entries_other": "{{value}} записи",
+    "live": "Live",
+    "liveOn": "Новые записи появляются сами",
+    "liveConnecting": "Подключаемся…",
+    "liveOff": "Live выключен",
+    "refresh": "Обновить",
+    "kpi": {
+      "today": "За сегодня",
+      "decisions": "Решения по заявкам",
+      "restrictions": "Баны и тайм-ауты",
+      "rights": "Изменения прав"
+    },
+    "action": "Действие",
+    "anyAction": "любое",
+    "participant": "Discord ID участника",
+    "participantPlaceholder": "ID — кто или над кем",
+    "from": "С даты",
+    "to": "По дату",
+    "clear": "Очистить фильтры",
+    "col": {
+      "time": "Время",
+      "action": "Действие",
+      "who": "Кто",
+      "target": "Объект",
+      "details": "Детали"
+    },
+    "system": "Система",
+    "expand": "Показать изменения",
+    "collapse": "Скрыть изменения",
+    "changedFields_one": "{{count}} поле изменено",
+    "changedFields_few": "{{count}} поля изменено",
+    "changedFields_many": "{{count}} полей изменено",
+    "changedFields_other": "{{count}} поля изменено",
+    "diff": {
+      "field": "Поле",
+      "before": "Было",
+      "after": "Стало"
+    },
+    "loadError": "Не удалось загрузить журнал",
+    "empty": "Записей пока нет",
+    "emptyFiltered": "С такими фильтрами записей нет."
   }
 }

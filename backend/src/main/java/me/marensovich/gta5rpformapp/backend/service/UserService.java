@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 import org.springframework.security.core.context.SecurityContextHolder;
 import me.marensovich.gta5rpformapp.backend.data.roles.Permission;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
+import me.marensovich.gta5rpformapp.backend.data.audit.AuditDiff;
 import me.marensovich.gta5rpformapp.backend.database.entity.Role;
 import me.marensovich.gta5rpformapp.backend.database.entity.User;
 import me.marensovich.gta5rpformapp.backend.database.repository.UserRepository;
@@ -225,7 +226,9 @@ public class UserService {
         String details = "Roles: [" + (oldRoleNames.isBlank() ? "none" : oldRoleNames)
                 + "] → [" + (newRoleNames.isBlank() ? "none" : newRoleNames) + "]";
         auditLogService.logByCurrentUser(AuditAction.USER_ROLES_UPDATED,
-                String.valueOf(discordId), saved.getDiscordUsername(), details);
+                String.valueOf(discordId), saved.getDiscordUsername(), details,
+                new AuditDiff().add("roles", oldRoleNames.isBlank() ? List.of() : List.of(oldRoleNames.split(", ")),
+                        roles.stream().map(Role::getName).toList()));
         return saved;
     }
 

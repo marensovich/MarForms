@@ -2,6 +2,7 @@ package me.marensovich.gta5rpformapp.backend.service;
 
 import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
+import me.marensovich.gta5rpformapp.backend.data.audit.AuditDiff;
 import me.marensovich.gta5rpformapp.backend.data.roles.Permission;
 import me.marensovich.gta5rpformapp.backend.database.entity.Role;
 import me.marensovich.gta5rpformapp.backend.database.repository.RoleRepository;
@@ -110,7 +111,9 @@ public class RoleService {
         role.setPermissions(permissions);
         Role saved = roleRepository.save(role);
         auditLogService.logByCurrentUser(AuditAction.ROLE_CREATED, saved.getId().toString(), saved.getName(),
-                "Permissions: [" + names(permissions) + "]");
+                "Permissions: [" + names(permissions) + "]",
+                new AuditDiff().add("name", null, saved.getName()).add("color", null, saved.getColor())
+                        .add("permissions", null, saved.getPermissions()));
         return saved;
     }
 
@@ -131,6 +134,7 @@ public class RoleService {
         String oldName = role.getName();
         String oldColor = role.getColor();
         String oldPerms = names(role.getPermissions());
+        Set<Permission> oldPermissions = Set.copyOf(role.getPermissions());
         boolean hadSystemAdmin = role.getPermissions().contains(Permission.SYSTEM_ADMIN);
         boolean hasSystemAdmin = request.permissions() != null ? request.permissions().contains(Permission.SYSTEM_ADMIN) : hadSystemAdmin;
         if (hadSystemAdmin || hasSystemAdmin) requireSystemAdmin();
@@ -161,7 +165,9 @@ public class RoleService {
             changes.add("Permissions: [" + oldPerms + "] → [" + newPerms + "]");
 
         auditLogService.logByCurrentUser(AuditAction.ROLE_UPDATED, saved.getId().toString(), saved.getName(),
-                changes.isEmpty() ? null : String.join("\n", changes));
+                changes.isEmpty() ? null : String.join("\n", changes),
+                new AuditDiff().add("name", oldName, saved.getName()).add("color", oldColor, saved.getColor())
+                        .add("permissions", oldPermissions, saved.getPermissions()));
         return saved;
     }
 

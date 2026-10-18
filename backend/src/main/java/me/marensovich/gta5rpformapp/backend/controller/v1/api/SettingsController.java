@@ -2,6 +2,7 @@ package me.marensovich.gta5rpformapp.backend.controller.v1.api;
 
 import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
+import me.marensovich.gta5rpformapp.backend.data.audit.AuditDiff;
 import me.marensovich.gta5rpformapp.backend.data.settings.SystemSettings;
 import me.marensovich.gta5rpformapp.backend.service.AuditLogService;
 import me.marensovich.gta5rpformapp.backend.service.SettingsService;
@@ -111,7 +112,7 @@ public class SettingsController {
 
         SystemSettings after = settingsService.updateSettings(allowed);
         auditLogService.logByCurrentUser(AuditAction.SETTINGS_UPDATED,
-                null, "System Settings", buildSettingsDiff(before, after));
+                null, "System Settings", buildSettingsDiff(before, after), new AuditDiff().deep("", AuditDiff.snapshot(before), after));
         return after;
     }
 

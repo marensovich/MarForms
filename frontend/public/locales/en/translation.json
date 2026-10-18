@@ -307,26 +307,6 @@
     }
   },
   "logs": {
-    "title": "Audit Logs",
-    "subtitle": "Complete history of all system actions",
-    "entries": "{{count}} entries",
-    "live": "Live",
-    "refresh": "Refresh",
-    "allActions": "All actions",
-    "discordIdFilter": "Discord ID…",
-    "clearFilters": "Clear filters",
-    "columns": {
-      "time": "Time",
-      "action": "Action",
-      "actor": "Actor",
-      "target": "Target",
-      "details": "Details"
-    },
-    "noLogs": "No log entries found",
-    "expandHint": "· Click any row with changes to expand diff",
-    "pagination": {
-      "page": "Page {{page}} of {{total}}"
-    },
     "actions": {
       "USER_LOGIN": "Login",
       "USER_BANNED": "User Banned",
@@ -2126,5 +2106,49 @@
     "emptyText": "Create the first one with the button above.",
     "rootOnly": "Only a system administrator changes or deletes a role with SYSTEM_ADMIN.",
     "rootOnlyRight": "Only a system administrator grants SYSTEM_ADMIN"
+  },
+  "adminLogs": {
+    "title": "Log",
+    "subtitle": "Every action of users and staff. Entries are kept for 365 days.",
+    "entries_one": "{{value}} entry",
+    "entries_other": "{{value}} entries",
+    "live": "Live",
+    "liveOn": "New entries appear on their own",
+    "liveConnecting": "Connecting…",
+    "liveOff": "Live is off",
+    "refresh": "Refresh",
+    "kpi": {
+      "today": "Today",
+      "decisions": "Submission decisions",
+      "restrictions": "Bans and time-outs",
+      "rights": "Rights changes"
+    },
+    "action": "Action",
+    "anyAction": "any",
+    "participant": "Participant's Discord ID",
+    "participantPlaceholder": "ID — who or to whom",
+    "from": "From",
+    "to": "To",
+    "clear": "Clear filters",
+    "col": {
+      "time": "Time",
+      "action": "Action",
+      "who": "Who",
+      "target": "Object",
+      "details": "Details"
+    },
+    "system": "System",
+    "expand": "Show changes",
+    "collapse": "Hide changes",
+    "changedFields_one": "{{count}} field changed",
+    "changedFields_other": "{{count}} fields changed",
+    "diff": {
+      "field": "Field",
+      "before": "Before",
+      "after": "After"
+    },
+    "loadError": "Couldn't load the log",
+    "empty": "No entries yet",
+    "emptyFiltered": "No entries match these filters."
   }
 }

@@ -77,6 +77,9 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
+                        // The journal's Live stream (SSE, #146) ends on an async dispatch of a request
+                        // already authorized; the JWT filter doesn't run again there.
+                        .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ASYNC).permitAll()
                         .requestMatchers("/oauth2/**", "/login/**").permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/settings/public").permitAll()
