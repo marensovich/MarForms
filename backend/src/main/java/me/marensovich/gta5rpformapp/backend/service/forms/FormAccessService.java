@@ -33,8 +33,9 @@ import java.util.UUID;
  * page, the access-check endpoint and submission intake, so they can never
  * disagree (task #50).
  * <ul>
- *     <li>{@code OPEN}: anyone, logged in or not. A logged-in respondent is
- *     still recorded — this is <b>not</b> the Stage 2 anonymous mode (E2.3).</li>
+ *     <li>{@code OPEN} («Все», ТЗ 5.4): anyone signed in, member of the guild
+ *     or not; the respondent is recorded. Without signing in only an
+ *     {@code ANONYMOUS} form can be filled (owner's decision of 2026-10-15).</li>
  *     <li>{@code AUTHENTICATED}: Discord login required, and the respondent
  *     must be a member of the form's guild. A failed membership check
  *     re-syncs the user's guild list with their stored Discord token first
@@ -185,7 +186,7 @@ public class FormAccessService {
         // Anonymous forms look at nothing about the viewer (E2.3).
         if (form.getAccessMode() == FormAccessMode.ANONYMOUS) return Decision.of(AccessCode.GRANTED);
         boolean open = form.getAccessMode() == FormAccessMode.OPEN;
-        if (user == null) return Decision.of(open ? AccessCode.GRANTED : AccessCode.AUTH_REQUIRED);
+        if (user == null) return Decision.of(AccessCode.AUTH_REQUIRED);
 
         boolean member = user.isMemberOfGuild(form.getServerId());
         if (!member && userService.resyncGuildsWithStoredToken(user)) {

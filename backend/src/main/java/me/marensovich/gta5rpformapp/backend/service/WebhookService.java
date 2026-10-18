@@ -94,6 +94,87 @@ public class WebhookService {
         return dispatch(form, questions, answers, discordUsername, webhook, vars);
     }
 
+    /** How a test notification went (ТЗ ФТ-5.5.3): {@code reason} is a {@code WebhookHealth.REASON_*} code. */
+    public record TestResult(boolean ok, String reason) {
+    }
+
+    /**
+     * Sends a test notification (ТЗ ФТ-5.5.3), telling why it didn't get through.
+     *
+     * @param form the form
+     * @param cfg  one of its webhooks
+     * @return how it went
+     * @since v.0.1
+     */
+    public TestResult sendTest(Form form, WebhookConfig cfg) {
+        DiscordWebhookUrl webhook = DiscordWebhookUrl.parse(cfg.getUrl()).orElse(null);
+        if (webhook == null) return new TestResult(false, me.marensovich.gta5rpformapp.backend.data.forms.WebhookHealth.REASON_WEBHOOK_DELETED);
+        Map<String, Object> embed = new LinkedHashMap<>();
+        embed.put("title", "MarForms · проверка уведомлений");
+        embed.put("description", "Так будут приходить заявки формы «" + form.getSchema().getTitle() + "». Отвечать на это сообщение не нужно.");
+        embed.put("color", DEFAULT_COLOR);
+        return post(webhook, cfg, List.of(embed));
+    }
+
+    /**
+     * Announces a moderator's decision on the webhooks that take decisions
+     * (ТЗ ФТ-4.5.5, ФТ-5.5.1). A failure is logged, never thrown: the decision stands.
+     *
+     * @since v.0.1
+     */
+    public void sendDecision(Form form, me.marensovich.gta5rpformapp.backend.database.entity.Submission submission,
+                             String moderatorName, String comment) {
+        if (form.getWebhooks() == null) return;
+        String status = switch (submission.getStatus()) {
+            case APPROVED -> "Принята";
+            case REJECTED -> "Отклонена";
+            case NEEDS_REVISION -> "Нужна доработка";
+            case PENDING -> "Снова на рассмотрении";
+        };
+        int color = switch (submission.getStatus()) {
+            case APPROVED -> 0x57F287;
+            case REJECTED -> 0xED4245;
+            case NEEDS_REVISION -> 0x5865F2;
+            case PENDING -> 0xFEE75C;
+        };
+        Map<String, Object> embed = new LinkedHashMap<>();
+        embed.put("title", (submission.getNumber() != null ? "Заявка #" + submission.getNumber() : "Заявка") + " · " + status);
+        embed.put("description", "Форма «" + form.getSchema().getTitle() + "»");
+        embed.put("color", color);
+        List<Map<String, Object>> fields = new ArrayList<>();
+        if (moderatorName != null) fields.add(Map.of("name", "Модератор", "value", moderatorName, "inline", true));
+        if (comment != null && !comment.isBlank()) fields.add(Map.of("name", "Комментарий", "value", comment.length() > 1000 ? comment.substring(0, 1000) + "…" : comment));
+        if (!fields.isEmpty()) embed.put("fields", fields);
+        for (WebhookConfig cfg : form.getWebhooks()) {
+            if (cfg.getUrl() == null || Boolean.TRUE.equals(cfg.getInvalid()) || !cfg.wants(WebhookConfig.EVENT_DECISION)) continue;
+            DiscordWebhookUrl.parse(cfg.getUrl()).ifPresent(w -> {
+                TestResult r = post(w, cfg, List.of(embed));
+                if (!r.ok()) log.warn("Decision notice to webhook {} failed: {}", w, r.reason());
+            });
+        }
+    }
+
+    private TestResult post(DiscordWebhookUrl webhook, WebhookConfig cfg, List<Map<String, Object>> embeds) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        if (hasText(cfg.getBotName())) payload.put("username", cfg.getBotName());
+        if (hasText(cfg.getAvatarUrl())) payload.put("avatar_url", cfg.getAvatarUrl());
+        payload.put("embeds", embeds);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        try {
+            restTemplate.postForEntity(webhook.canonical(), new HttpEntity<>(payload, headers), Map.class);
+            return new TestResult(true, null);
+        } catch (org.springframework.web.client.HttpClientErrorException.NotFound e) {
+            return new TestResult(false, me.marensovich.gta5rpformapp.backend.data.forms.WebhookHealth.REASON_WEBHOOK_DELETED);
+        } catch (org.springframework.web.client.HttpClientErrorException.Unauthorized
+                 | org.springframework.web.client.HttpClientErrorException.Forbidden e) {
+            return new TestResult(false, me.marensovich.gta5rpformapp.backend.data.forms.WebhookHealth.REASON_MISSING_PERMISSIONS);
+        } catch (Exception e) {
+            log.warn("Webhook {} refused a message: {}", webhook, WebhookUrlCipher.redact(e.getMessage()));
+            return new TestResult(false, me.marensovich.gta5rpformapp.backend.data.forms.WebhookHealth.REASON_DELIVERY_FAILING);
+        }
+    }
+
     /**
      * Deletes Discord messages that were created by previous webhook deliveries.
      * Failures are logged but do not propagate.

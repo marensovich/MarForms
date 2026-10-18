@@ -80,7 +80,7 @@ class SubmissionSnapshotTest {
         form.setServerId(GUILD);
         form.setSchema(schema);
         form.setStatus(FormStatus.PUBLISHED);
-        form.setAccessMode(FormAccessMode.OPEN);
+        form.setAccessMode(FormAccessMode.ANONYMOUS);
         form.setSlug("snapshot-form");
         form = formRepository.saveAndFlush(form);
 

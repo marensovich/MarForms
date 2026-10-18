@@ -110,7 +110,7 @@ class PlanLimitsTest {
         form = new Form();
         form.setServerId(GUILD);
         form.setSchema(schema);
-        form.setAccessMode(FormAccessMode.OPEN);
+        form.setAccessMode(FormAccessMode.ANONYMOUS);
         form.setStatus(FormStatus.PUBLISHED);
         form.setSlug("limits-form");
         form = formRepository.save(form);

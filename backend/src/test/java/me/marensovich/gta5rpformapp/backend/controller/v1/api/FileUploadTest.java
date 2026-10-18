@@ -123,7 +123,7 @@ class FileUploadTest {
         Form form = new Form();
         form.setServerId(GUILD);
         form.setSchema(schema);
-        form.setAccessMode(FormAccessMode.OPEN);
+        form.setAccessMode(FormAccessMode.ANONYMOUS);
         form.setStatus(FormStatus.PUBLISHED);
         form.setSlug("files-form");
         formRepository.save(form);

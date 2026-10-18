@@ -329,6 +329,10 @@ public class FormService {
         if (request.opensAt() != null && request.closesAt() != null && !request.closesAt().isAfter(request.opensAt())) {
             throw new IllegalArgumentException("The closing time must be after the opening time");
         }
+        // ТЗ ФТ-5.4.4: there is no «person» to count on an anonymous form.
+        if (request.accessMode() == FormAccessMode.ANONYMOUS && request.submissionLimitPerUser() != null) {
+            throw new IllegalArgumentException("An anonymous form can't limit submissions per person");
+        }
         form.setAccessMode(request.accessMode());
         form.setSubmissionLimitPerUser(request.submissionLimitPerUser());
         form.setOpensAt(request.opensAt());
@@ -741,6 +745,33 @@ public class FormService {
      * @param error      a short description, kept for later diagnosis
      * @since v.0.1
      */
+    /**
+     * Notes that a notification got through (ТЗ ФТ-5.5.1: «последняя доставка»).
+     * A no-op if the form or the webhook is gone.
+     *
+     * @param formId     the form
+     * @param webhookUrl which of its webhooks
+     * @since v.0.1
+     */
+    public void recordWebhookDelivered(UUID formId, String webhookUrl) {
+        for (int attempt = 1; ; attempt++) {
+            try {
+                transactionTemplate.executeWithoutResult(status -> formRepository.findById(formId).ifPresent(form -> {
+                    if (form.getWebhooks() == null) return;
+                    String target = canonicalUrl(webhookUrl);
+                    form.getWebhooks().stream().filter(w -> target.equals(canonicalUrl(w.getUrl()))).findFirst()
+                            .ifPresent(w -> {
+                                w.setLastDeliveredAt(LocalDateTime.now().toString());
+                                formRepository.save(form);
+                            });
+                }));
+                return;
+            } catch (org.springframework.dao.OptimisticLockingFailureException e) {
+                if (attempt == 3) throw e;
+            }
+        }
+    }
+
     public void markWebhookInvalid(UUID formId, String webhookUrl, String error) {
         updateWebhookHealth(formId, webhookUrl, WebhookHealth.INVALID, WebhookHealth.REASON_WEBHOOK_DELETED, error);
     }
@@ -880,6 +911,9 @@ public class FormService {
      * except {@code invalid}, which an owner's save clears (see
      * {@link WebhookConfig#getInvalid()}).
      */
+    private static final java.util.regex.Pattern MASKED_WEBHOOK =
+            java.util.regex.Pattern.compile("^https://discord\\.com/api/webhooks/(\\d{1,25})/\\*\\*\\*$");
+
     private static List<WebhookConfig> checkedWebhooks(List<WebhookConfig> incoming, List<WebhookConfig> previous) {
         Map<String, String> errors = new LinkedHashMap<>();
         List<WebhookConfig> result = new ArrayList<>();
@@ -887,6 +921,13 @@ public class FormService {
             WebhookConfig webhook = incoming.get(i);
             if (webhook == null) continue;
             if (webhook.getUrl() != null && !webhook.getUrl().isBlank()) {
+                // The API shows a webhook as …/webhooks/<id>/*** (ТЗ 8.5): sent back so, it is the stored one.
+                java.util.regex.Matcher masked = MASKED_WEBHOOK.matcher(webhook.getUrl().trim());
+                if (masked.matches() && previous != null) {
+                    previous.stream().map(w -> DiscordWebhookUrl.parse(w.getUrl()).orElse(null))
+                            .filter(p -> p != null && p.id().equals(masked.group(1)))
+                            .findFirst().ifPresent(p -> webhook.setUrl(p.canonical()));
+                }
                 DiscordWebhookUrl parsed = DiscordWebhookUrl.parse(webhook.getUrl()).orElse(null);
                 if (parsed == null) {
                     errors.put("webhooks[" + i + "].url", "Must be a Discord webhook URL: https://discord.com/api/webhooks/<id>/<token>");
@@ -903,6 +944,7 @@ public class FormService {
             webhook.setHealthReason(keep ? before.getHealthReason() : null);
             webhook.setHealthCheckedAt(keep ? before.getHealthCheckedAt() : null);
             webhook.setLastError(keep ? before.getLastError() : null);
+            webhook.setLastDeliveredAt(before != null ? before.getLastDeliveredAt() : null);
             result.add(webhook);
         }
         if (!errors.isEmpty()) throw new FieldValidationException("Invalid webhooks", errors);

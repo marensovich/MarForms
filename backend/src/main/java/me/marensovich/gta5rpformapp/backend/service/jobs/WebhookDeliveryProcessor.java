@@ -155,6 +155,7 @@ public class WebhookDeliveryProcessor {
             if (messageId != null) {
                 submissionService.recordWebhookMessageId(payload.submissionId(), webhookUrl, messageId);
             }
+            formService.recordWebhookDelivered(payload.formId(), webhookUrl);
             // A delivery got through: clear a delivery-failure status, but not one
             // the health check set (lost channel access may not stop delivery).
             if (WebhookHealth.REASON_DELIVERY_FAILING.equals(webhook.getHealthReason())) {

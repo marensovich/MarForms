@@ -77,6 +77,7 @@ public class ModerationService {
     private final DiscordBotClient discordBotClient;
     private final FileService fileService;
     private final AuditLogService auditLogService;
+    private final WebhookService webhookService;
 
     /**
      * Filters for {@link #search}. Every field is optional.
@@ -273,6 +274,13 @@ public class ModerationService {
         auditLogService.logGuildAction(form != null ? form.getServerId() : null, AuditAction.SUBMISSION_DECIDED,
                 "SUBMISSION", saved.getId().toString(), title, metadata,
                 "Status: " + old + " → " + saved.getStatus() + (comment != null ? "\nComment: " + comment : ""));
+
+        // The decision on the webhooks that announce decisions (ТЗ ФТ-4.5.5, ФТ-5.5.1), once it is saved.
+        if (form != null) {
+            String moderatorName = userRepository.findByDiscordId(moderatorDiscordId).map(User::getDiscordUsername).orElse(null);
+            String noticeComment = comment;
+            AfterCommit.run(() -> webhookService.sendDecision(form, saved, moderatorName, noticeComment));
+        }
 
         // The bot tells the author (#120); an anonymous submission has no author to tell.
         if (!reopen && saved.getDiscordId() != null) {

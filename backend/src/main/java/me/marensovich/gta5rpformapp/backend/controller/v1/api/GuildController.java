@@ -38,6 +38,7 @@ import java.util.Map;
 public class GuildController {
 
     private final DiscordBotClient discordBotClient;
+    private final me.marensovich.gta5rpformapp.backend.database.repository.GuildMembershipRepository guildMembershipRepository;
 
     /**
      * Lists the text channels of a guild that the bot can see — for the
@@ -69,12 +70,23 @@ public class GuildController {
      */
     @PreAuthorize("hasAuthority('FORMS_MANAGE') or @guildAccess.hasRole(#guildId, 'OWNER')")
     @GetMapping("/roles")
-    public List<DiscordBotClient.DiscordRole> roles(@PathVariable Long guildId) {
+    public List<RoleOption> roles(@PathVariable Long guildId) {
+        // How many members hold each role, as far as MarForms knows them (the bot can't list members
+        // without the privileged intent): the roles seen on members who opened a form here.
+        Map<Long, Integer> holders = new java.util.HashMap<>();
+        guildMembershipRepository.findAllByGuild_DiscordGuildId(guildId).forEach(m -> {
+            if (m.getDiscordRoles() != null) m.getDiscordRoles().forEach(id -> holders.merge(id, 1, Integer::sum));
+        });
         return discordBotClient.fetchRoles(guildId).entrySet().stream()
                 .filter(entry -> !entry.getKey().equals(guildId))
-                .map(Map.Entry::getValue)
-                .sorted(Comparator.comparing(DiscordBotClient.DiscordRole::name, String.CASE_INSENSITIVE_ORDER))
+                .map(entry -> new RoleOption(entry.getValue().id(), entry.getValue().name(), entry.getValue().color(),
+                        holders.getOrDefault(entry.getKey(), 0)))
+                .sorted(Comparator.comparing(RoleOption::name, String.CASE_INSENSITIVE_ORDER))
                 .toList();
+    }
+
+    /** A guild role for the RoleGate picker, with how many known members hold it (ТЗ ФТ-5.4.2). */
+    public record RoleOption(String id, String name, int color, int memberCount) {
     }
 
     /**

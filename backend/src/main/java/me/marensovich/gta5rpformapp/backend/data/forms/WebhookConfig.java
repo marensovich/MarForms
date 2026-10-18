@@ -1,5 +1,7 @@
 package me.marensovich.gta5rpformapp.backend.data.forms;
 
+import java.util.List;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -210,6 +212,38 @@ public class WebhookConfig {
      * @since v.0.1
      */
     private String healthCheckedAt;
+
+    /** A new submission (ТЗ ФТ-5.5.1). */
+    public static final String EVENT_SUBMISSION = "SUBMISSION";
+    /** A moderator's decision. */
+    public static final String EVENT_DECISION = "DECISION";
+
+    /**
+     * What this webhook announces: {@link #EVENT_SUBMISSION}, {@link #EVENT_DECISION};
+     * {@code null} or empty = both (ТЗ ФТ-5.5.1).
+     *
+     * @since v.0.1
+     */
+    private List<String> events;
+
+    /** The channel the bot created this webhook in, when it did — to name it in the list. */
+    private String channelId;
+
+    /** See {@link #channelId}. */
+    private String channelName;
+
+    /**
+     * When a notification last got through, ISO-8601 (ТЗ ФТ-5.5.1).
+     * System-managed, like {@link #health}.
+     *
+     * @since v.0.1
+     */
+    private String lastDeliveredAt;
+
+    /** Whether this webhook announces an event. */
+    public boolean wants(String event) {
+        return events == null || events.isEmpty() || events.contains(event);
+    }
 
     /**
      * The effective status, also honouring {@link #invalid} on webhooks

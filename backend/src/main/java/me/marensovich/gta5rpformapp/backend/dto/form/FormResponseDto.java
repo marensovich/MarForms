@@ -70,7 +70,12 @@ public record FormResponseDto(
      * @return a new {@link FormResponseDto} containing the form data
      * @since v.0.1
      */
+    /** A form as the API shows it: webhook URLs masked for everyone (ТЗ 8.5, #140). */
     public static FormResponseDto from(Form form) {
+        return unmasked(form).withMaskedWebhooks();
+    }
+
+    private static FormResponseDto unmasked(Form form) {
         return new FormResponseDto(
                 form.getId(),
                 form.getServerId(),
@@ -108,7 +113,9 @@ public record FormResponseDto(
         List<WebhookConfig> masked = webhooks == null ? null : webhooks.stream().map(webhook -> {
             WebhookConfig copy = new WebhookConfig();
             BeanUtils.copyProperties(webhook, copy);
-            copy.setUrl(DiscordWebhookUrl.parse(webhook.getUrl()).map(DiscordWebhookUrl::toString).orElse(null));
+            // Already masked stays masked: callers may mask an answer that from() masked.
+            copy.setUrl(DiscordWebhookUrl.parse(webhook.getUrl()).map(DiscordWebhookUrl::toString)
+                    .orElse(webhook.getUrl() != null && webhook.getUrl().endsWith("/***") ? webhook.getUrl() : null));
             return copy;
         }).toList();
         return new FormResponseDto(id, serverId, channelsIds, schema, masked, active, createdAt, status, accessMode,

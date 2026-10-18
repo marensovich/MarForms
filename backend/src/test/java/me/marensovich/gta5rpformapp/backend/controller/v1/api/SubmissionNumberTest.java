@@ -82,7 +82,7 @@ class SubmissionNumberTest {
         form.setServerId(guildId);
         form.setSchema(schema);
         form.setStatus(FormStatus.PUBLISHED);
-        form.setAccessMode(FormAccessMode.OPEN);
+        form.setAccessMode(FormAccessMode.ANONYMOUS);
         form.setSlug(slug);
         formRepository.save(form);
     }

@@ -248,14 +248,24 @@ class GuildFormControllerTest {
     }
 
     @Test
-    void onlyOwnersSeeWebhookTokens() throws Exception {
+    void nobodySeesWebhookTokensAndAMaskedUrlSavedBackKeepsTheStoredOne() throws Exception {
         String formId = createDraft(GUILD);
         mvc.perform(as(owner, put("/api/v1/forms/{f}", formId))
-                        .content("{\"webhooks\": [{\"url\": \"https://discord.com/api/webhooks/77/secret-token\"}]}"))
-                .andExpect(status().isOk());
+                        .content("{\"webhooks\": [{\"url\": \"https://discord.com/api/webhooks/77/secret-token\", \"events\": [\"DECISION\"]}]}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.webhooks[0].url").value("https://discord.com/api/webhooks/77/***"))
+                .andExpect(jsonPath("$.webhooks[0].events[0]").value("DECISION"));
 
+        // ТЗ 8.5 (#140): the owner too sees only …/***.
         mvc.perform(as(owner, get("/api/v1/guilds/{g}/forms/{f}", GUILD, formId)))
-                .andExpect(jsonPath("$.webhooks[0].url").value("https://discord.com/api/webhooks/77/secret-token"));
+                .andExpect(jsonPath("$.webhooks[0].url").value("https://discord.com/api/webhooks/77/***"));
+        // The editor sends the masked URL back: the stored token stays.
+        mvc.perform(as(owner, put("/api/v1/forms/{f}", formId))
+                        .content("{\"webhooks\": [{\"url\": \"https://discord.com/api/webhooks/77/***\", \"botName\": \"MF\"}]}"))
+                .andExpect(status().isOk());
+        var stored = formRepository.findById(java.util.UUID.fromString(formId)).orElseThrow().getWebhooks().getFirst();
+        assertThat(stored.getUrl()).isEqualTo("https://discord.com/api/webhooks/77/secret-token");
+        assertThat(stored.getBotName()).isEqualTo("MF");
         // A moderator sees that a webhook exists, not its token (#103).
         mvc.perform(as(moderator, get("/api/v1/guilds/{g}/forms/{f}", GUILD, formId)))
                 .andExpect(jsonPath("$.webhooks[0].url").value("https://discord.com/api/webhooks/77/***"));
@@ -279,9 +289,9 @@ class GuildFormControllerTest {
 
         // One request, one transaction: fields and access settings together (#103).
         mvc.perform(as(owner, put("/api/v1/forms/{f}", formId)).content(
-                        "{\"version\": " + version + ", \"settings\": {\"accessMode\": \"ANONYMOUS\", \"submissionLimitPerUser\": 2}}"))
+                        "{\"version\": " + version + ", \"settings\": {\"accessMode\": \"OPEN\", \"submissionLimitPerUser\": 2}}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessMode").value("ANONYMOUS"))
+                .andExpect(jsonPath("$.accessMode").value("OPEN"))
                 .andExpect(jsonPath("$.submissionLimitPerUser").value(2));
         entityManager.flush(); // the version moves on when the change is written
 
@@ -307,8 +317,10 @@ class GuildFormControllerTest {
         mvc.perform(as(owner, put("/api/v1/forms/{f}", formId))
                         .content("{\"webhooks\": [{\"url\": \"https://discordapp.com/api/v10/webhooks/123/abc-DEF_9\", \"health\": \"HEALTHY\", \"lastError\": \"spoofed\"}]}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.webhooks[0].url").value("https://discord.com/api/webhooks/123/abc-DEF_9"))
+                .andExpect(jsonPath("$.webhooks[0].url").value("https://discord.com/api/webhooks/123/***"))
                 .andExpect(jsonPath("$.webhooks[0].lastError").doesNotExist());
+        assertThat(formRepository.findById(java.util.UUID.fromString(formId)).orElseThrow().getWebhooks().getFirst().getUrl())
+                .isEqualTo("https://discord.com/api/webhooks/123/abc-DEF_9");
     }
 
     @Test
@@ -355,6 +367,10 @@ class GuildFormControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessMode").value("OPEN"))
                 .andExpect(jsonPath("$.submissionLimitPerUser").value(1));
+        // There is no person to count on an anonymous form (ТЗ ФТ-5.4.4).
+        mvc.perform(as(owner, put("/api/v1/guilds/{g}/forms/{f}/settings", GUILD, formId))
+                        .content("{\"accessMode\": \"ANONYMOUS\", \"submissionLimitPerUser\": 1}"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test

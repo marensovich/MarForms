@@ -87,7 +87,7 @@ class NotificationTest {
         form.setServerId(GUILD);
         form.setSchema(schema);
         form.setStatus(FormStatus.PUBLISHED);
-        form.setAccessMode(FormAccessMode.OPEN);
+        form.setAccessMode(FormAccessMode.ANONYMOUS);
         form.setSlug("bell-form");
         form.setWebhooks(new ArrayList<>(List.of(hook)));
         form = formRepository.saveAndFlush(form);

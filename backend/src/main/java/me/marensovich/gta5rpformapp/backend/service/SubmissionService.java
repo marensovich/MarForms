@@ -357,6 +357,7 @@ public class SubmissionService {
         for (WebhookConfig webhook : form.getWebhooks()) {
             if (webhook.getUrl() == null || webhook.getUrl().isBlank()) continue;
             if (Boolean.TRUE.equals(webhook.getInvalid())) continue;
+            if (!webhook.wants(WebhookConfig.EVENT_SUBMISSION)) continue;
 
             var payload = new WebhookDeliveryPayload(
                     form.getId(), submission.getId(), webhookUrlCipher.seal(webhook.getUrl()),

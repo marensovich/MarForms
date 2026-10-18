@@ -8,6 +8,7 @@ import me.marensovich.gta5rpformapp.backend.dto.form.FormSettingsRequest;
 import me.marensovich.gta5rpformapp.backend.dto.form.FormStatusRequest;
 import me.marensovich.gta5rpformapp.backend.dto.form.FormSummaryDto;
 import me.marensovich.gta5rpformapp.backend.dto.form.UpdateFormRequest;
+import me.marensovich.gta5rpformapp.backend.data.forms.WebhookHealth;
 import me.marensovich.gta5rpformapp.backend.service.FormService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -39,6 +40,7 @@ import java.util.UUID;
 public class GuildFormController {
 
     private final FormService formService;
+    private final me.marensovich.gta5rpformapp.backend.service.WebhookService webhookService;
     private final me.marensovich.gta5rpformapp.backend.config.security.GuildAccessGuard guildAccessGuard;
 
     @PreAuthorize("@guildAccess.hasRole(#guildId, 'MODERATOR')")
@@ -119,6 +121,31 @@ public class GuildFormController {
     public FormService.PublishCheck publishCheck(@PathVariable Long guildId, @PathVariable UUID formId) {
         formService.getInGuild(guildId, formId);
         return formService.publishCheck(formId);
+    }
+
+    /**
+     * «Отправить тест» (ТЗ ФТ-5.5.3): a test notification to one of the form's
+     * webhooks, by its position; the result updates the webhook's status.
+     */
+    @PreAuthorize("hasAuthority('FORMS_MANAGE') or @guildAccess.hasRole(#guildId, 'OWNER')")
+    @PostMapping("/{formId}/webhooks/{index}/test")
+    public me.marensovich.gta5rpformapp.backend.service.WebhookService.TestResult testWebhook(
+            @PathVariable Long guildId, @PathVariable UUID formId, @PathVariable int index) {
+        var form = formService.getInGuild(guildId, formId);
+        if (form.getWebhooks() == null || index < 0 || index >= form.getWebhooks().size()) {
+            throw new me.marensovich.gta5rpformapp.backend.exception.NotFoundException("No webhook " + index + " on this form");
+        }
+        var webhook = form.getWebhooks().get(index);
+        var result = webhookService.sendTest(form, webhook);
+        if (result.ok()) {
+            formService.recordWebhookDelivered(formId, webhook.getUrl());
+            formService.updateWebhookHealth(formId, webhook.getUrl(), WebhookHealth.HEALTHY, null, null);
+        } else if (WebhookHealth.REASON_WEBHOOK_DELETED.equals(result.reason())) {
+            formService.markWebhookInvalid(formId, webhook.getUrl(), "Discord returned 404 to a test message");
+        } else {
+            formService.updateWebhookHealth(formId, webhook.getUrl(), WebhookHealth.DEGRADED, result.reason(), "A test message failed");
+        }
+        return result;
     }
 
     /** ТЗ 4.4.2: an archived form is restored as a draft copy; any form may be copied. */

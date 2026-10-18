@@ -99,7 +99,7 @@ class PublicFormControllerTest {
     @Test
     void thePublicViewNeverExposesWebhooksAndReportsViewerAccess() throws Exception {
         form("auth-form", FormAccessMode.AUTHENTICATED, FormStatus.PUBLISHED);
-        form("open-form", FormAccessMode.OPEN, FormStatus.PUBLISHED);
+        form("open-form", FormAccessMode.ANONYMOUS, FormStatus.PUBLISHED);
 
         String body = mvc.perform(get("/api/v1/public/forms/{s}", "auth-form"))
                 .andExpect(status().isOk())
@@ -132,14 +132,16 @@ class PublicFormControllerTest {
     }
 
     @Test
-    void anOpenFormAcceptsALoggedOutRespondent() throws Exception {
+    void anOpenFormNeedsALoginButNotGuildMembership() throws Exception {
+        // ТЗ 5.4, owner's decision of 2026-10-15: «Все» is anyone signed in; only «Анонимно» works without.
         Form f = form("open", FormAccessMode.OPEN, FormStatus.PUBLISHED);
 
-        mvc.perform(submit("open"))
+        mvc.perform(get("/api/v1/public/forms/{s}", "open")).andExpect(jsonPath("$.viewerAccess").value("AUTH_REQUIRED"));
+        mvc.perform(submit("open")).andExpect(status().isUnauthorized());
+        mvc.perform(as(user(14L, false), submit("open")))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("PENDING"));
-        assertThat(submissionRepository.findAllByFormId(f.getId(), org.springframework.data.domain.Pageable.unpaged())
-                .getContent().getFirst().getDiscordId()).isNull();
+        assertThat(submissionRepository.countByFormIdAndDiscordId(f.getId(), 14L)).isEqualTo(1);
     }
 
     @Test
@@ -162,7 +164,7 @@ class PublicFormControllerTest {
 
     @Test
     void invalidAnswersAreRejectedWithAnErrorPerField() throws Exception {
-        form("strict", FormAccessMode.OPEN, FormStatus.PUBLISHED);
+        form("strict", FormAccessMode.ANONYMOUS, FormStatus.PUBLISHED);
 
         mvc.perform(post("/api/v1/public/forms/{s}/submissions", "strict")
                         .contentType(MediaType.APPLICATION_JSON).content("{\"answers\": {}}"))
@@ -172,7 +174,7 @@ class PublicFormControllerTest {
 
     @Test
     void theSameIdempotencyKeyNeverCreatesASecondSubmission() throws Exception {
-        Form f = form("idem", FormAccessMode.OPEN, FormStatus.PUBLISHED);
+        Form f = form("idem", FormAccessMode.ANONYMOUS, FormStatus.PUBLISHED);
         String key = UUID.randomUUID().toString();
 
         String first = mvc.perform(submit("idem").header("Idempotency-Key", key))
@@ -186,7 +188,7 @@ class PublicFormControllerTest {
 
     @Test
     void aClosedFormGivesAReadableConflictNotA500() throws Exception {
-        form("closed", FormAccessMode.OPEN, FormStatus.CLOSED);
+        form("closed", FormAccessMode.ANONYMOUS, FormStatus.CLOSED);
 
         mvc.perform(get("/api/v1/public/forms/{s}", "closed"))
                 .andExpect(jsonPath("$.acceptingSubmissions").value(false))
