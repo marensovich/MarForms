@@ -12,6 +12,7 @@ import ServersTab from "./components/dashboard/ServersTab";
 import MySubmissionsPage from "./pages/MySubmissionsPage";
 import HomeRedirect from "./pages/HomeRedirect";
 import AccessScreen from "./components/access/AccessScreen";
+import FormEditorPage, {NewFormPage} from "./components/builder/FormEditorPage";
 import {useAuth} from "./hooks/useAuth.ts";
 
 export default function App() {
@@ -43,6 +44,9 @@ export default function App() {
                     <Route path="/admin/:section" element={<AdminRoute/>}/>
                 </Route>
                 <Route path="/me/submissions" element={<MySubmissionsPage/>}/>
+                {/* The builder takes the whole screen (FormEdit.dc.html): outside the panel's layout. */}
+                <Route path="/dashboard/forms/:formId/edit" element={<FormEditorPage/>}/>
+                <Route path="/dashboard/servers/:guildId/forms/new" element={<NewFormPage/>}/>
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace/>}/>

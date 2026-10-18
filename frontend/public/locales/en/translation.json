@@ -1721,5 +1721,290 @@
       "text": "One plan for several servers"
     },
     "soon": "Soon"
+  },
+  "builder": {
+    "back": "Back to forms",
+    "loadError": "Couldn't open the form",
+    "optionN": "Option {{n}}",
+    "newLabel": {
+      "TEXT": "New question",
+      "TEXTAREA": "Tell us more",
+      "NUMBER": "Number",
+      "EMAIL": "Email",
+      "PASSWORD": "Password",
+      "URL": "Link",
+      "PHONE": "Phone",
+      "SELECT": "Choose one",
+      "MULTI_SELECT": "Choose any",
+      "RADIO": "Pick one",
+      "CHECKBOX": "Tick what applies",
+      "BOOLEAN": "Yes or no?",
+      "DATE": "Date",
+      "TIME": "Time",
+      "DATETIME": "Date and time",
+      "RATING": "Rate",
+      "FILE_UPLOAD": "Attach a file",
+      "SECTION_BREAK": "New section"
+    },
+    "tabs": {
+      "label": "Form sections",
+      "basic": "Basics",
+      "fields": "Fields",
+      "access": "Access",
+      "notifications": "Notifications",
+      "problem": "Has a problem"
+    },
+    "save": {
+      "saving": "Saving…",
+      "saved": "Saved · {{time}}",
+      "unsaved": "Not saved",
+      "cantPublish": "Save the form first: check the tabs for errors"
+    },
+    "conflict": {
+      "title": "The form was changed elsewhere — reload the page.",
+      "text": "{{name}} saved a version at {{time}}. Your edits since aren't saved but stay on screen.",
+      "reload": "Reload"
+    },
+    "publish": {
+      "publish": "Publish",
+      "changes": "Publish changes",
+      "upToDate": "Published",
+      "done": "The form is published",
+      "changesDone": "Changes are published",
+      "error": "Couldn't publish",
+      "issues": "The form can't be published yet:",
+      "issue": {
+        "fields": "add a field or fix one",
+        "conditions": "fix a condition",
+        "access": "pick a role for «Specific roles»",
+        "notifications": "no webhook"
+      }
+    },
+    "problem": {
+      "label": "no question",
+      "options": "needs at least 2 options",
+      "optionsUnique": "options repeat",
+      "range": "min is above max"
+    },
+    "wizard": {
+      "newForm": "New form",
+      "autosave": "{{server}} · the draft saves itself",
+      "steps": "Steps",
+      "close": "Close the wizard",
+      "back": "Back",
+      "saveDraft": "Save draft",
+      "publish": "Publish the form",
+      "createError": "Couldn't create the form",
+      "next": {
+        "fields": "Next: fields",
+        "access": "Next: access",
+        "notifications": "Next: notifications"
+      },
+      "blocked": {
+        "basic": "Enter a title and a valid address",
+        "fields": "Add a field and fix the marked ones",
+        "access": "Pick at least one role",
+        "notifications": ""
+      }
+    },
+    "basic": {
+      "title": "Basic information",
+      "text": "Participants see the title and description on the form's page and in the link preview in Discord.",
+      "name": "Title",
+      "nameRequired": "Enter the form's title",
+      "link": "Link:",
+      "linkLater": "appears once published",
+      "changeLink": "Change",
+      "address": "Link address",
+      "slug": {
+        "FORMAT": "Lowercase Latin letters, digits and hyphens, 3 to 64",
+        "TAKEN": "This address is taken"
+      },
+      "slugWarning": "The old link stops working — update it wherever you posted it.",
+      "description": "Description",
+      "markdown": "**Bold**, *italic* and links work",
+      "reviewTime": "Expected review time",
+      "reviewTimePlaceholder": "E.g. usually 1–2 days",
+      "reviewTimeHint": "Shown after a submission is sent.",
+      "server": "Server",
+      "asSeen": "What participants see",
+      "untitled": "Untitled"
+    },
+    "fields": {
+      "count": "Fields · {{count}}",
+      "orderHint": "⌥↑↓ to order",
+      "list": "The form's fields",
+      "canvas": "Form canvas",
+      "drag": "Drag «{{label}}»",
+      "untitled": "No question",
+      "untitledSection": "Section",
+      "conditional": "Conditional field",
+      "empty": "No fields yet — add the first one.",
+      "emptyCanvas": "Add a field from the palette on the left",
+      "add": "Add a field",
+      "selected": "Selected · {{type}}",
+      "duplicate": "Duplicate",
+      "remove": "Delete the field",
+      "copyOf": "{{label}} (copy)",
+      "dropHere": "Drop files or choose",
+      "shownIf": "Shown if «{{field}}» {{op}} {{value}}",
+      "removeTitle": "Delete the field?",
+      "removeText_one": "{{count}} field depends on «{{label}}»: {{list}}. Its condition is removed.",
+      "removeText_other": "{{count}} fields depend on «{{label}}»: {{list}}. Their conditions are removed."
+    },
+    "inspector": {
+      "label": "Field inspector",
+      "title": "Field properties",
+      "question": "Question",
+      "heading": "Section heading",
+      "hint": "Hint",
+      "required": "Required",
+      "placeholder": "Placeholder",
+      "minLength": "Min. characters",
+      "maxLength": "Max. characters",
+      "minValue": "Min. value",
+      "maxValue": "Max. value",
+      "scale": "Rating scale",
+      "options": "Answer options",
+      "option": "Option {{n}}",
+      "removeOption": "Remove option {{n}}",
+      "addOption": "Add an option",
+      "minSelected": "Min. chosen",
+      "maxSelected": "Max. chosen",
+      "minDate": "Not before",
+      "maxDate": "Not after",
+      "fileLimits": "File limits",
+      "maxFiles": "Files, up to",
+      "maxSize": "Size, MB",
+      "none": "Pick a field to set it up."
+    },
+    "condition": {
+      "title": "Conditional logic",
+      "toggle": "Show the field on a condition",
+      "showIf": "Show if",
+      "field": "Field",
+      "operator": "Condition",
+      "value": "Value",
+      "missing": "The field is gone — pick another",
+      "noneAbove": "A condition can only look at a field above.",
+      "operators": "Operators: equals · not equals · contains · filled · greater · less",
+      "op": {
+        "EQUALS": "equals",
+        "NOT_EQUALS": "doesn't equal",
+        "CONTAINS": "contains",
+        "NOT_EMPTY": "is filled",
+        "EMPTY": "is empty",
+        "GREATER_THAN": "is greater than",
+        "LESS_THAN": "is less than"
+      }
+    },
+    "access": {
+      "title": "Discord and access",
+      "text": "Where the link goes and who may fill the form in.",
+      "who": "Who may fill it in",
+      "mode": {
+        "OPEN": {
+          "title": "Everyone",
+          "text": "Anyone signed in with Discord. The server isn't checked."
+        },
+        "AUTHENTICATED": {
+          "title": "Server members",
+          "text": "Only members of {{server}}."
+        },
+        "ROLE_GATED": {
+          "title": "Specific roles",
+          "text": "Members with the right roles and none of the denied ones."
+        },
+        "ANONYMOUS": {
+          "title": "Anonymous",
+          "text": "No sign-in, no author's Discord account. Needs confirming."
+        }
+      },
+      "roles": "Role check",
+      "denyWins": "A denial beats an allowance",
+      "needRoles": "Pick at least one allowed or denied role.",
+      "allowed": "Allowed roles",
+      "allowedHint": "any one of",
+      "denied": "Denied roles",
+      "deniedHint": "any one shuts out",
+      "deniedText": "A member with any denied role can't open the form — even with an allowed one.",
+      "addRole": "Add a role",
+      "findRole": "Find a role",
+      "noRoles": "No roles found",
+      "removeRole": "Remove the role {{name}}",
+      "limit": "Submissions per person",
+      "limitAnonymous": "An anonymous form can't have a limit.",
+      "unlimited": "No limit",
+      "window": "Taking submissions",
+      "opensAt": "Opens",
+      "closesAt": "Closes",
+      "anon": {
+        "title": "Make the form anonymous?",
+        "text": "Good for complaints and polls. But you give up some control:",
+        "risk0": "You won't see the author's Discord account or be able to reach them",
+        "risk1": "You can't limit «1 per person» or check roles",
+        "risk2": "Server bans don't apply — anyone can fill it in",
+        "risk3": "No revision requests: only approve or reject",
+        "ack": "I understand the risks and take responsibility for moderating anonymous answers",
+        "confirm": "Make anonymous"
+      }
+    },
+    "hooks": {
+      "title": "Discord notifications",
+      "text": "Webhooks post new submissions and moderators' decisions to the server's channels.",
+      "pasteUrl": "Paste a URL",
+      "createByBot": "Create a webhook with the bot",
+      "channel": "Channel",
+      "create": "Create",
+      "noChannels": "The bot sees no text channels",
+      "url": "Webhook URL",
+      "add": "Add",
+      "badUrl": "Needs an address like https://discord.com/api/webhooks/…",
+      "createFailed": "Couldn't create the webhook",
+      "unnamed": "Webhook …{{id}}",
+      "events": "Events",
+      "event": {
+        "SUBMISSION": "New submissions",
+        "DECISION": "Moderators' decisions"
+      },
+      "lastDelivery": "Last delivery {{ago}}",
+      "notYet": "Hasn't sent anything yet",
+      "status": {
+        "HEALTHY": "Working",
+        "DEGRADED": "Unstable",
+        "INVALID": "Invalid",
+        "UNKNOWN": "Not checked"
+      },
+      "test": "Test",
+      "recreate": "Recreate",
+      "remove": "Delete the webhook {{name}}",
+      "testOk": "A test message was sent",
+      "testFailed": "The test failed",
+      "later": "You can add webhooks later. Without them submissions still show in «Submissions»."
+    },
+    "preview": {
+      "open": "Preview",
+      "back": "Back to the editor",
+      "title": "Preview · {{title}}",
+      "notSaved": "Answers aren't saved",
+      "device": "Device",
+      "desktop": "Computer",
+      "phone": "Phone",
+      "asNoRoles": "As a member with no role",
+      "asRoles": "As a member with roles: {{roles}}",
+      "gate": {
+        "GRANTED": "{{as}}: the form opens",
+        "ROLE_DENIED": "{{as}}: the form is closed — a denied role",
+        "ROLE_REQUIRED": "{{as}}: the form is closed — no allowed role"
+      },
+      "verdict": {
+        "ROLE_DENIED": "A denied role",
+        "ROLE_REQUIRED": "Needs one of the allowed roles"
+      },
+      "verdictText": {
+        "ROLE_DENIED": "This member gets the ROLE_DENIED screen: a denial beats an allowance.",
+        "ROLE_REQUIRED": "This member gets the ROLE_REQUIRED screen listing the roles needed."
+      }
+    }
   }
 }

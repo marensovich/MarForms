@@ -88,7 +88,7 @@ export default function GuildWorkspaceHeader({guild, section}: { guild: MyGuild;
                         </span>
                     )}
                     {isOwner && (
-                        <Link to={`/dashboard/servers/${guild.guildId}/forms?new=1`}
+                        <Link to={`/dashboard/servers/${guild.guildId}/forms/new`}
                               className="flex h-10 items-center gap-2 rounded-xl bg-pr px-4 text-sm font-semibold text-white hover:bg-prh">
                             <FiPlus size={16} aria-hidden="true"/>{t("forms.newForm")}
                         </Link>

@@ -21,7 +21,7 @@ export function userTarget(hit: UserHit): string {
 
 /** "Новая форма": straight into the wizard when the user runs one server, else the server list. */
 export function newFormTarget(guilds: MyGuild[] | null): string {
-    return guilds && guilds.length === 1 ? `/dashboard/servers/${guilds[0].guildId}/forms?new=1` : "/dashboard/servers";
+    return guilds && guilds.length === 1 ? `/dashboard/servers/${guilds[0].guildId}/forms/new` : "/dashboard/servers";
 }
 
 /** "Перейти в очередь модерации": the only server's queue, else the server list. */

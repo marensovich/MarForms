@@ -83,7 +83,7 @@ describe("palette targets", () => {
     });
 
     it("actions go straight to the only server, else to the server list", () => {
-        expect(newFormTarget([GUILD])).toBe("/dashboard/servers/7101/forms?new=1");
+        expect(newFormTarget([GUILD])).toBe("/dashboard/servers/7101/forms/new");
         expect(newFormTarget([GUILD, {...GUILD, guildId: "2"}])).toBe("/dashboard/servers");
         expect(queueTarget(null)).toBe("/dashboard/servers");
     });

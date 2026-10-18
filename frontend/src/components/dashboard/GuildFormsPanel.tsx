@@ -1,7 +1,6 @@
 import {type KeyboardEvent, type ReactNode, useCallback, useEffect, useId, useRef, useState} from "react";
-import {AnimatePresence} from "framer-motion";
 import {useTranslation} from "react-i18next";
-import {useSearchParams} from "react-router-dom";
+import {useNavigate, useSearchParams} from "react-router-dom";
 import type {IconType} from "react-icons";
 import {
     FiAlertTriangle,
@@ -40,11 +39,7 @@ import {
 import {describeApiError} from "../../api/errors";
 import type {FormAccessMode, FormDefinition, FormStatus} from "../../types/forms";
 import {ConfirmDialog, cx, EmptyState, ErrorState, SegmentedControl, Skeleton, useToast} from "../../ui";
-import FormWizard from "./forms/FormWizard";
-import FormEditModal from "./forms/FormEditModal";
-import FormPreviewModal from "./forms/FormPreviewModal";
-import DesktopOnly from "../../shell/DesktopOnly";
-import {useIsMobile} from "../../shell/useIsMobile";
+import PreviewOverlay from "../builder/PreviewOverlay";
 
 // Docs: docs/design/mockups/WsForms.dc.html; ТЗ 4.4, #127.
 
@@ -191,18 +186,19 @@ export default function GuildFormsPanel({guild}: { guild: MyGuild }) {
     const toast = useToast();
     const updated = useUpdatedLabel();
     const isOwner = guild.role === "OWNER";
-    const mobile = useIsMobile();
     const [forms, setForms] = useState<DashboardForm[] | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [usage, setUsage] = useState<GuildUsage | null>(null);
     const [segment, setSegment] = useState<Segment>("all");
     const [query, setQuery] = useState("");
     const [busyId, setBusyId] = useState<string | null>(null);
-    // ?new=1 (the header's «Новая форма» and the command palette, #107) opens the wizard.
-    const [searchParams, setSearchParams] = useSearchParams();
-    const showWizard = isOwner && searchParams.get("new") === "1";
-    const closeWizard = () => setSearchParams({}, {replace: true});
-    const [edit, setEdit] = useState<{ form: DashboardForm; tab?: "webhooks" } | null>(null);
+    // Old ?new=1 links (bookmarks, the palette before #137) go to the new form's wizard.
+    const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
+    useEffect(() => {
+        if (isOwner && searchParams.get("new") === "1") navigate(`/dashboard/servers/${guild.guildId}/forms/new`, {replace: true});
+    }, [isOwner, searchParams, navigate, guild.guildId]);
+    const edit = (f: DashboardForm, tab?: "notifications") => navigate(`/dashboard/forms/${f.id}/edit${tab ? `?tab=${tab}` : ""}`);
     const [preview, setPreview] = useState<FormDefinition | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<DashboardForm | null>(null);
 
@@ -321,7 +317,7 @@ export default function GuildFormsPanel({guild}: { guild: MyGuild }) {
                             : t("guildForms.banner.many", {count: broken.length})}
                     </span>
                     {isOwner && (
-                        <button type="button" onClick={() => setEdit({form: broken[0], tab: "webhooks"})}
+                        <button type="button" onClick={() => edit(broken[0], "notifications")}
                                 className="font-semibold underline">
                             {t("guildForms.banner.check")}
                         </button>
@@ -413,7 +409,7 @@ export default function GuildFormsPanel({guild}: { guild: MyGuild }) {
                                     <td className="border-b border-bd px-3 py-2.5">
                                         <div className="flex justify-end gap-0.5">
                                             {isOwner && status !== "ARCHIVED" && (
-                                                <IconLink label={t("common.edit")} onClick={() => setEdit({form: f})} disabled={busy}>
+                                                <IconLink label={t("common.edit")} onClick={() => edit(f)} disabled={busy}>
                                                     <FiEdit2 size={16} aria-hidden="true"/>
                                                 </IconLink>
                                             )}
@@ -446,40 +442,12 @@ export default function GuildFormsPanel({guild}: { guild: MyGuild }) {
                 </span>
             )}
 
-            {mobile && (showWizard || edit) && (
-                <DesktopOnly onBack={() => {
-                    closeWizard();
-                    setEdit(null);
-                }}/>
+            {preview && (
+                <PreviewOverlay guildId={guild.guildId} title={preview.schema.title} description={preview.schema.description}
+                                fields={preview.schema.fields} accessMode={preview.accessMode ?? "AUTHENTICATED"}
+                                allowedRoleIds={preview.allowedRoleIds ?? []} deniedRoleIds={preview.deniedRoleIds ?? []}
+                                onClose={() => setPreview(null)}/>
             )}
-            <AnimatePresence>
-                {showWizard && !mobile && (
-                    <FormWizard
-                        guildId={guild.guildId}
-                        onClose={closeWizard}
-                        onCreated={() => {
-                            closeWizard();
-                            load();
-                        }}
-                    />
-                )}
-                {edit && !mobile && (
-                    <FormEditModal
-                        form={edit.form}
-                        initialTab={edit.tab}
-                        onClose={() => setEdit(null)}
-                        onUpdated={load}
-                    />
-                )}
-                {preview && (
-                    <FormPreviewModal
-                        title={preview.schema.title}
-                        description={preview.schema.description}
-                        fields={preview.schema.fields}
-                        onClose={() => setPreview(null)}
-                    />
-                )}
-            </AnimatePresence>
             <ConfirmDialog
                 open={deleteTarget !== null}
                 title={t("forms.deleteConfirm.title")}

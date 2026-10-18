@@ -17,9 +17,7 @@ vi.mock("react-i18next", () => ({
     }),
 }));
 
-vi.mock("./forms/FormWizard", () => ({default: () => null}));
-vi.mock("./forms/FormEditModal", () => ({default: () => null}));
-vi.mock("./forms/FormPreviewModal", () => ({default: () => null}));
+vi.mock("../builder/PreviewOverlay", () => ({default: () => null}));
 
 const setStatus = vi.fn();
 const copy = vi.fn();

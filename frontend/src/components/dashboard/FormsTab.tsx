@@ -16,7 +16,7 @@ import {
 import {type FormDefinition} from "../../types/forms";
 import {ActionBtn, Badge, ConfirmModal, EmptyState, Modal, StatsCard, TabSkeleton} from "./shared";
 import FormWizard from "./forms/FormWizard";
-import FormEditModal from "./forms/FormEditModal";
+import {useNavigate} from "react-router-dom";
 import {
     FiCheck,
     FiCheckCircle,
@@ -159,7 +159,8 @@ export default function FormsTab() {
     const [showWizard, setShowWizard] = useState(false);
     const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
     const [responsesForm, setResponsesForm] = useState<DashboardForm | null>(null);
-    const [editForm, setEditForm] = useState<DashboardForm | null>(null);
+    // Editing opens the builder (#137).
+    const navigate = useNavigate();
     const [deleteTarget, setDeleteTarget] = useState<DashboardForm | null>(null);
     const [connecting, setConnecting] = useState(false);
     const [guilds, setGuilds] = useState<MyGuild[]>([]);
@@ -399,7 +400,7 @@ export default function FormsTab() {
                                 <td className="px-5 py-4">
                                     <div className="flex items-center justify-end gap-1">
                                         <ActionBtn
-                                            onClick={() => setEditForm(form)}
+                                            onClick={() => navigate(`/dashboard/forms/${form.id}/edit`)}
                                             variant="ghost"
                                             title="Edit form (coming soon)"
                                         >
@@ -445,16 +446,6 @@ export default function FormsTab() {
                 )}
                 {responsesForm && (
                     <ResponsesModal form={responsesForm} onClose={() => setResponsesForm(null)}/>
-                )}
-                {editForm && (
-                    <FormEditModal
-                        form={editForm}
-                        onClose={() => setEditForm(null)}
-                        onUpdated={() => {
-                            setEditForm(null);
-                            loadForms();
-                        }}
-                    />
                 )}
                 {deleteTarget && (
                     <ConfirmModal

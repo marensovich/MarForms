@@ -140,6 +140,13 @@ export interface WebhookConfig {
     health?: WebhookHealth | null;
     healthReason?: string | null;
     healthCheckedAt?: string | null;
+    /** SUBMISSION, DECISION; empty = both (ТЗ ФТ-5.5.1). */
+    events?: string[] | null;
+    /** The channel the bot made it in. */
+    channelId?: string | null;
+    channelName?: string | null;
+    /** When a notification last got through. */
+    lastDeliveredAt?: string | null;
 }
 
 /** Whether a webhook's notifications are getting through (E2.4). */

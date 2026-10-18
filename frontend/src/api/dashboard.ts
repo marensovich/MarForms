@@ -36,6 +36,8 @@ export interface CreateGuildFormPayload {
     accessMode?: FormAccessMode;
     allowedRoleIds?: string[];
     deniedRoleIds?: string[];
+    /** The address chosen in the wizard (ТЗ 5.2); generated on first publish when absent. */
+    slug?: string;
 }
 
 export function createGuildForm(guildId: string, payload: CreateGuildFormPayload): Promise<FormDefinition> {
@@ -250,6 +252,8 @@ export interface DiscordRole {
     name: string;
     /** RGB colour as a number; 0 = no colour. */
     color: number;
+    /** How many members MarForms knows to hold it (ТЗ ФТ-5.4.2). */
+    memberCount?: number;
 }
 
 /** The guild's roles for the RoleGate picker, without @everyone. */
@@ -281,6 +285,8 @@ export interface UpdateFormPayload {
     settings?: FormSettingsPayload;
     /** The version this edit is based on; the server answers 409 if the form moved on. */
     version?: number;
+    /** A new address (ТЗ 5.2): the old link stops working. */
+    slug?: string;
 }
 
 export function updateForm(
