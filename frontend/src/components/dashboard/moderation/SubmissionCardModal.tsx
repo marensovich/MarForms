@@ -215,14 +215,14 @@ export default function SubmissionCardModal({submissionId, onClose, onDecided, c
     const navBtn = "grid h-9 w-9 flex-none place-items-center rounded-[10px] border border-bd bg-sf text-tx hover:bg-s2 disabled:text-mu disabled:opacity-50 disabled:hover:bg-sf";
 
     return createPortal(
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ov px-6 py-14"
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ov md:px-6 md:py-14"
              onMouseDown={e => e.target === e.currentTarget && onClose()}>
             <div ref={ref} role="dialog" aria-modal="true" aria-labelledby={titleId} tabIndex={-1}
-                 className="flex w-full max-w-[1040px] flex-col overflow-hidden rounded-[20px] border border-bd bg-sf text-tx shadow-modal outline-none">
-                <div className="flex items-center gap-3 border-b border-bd px-6 py-[18px]">
+                 className="flex min-h-full w-full max-w-[1040px] flex-col overflow-hidden border-bd bg-sf text-tx shadow-modal outline-none md:min-h-0 md:rounded-[20px] md:border">
+                <div className="flex items-center gap-2 border-b border-bd px-4 py-3.5 md:gap-3 md:px-6 md:py-[18px]">
                     <div className="flex min-w-0 flex-1 flex-col gap-1">
                         <div className="flex flex-wrap items-center gap-2.5">
-                            <h2 id={titleId} className="m-0 text-xl font-bold">{title}</h2>
+                            <h2 id={titleId} className="m-0 text-lg font-bold md:text-xl">{title}</h2>
                             {submission && <SubmissionStatusBadge status={submission.status}/>}
                         </div>
                         {submission && (
@@ -255,7 +255,7 @@ export default function SubmissionCardModal({submissionId, onClose, onDecided, c
                     </div>
                 ) : (
                     <div className="flex flex-wrap">
-                        <div className="flex min-w-0 flex-[999_1_480px] flex-col gap-4 border-r border-bd px-6 py-5">
+                        <div className="flex min-w-0 flex-[999_1_480px] flex-col gap-4 border-bd px-4 py-5 md:border-r md:px-6">
                             {fields.map(field => {
                                 if (field.type === "SECTION_BREAK") {
                                     return <h3 key={field.id} className="m-0 mt-1 text-[15px] font-bold">{field.label}</h3>;
@@ -292,7 +292,7 @@ export default function SubmissionCardModal({submissionId, onClose, onDecided, c
                             ))}
                         </div>
 
-                        <div className="flex min-w-0 flex-[1_1_340px] flex-col gap-[18px] bg-s2 px-6 py-5">
+                        <div className="flex min-w-0 flex-[1_1_340px] flex-col gap-[18px] bg-s2 px-4 py-5 md:px-6">
                             {author ? (
                                 <>
                                     <div className="flex items-center gap-3">

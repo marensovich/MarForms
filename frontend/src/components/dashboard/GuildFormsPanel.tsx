@@ -42,6 +42,8 @@ import {ConfirmDialog, cx, EmptyState, ErrorState, SegmentedControl, Skeleton, u
 import FormWizard from "./forms/FormWizard";
 import FormEditModal from "./forms/FormEditModal";
 import FormPreviewModal from "./forms/FormPreviewModal";
+import DesktopOnly from "../../shell/DesktopOnly";
+import {useIsMobile} from "../../shell/useIsMobile";
 
 // Docs: docs/design/mockups/WsForms.dc.html; ТЗ 4.4, #127.
 
@@ -188,6 +190,7 @@ export default function GuildFormsPanel({guild}: { guild: MyGuild }) {
     const toast = useToast();
     const updated = useUpdatedLabel();
     const isOwner = guild.role === "OWNER";
+    const mobile = useIsMobile();
     const [forms, setForms] = useState<DashboardForm[] | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [usage, setUsage] = useState<GuildUsage | null>(null);
@@ -429,8 +432,14 @@ export default function GuildFormsPanel({guild}: { guild: MyGuild }) {
                 </span>
             )}
 
+            {mobile && (showWizard || edit) && (
+                <DesktopOnly onBack={() => {
+                    closeWizard();
+                    setEdit(null);
+                }}/>
+            )}
             <AnimatePresence>
-                {showWizard && (
+                {showWizard && !mobile && (
                     <FormWizard
                         guildId={guild.guildId}
                         onClose={closeWizard}
@@ -440,7 +449,7 @@ export default function GuildFormsPanel({guild}: { guild: MyGuild }) {
                         }}
                     />
                 )}
-                {edit && (
+                {edit && !mobile && (
                     <FormEditModal
                         form={edit.form}
                         initialTab={edit.tab}

@@ -9,6 +9,7 @@ import {ADMIN_NAV, readSidebarCollapsed, writeSidebarCollapsed} from "./navigati
 import Sidebar from "./Sidebar";
 import Topbar, {type Crumb} from "./Topbar";
 import CommandPalette from "./CommandPalette";
+import {MobileHeader, MobileMenu, MobileNav} from "./MobileShell";
 import {isTypingTarget, newFormTarget, queueTarget} from "./commands";
 
 // Docs: docs/design/mockups/Servers.dc.html (sidebar + topbar + page), ТЗ 4.1.
@@ -30,6 +31,8 @@ export default function DashboardLayout() {
     const [collapsed, setCollapsed] = useState(readSidebarCollapsed);
     const [reloadKey, setReloadKey] = useState(0);
     const [paletteOpen, setPaletteOpen] = useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const closeMenu = useCallback(() => setMenuOpen(false), []);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -93,15 +96,23 @@ export default function DashboardLayout() {
 
     return (
         <div className="flex min-h-screen bg-bg text-tx">
-            <Sidebar collapsed={collapsed} onToggle={() => {
-                writeSidebarCollapsed(!collapsed);
-                setCollapsed(!collapsed);
-            }}/>
+            {/* On a phone the sidebar is the menu sheet and the topbar a compact header (ТЗ 4.10). */}
+            <div className="hidden md:block">
+                <Sidebar collapsed={collapsed} onToggle={() => {
+                    writeSidebarCollapsed(!collapsed);
+                    setCollapsed(!collapsed);
+                }}/>
+            </div>
             <div className="flex min-w-0 flex-1 flex-col">
-                <Topbar crumbs={crumbs} onSearch={() => setPaletteOpen(true)}/>
-                <main className="flex min-w-0 flex-1 flex-col gap-6 px-10 pb-12 pt-8">
+                <div className="hidden md:block">
+                    <Topbar crumbs={crumbs} onSearch={() => setPaletteOpen(true)}/>
+                </div>
+                <MobileHeader title={crumbs[crumbs.length - 1].label} onMenu={() => setMenuOpen(true)}/>
+                <main className="flex min-w-0 flex-1 flex-col gap-6 px-4 pb-24 pt-4 md:px-10 md:pb-12 md:pt-8">
                     <Outlet context={context}/>
                 </main>
+                <MobileNav guilds={guilds} onMore={() => setMenuOpen(true)}/>
+                <MobileMenu open={menuOpen} onClose={closeMenu}/>
                 <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} guilds={guilds}/>
             </div>
         </div>

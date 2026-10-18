@@ -62,11 +62,11 @@ export default function GuildWorkspaceHeader({guild, section}: { guild: MyGuild;
     const tabs = GUILD_SECTIONS.filter(s => isOwner || !OWNER_ONLY_SECTIONS.includes(s));
 
     return (
-        <div className="-mx-10 -mt-8 flex flex-col gap-[18px] border-b border-bd bg-sf px-10 pt-6">
+        <div className="-mx-4 -mt-4 flex flex-col gap-[18px] border-b border-bd bg-sf px-4 pt-4 md:-mx-10 md:-mt-8 md:px-10 md:pt-6">
             <div className="flex flex-wrap items-center gap-4">
                 <ServerIcon name={guild.guildName} src={guild.guildIconUrl} size={52}/>
-                <div className="flex min-w-[240px] flex-1 flex-col gap-1.5">
-                    <h1 className="m-0 text-2xl font-bold tracking-[-0.01em]">{guild.guildName}</h1>
+                <div className="flex min-w-0 flex-1 flex-col gap-1.5 md:min-w-[240px]">
+                    <h1 className="m-0 truncate text-xl font-bold tracking-[-0.01em] md:text-2xl">{guild.guildName}</h1>
                     <div className="flex flex-wrap gap-2 text-xs font-semibold">
                         <span className={cx("inline-flex items-center gap-1.5 rounded-full px-[9px] py-[3px]", bot.cls)}>
                             <bot.icon size={12} aria-hidden="true"/>
@@ -78,7 +78,8 @@ export default function GuildWorkspaceHeader({guild, section}: { guild: MyGuild;
                         <span className="rounded-full border border-bd px-[9px] py-[3px] font-mono font-medium text-mu">ID {guild.guildId}</span>
                     </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-4">
+                {/* The plan's counters and «Новая форма» are for the computer (ТЗ 4.10). */}
+                <div className="hidden flex-wrap items-center gap-4 md:flex">
                     {forms && <UsageBar label={t("workspace.activeForms")} used={forms.used} limit={forms.limit}/>}
                     {submissions && <UsageBar label={t("workspace.submissionsThisMonth")} used={submissions.used} limit={submissions.limit}/>}
                     {usage && (

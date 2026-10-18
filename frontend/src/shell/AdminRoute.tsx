@@ -9,6 +9,8 @@ import UsersTab from "../components/dashboard/UsersTab";
 import {useAuth} from "../hooks/useAuth";
 import {ADMIN_NAV, type AdminSection, can} from "./navigation";
 import NoAccess from "./NoAccess";
+import DesktopOnly from "./DesktopOnly";
+import {useIsMobile} from "./useIsMobile";
 
 const PAGES: Record<AdminSection, () => React.ReactElement> = {
     forms: () => <FormsTab/>,
@@ -24,8 +26,10 @@ const PAGES: Record<AdminSection, () => React.ReactElement> = {
 export default function AdminRoute() {
     const {section} = useParams();
     const {user} = useAuth();
+    const mobile = useIsMobile();
     const item = ADMIN_NAV.find(n => n.id === section);
     if (!item) return <Navigate to="/dashboard/servers" replace/>;
     if (!can(user, item.permission)) return <NoAccess/>;
+    if (mobile) return <DesktopOnly/>;
     return PAGES[item.id]();
 }

@@ -137,7 +137,10 @@ export default function ServersTab() {
                                    className="min-w-0 flex-1 border-0 bg-transparent text-sm text-tx outline-none placeholder:text-mu"/>
                         </label>
                     </div>
-                    <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">
+                    <ul className="m-0 flex list-none flex-col gap-2.5 p-0 md:hidden">
+                        {shown.map(g => <ServerRow key={g.guildId} guild={g}/>)}
+                    </ul>
+                    <div className="hidden grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4 md:grid">
                         {shown.map(g => <ServerCard key={g.guildId} guild={g} onFix={() => connect(g.guildId)}
                                                     fixing={connecting === g.guildId}/>)}
                         <button type="button" onClick={() => connect()} disabled={connecting !== null}
@@ -151,6 +154,30 @@ export default function ServersTab() {
                 </>
             )}
         </div>
+    );
+}
+
+/** A server on the phone (MobileShell.dc.html): icon, name, the bot's state, how many wait. */
+function ServerRow({guild}: { guild: MyGuild }) {
+    const {t} = useTranslation();
+    const state = guild.botState ?? (guild.botStatus === "KICKED" ? "KICKED" : "CONNECTED");
+    return (
+        <li>
+            <Link to={`/dashboard/servers/${guild.guildId}/submissions`}
+                  className="flex items-center gap-3 rounded-[14px] border border-bd bg-sf p-3.5 text-tx no-underline">
+                <ServerIcon name={guild.guildName} src={guild.guildIconUrl} size={42}/>
+                <span className="flex min-w-0 flex-1 flex-col gap-1">
+                    <span className="truncate text-[15px] font-semibold">{guild.guildName}</span>
+                    <span className={cx("self-start rounded-full px-2 py-0.5 text-[11px] font-semibold", BOT[state].cls)}>
+                        {t(`servers.botShort.${state}`)}
+                    </span>
+                </span>
+                <span className="flex flex-col items-end gap-0.5">
+                    <span className="font-bold tabular-nums">{guild.pendingSubmissions ?? 0}</span>
+                    <span className="text-[11px] text-mu">{t("servers.waiting")}</span>
+                </span>
+            </Link>
+        </li>
     );
 }
 

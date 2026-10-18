@@ -1017,7 +1017,13 @@
     "pending": "Awaiting decision",
     "open": "Open server",
     "refreshTooOften": "Refreshed less than a minute ago — try again shortly.",
-    "refreshError": "Couldn't refresh the servers."
+    "refreshError": "Couldn't refresh the servers.",
+    "waiting": "waiting",
+    "botShort": {
+      "CONNECTED": "Bot connected",
+      "MISSING_PERMISSIONS": "Missing permissions",
+      "KICKED": "Bot removed"
+    }
   },
   "preview": {
     "open": "Preview",
@@ -1535,6 +1541,19 @@
       "moderators": "Moderators",
       "bans": "Bans",
       "billing": "Plan"
+    },
+    "openMenu": "Open the menu",
+    "bottomNav": "Bottom navigation",
+    "mobileTabs": {
+      "servers": "Servers",
+      "submissions": "Submissions",
+      "forms": "Forms",
+      "more": "More"
+    },
+    "desktopOnly": {
+      "title": "Open on a computer",
+      "text": "The form builder and platform administration work on a computer only. On a phone you have the servers and the submission queue.",
+      "back": "Back"
     }
   },
   "palette": {

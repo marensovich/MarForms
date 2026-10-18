@@ -7,6 +7,7 @@ import {getGuildSubmissions, type ModerationSubmission, type SubmissionStatus} f
 import {describeApiError} from "../../../api/errors";
 import {Avatar, cx, EmptyState, ErrorState, pageList, Skeleton} from "../../../ui";
 import FilterSelect from "./FilterSelect";
+import {useIsMobile} from "../../../shell/useIsMobile";
 import SubmissionCardModal from "./SubmissionCardModal";
 import {SubmissionStatusBadge} from "./SubmissionStatusBadge";
 
@@ -25,6 +26,7 @@ const ALL = "all";
 export default function GuildModerationPanel({guild}: { guild: MyGuild }) {
     const {t, i18n} = useTranslation();
     const [params, setParams] = useSearchParams();
+    const mobile = useIsMobile();
     const statusParam = params.get("status");
     const status: SubmissionStatus | "" = statusParam === ALL ? ""
         : STATUSES.includes(statusParam as SubmissionStatus) ? statusParam as SubmissionStatus : "PENDING";
@@ -138,6 +140,10 @@ export default function GuildModerationPanel({guild}: { guild: MyGuild }) {
                             retryLabel={t("ui.retry")}/>
             ) : (
                 <div className="overflow-x-auto rounded-2xl border border-bd bg-sf">
+                    {/* On a phone the queue is a list of cards (ТЗ 4.10); the card opens full screen. */}
+                    {mobile ? (
+                        <QueueCards rows={rows} loading={loading} onOpen={open}/>
+                    ) : (
                     <table className="w-full min-w-[860px] border-collapse text-sm" aria-busy={loading || undefined}>
                         <thead>
                         <tr className="text-left text-xs text-mu">
@@ -181,6 +187,7 @@ export default function GuildModerationPanel({guild}: { guild: MyGuild }) {
                         })}
                         </tbody>
                     </table>
+                    )}
                     {!loading && rows.length === 0 && (
                         <EmptyState className="m-4" title={t("moderation.empty")}
                                     text={filtered ? t("moderation.emptyFiltered") : t("moderation.emptyPending")}/>
@@ -230,5 +237,33 @@ export default function GuildModerationPanel({guild}: { guild: MyGuild }) {
                 />
             )}
         </div>
+    );
+}
+
+/** The queue on a phone (ТЗ 4.10): one card per submission; a tap opens it full screen. */
+function QueueCards({rows, loading, onOpen}: { rows: ModerationSubmission[]; loading: boolean; onOpen: (id: string) => void }) {
+    const {t, i18n} = useTranslation();
+    return (
+        <ul className="m-0 flex list-none flex-col p-0" aria-busy={loading || undefined}>
+            {loading ? [0, 1, 2].map(i => (
+                <li key={i} className="border-b border-bd p-4"><Skeleton className="h-10 w-full rounded-lg"/></li>
+            )) : rows.map(r => (
+                <li key={r.id} className="border-b border-bd last:border-0">
+                    <button type="button" onClick={() => onOpen(r.id)} className="flex w-full items-center gap-3 p-4 text-left hover:bg-bg">
+                        <Avatar name={r.discordUsername ?? r.discordId ?? "?"} size={38}/>
+                        <span className="flex min-w-0 flex-1 flex-col gap-1">
+                            <span className="truncate font-semibold">
+                                {r.discordUsername ?? (r.discordId ? t("moderation.unknownUser") : t("moderation.anonymous"))}
+                            </span>
+                            <span className="truncate text-[13px] text-mu">
+                                {r.formTitle ?? "—"} · {new Date(r.createdAt).toLocaleString(i18n.language,
+                                {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"})}
+                            </span>
+                        </span>
+                        <SubmissionStatusBadge status={r.status}/>
+                    </button>
+                </li>
+            ))}
+        </ul>
     );
 }
