@@ -18,6 +18,10 @@ public final class FileRules {
     /** Platform cap on one file, whatever a field allows. */
     public static final int MAX_SIZE_MB = 25;
 
+    /** Files per field when its creator set none (ТЗ 3.4), and the most a field may take. */
+    public static final int DEFAULT_MAX_FILES = 3;
+    public static final int MAX_FILES = 10;
+
     /** A field's size limit when its creator set none. */
     public static final int DEFAULT_SIZE_MB = 10;
 

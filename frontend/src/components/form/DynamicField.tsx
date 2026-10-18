@@ -87,8 +87,8 @@ export default function DynamicField({field, value, onChange, onBlur, error}: Pr
             return (
                 <FileUploadField
                     field={field}
-                    value={typeof value === "string" ? value : ""}
-                    onChange={onChangeStr}
+                    value={typeof value === "string" || Array.isArray(value) ? value : ""}
+                    onChange={v => onChange(field.id, v)}
                     onBlur={handleBlur}
                     error={error}
                 />

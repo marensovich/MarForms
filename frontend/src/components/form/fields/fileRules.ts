@@ -14,6 +14,13 @@ export function allowedExtensions(field: FormField): string[] {
     return configured.length ? [...new Set(configured)] : DEFAULT_FILE_EXTENSIONS;
 }
 
+export const DEFAULT_MAX_FILES = 3;
+
+/** How many files the field takes (ТЗ 3.4). */
+export function maxFiles(field: FormField): number {
+    return Math.max(1, field.maxFiles ?? DEFAULT_MAX_FILES);
+}
+
 export function sizeLimitMb(field: FormField): number {
     return Math.min(field.maxFileSizeMb ?? DEFAULT_FILE_SIZE_MB, MAX_FILE_SIZE_MB);
 }

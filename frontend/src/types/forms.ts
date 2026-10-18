@@ -44,6 +44,17 @@ export interface FormField {
     allowedExtensions?: string[];
     /** FILE_UPLOAD: size limit in MB (platform max 25, default 10). */
     maxFileSizeMb?: number;
+    /** FILE_UPLOAD: how many files, 1–10 (default 3). */
+    maxFiles?: number;
+    /** TEXT/TEXTAREA: answer length bounds; older forms keep them in min/max. */
+    minLength?: number;
+    maxLength?: number;
+    /** MULTI_SELECT/CHECKBOX: how many may be chosen. */
+    minSelected?: number;
+    maxSelected?: number;
+    /** DATE/TIME/DATETIME: the allowed range, inclusive, in the answer's format. */
+    minDate?: string;
+    maxDate?: string;
     /** Show only when another field's answer matches (E3.1); absent = always. */
     condition?: FieldCondition | null;
 }

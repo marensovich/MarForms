@@ -108,10 +108,17 @@ public final class FormSchemaValidator {
         for (FormField f : fields) {
             if (f != null && f.getId() != null) byId.putIfAbsent(f.getId(), f);
         }
+        Map<String, Integer> position = new HashMap<>();
+        for (int i = 0; i < fields.size(); i++) {
+            if (fields.get(i) != null && fields.get(i).getId() != null) position.putIfAbsent(fields.get(i).getId(), i);
+        }
         for (int i = 0; i < fields.size(); i++) {
             FormField field = fields.get(i);
             if (field == null || field.getCondition() == null) continue;
             String error = conditionError(field, field.getCondition(), byId);
+            // ТЗ ФТ-5.3.5: a field shows on an answer given above it, never below.
+            Integer target = position.get(field.getCondition().getFieldId());
+            if (error == null && target != null && target > i) error = "Can only depend on a field above it";
             if (error != null) errors.put("fields[" + i + "].condition", error);
         }
         List<String> cycle = FormConditions.findCycle(fields);
@@ -157,6 +164,26 @@ public final class FormSchemaValidator {
         return null;
     }
 
+    /** A date/time range bound in the answer's own format, or {@code null} (an error is noted when it doesn't parse). */
+    static Comparable<?> parseBound(FieldType type, String value, String path, Map<String, String> errors) {
+        if (value == null || value.isBlank()) return null;
+        try {
+            return switch (type) {
+                case DATE -> java.time.LocalDate.parse(value.trim());
+                case TIME -> java.time.LocalTime.parse(value.trim());
+                default -> java.time.LocalDateTime.parse(value.trim());
+            };
+        } catch (java.time.format.DateTimeParseException e) {
+            if (errors != null) errors.put(path, "Not a valid " + type.name().toLowerCase());
+            return null;
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    static int compare(Comparable a, Comparable b) {
+        return a.compareTo(b);
+    }
+
     private static void validateFieldConfig(FormField field, String path, Map<String, String> errors) {
         FieldType type = field.getType();
         if (type == null) {
@@ -185,9 +212,34 @@ public final class FormSchemaValidator {
         if (LENGTH_TYPES.contains(type)) {
             if (field.getMin() != null && field.getMin() < 0) errors.put(path + ".min", "Can't be negative");
             if (field.getMax() != null && field.getMax() < 1) errors.put(path + ".max", "Must be at least 1");
+            if (field.getMinLength() != null && field.getMinLength() < 0) errors.put(path + ".minLength", "Can't be negative");
+            if (field.getMaxLength() != null && field.getMaxLength() < 1) errors.put(path + ".maxLength", "Must be at least 1");
+            if (field.getMinLength() != null && field.getMaxLength() != null && field.getMinLength() > field.getMaxLength()) {
+                errors.put(path + ".minLength", "Min length can't be greater than max length");
+            }
         }
         if (field.getMin() != null && field.getMax() != null && field.getMin() > field.getMax()) {
             errors.put(path + ".min", "Min can't be greater than max");
+        }
+        if (type == FieldType.MULTI_SELECT || type == FieldType.CHECKBOX) {
+            int options = field.getOptions() == null ? 0 : field.getOptions().size();
+            if (field.getMinSelected() != null && field.getMinSelected() < 0) errors.put(path + ".minSelected", "Can't be negative");
+            if (field.getMaxSelected() != null && field.getMaxSelected() < 1) errors.put(path + ".maxSelected", "Must be at least 1");
+            if (field.getMinSelected() != null && field.getMaxSelected() != null && field.getMinSelected() > field.getMaxSelected()) {
+                errors.put(path + ".minSelected", "Min can't be greater than max");
+            }
+            if (field.getMinSelected() != null && options > 0 && field.getMinSelected() > options) {
+                errors.put(path + ".minSelected", "There are only " + options + " options");
+            }
+        }
+        if (type == FieldType.DATE || type == FieldType.TIME || type == FieldType.DATETIME) {
+            Comparable<?> from = parseBound(type, field.getMinDate(), path + ".minDate", errors);
+            Comparable<?> to = parseBound(type, field.getMaxDate(), path + ".maxDate", errors);
+            if (from != null && to != null && compare(from, to) > 0) errors.put(path + ".minDate", "The range starts after it ends");
+        }
+        if (type == FieldType.FILE_UPLOAD && field.getMaxFiles() != null
+                && (field.getMaxFiles() < 1 || field.getMaxFiles() > FileRules.MAX_FILES)) {
+            errors.put(path + ".maxFiles", "Between 1 and " + FileRules.MAX_FILES + " files");
         }
         if (type == FieldType.FILE_UPLOAD) {
             if (field.getMaxFileSizeMb() != null

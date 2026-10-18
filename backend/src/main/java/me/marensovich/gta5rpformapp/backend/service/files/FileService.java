@@ -146,12 +146,15 @@ public class FileService {
             if (field == null || field.getType() != FieldType.FILE_UPLOAD) continue;
             Object answer = answers.get(field.getId());
             if (answer == null) continue;
-            SubmissionFile file = fileRepository.findById(UUID.fromString(answer.toString())).orElse(null);
-            if (file == null || !file.getFormId().equals(form.getId()) || !file.getFieldId().equals(field.getId())
-                    || (file.getSubmissionId() != null && !file.getSubmissionId().equals(keptBy))) {
-                errors.put(field.getId(), "Upload the file again");
-            } else {
-                files.add(file);
+            // One file id, or several (ТЗ 3.4: up to the field's maxFiles).
+            for (Object id : answer instanceof java.util.Collection<?> c ? c : List.of(answer)) {
+                SubmissionFile file = fileRepository.findById(UUID.fromString(id.toString())).orElse(null);
+                if (file == null || !file.getFormId().equals(form.getId()) || !file.getFieldId().equals(field.getId())
+                        || (file.getSubmissionId() != null && !file.getSubmissionId().equals(keptBy))) {
+                    errors.put(field.getId(), "Upload the file again");
+                } else {
+                    files.add(file);
+                }
             }
         }
         if (!errors.isEmpty()) throw new FieldValidationException("Some answers are invalid", errors);

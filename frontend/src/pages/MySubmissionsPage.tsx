@@ -314,7 +314,8 @@ function SubmissionPanel({id, onClose}: { id: string | null; onClose: () => void
                 <dl className="m-0 flex flex-col gap-3.5">
                     {fields.map(field => {
                         const value = detail.answers[field.id];
-                        const file = field.type === "FILE_UPLOAD" ? detail.files.find(f => f.id === value) : undefined;
+                        const ids = Array.isArray(value) ? value : [value];
+                        const files = field.type === "FILE_UPLOAD" ? detail.files.filter(f => ids.includes(f.id)) : [];
                         const empty = value === undefined || value === null || value === ""
                             || (Array.isArray(value) && value.length === 0);
                         return (
@@ -322,10 +323,14 @@ function SubmissionPanel({id, onClose}: { id: string | null; onClose: () => void
                                 <dt className="text-xs text-mu">{field.label}</dt>
                                 <dd className={empty ? "m-0 text-[15px] text-mu" : "m-0 whitespace-pre-wrap break-words text-[15px] leading-normal"}>
                                     {empty ? t("mySubmissions.notFilled")
-                                        : file ? (
-                                            <span className="inline-flex items-center gap-1.5">
-                                                <FiFile size={14} aria-hidden="true"/>{file.name}
-                                                <span className="text-xs text-mu">{formatBytes(file.size)}</span>
+                                        : files.length ? (
+                                            <span className="flex flex-wrap gap-x-4 gap-y-1">
+                                                {files.map(file => (
+                                                    <span key={file.id} className="inline-flex items-center gap-1.5">
+                                                        <FiFile size={14} aria-hidden="true"/>{file.name}
+                                                        <span className="text-xs text-mu">{formatBytes(file.size)}</span>
+                                                    </span>
+                                                ))}
                                             </span>
                                         ) : formatAnswer(field, value, t)}
                                 </dd>

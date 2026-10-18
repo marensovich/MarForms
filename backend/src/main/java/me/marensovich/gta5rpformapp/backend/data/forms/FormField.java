@@ -121,6 +121,36 @@ public class FormField {
     private Integer maxFileSizeMb;
 
     /**
+     * {@code TEXT}/{@code TEXTAREA}: answer length bounds (ТЗ 3.4), apart from
+     * {@link #min}/{@link #max}, which bound a {@code NUMBER}'s value. Older
+     * forms kept a text's length in {@code min}/{@code max}; it is still read there.
+     *
+     * @since v.0.1
+     */
+    private Integer minLength;
+
+    /** See {@link #minLength}. */
+    private Integer maxLength;
+
+    /** {@code MULTI_SELECT}/{@code CHECKBOX} with options: how many may be chosen (ТЗ 3.4). */
+    private Integer minSelected;
+
+    /** See {@link #minSelected}. */
+    private Integer maxSelected;
+
+    /**
+     * {@code DATE}/{@code TIME}/{@code DATETIME}: the allowed range, inclusive, in
+     * the answer's own format ({@code 2026-10-01}, {@code 08:00}, {@code 2026-10-01T08:00}).
+     */
+    private String minDate;
+
+    /** See {@link #minDate}. */
+    private String maxDate;
+
+    /** {@code FILE_UPLOAD}: how many files, 1–{@code FileRules.MAX_FILES}; {@code null} = {@code FileRules.DEFAULT_MAX_FILES}. */
+    private Integer maxFiles;
+
+    /**
      * Enumeration of all supported field input types.
      * <p>
      * Each type corresponds to a specific input control and validation strategy.

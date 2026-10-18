@@ -118,4 +118,53 @@ class SubmissionAnswerValidatorTest {
         assertThat(SubmissionAnswerValidator.validate(s, Map.of("box", List.of("a")))).hasSize(1);
         assertThat(errors(s, Map.of("box", List.of("zzz")))).containsKey("box");
     }
+
+    @Test
+    void textLengthIsApartFromANumbersValueAndOldFormsStillWork() {
+        FormField nick = field("nick", FieldType.TEXT, "Nick");
+        nick.setMinLength(3);
+        nick.setMaxLength(5);
+        FormField age = field("age", FieldType.NUMBER, "Age");
+        age.setMin(18);
+        FormField legacy = field("bio", FieldType.TEXT, "Bio");
+        legacy.setMin(4);
+        FormSchema s = schema(nick, age, legacy);
+
+        assertThat(errors(s, Map.of("nick", "ab", "age", 17, "bio", "abc"))).containsOnlyKeys("nick", "age", "bio");
+        assertThat(errors(s, Map.of("nick", "abcdef"))).containsEntry("nick", "At most 5 characters");
+        assertThat(SubmissionAnswerValidator.validate(s, Map.of("nick", "abc", "age", 18, "bio", "abcd"))).hasSize(3);
+    }
+
+    @Test
+    void checkboxesCountTheChoicesAndDatesStayInTheirRange() {
+        FormField perks = field("perks", FieldType.MULTI_SELECT, "Perks");
+        perks.setOptions(List.of("a", "b", "c"));
+        perks.setMinSelected(2);
+        perks.setMaxSelected(2);
+        FormField day = field("day", FieldType.DATE, "Day");
+        day.setMinDate("2026-10-01");
+        day.setMaxDate("2026-10-31");
+        FormSchema s = schema(perks, day);
+
+        assertThat(errors(s, Map.of("perks", List.of("a"), "day", "2026-09-30")))
+                .containsEntry("perks", "Choose at least 2").containsEntry("day", "Not before 2026-10-01");
+        assertThat(errors(s, Map.of("perks", List.of("a", "b", "c")))).containsEntry("perks", "Choose at most 2");
+        assertThat(SubmissionAnswerValidator.validate(s, Map.of("perks", List.of("a", "c"), "day", "2026-10-31"))).hasSize(2);
+    }
+
+    @Test
+    void aFileFieldTakesUpToItsNumberOfFiles() {
+        FormField shots = field("shots", FieldType.FILE_UPLOAD, "Shots");
+        FormSchema s = schema(shots);
+        String a = "00000000-0000-0000-0000-00000000000a";
+        String b = "00000000-0000-0000-0000-00000000000b";
+        String c = "00000000-0000-0000-0000-00000000000c";
+        String d = "00000000-0000-0000-0000-00000000000d";
+
+        assertThat(SubmissionAnswerValidator.validate(s, Map.of("shots", List.of(a, b, c)))).containsKey("shots");
+        assertThat(errors(s, Map.of("shots", List.of(a, b, c, d)))).containsEntry("shots", "At most 3 files");
+        shots.setMaxFiles(1);
+        assertThat(errors(s, Map.of("shots", List.of(a, b)))).containsEntry("shots", "At most 1 files");
+        assertThat(SubmissionAnswerValidator.validate(s, Map.of("shots", a))).containsEntry("shots", a);
+    }
 }

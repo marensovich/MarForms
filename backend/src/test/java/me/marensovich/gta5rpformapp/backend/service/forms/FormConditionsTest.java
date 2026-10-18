@@ -76,8 +76,17 @@ class FormConditionsTest {
                 when(field("c", FieldType.TEXT, "C"), "a", Operator.NOT_EMPTY, null));
 
         var e = catchThrowableOfType(FieldValidationException.class, () -> FormSchemaValidator.validate(s));
-        assertThat(e.getErrors()).hasSize(1);
-        assertThat(e.getErrors().values().iterator().next()).startsWith("Conditions form a loop:").contains("→");
+        assertThat(e.getErrors().values()).anySatisfy(m -> assertThat(m).startsWith("Conditions form a loop:").contains("→"));
+    }
+
+    @Test
+    void aConditionOnlyLooksAtFieldsAboveIt() {
+        FormSchema s = schema(
+                when(field("badge", FieldType.TEXT, "Badge"), "role", Operator.EQUALS, "Police"),
+                choice("role", FieldType.RADIO, "Police", "Civilian"));
+
+        var e = catchThrowableOfType(FieldValidationException.class, () -> FormSchemaValidator.validate(s));
+        assertThat(e.getErrors()).containsEntry("fields[0].condition", "Can only depend on a field above it");
     }
 
     @Test

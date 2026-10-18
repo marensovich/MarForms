@@ -116,4 +116,25 @@ class FormSchemaValidatorTest {
     void anEmptyDraftIsStructurallyValid() {
         assertThatCode(() -> FormSchemaValidator.validate(schema())).doesNotThrowAnyException();
     }
+
+    @Test
+    void theNewLimitsAreCheckedWhenTheFormIsSaved() {
+        FormField nick = field("nick", FieldType.TEXT, "Nick");
+        nick.setMinLength(10);
+        nick.setMaxLength(5);
+        FormField perks = field("perks", FieldType.MULTI_SELECT, "Perks");
+        perks.setOptions(List.of("a", "b"));
+        perks.setMinSelected(3);
+        FormField day = field("day", FieldType.DATE, "Day");
+        day.setMinDate("2026-11-01");
+        day.setMaxDate("2026-10-01");
+        FormField when = field("when", FieldType.TIME, "When");
+        when.setMinDate("25:99");
+        FormField shots = field("shots", FieldType.FILE_UPLOAD, "Shots");
+        shots.setMaxFiles(11);
+
+        var e = errorsFor(schema(nick, perks, day, when, shots));
+        assertThat(e.getErrors()).containsKeys("fields[0].minLength", "fields[1].minSelected", "fields[2].minDate",
+                "fields[3].minDate", "fields[4].maxFiles");
+    }
 }

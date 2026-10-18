@@ -152,11 +152,13 @@ public class CsvExportService {
     private static String cell(FormField field, Object value, Map<UUID, String> fileNames) {
         if (value == null) return "";
         if (field.getType() == FieldType.FILE_UPLOAD) {
-            try {
-                return fileNames.getOrDefault(UUID.fromString(value.toString()), "");
-            } catch (IllegalArgumentException e) {
-                return "";
-            }
+            return (value instanceof Collection<?> c ? c.stream() : java.util.stream.Stream.of(value)).map(id -> {
+                try {
+                    return fileNames.getOrDefault(UUID.fromString(id.toString()), "");
+                } catch (IllegalArgumentException e) {
+                    return "";
+                }
+            }).filter(n -> !n.isEmpty()).collect(Collectors.joining("; "));
         }
         if (value instanceof Collection<?> c) {
             return c.stream().map(String::valueOf).collect(Collectors.joining("; "));

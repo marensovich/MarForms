@@ -4,6 +4,7 @@ import me.marensovich.gta5rpformapp.backend.data.forms.FormField;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormField.FieldType;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormSchema;
 import me.marensovich.gta5rpformapp.backend.exception.FieldValidationException;
+import me.marensovich.gta5rpformapp.backend.service.files.FileRules;
 
 import java.net.URI;
 import java.time.LocalDate;
@@ -115,10 +116,12 @@ public final class SubmissionAnswerValidator {
         return switch (field.getType()) {
             case TEXT, TEXTAREA, PASSWORD -> {
                 if (!(value instanceof String s)) yield "Must be text";
-                int max = field.getMax() != null ? field.getMax()
+                // Length bounds; older forms kept them in min/max.
+                Integer minLength = field.getMinLength() != null ? field.getMinLength() : field.getMin();
+                int max = field.getMaxLength() != null ? field.getMaxLength() : field.getMax() != null ? field.getMax()
                         : field.getType() == FieldType.TEXTAREA ? DEFAULT_TEXTAREA_MAX : DEFAULT_TEXT_MAX;
                 int length = s.trim().length();
-                if (field.getMin() != null && length < field.getMin()) yield "At least " + field.getMin() + " characters";
+                if (minLength != null && length < minLength) yield "At least " + minLength + " characters";
                 if (length > max) yield "At most " + max + " characters";
                 yield null;
             }
@@ -133,17 +136,18 @@ public final class SubmissionAnswerValidator {
             case PHONE -> value instanceof String s && PHONE.matcher(s.trim()).matches() ? null : "Invalid phone number";
             case URL -> value instanceof String s && isUrl(s.trim()) ? null : "Invalid URL";
             case SELECT, RADIO -> value instanceof String s && options(field).contains(s) ? null : "Not one of the options";
-            case MULTI_SELECT -> value instanceof Collection<?> c && allOptions(field, c) ? null : "Not one of the options";
+            case MULTI_SELECT -> value instanceof Collection<?> c && allOptions(field, c) ? selectedCount(field, c) : "Not one of the options";
             case CHECKBOX -> {
                 // Rendered as a single tick box today; a list of options is accepted too.
                 if (value instanceof Boolean) yield null;
-                yield value instanceof Collection<?> c && allOptions(field, c) ? null : "Not one of the options";
+                yield value instanceof Collection<?> c && allOptions(field, c) ? selectedCount(field, c) : "Not one of the options";
             }
             case BOOLEAN -> value instanceof Boolean ? null : "Must be yes or no";
-            case DATE -> parses(value, s -> LocalDate.parse(s)) ? null : "Invalid date";
+            case DATE -> parses(value, s -> LocalDate.parse(s)) ? inRange(field, LocalDate.parse(((String) value).trim())) : "Invalid date";
             case TIME -> value instanceof String s && TIME.matcher(s).matches()
-                    && parses(value, LocalTime::parse) ? null : "Invalid time";
-            case DATETIME -> parses(value, SubmissionAnswerValidator::parseDateTime) ? null : "Invalid date and time";
+                    && parses(value, LocalTime::parse) ? inRange(field, LocalTime.parse(s.trim())) : "Invalid time";
+            case DATETIME -> parses(value, SubmissionAnswerValidator::parseDateTime)
+                    ? inRange(field, localDateTime(((String) value).trim())) : "Invalid date and time";
             case RATING -> {
                 Double n = toNumber(value);
                 int scale = field.getMax() != null ? field.getMax() : DEFAULT_RATING_SCALE;
@@ -151,7 +155,14 @@ public final class SubmissionAnswerValidator {
             }
             case SECTION_BREAK -> null;
             // The uploaded file itself is checked (form, field, unused) by FileService on submit.
-            case FILE_UPLOAD -> value instanceof String s && isUuid(s.trim()) ? null : "Upload the file again";
+            // One file id, or a list of them up to the field's maxFiles (ТЗ 3.4).
+            case FILE_UPLOAD -> {
+                List<?> ids = value instanceof Collection<?> c ? List.copyOf(c) : List.of(value);
+                if (!ids.stream().allMatch(v -> v instanceof String s && isUuid(s.trim()))) yield "Upload the file again";
+                int most = field.getMaxFiles() != null ? field.getMaxFiles() : FileRules.DEFAULT_MAX_FILES;
+                if (ids.size() > most) yield "At most " + most + " files";
+                yield new java.util.HashSet<>(ids).size() == ids.size() ? null : "The same file twice";
+            }
         };
     }
 
@@ -162,9 +173,35 @@ public final class SubmissionAnswerValidator {
                 yield n == Math.floor(n) && !Double.isInfinite(n) ? (Object) (long) n : (Object) n;
             }
             case RATING -> toNumber(value).intValue();
-            case TEXT, TEXTAREA, EMAIL, PHONE, URL, FILE_UPLOAD -> ((String) value).trim();
+            case TEXT, TEXTAREA, EMAIL, PHONE, URL -> ((String) value).trim();
+            case FILE_UPLOAD -> value instanceof Collection<?> c ? c.stream().map(v -> ((String) v).trim()).toList()
+                    : ((String) value).trim();
             default -> value;
         };
+    }
+
+    private static String selectedCount(FormField field, Collection<?> chosen) {
+        if (field.getMinSelected() != null && chosen.size() < field.getMinSelected()) {
+            return "Choose at least " + field.getMinSelected();
+        }
+        if (field.getMaxSelected() != null && chosen.size() > field.getMaxSelected()) {
+            return "Choose at most " + field.getMaxSelected();
+        }
+        return null;
+    }
+
+    /** Inside the field's minDate…maxDate, both inclusive (ТЗ 3.4). */
+    private static String inRange(FormField field, Comparable<?> answer) {
+        Comparable<?> from = FormSchemaValidator.parseBound(field.getType(), field.getMinDate(), null, null);
+        Comparable<?> to = FormSchemaValidator.parseBound(field.getType(), field.getMaxDate(), null, null);
+        if (from != null && FormSchemaValidator.compare(answer, from) < 0) return "Not before " + field.getMinDate();
+        if (to != null && FormSchemaValidator.compare(answer, to) > 0) return "Not after " + field.getMaxDate();
+        return null;
+    }
+
+    private static LocalDateTime localDateTime(String s) {
+        Object parsed = parseDateTime(s);
+        return parsed instanceof OffsetDateTime o ? o.toLocalDateTime() : (LocalDateTime) parsed;
     }
 
     private static boolean isUuid(String s) {

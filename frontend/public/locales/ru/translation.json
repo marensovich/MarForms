@@ -128,7 +128,13 @@
       "tooLarge": "Файл больше {{max}} МБ",
       "limits": "{{types}} · до {{max}} МБ",
       "previewDisabled": "В предпросмотре загрузка отключена",
-      "drop": "Перетащите файл сюда или"
+      "drop": "Перетащите файл сюда или",
+      "tooMany_one": "Можно приложить {{count}} файл",
+      "tooMany_few": "Можно приложить до {{count}} файлов",
+      "tooMany_many": "Можно приложить до {{count}} файлов",
+      "tooMany_other": "Можно приложить до {{count}} файлов",
+      "limitsMany": "{{types}} · до {{count}} шт. · до {{max}} МБ",
+      "removeNamed": "Убрать файл {{name}}"
     },
     "anonymousNote": "Это анонимная форма — ваш Discord-аккаунт не сохраняется вместе с ответами.",
     "previewSubmitDisabled": "Предпросмотр — отправка отключена",
@@ -151,7 +157,11 @@
       "invalidOption": "Выберите корректный вариант",
       "invalidDate": "Введите корректную дату",
       "invalidTime": "Введите корректное время (ЧЧ:ММ)",
-      "invalidDatetime": "Введите корректные дату и время"
+      "invalidDatetime": "Введите корректные дату и время",
+      "minSelected": "Выберите не меньше: {{count}}",
+      "maxSelected": "Выберите не больше: {{count}}",
+      "notBefore": "Не раньше {{date}}",
+      "notAfter": "Не позже {{date}}"
     },
     "submitting": "Отправка…",
     "submit": "Отправить ответ",

@@ -128,7 +128,11 @@
       "tooLarge": "The file is larger than {{max}} MB",
       "limits": "{{types}} · up to {{max}} MB",
       "previewDisabled": "Uploads are disabled in preview",
-      "drop": "Drop a file here or"
+      "drop": "Drop a file here or",
+      "tooMany_one": "You can attach {{count}} file",
+      "tooMany_other": "You can attach up to {{count}} files",
+      "limitsMany": "{{types}} · up to {{count}} files · up to {{max}} MB",
+      "removeNamed": "Remove the file {{name}}"
     },
     "anonymousNote": "This is an anonymous form: your Discord account is not stored with your answers.",
     "previewSubmitDisabled": "Preview — submitting is disabled",
@@ -151,7 +155,11 @@
       "invalidOption": "Please select a valid option",
       "invalidDate": "Please enter a valid date",
       "invalidTime": "Please enter a valid time (HH:MM)",
-      "invalidDatetime": "Please enter a valid date and time"
+      "invalidDatetime": "Please enter a valid date and time",
+      "minSelected": "Choose at least {{count}}",
+      "maxSelected": "Choose at most {{count}}",
+      "notBefore": "Not before {{date}}",
+      "notAfter": "Not after {{date}}"
     },
     "submitting": "Submitting…",
     "submit": "Submit response",

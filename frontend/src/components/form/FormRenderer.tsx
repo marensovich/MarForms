@@ -93,13 +93,23 @@ const FIELD_DEFAULT_MIN: Partial<Record<FieldType, number>> = {
     NUMBER: Number.MIN_SAFE_INTEGER,
 };
 
+/** A date, time or date-time outside the field's range (ISO strings of one format compare as text). */
+function outOfRange(field: FormField, value: string): string | null {
+    const t = i18n.t.bind(i18n);
+    const norm = (v: string) => v.length === 5 && field.type === "TIME" ? `${v}:00` : v.slice(0, 16);
+    if (field.minDate && norm(value) < norm(field.minDate)) return t("form.validation.notBefore", {date: field.minDate.replace("T", " ")});
+    if (field.maxDate && norm(value) > norm(field.maxDate)) return t("form.validation.notAfter", {date: field.maxDate.replace("T", " ")});
+    return null;
+}
+
 function validateByType(field: FormField, str: string, raw: FormAnswers[string]): string | null {
     const t = i18n.t.bind(i18n);
     switch (field.type) {
         case "TEXT":
         case "TEXTAREA": {
-            const min = field.min ?? FIELD_DEFAULT_MIN[field.type] ?? 0;
-            const max = field.max ?? FIELD_DEFAULT_MAX[field.type] ?? Infinity;
+            // Length bounds; older forms keep them in min/max (as the server reads them).
+            const min = field.minLength ?? field.min ?? FIELD_DEFAULT_MIN[field.type] ?? 0;
+            const max = field.maxLength ?? field.max ?? FIELD_DEFAULT_MAX[field.type] ?? Infinity;
             if (str.length < min)
                 return t("form.validation.minChars", {min, entered: str.length});
             if (str.length > max)
@@ -146,6 +156,10 @@ function validateByType(field: FormField, str: string, raw: FormAnswers[string])
             const values = Array.isArray(raw) ? raw : [str];
             if (field.options?.length && values.some(v => !field.options!.includes(v)))
                 return t("form.validation.invalidOption");
+            if (field.minSelected != null && values.length < field.minSelected)
+                return t("form.validation.minSelected", {count: field.minSelected});
+            if (field.maxSelected != null && values.length > field.maxSelected)
+                return t("form.validation.maxSelected", {count: field.maxSelected});
             return null;
         }
 
@@ -160,17 +174,17 @@ function validateByType(field: FormField, str: string, raw: FormAnswers[string])
         case "DATE":
             if (!/^\d{4}-\d{2}-\d{2}$/.test(str) || isNaN(Date.parse(str)))
                 return t("form.validation.invalidDate");
-            return null;
+            return outOfRange(field, str);
 
         case "TIME":
             if (!/^\d{2}:\d{2}(:\d{2})?$/.test(str))
                 return t("form.validation.invalidTime");
-            return null;
+            return outOfRange(field, str);
 
         case "DATETIME":
             if (!str || isNaN(Date.parse(str)))
                 return t("form.validation.invalidDatetime");
-            return null;
+            return outOfRange(field, str);
 
         default:
             return null;

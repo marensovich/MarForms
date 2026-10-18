@@ -86,12 +86,14 @@ export default function TextField({field, value, onChange, onBlur, error}: Props
 
     // Counter or range hint, shown only when the form's author set a limit: "58 / 2000 · минимум 200".
     let counter: React.ReactNode = null;
+    const minLength = field.minLength ?? field.min;
+    const maxLength = field.maxLength ?? field.max;
     if (isText || isTextarea) {
         const parts: string[] = [];
-        if (field.max != null) parts.push(`${value.length} / ${field.max.toLocaleString()}`);
-        if (field.min != null) parts.push(t("form.counter.minChars", {min: field.min}));
+        if (maxLength != null) parts.push(`${value.length} / ${maxLength.toLocaleString()}`);
+        if (minLength != null) parts.push(t("form.counter.minChars", {min: minLength}));
         if (parts.length) {
-            const over = field.max != null && value.length > field.max;
+            const over = maxLength != null && value.length > maxLength;
             counter = <span className={over ? "text-rdt" : undefined}>{parts.join(" · ")}</span>;
         }
     }
@@ -118,12 +120,12 @@ export default function TextField({field, value, onChange, onBlur, error}: Props
                       error={error} counter={counter}>
             {isTextarea ? (
                 <textarea {...common} onChange={e => handleChange(e.target.value)} rows={4}
-                          maxLength={field.max != null ? field.max : TEXTAREA_MAX_LENGTH}
+                          maxLength={maxLength ?? TEXTAREA_MAX_LENGTH}
                           className={inputClass(error, "min-h-[112px] resize-y py-3 leading-normal sm:py-2.5")}/>
             ) : (
                 <input {...common} type={fieldTypeToInputType(field.type)} onChange={e => handleChange(e.target.value)}
                        inputMode={isPhone ? "tel" : isNumber ? "decimal" : undefined}
-                       maxLength={isText ? (field.max != null ? field.max : 255) : undefined}
+                       maxLength={isText ? (maxLength ?? 255) : undefined}
                        className={inputClass(error)}/>
             )}
         </FieldWrapper>
