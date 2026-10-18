@@ -192,6 +192,7 @@ public class FormService {
         planLimitService.requireRoomFor(guildId, PlanMetric.ACTIVE_FORMS);
         Form form = newForm(guildId, request.schema(), request.channelsIds(), request.webhooks(), request.accessMode());
         applyRoleGate(form, request.allowedRoleIds(), request.deniedRoleIds());
+        if (request.slug() != null && !request.slug().isBlank()) form.setSlug(checkedSlug(request.slug(), null));
         return saveNew(form);
     }
 
@@ -254,6 +255,10 @@ public class FormService {
             FormSchemaValidator.validate(request.schema());
             form.setSchema(request.schema());
         }
+        String oldSlug = form.getSlug();
+        if (request.slug() != null && !request.slug().equals(form.getSlug())) {
+            form.setSlug(checkedSlug(request.slug(), form.getId()));
+        }
         if (request.active() != null) {
             if (request.active()) {
                 requireNotArchived(form);
@@ -286,6 +291,7 @@ public class FormService {
         if (oldFieldCount != newFieldCount || request.schema() != null) changed.add("fields");
         if (request.webhooks() != null) changed.add("webhooks");
         if (request.settings() != null) changed.add("access");
+        if (!java.util.Objects.equals(oldSlug, saved.getSlug())) changed.add("slug");
         // Publishing or closing reads as its own journal line; the content changes as another.
         if (oldStatus != saved.getStatus()) logStatusChange(saved, oldStatus);
         if (!changed.isEmpty() || oldStatus == saved.getStatus()) {
@@ -663,6 +669,23 @@ public class FormService {
     }
 
     // ── Helpers ─────────────────────────────────────────────────────────────
+
+    /** Why a slug can't be a form's address: {@code FORMAT}, {@code TAKEN}, or {@code null} if it can. */
+    @Transactional(readOnly = true)
+    public String slugProblem(String slug, UUID formId) {
+        if (!SlugGenerator.isValidCustom(slug)) return "FORMAT";
+        return formRepository.findBySlug(slug).filter(f -> !f.getId().equals(formId)).isPresent() ? "TAKEN" : null;
+    }
+
+    private String checkedSlug(String slug, UUID formId) {
+        String problem = slugProblem(slug, formId);
+        if ("FORMAT".equals(problem)) {
+            throw new FieldValidationException("Invalid form address",
+                    Map.of("slug", "Use 3–64 lowercase Latin letters, digits and hyphens"));
+        }
+        if ("TAKEN".equals(problem)) throw new InvalidStateException("This address is already taken: " + slug);
+        return slug;
+    }
 
     private void assignSlugIfMissing(Form form) {
         if (form.getSlug() != null) return;

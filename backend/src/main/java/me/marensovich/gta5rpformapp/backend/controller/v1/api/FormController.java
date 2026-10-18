@@ -47,6 +47,17 @@ public class FormController {
     private final GuildAccessGuard guildAccessGuard;
     private final FormAccessService formAccessService;
 
+    /** Whether an address is free for a form (ТЗ 5.2): {@code reason} is FORMAT or TAKEN when it isn't. */
+    @org.springframework.security.access.prepost.PreAuthorize("isAuthenticated()")
+    @GetMapping("/slug-available")
+    public java.util.Map<String, Object> slugAvailable(@RequestParam String slug, @RequestParam(required = false) UUID formId) {
+        String problem = formService.slugProblem(slug, formId);
+        java.util.Map<String, Object> body = new java.util.LinkedHashMap<>();
+        body.put("available", problem == null);
+        body.put("reason", problem);
+        return body;
+    }
+
     /**
      * Retrieves a form by its ID.
      * <p>

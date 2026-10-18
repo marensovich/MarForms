@@ -182,6 +182,40 @@ class GuildFormControllerTest {
                 .andExpect(jsonPath("$.content[0].pendingCount").value(0));
     }
 
+    @Test
+    void anOwnerChoosesTheFormsAddressAndItMustBeFreeAndWellFormed() throws Exception {
+        mvc.perform(as(owner, post("/api/v1/guilds/{g}/forms", GUILD))
+                        .content("{\"schema\": {\"title\": \"LSPD\", \"description\": \"\", \"fields\": []}, \"slug\": \"Bad Slug\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fields.slug").exists());
+        String body = mvc.perform(as(owner, post("/api/v1/guilds/{g}/forms", GUILD))
+                        .content("{\"schema\": {\"title\": \"LSPD\", \"description\": \"\", \"fields\": []}, \"slug\": \"lspd-2026\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.slug").value("lspd-2026"))
+                .andReturn().getResponse().getContentAsString();
+        String formId = objectMapper.readTree(body).get("id").asText();
+        addTextField(formId);
+        // Publishing keeps the chosen address.
+        mvc.perform(as(owner, post("/api/v1/guilds/{g}/forms/{f}/publish", GUILD, formId)))
+                .andExpect(jsonPath("$.slug").value("lspd-2026"));
+
+        mvc.perform(as(owner, get("/api/v1/forms/slug-available").param("slug", "lspd-2026")))
+                .andExpect(jsonPath("$.available").value(false))
+                .andExpect(jsonPath("$.reason").value("TAKEN"));
+        mvc.perform(as(owner, get("/api/v1/forms/slug-available").param("slug", "lspd-2026").param("formId", formId)))
+                .andExpect(jsonPath("$.available").value(true));
+        mvc.perform(as(owner, get("/api/v1/forms/slug-available").param("slug", "ab")))
+                .andExpect(jsonPath("$.reason").value("FORMAT"));
+
+        String other = createDraft(GUILD);
+        mvc.perform(as(owner, put("/api/v1/guilds/{g}/forms/{f}", GUILD, other)).content("{\"slug\": \"lspd-2026\"}"))
+                .andExpect(status().isConflict());
+        mvc.perform(as(owner, put("/api/v1/guilds/{g}/forms/{f}", GUILD, formId)).content("{\"slug\": \"lspd-new\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.slug").value("lspd-new"));
+        mvc.perform(get("/api/v1/public/forms/{s}", "lspd-2026")).andExpect(status().isNotFound());
+    }
+
     private String slugOf(String json) throws Exception {
         return objectMapper.readTree(json).get("slug").asText();
     }

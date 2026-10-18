@@ -29,6 +29,8 @@ public record CreateGuildFormRequest(
         List<WebhookConfig> webhooks,
         FormAccessMode accessMode,
         Set<String> allowedRoleIds,
-        Set<String> deniedRoleIds
+        Set<String> deniedRoleIds,
+        /* The form's address chosen in the wizard (ТЗ 5.2); generated on first publish when absent. */
+        String slug
 ) {
 }

@@ -33,7 +33,19 @@ public final class SlugGenerator {
             Map.entry('я', "ya")
     );
 
+    /** What an owner may choose as a form's address (ТЗ 5.2, #135). */
+    private static final java.util.regex.Pattern CUSTOM = java.util.regex.Pattern.compile("[a-z0-9-]{3,64}");
+
     private SlugGenerator() {
+    }
+
+    /**
+     * @param slug a slug an owner typed
+     * @return whether it fits {@code [a-z0-9-]{3,64}}
+     * @since v.0.1
+     */
+    public static boolean isValidCustom(String slug) {
+        return slug != null && CUSTOM.matcher(slug).matches();
     }
 
     /**

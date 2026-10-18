@@ -30,6 +30,8 @@ public record UpdateFormRequest(
         @Valid FormSchema schema,
         Boolean active,
         @Valid FormSettingsRequest settings,
-        Long version
+        Long version,
+        /* A new address (ТЗ 5.2): the old link stops working. */
+        String slug
 ) {
 }
