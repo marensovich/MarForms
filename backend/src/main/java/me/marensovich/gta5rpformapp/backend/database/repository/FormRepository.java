@@ -26,7 +26,8 @@ import java.util.UUID;
  * @since v.0.1
  */
 @Repository
-public interface FormRepository extends JpaRepository<Form, UUID> {
+public interface FormRepository extends JpaRepository<Form, UUID>,
+        org.springframework.data.jpa.repository.JpaSpecificationExecutor<Form> {
 
     /**
      * Retrieves a paginated list of all active forms.

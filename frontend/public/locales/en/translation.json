@@ -2006,5 +2006,67 @@
         "ROLE_REQUIRED": "This member gets the ROLE_REQUIRED screen listing the roles needed."
       }
     }
+  },
+  "adminForms": {
+    "title": "Forms",
+    "subtitle": "Every form on every connected server. Deactivating stops submissions but keeps the data.",
+    "export": "Export CSV",
+    "kpi": {
+      "total": "All forms",
+      "active": "Active",
+      "submissions": "All submissions"
+    },
+    "filter": "Form status",
+    "segment": {
+      "all": "All",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "server": "Server",
+    "allServers": "all",
+    "search": "Search forms",
+    "searchPlaceholder": "Title or slug",
+    "col": {
+      "title": "Title",
+      "server": "Server",
+      "status": "Status",
+      "submissions": "Submissions",
+      "created": "Created"
+    },
+    "open": "Open",
+    "copyLink": "Copy link",
+    "copied": "Link copied",
+    "openLink": "Open",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "activated": "«{{title}}» takes submissions again",
+    "deactivated": "«{{title}}» no longer takes submissions",
+    "deleted": "«{{title}}» is deleted",
+    "actionError": "Action failed",
+    "loadError": "Couldn't load forms",
+    "empty": "No forms yet",
+    "emptyFiltered": "No forms match these filters.",
+    "bulkDone": {
+      "DEACTIVATE_one": "{{count}} form deactivated",
+      "DEACTIVATE_other": "{{count}} forms deactivated",
+      "DELETE_one": "{{count}} form deleted",
+      "DELETE_other": "{{count}} forms deleted"
+    },
+    "deleteTitle": "Delete the form «{{title}}»?",
+    "deleteText_one": "This deletes the form and its {{count}} submission. It can't be undone and goes to the platform log.",
+    "deleteText_other": "This deletes the form and all its submissions — {{count}}. It can't be undone and goes to the platform log.",
+    "deleteType": "Type the form's slug to confirm",
+    "bulkDeleteTitle_one": "Delete {{count}} form?",
+    "bulkDeleteTitle_other": "Delete {{count}} forms?",
+    "bulkDeleteText": "The forms and all their submissions are deleted. This can't be undone.",
+    "servers": "Connected servers · {{count}}",
+    "connect": "Connect a server",
+    "noServers": "No servers yet",
+    "formsCount_one": "{{count}} form",
+    "formsCount_other": "{{count}} forms",
+    "connected": "Server {{guildId}} is connected. The bot got the permissions it needs.",
+    "connectManager": "Only the owner or a member with «Manage Server» can connect a server.",
+    "connectBot": "The bot didn't join the server. Invite it again and keep the permission boxes ticked.",
+    "connectError": "Couldn't start connecting"
   }
 }
