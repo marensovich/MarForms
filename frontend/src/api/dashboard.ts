@@ -89,7 +89,7 @@ export function deleteGuildForm(guildId: string, formId: string): Promise<void> 
 
 export function updateRole(
     roleId: string,
-    payload: { name?: string; permissions?: string[] }
+    payload: { name?: string; color?: string; permissions?: string[] }
 ): Promise<DashboardRole> {
     return apiRequest(`/roles/${roleId}`, {method: "PUT", body: payload});
 }
@@ -298,6 +298,10 @@ export interface DashboardRole {
     /** Chip colour, #RRGGBB. */
     color?: string | null;
     permissions: string[];
+    /** The system role: it can't be deleted or lose SYSTEM_ADMIN (ТЗ 2.3). */
+    system?: boolean;
+    /** How many users hold it. */
+    users?: number;
 }
 
 export function getRoles(): Promise<DashboardRole[]> {
@@ -306,7 +310,10 @@ export function getRoles(): Promise<DashboardRole[]> {
 
 export function createRole(payload: {
     name: string;
-    permissions: string[];
+    color?: string;
+    permissions?: string[];
+    /** Start with this role's rights («Скопировать права из», ТЗ 6.4). */
+    copyFrom?: string;
 }): Promise<DashboardRole> {
     return apiRequest("/roles", {method: "POST", body: payload});
 }

@@ -93,4 +93,18 @@ public interface UserRepository extends JpaRepository<User, Long>, org.springfra
     @org.springframework.data.jpa.repository.Modifying
     @org.springframework.data.jpa.repository.Query("update User u set u.lastSeenAt = :at where u.id = :id")
     void touch(Long id, java.time.LocalDateTime at);
+
+    /** The same, leaving out the holders through this role (deleting or changing it must leave somebody). */
+    @org.springframework.data.jpa.repository.Query("select count(distinct u.id) from User u join u.roles r join r.permissions p where p = :permission and r.id <> :roleId")
+    long countWithPermissionOutside(me.marensovich.gta5rpformapp.backend.data.roles.Permission permission, UUID roleId);
+
+    /** Role ID and how many users hold it (ТЗ 6.4). */
+    @org.springframework.data.jpa.repository.Query("select r.id, count(u) from User u join u.roles r group by r.id")
+    List<Object[]> countByRole();
+
+    /** Takes a role from everyone before it is deleted (ТЗ 6.4: its holders lose its rights at once). */
+    @org.springframework.transaction.annotation.Transactional
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true)
+    @org.springframework.data.jpa.repository.Query(value = "DELETE FROM user_roles WHERE role_id = :roleId", nativeQuery = true)
+    void removeRoleFromAll(UUID roleId);
 }

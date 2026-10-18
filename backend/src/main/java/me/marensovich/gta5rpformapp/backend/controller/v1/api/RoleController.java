@@ -12,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -41,7 +42,8 @@ public class RoleController {
      */
     @GetMapping
     public List<RoleDto> list() {
-        return roleService.listAll().stream().map(RoleDto::from).toList();
+        Map<UUID, Long> holders = roleService.holders();
+        return roleService.listAll().stream().map(r -> RoleDto.from(r, holders.getOrDefault(r.getId(), 0L))).toList();
     }
 
     /**
@@ -53,7 +55,7 @@ public class RoleController {
      */
     @GetMapping("/{roleId}")
     public RoleDto get(@PathVariable UUID roleId) {
-        return RoleDto.from(roleService.getById(roleId));
+        return withHolders(roleService.getById(roleId));
     }
 
     /**
@@ -66,7 +68,7 @@ public class RoleController {
     @PostMapping
     public ResponseEntity<RoleDto> create(@Valid @RequestBody CreateRoleRequest request) {
         var role = roleService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(RoleDto.from(role));
+        return ResponseEntity.status(HttpStatus.CREATED).body(RoleDto.from(role, 0L));
     }
 
     /**
@@ -78,12 +80,13 @@ public class RoleController {
      * @since v.0.1
      */
     @PutMapping("/{roleId}")
-    public RoleDto update(@PathVariable UUID roleId, @RequestBody UpdateRoleRequest request) {
-        return RoleDto.from(roleService.update(roleId, request));
+    public RoleDto update(@PathVariable UUID roleId, @Valid @RequestBody UpdateRoleRequest request) {
+        return withHolders(roleService.update(roleId, request));
     }
 
     /**
-     * Deletes a role by its ID.
+     * Deletes a role by its ID, even an assigned one: its holders lose its
+     * rights at once (ТЗ 6.4). The list's {@code users} says how many.
      *
      * @param roleId the UUID of the role to delete
      * @return a {@link ResponseEntity} with status 204 (No Content)
@@ -93,5 +96,9 @@ public class RoleController {
     public ResponseEntity<Void> delete(@PathVariable UUID roleId) {
         roleService.delete(roleId);
         return ResponseEntity.noContent().build();
+    }
+
+    private RoleDto withHolders(me.marensovich.gta5rpformapp.backend.database.entity.Role role) {
+        return RoleDto.from(role, roleService.holders().getOrDefault(role.getId(), 0L));
     }
 }

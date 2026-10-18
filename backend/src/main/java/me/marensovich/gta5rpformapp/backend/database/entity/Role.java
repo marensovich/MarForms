@@ -56,6 +56,10 @@ public class Role {
      * @see Permission
      * @since v.0.1
      */
+    /** The system role (ТЗ 2.3): it can't be deleted or lose SYSTEM_ADMIN. */
+    @Column(name = "is_system", nullable = false)
+    private boolean system = false;
+
     /** The chip colour, #RRGGBB; {@code null} for the default. */
     @Column(length = 7)
     private String color;

@@ -306,54 +306,6 @@
       "backToList": "Back to list"
     }
   },
-  "roles": {
-    "title": "Roles",
-    "subtitle": "Define permission sets and assign them to users",
-    "createRole": "Create role",
-    "stats": {
-      "totalRoles": "Total Roles",
-      "definedGroups": "defined permission groups",
-      "permissionsAssigned": "Permissions Assigned",
-      "avgPerRole": "avg {{avg}} per role"
-    },
-    "permissionCount_one": "{{count}} permission",
-    "permissionCount_other": "{{count}} permissions",
-    "noRoles": "No roles yet. Create your first role.",
-    "editingRole": "Editing role",
-    "saveChanges": "Save changes",
-    "deleteConfirm": {
-      "title": "Delete role",
-      "message": "Are you sure you want to delete \"{{name}}\"? Users with this role will lose its permissions immediately.",
-      "confirm": "Delete role"
-    },
-    "createModal": {
-      "title": "Create Role",
-      "subtitle": "Define name and permissions",
-      "namePlaceholder": "e.g. Moderator",
-      "nameLabel": "Role name",
-      "nameRequired": "Role name is required.",
-      "permissionsLabel": "Permissions",
-      "selected": "{{count}} selected",
-      "creating": "Creating…",
-      "failedToCreate": "Failed to create role."
-    },
-    "permGroups": {
-      "Dashboard": "Dashboard",
-      "Forms": "Forms",
-      "Responses": "Responses",
-      "Users": "Users",
-      "Roles": "Roles",
-      "System": "System"
-    },
-    "permissions": {
-      "DASHBOARD_ACCESS": "Dashboard Access",
-      "FORMS_MANAGE": "Forms Manage",
-      "RESPONSES_MANAGE": "Responses Manage",
-      "USERS_MODERATE": "Users Moderate",
-      "ROLES_MANAGE": "Roles Manage",
-      "SYSTEM_ADMIN": "System Admin"
-    }
-  },
   "logs": {
     "title": "Audit Logs",
     "subtitle": "Complete history of all system actions",
@@ -2106,5 +2058,73 @@
     "loadError": "Couldn't load users",
     "empty": "No users yet",
     "emptyFiltered": "No users match these filters."
+  },
+  "adminRoles": {
+    "title": "Roles",
+    "subtitle": "Sets of rights for the platform's staff. Changes apply as soon as they're saved.",
+    "create": "Create role",
+    "createAction": "Create",
+    "kpi": {
+      "total": "All roles",
+      "rights": "Rights granted",
+      "perRole": "per role on average"
+    },
+    "list": "Platform roles",
+    "editor": "Role editor",
+    "rights_one": "{{count}} right",
+    "rights_other": "{{count}} rights",
+    "holders_one": "{{count}} user",
+    "holders_other": "{{count}} users",
+    "system": "system",
+    "name": "Role name",
+    "color": "Colour",
+    "customColor": "Custom colour",
+    "delete": "Delete role",
+    "systemLocked": "The system role can't be deleted.",
+    "systemKeeps": "SYSTEM_ADMIN — the system role keeps this right",
+    "danger": "Dangerous",
+    "changed": "changed",
+    "area": {
+      "DASHBOARD_ACCESS": "Panel",
+      "FORMS_MANAGE": "Forms",
+      "RESPONSES_MANAGE": "Submissions",
+      "USERS_MODERATE": "Users",
+      "ROLES_MANAGE": "Roles",
+      "SYSTEM_ADMIN": "System"
+    },
+    "describe": {
+      "DASHBOARD_ACCESS": "Open the administration section",
+      "FORMS_MANAGE": "Activate, deactivate and delete any form",
+      "RESPONSES_MANAGE": "View and delete submissions on every server",
+      "USERS_MODERATE": "Time out and ban platform users",
+      "ROLES_MANAGE": "Create roles and give them to users",
+      "SYSTEM_ADMIN": "Full access: settings, monitoring, updates. Includes every right above."
+    },
+    "unsaved": "Unsaved changes",
+    "unsavedRights_one": "{{count}} right of {{role}}",
+    "unsavedRights_other": "{{count}} rights of {{role}}",
+    "discard": "Discard",
+    "saved": "Role «{{name}}» saved",
+    "saveError": "Couldn't save the role",
+    "copyFrom": "Copy rights from",
+    "copyNone": "Don't copy — no rights",
+    "nameTaken": "A role with this name already exists",
+    "created": "Role «{{name}}» created",
+    "createError": "Couldn't create the role",
+    "deleteTitle": "Delete the role {{name}}?",
+    "deleteText_one": "It's held by {{count}} user, who loses these rights at once. Without other roles, they lose the panel.",
+    "deleteText_other": "It's held by {{count}} users, who lose these rights at once. Those without other roles lose the panel.",
+    "deleteUnused": "Nobody holds this role.",
+    "deleted": "Role «{{name}}» deleted",
+    "deleteError": "Couldn't delete the role",
+    "leaveTitle": "Leave without saving?",
+    "leaveText": "The role's changes will be lost.",
+    "leave": "Leave",
+    "stay": "Stay",
+    "loadError": "Couldn't load roles",
+    "empty": "No roles yet",
+    "emptyText": "Create the first one with the button above.",
+    "rootOnly": "Only a system administrator changes or deletes a role with SYSTEM_ADMIN.",
+    "rootOnlyRight": "Only a system administrator grants SYSTEM_ADMIN"
   }
 }

@@ -1,367 +1,322 @@
 import {useEffect, useState} from "react";
-import {createRole, type DashboardRole, deleteRole, getRoles, updateRole} from "../../api/dashboard";
-import {ActionBtn, Badge, ConfirmModal, EmptyState, Modal, StatsCard, TabSkeleton} from "./shared";
-import {FiCheck, FiEdit3, FiPlus, FiShield, FiTrash2,} from "react-icons/fi";
 import {useTranslation} from "react-i18next";
+import {FiPlus} from "react-icons/fi";
+import {createRole, type DashboardRole, deleteRole, getRoles, updateRole} from "../../api/dashboard";
+import {describeApiError} from "../../api/errors";
+import {Button, ConfirmDialog, cx, EmptyState, ErrorState, Field, Input, KpiCard, Modal, Select, Skeleton, Switch, Tooltip, useToast} from "../../ui";
+import {useLeaveGuard} from "./useLeaveGuard";
+import {useAuth} from "../../hooks/useAuth";
 
-type PermColor = "indigo" | "blue" | "purple" | "orange" | "green" | "red";
+// Docs: docs/design/mockups/AdminRoles.dc.html (+ Create, Delete); ТЗ 2.2, 2.3, 6.4.
 
-const PERM_ACTIVE_CLS: Record<PermColor, string> = {
-    indigo: "border-prs bg-prs text-prt",
-    blue: "border-inb bg-inb text-int",
-    purple: "border-prs bg-prs text-prt",
-    orange: "border-amb bg-amb text-amt",
-    green: "border-gnb bg-gnb text-gnt",
-    red: "border-rdb bg-rdb text-rdt",
-};
+/** The rights of ТЗ 2.2 in their order, each with its area. */
+const PERMISSIONS = ["DASHBOARD_ACCESS", "FORMS_MANAGE", "RESPONSES_MANAGE", "USERS_MODERATE", "ROLES_MANAGE", "SYSTEM_ADMIN"] as const;
+const PALETTE = ["#DC2626", "#7C3AED", "#2563EB", "#0891B2", "#16A34A", "#CA8A04", "#EA580C", "#DB2777", "#475569"];
+const DEFAULT_COLOR = "#475569";
 
-const PERMISSION_GROUPS: { label: string; color: PermColor; perms: string[] }[] = [
-    {label: "Dashboard", color: "indigo", perms: ["DASHBOARD_ACCESS"]},
-    {label: "Forms", color: "blue", perms: ["FORMS_MANAGE"]},
-    {label: "Responses", color: "purple", perms: ["RESPONSES_MANAGE"]},
-    {label: "Users", color: "orange", perms: ["USERS_MODERATE"]},
-    {label: "Roles", color: "green", perms: ["ROLES_MANAGE"]},
-    {label: "System", color: "red", perms: ["SYSTEM_ADMIN"]},
-];
-
-function permLabel(perm: string): string {
-    return perm
-        .replace(/_/g, " ")
-        .toLowerCase()
-        .replace(/\b\w/g, c => c.toUpperCase());
+interface Draft {
+    name: string;
+    color: string;
+    permissions: Set<string>;
 }
 
-function PermissionGrid({
-                            selected,
-                            onToggle,
-                        }: {
-    selected: string[];
-    onToggle: (perm: string) => void;
-}) {
-    const {t} = useTranslation();
-    return (
-        <div className="flex flex-col gap-3">
-            {PERMISSION_GROUPS.map(group => (
-                <div key={group.label}>
-                    <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-mu">
-                        {t(`roles.permGroups.${group.label}`)}
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                        {group.perms.map(perm => {
-                            const active = selected.includes(perm);
-                            return (
-                                <button
-                                    key={perm}
-                                    type="button"
-                                    onClick={() => onToggle(perm)}
-                                    className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-all ${
-                                        active
-                                            ? PERM_ACTIVE_CLS[group.color]
-                                            : "border-bd bg-sf text-mu hover:border-bd hover:text-tx"
-                                    }`}
-                                >
-                                    {active && <FiCheck size={10} className="flex-shrink-0"/>}
-                                    {permLabel(perm)}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-            ))}
-        </div>
-    );
-}
+const draftOf = (r: DashboardRole): Draft => ({name: r.name, color: r.color ?? DEFAULT_COLOR, permissions: new Set(r.permissions)});
 
-function CreateRoleModal({
-                             onClose,
-                             onCreated,
-                         }: {
-    onClose: () => void;
-    onCreated: () => void;
-}) {
-    const {t} = useTranslation();
-    const [name, setName] = useState("");
-    const [perms, setPerms] = useState<string[]>([]);
+/**
+ * Платформа · Роли (ТЗ 6.4, ROLES_MANAGE): the roles on the left with their
+ * colour, rights, holders and «системная»; on the right the editor — name,
+ * colour and the rights of 2.2 by area, SYSTEM_ADMIN marked «Опасно» — with a
+ * sticky «Несохранённые изменения» bar and a question before leaving.
+ * Changes apply at once after saving.
+ */
+export default function RolesTab() {
+    const {t, i18n} = useTranslation();
+    const toast = useToast();
+    const {user: me} = useAuth();
+    // SYSTEM_ADMIN is out of a roles manager's reach (#103, ТЗ 2.3): only a system administrator touches it.
+    const isRoot = me?.permissions.includes("SYSTEM_ADMIN") ?? false;
+    const [roles, setRoles] = useState<DashboardRole[] | null>(null);
+    const [loadError, setLoadError] = useState<string | null>(null);
+    const [selectedId, setSelectedId] = useState<string | null>(null);
+    const [draft, setDraft] = useState<Draft | null>(null);
     const [saving, setSaving] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [switchTo, setSwitchTo] = useState<string | null>(null);
+    const [creating, setCreating] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+    const [reloadKey, setReloadKey] = useState(0);
 
-    const toggle = (perm: string) =>
-        setPerms(prev => prev.includes(perm) ? prev.filter(p => p !== perm) : [...prev, perm]);
+    useEffect(() => {
+        let cancelled = false;
+        getRoles()
+            .then(list => {
+                if (cancelled) return;
+                setRoles(list);
+                setLoadError(null);
+            })
+            .catch(e => !cancelled && setLoadError(describeApiError(e, t("adminRoles.loadError"))));
+        return () => {
+            cancelled = true;
+        };
+    }, [reloadKey, t]);
 
-    const handleCreate = async () => {
-        if (!name.trim()) {
-            setError(t("roles.createModal.nameRequired"));
-            return;
+    const selected = roles?.find(r => r.id === selectedId) ?? roles?.[0] ?? null;
+    const current = selected && draft ? draft : selected ? draftOf(selected) : null;
+    const changed = (p: string) => !!selected && current!.permissions.has(p) !== selected.permissions.includes(p);
+    const changedRights = selected && current ? PERMISSIONS.filter(changed).length : 0;
+    const dirty = !!selected && !!current && (changedRights > 0 || current.name.trim() !== selected.name
+        || current.color.toLowerCase() !== (selected.color ?? DEFAULT_COLOR).toLowerCase());
+    const guard = useLeaveGuard(dirty);
+
+    const edit = (patch: Partial<Draft>) => current && setDraft({...current, ...patch});
+    const pick = (id: string) => {
+        if (id === selected?.id) return;
+        if (dirty) setSwitchTo(id);
+        else {
+            setSelectedId(id);
+            setDraft(null);
         }
+    };
+    const save = async () => {
+        if (!selected || !current) return;
         setSaving(true);
-        setError(null);
         try {
-            await createRole({name: name.trim(), permissions: perms});
-            onCreated();
+            const saved = await updateRole(selected.id, {
+                name: current.name.trim(), color: current.color, permissions: [...current.permissions],
+            });
+            setRoles(list => list?.map(r => r.id === saved.id ? saved : r) ?? null);
+            setDraft(null);
+            toast({tone: "success", text: t("adminRoles.saved", {name: saved.name})});
         } catch (e) {
-            setError(e instanceof Error ? e.message : t("roles.createModal.failedToCreate"));
+            toast({tone: "error", text: describeApiError(e, t("adminRoles.saveError"))});
         } finally {
             setSaving(false);
         }
     };
 
+    const total = roles?.length ?? 0;
+    const average = total ? roles!.reduce((sum, r) => sum + r.permissions.length, 0) / total : 0;
+    const lockedSystemAdmin = selected?.system ?? false;
+    const readOnly = !isRoot && (selected?.permissions.includes("SYSTEM_ADMIN") ?? false);
+
     return (
-        <Modal title={t("roles.createModal.title")} subtitle={t("roles.createModal.subtitle")} onClose={onClose} width="max-w-lg">
-            <div className="flex flex-col gap-4">
-                <div>
-                    <label className="mb-1.5 block text-xs font-medium text-mu">{t("roles.createModal.nameLabel")}</label>
-                    <input
-                        value={name}
-                        onChange={e => {
-                            setName(e.target.value);
-                            setError(null);
-                        }}
-                        placeholder={t("roles.createModal.namePlaceholder")}
-                        autoFocus
-                        className="w-full rounded-xl border border-bd bg-bg px-4 py-2.5 text-sm text-tx placeholder-mu/70 outline-none transition-colors focus:border-pr"
-                    />
-                    {error && <p className="mt-1.5 text-xs text-rdt">{error}</p>}
+        <div className="flex flex-col gap-5 pb-20">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+                <div className="flex flex-col gap-1.5">
+                    <h1 className="m-0 text-[26px] font-bold tracking-[-0.01em]">{t("adminRoles.title")}</h1>
+                    <p className="m-0 text-sm text-mu">{t("adminRoles.subtitle")}</p>
                 </div>
-
-                <div>
-                    <label className="mb-2 block text-xs font-medium text-mu">
-                        {t("roles.createModal.permissionsLabel")}
-                        <span className="ml-2 text-mu">({t("roles.createModal.selected", {count: perms.length})})</span>
-                    </label>
-                    <div className="rounded-xl border border-bd bg-bg p-4">
-                        <PermissionGrid selected={perms} onToggle={toggle}/>
-                    </div>
-                </div>
-
-                <div className="flex gap-2 pt-1">
-                    <button
-                        onClick={handleCreate}
-                        disabled={saving || !name.trim()}
-                        className="flex-1 rounded-xl bg-pr py-2.5 text-sm font-medium text-white transition-colors hover:bg-prh disabled:opacity-60"
-                    >
-                        {saving ? t("roles.createModal.creating") : t("roles.createRole")}
-                    </button>
-                    <button
-                        onClick={onClose}
-                        className="rounded-xl border border-bd px-5 py-2.5 text-sm text-mu transition-colors hover:text-tx"
-                    >
-                        {t("common.cancel")}
-                    </button>
-                </div>
+                <Button icon={<FiPlus size={16} aria-hidden="true"/>} onClick={() => setCreating(true)} disabled={!roles}>
+                    {t("adminRoles.create")}
+                </Button>
             </div>
-        </Modal>
+
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
+                <KpiCard label={t("adminRoles.kpi.total")} value={roles ? String(total) : "—"}/>
+                <KpiCard label={t("adminRoles.kpi.rights")} value={roles ? average.toLocaleString(i18n.language, {maximumFractionDigits: 1}) : "—"}
+                         extra={t("adminRoles.kpi.perRole")}/>
+            </div>
+
+            {loadError ? (
+                <ErrorState title={t("adminRoles.loadError")} text={loadError} onRetry={() => setReloadKey(k => k + 1)}/>
+            ) : !roles ? (
+                <div className="flex gap-5" aria-busy="true">
+                    <Skeleton className="h-80 w-[300px] rounded-[14px]"/>
+                    <Skeleton className="h-80 flex-1 rounded-[14px]"/>
+                </div>
+            ) : roles.length === 0 ? (
+                <EmptyState title={t("adminRoles.empty")} text={t("adminRoles.emptyText")}/>
+            ) : (
+                <div className="flex flex-wrap items-start gap-5">
+                    <nav aria-label={t("adminRoles.list")} className="flex min-w-0 flex-[1_1_280px] flex-col gap-1 rounded-[14px] border border-bd bg-sf p-2">
+                        {roles.map(r => (
+                            <button key={r.id} type="button" onClick={() => pick(r.id)} aria-current={r.id === selected?.id ? "true" : undefined}
+                                    className={cx("flex items-center gap-3 rounded-[10px] border px-3 py-2.5 text-left",
+                                        r.id === selected?.id ? "border-pr bg-prs" : "border-transparent hover:bg-s2")}>
+                                <span className="h-3 w-3 flex-none rounded-full" style={{background: r.color ?? DEFAULT_COLOR}} aria-hidden="true"/>
+                                <span className="flex min-w-0 flex-1 flex-col gap-px">
+                                    <span className="truncate text-sm font-semibold">{r.name}</span>
+                                    <span className="text-xs text-mu">
+                                        {t("adminRoles.rights", {count: r.permissions.length})} · {t("adminRoles.holders", {count: r.users ?? 0})}
+                                    </span>
+                                </span>
+                                {r.system && <span className="rounded-full bg-s2 px-2 py-0.5 text-[11px] font-semibold text-mu">{t("adminRoles.system")}</span>}
+                            </button>
+                        ))}
+                    </nav>
+
+                    {selected && current && (
+                        <section aria-label={t("adminRoles.editor")} className="flex min-w-0 flex-[999_1_560px] flex-col gap-5 rounded-[14px] border border-bd bg-sf p-5">
+                            {readOnly && (
+                                <p role="note" className="m-0 rounded-[10px] bg-amb px-3 py-2.5 text-[13px] text-amt">{t("adminRoles.rootOnly")}</p>
+                            )}
+                            <div className="flex flex-wrap items-end gap-4">
+                                <Field label={t("adminRoles.name")} className="flex-[1_1_220px]">
+                                    <Input value={current.name} onChange={e => edit({name: e.target.value})} maxLength={50} disabled={readOnly}/>
+                                </Field>
+                                <div className="flex flex-col gap-1.5">
+                                    <span className="text-[13px] font-semibold">{t("adminRoles.color")}</span>
+                                    <div className="flex flex-wrap items-center gap-1.5" role="radiogroup" aria-label={t("adminRoles.color")}>
+                                        {PALETTE.map(c => (
+                                            <button key={c} type="button" role="radio" aria-checked={current.color.toLowerCase() === c.toLowerCase()}
+                                                    aria-label={c} disabled={readOnly} onClick={() => edit({color: c})}
+                                                    className={cx("h-7 w-7 rounded-full border-2",
+                                                        current.color.toLowerCase() === c.toLowerCase() ? "border-tx" : "border-transparent")}
+                                                    style={{background: c}}/>
+                                        ))}
+                                        <input type="color" value={current.color} onChange={e => edit({color: e.target.value})} disabled={readOnly}
+                                               aria-label={t("adminRoles.customColor")} className="h-7 w-9 cursor-pointer rounded border border-bd bg-sf"/>
+                                    </div>
+                                </div>
+                                {selected.system || readOnly ? (
+                                    <Tooltip content={t(selected.system ? "adminRoles.systemLocked" : "adminRoles.rootOnly")}>
+                                        <button type="button" aria-disabled="true"
+                                                className="ml-auto h-[38px] cursor-not-allowed rounded-[10px] border border-bd bg-s2 px-3 text-[13px] font-semibold text-mu opacity-60">
+                                            {t("adminRoles.delete")}
+                                        </button>
+                                    </Tooltip>
+                                ) : (
+                                    <Button variant="dangerSoft" className="ml-auto" onClick={() => setDeleting(true)}>{t("adminRoles.delete")}</Button>
+                                )}
+                            </div>
+
+                            <ul className="m-0 flex list-none flex-col p-0">
+                                {PERMISSIONS.map(p => {
+                                    const on = current.permissions.has(p);
+                                    const danger = p === "SYSTEM_ADMIN";
+                                    const locked = readOnly || (danger && (lockedSystemAdmin || !isRoot));
+                                    return (
+                                        <li key={p} className="flex items-center gap-4 border-t border-bd py-3.5 first:border-t-0">
+                                            <span className="w-28 flex-none text-[13px] font-semibold text-mu">{t(`adminRoles.area.${p}`)}</span>
+                                            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                                                <span className="flex flex-wrap items-center gap-2">
+                                                    <code className={cx("font-mono text-[13px] font-semibold", danger && on && "text-rdt")}>{p}</code>
+                                                    {danger && <span className="rounded-full bg-rdb px-2 py-px text-[11px] font-semibold text-rdt">{t("adminRoles.danger")}</span>}
+                                                    {changed(p) && <span className="rounded-full bg-amb px-2 py-px text-[11px] font-semibold text-amt">{t("adminRoles.changed")}</span>}
+                                                </span>
+                                                <span className="text-[13px] text-mu">{t(`adminRoles.describe.${p}`)}</span>
+                                            </span>
+                                            <Switch checked={on} danger={danger} disabled={locked}
+                                                    ariaLabel={danger && lockedSystemAdmin ? t("adminRoles.systemKeeps") : danger && !isRoot ? t("adminRoles.rootOnlyRight") : p}
+                                                    onChange={v => {
+                                                        const next = new Set(current.permissions);
+                                                        if (v) next.add(p);
+                                                        else next.delete(p);
+                                                        edit({permissions: next});
+                                                    }}/>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </section>
+                    )}
+                </div>
+            )}
+
+            {dirty && selected && (
+                <div role="region" aria-label={t("adminRoles.unsaved")}
+                     className="sticky bottom-4 z-20 flex flex-wrap items-center gap-3 rounded-[14px] border border-bd bg-inv px-4 py-3 text-white shadow-modal">
+                    <span className="flex-1 text-sm">
+                        {t("adminRoles.unsaved")}
+                        {changedRights > 0 && ` · ${t("adminRoles.unsavedRights", {count: changedRights, role: selected.name})}`}
+                    </span>
+                    <Button variant="ghost" className="text-white hover:bg-white/10" onClick={() => setDraft(null)}>{t("adminRoles.discard")}</Button>
+                    <Button loading={saving} disabled={!current?.name.trim()} onClick={save}>{t("common.save")}</Button>
+                </div>
+            )}
+
+            {creating && roles && (
+                <CreateRoleModal roles={roles} onClose={() => setCreating(false)}
+                                 onCreated={role => {
+                                     setRoles(list => [...(list ?? []), role]);
+                                     setSelectedId(role.id);
+                                     setDraft(null);
+                                 }}/>
+            )}
+            <ConfirmDialog open={deleting && !!selected} title={t("adminRoles.deleteTitle", {name: selected?.name ?? ""})}
+                           text={selected && (selected.users ? t("adminRoles.deleteText", {count: selected.users}) : t("adminRoles.deleteUnused"))}
+                           confirmLabel={t("adminRoles.delete")}
+                           onConfirm={async () => {
+                               const role = selected!;
+                               setDeleting(false);
+                               try {
+                                   await deleteRole(role.id);
+                                   toast({tone: "success", text: t("adminRoles.deleted", {name: role.name})});
+                                   setRoles(list => list?.filter(r => r.id !== role.id) ?? null);
+                                   setSelectedId(null);
+                                   setDraft(null);
+                               } catch (e) {
+                                   toast({tone: "error", text: describeApiError(e, t("adminRoles.deleteError"))});
+                               }
+                           }}
+                           onCancel={() => setDeleting(false)}/>
+            <ConfirmDialog open={switchTo !== null || guard.pending !== null} tone="primary" title={t("adminRoles.leaveTitle")}
+                           text={t("adminRoles.leaveText")} confirmLabel={t("adminRoles.leave")} cancelLabel={t("adminRoles.stay")}
+                           onConfirm={() => {
+                               if (switchTo) {
+                                   setSelectedId(switchTo);
+                                   setDraft(null);
+                                   setSwitchTo(null);
+                               } else guard.leave();
+                           }}
+                           onCancel={() => {
+                               setSwitchTo(null);
+                               guard.stay();
+                           }}/>
+        </div>
     );
 }
 
-function RoleCard({
-                      role,
-                      onEdit,
-                      onDelete,
-                  }: {
-    role: DashboardRole;
-    onEdit: () => void;
-    onDelete: () => void;
+/** «Создать роль»: a name, a colour and «Скопировать права из» (AdminRolesCreate.dc.html). */
+function CreateRoleModal({roles, onClose, onCreated}: {
+    roles: DashboardRole[];
+    onClose: () => void;
+    onCreated: (role: DashboardRole) => void;
 }) {
     const {t} = useTranslation();
-    const getGroupColor = (perm: string) => {
-        const group = PERMISSION_GROUPS.find(g => g.perms.includes(perm));
-        return group?.color ?? "default";
-    };
-
-    return (
-        <div
-            className="group rounded-xl border border-bd bg-sf p-5 transition-colors hover:border-bd">
-            <div className="flex items-start justify-between gap-4">
-                <div className="flex items-center gap-3 min-w-0">
-                    <div
-                        className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-prs bg-prs">
-                        <FiShield size={15} className="text-prt"/>
-                    </div>
-                    <div className="min-w-0">
-                        <p className="font-semibold text-tx">{role.name}</p>
-                        <p className="text-xs text-mu">
-                            {t("roles.permissionCount", {count: role.permissions.length})}
-                        </p>
-                    </div>
-                </div>
-                <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                    <ActionBtn onClick={onEdit} variant="ghost" title="Edit role">
-                        <FiEdit3 size={13}/>
-                    </ActionBtn>
-                    <ActionBtn onClick={onDelete} variant="danger" title="Delete role">
-                        <FiTrash2 size={13}/>
-                    </ActionBtn>
-                </div>
-            </div>
-
-            {role.permissions.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-1.5">
-                    {role.permissions.map(perm => (
-                        <Badge key={perm}
-                               color={getGroupColor(perm) as "indigo" | "blue" | "purple" | "orange" | "green" | "red"}>
-                            {permLabel(perm)}
-                        </Badge>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
-}
-
-type EditingRole = { id: string; name: string; permissions: string[] };
-
-export default function RolesTab() {
-    const {t} = useTranslation();
-    const [roles, setRoles] = useState<DashboardRole[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [showCreate, setShowCreate] = useState(false);
-    const [editing, setEditing] = useState<EditingRole | null>(null);
-    const [deleteTarget, setDeleteTarget] = useState<DashboardRole | null>(null);
-    const [deleteError, setDeleteError] = useState<string | null>(null);
-
-    const loadRoles = async () => {
-        setLoading(true);
+    const toast = useToast();
+    const [name, setName] = useState("");
+    const [copyFrom, setCopyFrom] = useState("");
+    const [busy, setBusy] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const taken = roles.some(r => r.name.toLowerCase() === name.trim().toLowerCase());
+    const submit = async () => {
+        setBusy(true);
+        setError(null);
         try {
-            setRoles(await getRoles());
+            const role = await createRole({
+                name: name.trim(), color: PALETTE[roles.length % PALETTE.length],
+                ...(copyFrom ? {copyFrom} : {permissions: []}),
+            });
+            toast({tone: "success", text: t("adminRoles.created", {name: role.name})});
+            onCreated({...role, users: 0});
+            onClose();
+        } catch (e) {
+            setError(describeApiError(e, t("adminRoles.createError")));
         } finally {
-            setLoading(false);
+            setBusy(false);
         }
     };
-
-    useEffect(() => {
-        loadRoles();
-    }, []);
-
-    const handleUpdate = async () => {
-        if (!editing) return;
-        await updateRole(editing.id, {name: editing.name, permissions: editing.permissions});
-        setEditing(null);
-        await loadRoles();
-    };
-
-    const handleDelete = async () => {
-        if (!deleteTarget) return;
-        setDeleteError(null);
-        try {
-            await deleteRole(deleteTarget.id);
-            setDeleteTarget(null);
-            await loadRoles();
-        } catch (err) {
-            setDeleteError(err instanceof Error ? err.message : "Cannot delete this role.");
-            setDeleteTarget(null);
-        }
-    };
-
-    if (loading) return <TabSkeleton/>;
-
     return (
-        <div>
-            {/* Header */}
-            <div className="mb-6 flex items-start justify-between">
-                <div>
-                    <h1 className="text-xl font-semibold text-tx">{t("roles.title")}</h1>
-                    <p className="mt-0.5 text-sm text-mu">{t("roles.subtitle")}</p>
-                </div>
-                <button
-                    onClick={() => setShowCreate(true)}
-                    className="flex items-center gap-2 rounded-lg bg-pr px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-prh"
-                >
-                    <FiPlus size={15}/>
-                    {t("roles.createRole")}
-                </button>
+        <Modal open onClose={onClose} width={440} title={t("adminRoles.create")}
+               footer={(
+                   <>
+                       <Button variant="secondary" onClick={onClose}>{t("common.cancel")}</Button>
+                       <Button loading={busy} disabled={!name.trim() || taken} onClick={submit}>{t("adminRoles.createAction")}</Button>
+                   </>
+               )}>
+            <div className="flex flex-col gap-4">
+                <Field label={t("adminRoles.name")} required error={taken ? t("adminRoles.nameTaken") : error ?? undefined}>
+                    <Input value={name} onChange={e => setName(e.target.value)} maxLength={50} autoFocus/>
+                </Field>
+                <Field label={t("adminRoles.copyFrom")}>
+                    <Select value={copyFrom} onChange={e => setCopyFrom(e.target.value)}>
+                        <option value="">{t("adminRoles.copyNone")}</option>
+                        {roles.map(r => (
+                            <option key={r.id} value={r.id}>{r.name} ({t("adminRoles.rights", {count: r.permissions.length})})</option>
+                        ))}
+                    </Select>
+                </Field>
             </div>
-
-            {/* Stats */}
-            <div className="mb-6">
-                <StatsCard
-                    label={t("roles.stats.totalRoles")}
-                    value={roles.length}
-                    sub={t("roles.stats.definedGroups")}
-                    icon={<FiShield size={16}/>}
-                    accentColor="rgb(var(--prt))"
-                />
-            </div>
-
-            {deleteError && (
-                <div className="mb-4 rounded-xl border border-rdb bg-rdb px-4 py-3 text-sm text-rdt">
-                    {deleteError}
-                </div>
-            )}
-
-            {/* Roles list */}
-            {roles.length === 0 ? (
-                <EmptyState message={t("roles.noRoles")} icon={<FiShield/>}/>
-            ) : (
-                <div className="flex flex-col gap-3">
-                    {roles.map(role => (
-                        editing?.id === role.id ? (
-                            <div key={role.id}
-                                 className="rounded-xl border border-prs bg-prs p-5">
-                                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-prt">{t("roles.editingRole")}</p>
-                                <input
-                                    value={editing.name}
-                                    onChange={e => setEditing({...editing, name: e.target.value})}
-                                    className="mb-4 w-full rounded-xl border border-bd bg-sf px-4 py-2.5 text-sm text-tx outline-none focus:border-pr transition-colors"
-                                />
-                                <div className="mb-4 rounded-xl border border-bd bg-sf p-4">
-                                    <PermissionGrid
-                                        selected={editing.permissions}
-                                        onToggle={p =>
-                                            setEditing({
-                                                ...editing,
-                                                permissions: editing.permissions.includes(p)
-                                                    ? editing.permissions.filter(x => x !== p)
-                                                    : [...editing.permissions, p],
-                                            })
-                                        }
-                                    />
-                                </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={handleUpdate}
-                                        className="rounded-xl bg-pr px-4 py-2 text-sm font-medium text-white hover:bg-prh transition-colors"
-                                    >
-                                        {t("roles.saveChanges")}
-                                    </button>
-                                    <button
-                                        onClick={() => setEditing(null)}
-                                        className="rounded-xl border border-bd px-4 py-2 text-sm text-mu hover:text-tx transition-colors"
-                                    >
-                                        {t("common.cancel")}
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            <RoleCard
-                                key={role.id}
-                                role={role}
-                                onEdit={() => setEditing({id: role.id, name: role.name, permissions: role.permissions})}
-                                onDelete={() => setDeleteTarget(role)}
-                            />
-                        )
-                    ))}
-                </div>
-            )}
-
-            {showCreate && (
-                <CreateRoleModal
-                    onClose={() => setShowCreate(false)}
-                    onCreated={() => {
-                        setShowCreate(false);
-                        loadRoles();
-                    }}
-                />
-            )}
-            {deleteTarget && (
-                <ConfirmModal
-                    title={t("roles.deleteConfirm.title")}
-                    message={t("roles.deleteConfirm.message", {name: deleteTarget.name})}
-                    confirmLabel={t("roles.deleteConfirm.confirm")}
-                    confirmColor="red"
-                    onConfirm={handleDelete}
-                    onCancel={() => setDeleteTarget(null)}
-                />
-            )}
-        </div>
+        </Modal>
     );
 }
