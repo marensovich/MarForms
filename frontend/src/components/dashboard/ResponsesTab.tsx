@@ -1,503 +1,428 @@
 import {useEffect, useState} from "react";
-import {useAuth} from "../../hooks/useAuth";
 import {useTranslation} from "react-i18next";
-import {
-    type DashboardForm,
-    type DashboardSubmission,
-    deleteSubmission,
-    getAllSubmissions,
-    getDashboardForms,
-    getUsers,
-    getUserSubmissionCounts,
-    type UserSubmissionCount,
-} from "../../api/dashboard";
-import {type FormSchema} from "../../types/forms";
-import {getSubmissionDetail} from "../../api/moderation";
-import {ActionBtn, ConfirmModal, EmptyState, Modal, StatsCard, TabSkeleton} from "./shared";
-import {
-    FiArrowDown,
-    FiArrowUp,
-    FiChevronLeft,
-    FiChevronRight,
-    FiEye,
-    FiFileText,
-    FiFilter,
-    FiInbox,
-    FiSearch,
-    FiTrash2,
-    FiUser,
-    FiUsers,
-    FiX,
-} from "react-icons/fi";
+import {Link} from "react-router-dom";
+import {FiArrowRight, FiEye, FiSearch, FiTrash2, FiX} from "react-icons/fi";
+import {ApiError, apiRequest} from "../../api/client";
+import {describeApiError} from "../../api/errors";
+import {getSubmissionDetail, type SubmissionDetail, type SubmissionStatus} from "../../api/moderation";
+import {Avatar, ConfirmDialog, cx, DataTable, EmptyState, KpiCard, SegmentedControl, Skeleton, type SortState, useToast} from "../../ui";
+import FilterSelect from "./moderation/FilterSelect";
+import Attachment from "./moderation/Attachment";
+import {SubmissionStatusBadge} from "./moderation/SubmissionStatusBadge";
+import {formatAnswer} from "../submission/formatAnswer";
 
-type SortDir = "ASC" | "DESC";
-type View = "all" | "by-user";
+// Docs: docs/design/mockups/AdminResponses.dc.html, AdminRespByUser.dc.html; ТЗ 6.2.
 
-interface Filters {
-    formId: string;
-    search: string;
-    sortBy: "createdAt" | "discordId";
-    sortDir: SortDir;
-}
-
-const PAGE_SIZE = 15;
-
-function SubmissionDetailModal({
-                                   submission,
-                                   questions,
-                                   onClose,
-                               }: {
-    submission: DashboardSubmission;
-    /** The questions the submission answered (its snapshot, #117). */
-    questions: FormSchema | null;
-    onClose: () => void;
-}) {
-    const getLabel = (fieldId: string): string => {
-        const field = questions?.fields.find(f => f.id === fieldId);
-        return field?.label ?? fieldId;
+interface Row {
+    submission: {
+        id: string;
+        formId: string;
+        discordId: string | null;
+        createdAt: string;
+        status: SubmissionStatus;
+        discordUsername: string | null;
+        formTitle: string | null;
     };
-
-    const {t} = useTranslation();
-    return (
-        <Modal
-            title={t("responses.submissionDetails")}
-            subtitle={`${submission.discordId} · ${new Date(submission.createdAt).toLocaleString()}`}
-            onClose={onClose}
-            width="max-w-lg"
-        >
-            <div className="flex flex-col gap-2.5 max-h-[60vh] overflow-y-auto pr-1">
-                {Object.entries(submission.answers).map(([fieldId, value]) => (
-                    <div key={fieldId} className="rounded-lg border border-bd bg-bg p-3">
-                        <p className="mb-1 text-xs font-medium text-mu">{getLabel(fieldId)}</p>
-                        <p className="text-sm text-tx break-words">
-                            {Array.isArray(value) ? value.join(", ") : String(value)}
-                        </p>
-                    </div>
-                ))}
-            </div>
-            <div className="mt-4 rounded-lg border border-bd bg-bg px-3 py-2">
-                <span className="text-[11px] font-mono text-mu">ID: {submission.id}</span>
-            </div>
-        </Modal>
-    );
+    guildId: string | null;
+    guildName: string | null;
+    avatarUrl: string | null;
+    answered: number;
+    fields: number;
 }
 
+interface UserRow {
+    discordId: string;
+    username: string | null;
+    avatarUrl: string | null;
+    submissions: number;
+    forms: number;
+    last: string;
+}
+
+interface Stats {
+    total: number;
+    lastWeek: number;
+    forms: number;
+    activeForms: number;
+    users: number;
+}
+
+interface Page<T> {
+    content: T[];
+    page: { totalElements: number; totalPages: number };
+}
+
+type View = "all" | "users";
+const PAGE_SIZE = 25;
+
+/**
+ * Платформа · Заявки (ТЗ 6.2, RESPONSES_MANAGE): KPIs, «Все заявки» filtered
+ * by form, dates and user with how many fields were filled, «По пользователям»
+ * (a click shows that user's submissions), and a side panel with the answers,
+ * files, «Открыть в очереди сервера» and «Удалить заявку».
+ */
 export default function ResponsesTab() {
-    const {t} = useTranslation();
-    const {user} = useAuth();
-    const canManage = user?.permissions.includes("RESPONSES_MANAGE") ?? false;
-
+    const {t, i18n} = useTranslation();
+    const toast = useToast();
     const [view, setView] = useState<View>("all");
-    const [forms, setForms] = useState<DashboardForm[]>([]);
-    const [submissions, setSubmissions] = useState<DashboardSubmission[]>([]);
-    const [userCounts, setUserCounts] = useState<UserSubmissionCount[]>([]);
-    const [usernameMap, setUsernameMap] = useState<Map<string, string>>(new Map());
-    const [loading, setLoading] = useState(true);
+    const [formId, setFormId] = useState("");
+    const [from, setFrom] = useState("");
+    const [to, setTo] = useState("");
+    const [query, setQuery] = useState("");
+    const [user, setUser] = useState("");
+    const [sort, setSort] = useState<SortState>({key: "createdAt", dir: "desc"});
     const [page, setPage] = useState(0);
-    const [totalPages, setTotalPages] = useState(0);
-    const [totalElements, setTotalElements] = useState(0);
-    const [filters, setFilters] = useState<Filters>({
-        formId: "",
-        search: "",
-        sortBy: "createdAt",
-        sortDir: "DESC",
-    });
-    const [searchInput, setSearchInput] = useState("");
-    const [selected, setSelected] = useState<DashboardSubmission | null>(null);
-    const [questions, setQuestions] = useState<FormSchema | null>(null);
-    const [deleteTarget, setDeleteTarget] = useState<DashboardSubmission | null>(null);
+    const [data, setData] = useState<{ key: string; rows: Row[]; users: UserRow[]; total: number; pages: number } | null>(null);
+    const [error, setError] = useState<{ message: string; code?: string } | null>(null);
+    const [stats, setStats] = useState<Stats | null>(null);
+    const [forms, setForms] = useState<{ id: string; title: string }[]>([]);
+    const [open, setOpen] = useState<Row | null>(null);
+    const [deleting, setDeleting] = useState<Row | null>(null);
+    const [reloadKey, setReloadKey] = useState(0);
 
-    // Load static data on mount
+    // The user box applies once typing pauses.
     useEffect(() => {
-        Promise.all([
-            getDashboardForms(0, 100),
-            getUserSubmissionCounts().catch(() => []),
-            getUsers(0, 1000).catch(() => null),
-        ]).then(([formsPage, counts, usersPage]) => {
-            setForms(formsPage.content);
-            setUserCounts(counts);
-            if (usersPage) {
-                const map = new Map<string, string>();
-                usersPage.content.forEach(u => map.set(String(u.discordId), u.discordUsername));
-                setUsernameMap(map);
-            }
-        });
-    }, []);
+        const id = setTimeout(() => {
+            setUser(query.trim());
+            setPage(0);
+        }, 300);
+        return () => clearTimeout(id);
+    }, [query]);
 
-    // Load submissions when in "all" view
+    const params = new URLSearchParams({page: String(page), size: String(PAGE_SIZE)});
+    if (user) params.set("user", user);
+    if (view === "all") {
+        params.set("sort", `createdAt,${sort.dir}`);
+        if (formId) params.set("formId", formId);
+        if (from) params.set("from", from);
+        if (to) params.set("to", to);
+    }
+    const path = view === "all" ? `/admin/submissions?${params}` : `/admin/submissions/by-user?${params}`;
+    const key = `${path}|${reloadKey}`;
+
     useEffect(() => {
-        if (view !== "all") return;
         let cancelled = false;
-        setLoading(true);
-        getAllSubmissions({
-            formId: filters.formId || undefined,
-            search: filters.search || undefined,
-            page,
-            size: PAGE_SIZE,
-            sortBy: filters.sortBy,
-            sortDir: filters.sortDir,
-        }).then(r => {
-            if (cancelled) return;
-            setSubmissions(r.content);
-            setTotalPages(r.page.totalPages);
-            setTotalElements(r.page.totalElements);
-        }).finally(() => {
-            if (!cancelled) setLoading(false);
-        });
+        apiRequest<Page<Row & UserRow>>(key.split("|")[0])
+            .then(r => {
+                if (cancelled) return;
+                setData({key, rows: r.content, users: r.content, total: r.page.totalElements, pages: r.page.totalPages});
+                setError(null);
+            })
+            .catch(e => !cancelled && setError({
+                message: describeApiError(e, t("adminResponses.loadError")),
+                code: e instanceof ApiError ? `HTTP ${e.status}` : undefined,
+            }));
         return () => {
             cancelled = true;
         };
-    }, [view, page, filters]);
+    }, [key, t]);
 
-    // Load user counts when switching to by-user view
     useEffect(() => {
-        if (view !== "by-user") return;
-        setLoading(true);
-        getUserSubmissionCounts()
-            .then(setUserCounts)
-            .finally(() => setLoading(false));
-    }, [view]);
-
-    // The questions the submission was asked, for the detail modal
+        apiRequest<Stats>("/admin/submissions/stats").then(setStats).catch(() => undefined);
+    }, [reloadKey]);
     useEffect(() => {
-        if (!selected) {
-            setQuestions(null);
-            return;
-        }
-        getSubmissionDetail(selected.id).then(d => setQuestions(d.schema)).catch(() => setQuestions(null));
-    }, [selected]);
+        apiRequest<Page<{ form: { id: string; title: string } }>>("/admin/forms?size=100&sort=title,asc")
+            .then(r => setForms(r.content.map(x => x.form))).catch(() => undefined);
+    }, []);
 
-    const applySearch = () => {
-        setFilters(f => ({...f, search: searchInput.trim()}));
+    const loading = !error && data?.key !== key;
+    const current = data?.key === key ? data : null;
+    const filtered = formId !== "" || from !== "" || to !== "" || user !== "";
+    const n = (v: number) => v.toLocaleString(i18n.language);
+    const day = (iso: string) => new Date(iso).toLocaleDateString(i18n.language, {day: "numeric", month: "short"});
+    const when = (iso: string) => new Date(iso).toLocaleString(i18n.language, {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"});
+
+    const reset = () => {
+        setFormId("");
+        setFrom("");
+        setTo("");
+        setQuery("");
+        setUser("");
         setPage(0);
     };
-
-    const clearSearch = () => {
-        setSearchInput("");
-        setFilters(f => ({...f, search: ""}));
+    const switchView = (v: View) => {
+        setView(v);
         setPage(0);
+        setOpen(null);
     };
-
-    const toggleSort = (field: "createdAt" | "discordId") => {
-        setFilters(f => ({
-            ...f,
-            sortBy: field,
-            sortDir: f.sortBy === field ? (f.sortDir === "DESC" ? "ASC" : "DESC") : "DESC",
-        }));
-        setPage(0);
-    };
-
-    const handleDelete = async () => {
-        if (!deleteTarget) return;
-        await deleteSubmission(deleteTarget.id);
-        setDeleteTarget(null);
-        setFilters(f => ({...f})); // retrigger load
-    };
-
-    const drillToUser = (discordId: string) => {
+    const showUser = (u: UserRow) => {
+        setQuery(u.discordId);
+        setUser(u.discordId);
         setView("all");
-        setSearchInput(discordId);
-        setFilters(f => ({...f, search: discordId}));
         setPage(0);
     };
+    const remove = async (row: Row) => {
+        try {
+            await apiRequest(`/admin/submissions/${row.submission.id}`, {method: "DELETE"});
+            toast({tone: "success", text: t("adminResponses.deleted")});
+            if (open?.submission.id === row.submission.id) setOpen(null);
+            setReloadKey(k => k + 1);
+        } catch (e) {
+            toast({tone: "error", text: describeApiError(e, t("adminResponses.deleteError"))});
+        }
+    };
 
-    const formName = (formId: string) =>
-        forms.find(f => f.id === formId)?.title ?? formId.slice(0, 8) + "…";
-
-    const username = (discordId: string) => usernameMap.get(discordId) ?? discordId;
-
-    function SortArrow({field}: { field: "createdAt" | "discordId" }) {
-        if (filters.sortBy !== field) return null;
-        return filters.sortDir === "DESC" ? <FiArrowDown size={10}/> : <FiArrowUp size={10}/>;
-    }
+    const author = (r: Row) => r.submission.discordUsername ?? r.submission.discordId ?? t("adminResponses.anonymous");
+    const input = "h-[38px] rounded-[10px] border border-bd bg-sf px-3 text-[13px] text-tx outline-none focus:border-pr";
+    const empty = (
+        <EmptyState title={t("ui.nothingFound")} text={filtered ? t("adminResponses.emptyFiltered") : t("adminResponses.empty")}
+                    action={filtered ? (
+                        <button type="button" className="font-semibold text-prt hover:underline" onClick={reset}>{t("ui.resetFilters")}</button>
+                    ) : undefined}/>
+    );
 
     return (
-        <div>
-            {/* Header */}
-            <div className="mb-6 flex items-start justify-between">
-                <div>
-                    <h1 className="text-xl font-semibold text-tx">{t("responses.title")}</h1>
-                    <p className="mt-0.5 text-sm text-mu">{t("responses.subtitle")}</p>
+        <div className="flex flex-col gap-5">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+                <div className="flex flex-col gap-1.5">
+                    <h1 className="m-0 text-[26px] font-bold tracking-[-0.01em]">{t("adminResponses.title")}</h1>
+                    <p className="m-0 text-sm text-mu">{t("adminResponses.subtitle")}</p>
                 </div>
-                <div className="flex rounded-lg border border-bd bg-sf p-0.5">
-                    {(["all", "by-user"] as const).map(v => (
-                        <button
-                            key={v}
-                            onClick={() => setView(v)}
-                            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                                view === v
-                                    ? "bg-s2 text-tx"
-                                    : "text-mu hover:text-mu"
-                            }`}
-                        >
-                            {v === "all" ? <FiInbox size={12}/> : <FiUsers size={12}/>}
-                            {v === "all" ? t("responses.allResponses") : t("responses.byUser")}
-                        </button>
-                    ))}
-                </div>
+                <SegmentedControl ariaLabel={t("adminResponses.view")} value={view} onChange={switchView}
+                                  options={[{value: "all", label: t("adminResponses.all")}, {value: "users", label: t("adminResponses.byUser")}]}/>
             </div>
 
-            {/* Stats row (always visible) */}
-            <div className="mb-5 grid grid-cols-3 gap-4">
-                <StatsCard
-                    label={t("responses.stats.totalResponses")}
-                    value={totalElements}
-                    sub={filters.formId
-                        ? t("responses.stats.inForm", {formName: formName(filters.formId)})
-                        : t("responses.stats.acrossAllForms")}
-                    icon={<FiInbox size={16}/>}
-                    accentColor="rgb(var(--prt))"
-                />
-                <StatsCard
-                    label={t("responses.stats.forms")}
-                    value={forms.length}
-                    sub={t("responses.stats.activeForms", {count: forms.filter(f => f.active).length})}
-                    icon={<FiFileText size={16}/>}
-                    accentColor="rgb(var(--gnt))"
-                />
-                <StatsCard
-                    label={t("responses.stats.uniqueUsers")}
-                    value={userCounts.length}
-                    sub={t("responses.stats.withAtLeastOne")}
-                    icon={<FiUsers size={16}/>}
-                    accentColor="rgb(var(--prt))"
-                />
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
+                <KpiCard label={t("adminResponses.kpi.total")} value={stats ? n(stats.total) : "—"}
+                         extra={stats ? t("adminResponses.kpi.lastWeek", {count: stats.lastWeek, value: n(stats.lastWeek)}) : undefined}/>
+                <KpiCard label={t("adminResponses.kpi.forms")} value={stats ? `${n(stats.forms)} · ${n(stats.activeForms)}` : "—"}
+                         extra={stats && stats.forms ? t("adminResponses.kpi.perForm", {value: n(Math.round(stats.total / stats.forms))}) : undefined}/>
+                <KpiCard label={t("adminResponses.kpi.users")} value={stats ? n(stats.users) : "—"}
+                         extra={stats && stats.users ? t("adminResponses.kpi.perUser", {value: (stats.total / stats.users).toLocaleString(i18n.language, {maximumFractionDigits: 1})}) : undefined}/>
             </div>
 
-            {view === "all" ? (
-                <>
-                    {/* Filter bar */}
-                    <div className="mb-3 flex flex-wrap items-center gap-2">
-                        <select
-                            value={filters.formId}
-                            onChange={e => {
-                                setFilters(f => ({...f, formId: e.target.value}));
+            <div className="flex flex-wrap items-center gap-2.5">
+                {view === "all" && (
+                    <>
+                        <FilterSelect label={t("adminResponses.form")} value={formId} strong={formId !== ""}
+                                      onChange={v => {
+                                          setFormId(v);
+                                          setPage(0);
+                                      }}>
+                            <option value="">{t("adminResponses.allForms")}</option>
+                            {forms.map(f => <option key={f.id} value={f.id}>{f.title}</option>)}
+                        </FilterSelect>
+                        <span className="flex items-center gap-1.5">
+                            <input type="date" value={from} max={to || undefined} aria-label={t("adminResponses.from")} className={input}
+                                   onChange={e => {
+                                       setFrom(e.target.value);
+                                       setPage(0);
+                                   }}/>
+                            <span className="text-mu" aria-hidden="true">—</span>
+                            <input type="date" value={to} min={from || undefined} aria-label={t("adminResponses.to")} className={input}
+                                   onChange={e => {
+                                       setTo(e.target.value);
+                                       setPage(0);
+                                   }}/>
+                        </span>
+                    </>
+                )}
+                <label className="flex h-[38px] flex-[1_1_220px] items-center gap-2 rounded-[10px] border border-bd bg-sf px-3 text-mu focus-within:border-pr">
+                    <FiSearch size={15} aria-hidden="true"/>
+                    <input value={query} onChange={e => setQuery(e.target.value)} aria-label={t("adminResponses.user")}
+                           placeholder={t("adminResponses.userPlaceholder")}
+                           className="min-w-0 flex-1 border-0 bg-transparent text-[13px] text-tx outline-none placeholder:text-mu"/>
+                </label>
+                {filtered && (
+                    <button type="button" onClick={reset} className="h-[38px] rounded-[10px] px-3 text-[13px] font-semibold text-prt hover:bg-prs">
+                        {t("adminResponses.reset")}
+                    </button>
+                )}
+            </div>
+
+            <div className="flex flex-wrap items-start gap-5">
+                <section className="flex min-w-0 flex-[999_1_640px] flex-col">
+                    {view === "all" ? (
+                        <DataTable<Row>
+                            caption={t("adminResponses.all")}
+                            rows={current?.rows ?? []}
+                            rowKey={r => r.submission.id}
+                            loading={loading}
+                            skeletonRows={8}
+                            error={error}
+                            onRetry={() => setReloadKey(k => k + 1)}
+                            minWidth={760}
+                            sort={sort}
+                            onSortChange={s => {
+                                setSort(s);
                                 setPage(0);
                             }}
-                            className="rounded-lg border border-bd bg-sf px-3 py-2 text-xs text-mu outline-none focus:border-pr"
-                        >
-                            <option value="">{t("responses.filter.allForms")}</option>
-                            {forms.map(f => (
-                                <option key={f.id} value={f.id}>{f.title}</option>
-                            ))}
-                        </select>
-
-                        <div
-                            className="flex items-center gap-1.5 rounded-lg border border-bd bg-sf px-3 py-2">
-                            <FiSearch size={12} className="flex-shrink-0 text-mu"/>
-                            <input
-                                value={searchInput}
-                                onChange={e => setSearchInput(e.target.value)}
-                                onKeyDown={e => e.key === "Enter" && applySearch()}
-                                placeholder={t("responses.filter.searchPlaceholder")}
-                                className="w-36 bg-transparent text-xs text-tx placeholder-mu/70 outline-none"
-                            />
-                            {searchInput && (
-                                <button onClick={clearSearch}
-                                        className="text-mu hover:text-tx transition-colors">
-                                    <FiX size={11}/>
-                                </button>
-                            )}
-                        </div>
-                        <button
-                            onClick={applySearch}
-                            className="rounded-lg bg-pr px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-prh"
-                        >
-                            {t("common.search")}
-                        </button>
-
-                        <div className="ml-auto flex items-center gap-1.5">
-                            <FiFilter size={11} className="text-mu"/>
-                            {(["createdAt", "discordId"] as const).map(field => (
-                                <button
-                                    key={field}
-                                    onClick={() => toggleSort(field)}
-                                    className={`flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs transition-colors ${
-                                        filters.sortBy === field
-                                            ? "border-prs bg-prs text-prt"
-                                            : "border-bd bg-sf text-mu hover:text-tx"
-                                    }`}
-                                >
-                                    {field === "createdAt" ? t("responses.filter.date") : t("responses.filter.user")}
-                                    <SortArrow field={field}/>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Active filter chips */}
-                    {(filters.formId || filters.search) && (
-                        <div className="mb-3 flex flex-wrap items-center gap-2">
-                            {filters.formId && (
-                                <span
-                                    className="flex items-center gap-1.5 rounded-full border border-prs bg-prs px-2.5 py-1 text-xs text-prt">
-                                    <FiFileText size={10}/>
-                                    {formName(filters.formId)}
-                                    <button
-                                        onClick={() => {
-                                            setFilters(f => ({...f, formId: ""}));
-                                            setPage(0);
-                                        }}
-                                        className="ml-0.5 transition-colors hover:text-prt"
-                                    >
-                                        <FiX size={9}/>
+                            onRowClick={setOpen}
+                            empty={empty}
+                            columns={[
+                                {key: "user", header: t("adminResponses.col.user"), render: r => (
+                                    <span className={cx("flex min-w-0 items-center gap-2.5", open?.submission.id === r.submission.id && "text-prt")}>
+                                        <Avatar name={author(r)} src={r.avatarUrl} size={30}/>
+                                        <span className="flex min-w-0 flex-col gap-px">
+                                            <span className="truncate font-semibold">{author(r)}</span>
+                                            {r.submission.discordId && <span className="font-mono text-[11px] text-mu">{r.submission.discordId}</span>}
+                                        </span>
+                                    </span>
+                                )},
+                                {key: "form", header: t("adminResponses.col.form"), render: r => (
+                                    <span className="flex min-w-0 flex-col gap-px">
+                                        <span className="truncate">{r.submission.formTitle ?? "—"}</span>
+                                        <span className="truncate text-xs text-mu">{r.guildName ?? r.guildId ?? "—"}</span>
+                                    </span>
+                                )},
+                                {key: "createdAt", header: t("adminResponses.col.date"), sortable: true, width: "130px",
+                                    render: r => <span className="whitespace-nowrap text-mu">{when(r.submission.createdAt)}</span>},
+                                {key: "answered", header: t("adminResponses.col.answered"), width: "90px", align: "right", render: r => (
+                                    <span className={cx("tabular-nums", r.answered < r.fields ? "text-mu" : "font-semibold")}>{r.answered}/{r.fields}</span>
+                                )},
+                                {key: "status", header: t("adminResponses.col.status"), width: "160px",
+                                    render: r => <SubmissionStatusBadge status={r.submission.status}/>},
+                            ]}
+                            rowActions={r => (
+                                <>
+                                    <button type="button" onClick={() => setOpen(r)} aria-label={t("common.view")}
+                                            title={t("common.view")}
+                                            className="grid h-[30px] w-[30px] place-items-center rounded-lg text-mu hover:bg-s2 hover:text-tx">
+                                        <FiEye size={15} aria-hidden="true"/>
                                     </button>
-                                </span>
-                            )}
-                            {filters.search && (
-                                <span
-                                    className="flex items-center gap-1.5 rounded-full border border-prs bg-prs px-2.5 py-1 text-xs text-prt">
-                                    <FiUser size={10}/>
-                                    {filters.search}
-                                    <button onClick={clearSearch} className="ml-0.5 transition-colors hover:text-prt">
-                                        <FiX size={9}/>
+                                    <button type="button" onClick={() => setDeleting(r)} aria-label={t("common.delete")} title={t("common.delete")}
+                                            className="grid h-[30px] w-[30px] place-items-center rounded-lg text-rdt hover:bg-rdb">
+                                        <FiTrash2 size={15} aria-hidden="true"/>
                                     </button>
-                                </span>
+                                </>
                             )}
-                        </div>
-                    )}
-
-                    {/* Table */}
-                    {loading ? (
-                        <TabSkeleton/>
-                    ) : submissions.length === 0 ? (
-                        <EmptyState message={t("responses.noResponses")} icon={<FiInbox/>}/>
+                            pagination={{page, pageCount: current?.pages ?? 0, total: current?.total ?? 0, onPageChange: setPage}}
+                        />
                     ) : (
-                        <div className="overflow-hidden rounded-xl border border-bd">
-                            <table className="w-full text-sm">
-                                <thead>
-                                <tr className="border-b border-bd bg-bg">
-                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-mu">{t("responses.table.user")}</th>
-                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-mu">{t("responses.table.form")}</th>
-                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-mu">{t("responses.table.date")}</th>
-                                    <th className="px-5 py-3 text-left text-xs font-medium uppercase tracking-wider text-mu">{t("responses.table.fields")}</th>
-                                    <th className="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-mu">{t("responses.table.actions")}</th>
-                                </tr>
-                                </thead>
-                                <tbody className="divide-y divide-bd">
-                                {submissions.map(sub => (
-                                    <tr key={sub.id} className="group transition-colors hover:bg-bg">
-                                        <td className="px-5 py-4">
-                                            <p className="text-sm text-tx">{username(sub.discordId)}</p>
-                                            <p className="mt-0.5 font-mono text-[11px] text-mu">{sub.discordId}</p>
-                                        </td>
-                                        <td className="px-5 py-4">
-                                            <p className="max-w-[160px] truncate text-sm text-mu">{formName(sub.formId)}</p>
-                                        </td>
-                                        <td className="px-5 py-4">
-                                            <p className="text-sm text-mu">
-                                                {new Date(sub.createdAt).toLocaleDateString("en-GB", {
-                                                    day: "2-digit", month: "short", year: "numeric",
-                                                })}
-                                            </p>
-                                            <p className="mt-0.5 text-xs text-mu">{new Date(sub.createdAt).toLocaleTimeString()}</p>
-                                        </td>
-                                        <td className="px-5 py-4">
-                                                <span
-                                                    className="rounded-md border border-bd bg-bg px-2 py-0.5 text-xs text-mu">
-                                                    {t("responses.table.fieldsCount", {count: Object.keys(sub.answers).length})}
-                                                </span>
-                                        </td>
-                                        <td className="px-5 py-4">
-                                            <div className="flex items-center justify-end gap-1">
-                                                <ActionBtn onClick={() => setSelected(sub)} variant="ghost">
-                                                    <FiEye size={11} className="mr-1 inline"/> {t("common.view")}
-                                                </ActionBtn>
-                                                {canManage && (
-                                                    <ActionBtn onClick={() => setDeleteTarget(sub)} variant="danger">
-                                                        <FiTrash2 size={11}/>
-                                                    </ActionBtn>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </table>
-                        </div>
+                        <DataTable<UserRow>
+                            caption={t("adminResponses.byUser")}
+                            rows={current?.users ?? []}
+                            rowKey={u => u.discordId}
+                            loading={loading}
+                            skeletonRows={8}
+                            error={error}
+                            onRetry={() => setReloadKey(k => k + 1)}
+                            minWidth={640}
+                            onRowClick={showUser}
+                            empty={empty}
+                            columns={[
+                                {key: "user", header: t("adminResponses.col.user"), render: u => (
+                                    <span className="flex min-w-0 items-center gap-2.5">
+                                        <Avatar name={u.username ?? u.discordId} src={u.avatarUrl} size={30}/>
+                                        <span className="flex min-w-0 flex-col gap-px">
+                                            <span className="truncate font-semibold">{u.username ?? u.discordId}</span>
+                                            <span className="font-mono text-[11px] text-mu">{u.discordId}</span>
+                                        </span>
+                                    </span>
+                                )},
+                                {key: "submissions", header: t("adminResponses.col.submissions"), width: "110px", align: "right",
+                                    render: u => <span className="font-semibold tabular-nums">{n(u.submissions)}</span>},
+                                {key: "forms", header: t("adminResponses.col.forms"), width: "90px", align: "right",
+                                    render: u => <span className="tabular-nums">{n(u.forms)}</span>},
+                                {key: "last", header: t("adminResponses.col.last"), width: "120px",
+                                    render: u => <span className="whitespace-nowrap text-mu">{day(u.last)}</span>},
+                                {key: "go", header: "", width: "110px", align: "right", render: u => (
+                                    <button type="button" onClick={e => {
+                                        e.stopPropagation();
+                                        showUser(u);
+                                    }} className="inline-flex items-center gap-1 text-[13px] font-semibold text-prt hover:underline">
+                                        {t("adminResponses.userSubmissions")}<FiArrowRight size={13} aria-hidden="true"/>
+                                    </button>
+                                )},
+                            ]}
+                            pagination={{page, pageCount: current?.pages ?? 0, total: current?.total ?? 0, onPageChange: setPage}}
+                        />
                     )}
+                </section>
 
-                    {/* Pagination */}
-                    {totalPages > 1 && (
-                        <div className="mt-4 flex items-center justify-between">
-                            <span className="text-xs text-mu">
-                                {t("responses.pagination.info", {page: page + 1, total: totalPages, elements: totalElements})}
-                            </span>
-                            <div className="flex items-center gap-1.5">
-                                <button
-                                    onClick={() => setPage(p => Math.max(0, p - 1))}
-                                    disabled={page === 0}
-                                    className="flex items-center gap-1 rounded-lg border border-bd px-3 py-1.5 text-xs text-mu transition-colors hover:text-tx disabled:cursor-not-allowed disabled:opacity-30"
-                                >
-                                    <FiChevronLeft size={13}/> {t("responses.pagination.prev")}
-                                </button>
-                                <button
-                                    onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                                    disabled={page >= totalPages - 1}
-                                    className="flex items-center gap-1 rounded-lg border border-bd px-3 py-1.5 text-xs text-mu transition-colors hover:text-tx disabled:cursor-not-allowed disabled:opacity-30"
-                                >
-                                    {t("responses.pagination.next")} <FiChevronRight size={13}/>
-                                </button>
-                            </div>
-                        </div>
-                    )}
-                </>
-            ) : (
-                /* By User view */
-                <>
-                    <p className="mb-4 text-xs text-mu">
-                        {t("responses.byUserHint")}
-                    </p>
-                    {loading ? (
-                        <TabSkeleton/>
-                    ) : userCounts.length === 0 ? (
-                        <EmptyState message={t("responses.noSubmissions")} icon={<FiUsers/>}/>
-                    ) : (
-                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                            {userCounts.map(({discordId, count}) => (
-                                <button
-                                    key={discordId}
-                                    onClick={() => drillToUser(discordId)}
-                                    className="flex items-center gap-4 rounded-xl border border-bd bg-sf p-4 text-left transition-colors hover:border-prs hover:bg-prs"
-                                >
-                                    <div
-                                        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-prs bg-prs">
-                                        <FiUser size={16} className="text-prt"/>
-                                    </div>
-                                    <div className="min-w-0 flex-1">
-                                        <p className="truncate text-sm font-medium text-tx">
-                                            {username(discordId)}
-                                        </p>
-                                        <p className="mt-0.5 font-mono text-[11px] text-mu">{discordId}</p>
-                                        <p className="mt-0.5 text-xs text-mu">
-                                            {t("responses.responseCount", {count})}
-                                        </p>
-                                    </div>
-                                    <FiChevronRight size={14} className="flex-shrink-0 text-mu/70"/>
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </>
-            )}
+                {view === "all" && open && (
+                    <SubmissionPanel row={open} author={author(open)} when={when} onClose={() => setOpen(null)} onDelete={() => setDeleting(open)}/>
+                )}
+            </div>
 
-            {selected && (
-                <SubmissionDetailModal
-                    submission={selected}
-                    questions={questions}
-                    onClose={() => setSelected(null)}
-                />
-            )}
-            {deleteTarget && (
-                <ConfirmModal
-                    title={t("responses.deleteConfirm.title")}
-                    message={t("responses.deleteConfirm.message", {username: username(deleteTarget.discordId)})}
-                    confirmLabel={t("responses.deleteConfirm.confirm")}
-                    confirmColor="red"
-                    onConfirm={handleDelete}
-                    onCancel={() => setDeleteTarget(null)}
-                />
-            )}
+            <ConfirmDialog open={deleting !== null} title={t("adminResponses.deleteTitle")}
+                           text={deleting && t("adminResponses.deleteText", {user: author(deleting), form: deleting.submission.formTitle ?? "—"})}
+                           confirmLabel={t("common.delete")}
+                           onConfirm={async () => {
+                               const row = deleting!;
+                               setDeleting(null);
+                               await remove(row);
+                           }}
+                           onCancel={() => setDeleting(null)}/>
         </div>
+    );
+}
+
+/** The side panel: the status, every answer, the files and the actions (AdminResponses.dc.html). */
+function SubmissionPanel({row, author, when, onClose, onDelete}: {
+    row: Row;
+    author: string;
+    when: (iso: string) => string;
+    onClose: () => void;
+    onDelete: () => void;
+}) {
+    const {t} = useTranslation();
+    const [detail, setDetail] = useState<{ id: string; value: SubmissionDetail } | null>(null);
+    const [failed, setFailed] = useState<string | null>(null);
+    const id = row.submission.id;
+
+    useEffect(() => {
+        let cancelled = false;
+        getSubmissionDetail(id)
+            .then(d => !cancelled && setDetail({id, value: d}))
+            .catch(e => !cancelled && setFailed(describeApiError(e, t("adminResponses.loadError"))));
+        return () => {
+            cancelled = true;
+        };
+    }, [id, t]);
+
+    const d = detail?.id === id ? detail.value : null;
+    const files = d?.files ?? [];
+    const queue = row.guildId ? `/dashboard/servers/${row.guildId}/submissions?submission=${id}` : null;
+
+    return (
+        <aside aria-label={t("adminResponses.panel")}
+               className="flex min-w-0 flex-[1_1_380px] flex-col overflow-hidden rounded-[14px] border border-bd bg-sf">
+            <div className="flex items-start gap-3 border-b border-bd p-[18px]">
+                <Avatar name={author} src={row.avatarUrl} size={40}/>
+                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <span className="truncate text-[15px] font-bold">{author}</span>
+                    <span className="text-xs text-mu">
+                        {[row.submission.formTitle, row.guildName, when(row.submission.createdAt)].filter(Boolean).join(" · ")}
+                    </span>
+                </div>
+                <button type="button" onClick={onClose} aria-label={t("ui.close")}
+                        className="grid h-8 w-8 flex-none place-items-center rounded-lg text-mu hover:bg-s2 hover:text-tx">
+                    <FiX size={16} aria-hidden="true"/>
+                </button>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 border-b border-bd px-[18px] py-3 text-xs">
+                <SubmissionStatusBadge status={d?.submission.status ?? row.submission.status}/>
+                <span className="rounded-full bg-s2 px-2 py-[3px] font-semibold">{t("adminResponses.filled", {answered: row.answered, fields: row.fields})}</span>
+                {row.submission.discordId && <span className="ml-auto font-mono text-mu">ID {row.submission.discordId}</span>}
+            </div>
+            <div className="flex max-h-[560px] flex-col gap-3.5 overflow-y-auto p-[18px]">
+                {failed ? <p role="alert" className="m-0 text-sm text-rdt">{failed}</p>
+                    : !d ? [0, 1, 2, 3].map(i => <Skeleton key={i} className="h-10 rounded-lg"/>)
+                        : d.schema.fields.filter(f => f.type !== "SECTION_BREAK" && f.type !== "FILE_UPLOAD").map(f => (
+                            <div key={f.id} className="flex flex-col gap-1">
+                                <span className="text-xs font-semibold text-mu">{f.label}</span>
+                                <span className="whitespace-pre-wrap break-words text-sm leading-normal">{formatAnswer(f, d.submission.answers[f.id], t)}</span>
+                            </div>
+                        ))}
+                {files.length > 0 && (
+                    <div className="flex flex-col gap-2 border-t border-bd pt-3.5">
+                        <span className="text-xs font-semibold text-mu">{t("adminResponses.files", {count: files.length})}</span>
+                        <div className="flex flex-wrap gap-2">{files.map(f => <Attachment key={f.id} file={f}/>)}</div>
+                    </div>
+                )}
+            </div>
+            <div className="mt-auto flex flex-wrap gap-2 border-t border-bd p-[18px]">
+                <button type="button" onClick={onDelete}
+                        className="h-9 rounded-[10px] border border-bd px-3 text-[13px] font-semibold text-rdt hover:bg-rdb">
+                    {t("adminResponses.delete")}
+                </button>
+                {queue && (
+                    <Link to={queue} className="ml-auto inline-flex h-9 items-center rounded-[10px] bg-pr px-3 text-[13px] font-semibold text-white hover:bg-prh">
+                        {t("adminResponses.openQueue")}
+                    </Link>
+                )}
+            </div>
+        </aside>
     );
 }

@@ -21,7 +21,6 @@ import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionReposi
 import me.marensovich.gta5rpformapp.backend.database.repository.UserRepository;
 import me.marensovich.gta5rpformapp.backend.dto.form.AccessDetailsDto;
 import me.marensovich.gta5rpformapp.backend.dto.submission.SubmitFormRequest;
-import me.marensovich.gta5rpformapp.backend.dto.submission.UserSubmissionCountDto;
 import me.marensovich.gta5rpformapp.backend.exception.FormAccessException;
 import me.marensovich.gta5rpformapp.backend.exception.InvalidStateException;
 import me.marensovich.gta5rpformapp.backend.exception.NotFoundException;
@@ -407,68 +406,6 @@ public class SubmissionService {
     public Page<Submission> listByForm(UUID formId, Pageable pageable) {
         formService.getById(formId);
         return submissionRepository.findAllByFormId(formId, pageable);
-    }
-
-    /**
-     * Lists submissions filtered by optional form ID and freetext search.
-     * <p>
-     * Supports intelligent search behavior:
-     * <ul>
-     *     <li><b>Numeric search</b> — if the search string consists only of digits,
-     *     it's treated as an exact Discord ID match</li>
-     *     <li><b>Text search</b> — otherwise, it's matched against {@code discordUsername}
-     *     (case-insensitive, partial match)</li>
-     * </ul>
-     * If no search string is provided, all submissions are returned (optionally filtered by form ID).
-     * </p>
-     *
-     * @param formId   optional UUID to filter submissions by form
-     * @param search   optional search string (numeric for Discord ID, text for username)
-     * @param pageable pagination parameters (page, size, sort)
-     * @return a {@link Page} of {@link Submission} entities matching the filters
-     * @since v.0.1
-     */
-    public Page<Submission> listAll(UUID formId, String search, Pageable pageable) {
-        if (search == null || search.isBlank()) {
-            return formId != null
-                    ? submissionRepository.findAllByFormId(formId, pageable)
-                    : submissionRepository.findAll(pageable);
-        }
-
-        if (search.matches("\\d+")) {
-            Long discordId = Long.parseLong(search);
-            return formId != null
-                    ? submissionRepository.findAllByFormIdAndDiscordId(formId, discordId, pageable)
-                    : submissionRepository.findAllByDiscordId(discordId, pageable);
-        }
-
-        Set<Long> discordIds = userRepository
-                .findAllByDiscordUsernameContainingIgnoreCase(search)
-                .stream()
-                .map(u -> u.getDiscordId())
-                .collect(Collectors.toSet());
-
-        if (discordIds.isEmpty()) {
-            return Page.empty(pageable);
-        }
-
-        return formId != null
-                ? submissionRepository.findAllByFormIdAndDiscordIdIn(formId, discordIds, pageable)
-                : submissionRepository.findAllByDiscordIdIn(discordIds, pageable);
-    }
-
-    /**
-     * Retrieves a list of submission counts grouped by user.
-     * <p>
-     * Returns the total number of submissions each user has made across all forms,
-     * ordered by count descending (highest first).
-     * </p>
-     *
-     * @return a {@link List} of {@link UserSubmissionCountDto} containing user submission statistics
-     * @since v.0.1
-     */
-    public List<UserSubmissionCountDto> listByUser() {
-        return submissionRepository.findUserSubmissionCounts();
     }
 
     /**

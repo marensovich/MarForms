@@ -373,37 +373,6 @@ export function getForm(formId: string): Promise<import("../types/forms").FormDe
     return apiRequest(`/forms/${formId}`);
 }
 
-export interface UserSubmissionCount {
-    discordId: string;
-    count: number;
-}
-
-export function getAllSubmissions(params: {
-    formId?: string;
-    search?: string;
-    page?: number;
-    size?: number;
-    sortBy?: string;
-    sortDir?: string;
-}): Promise<PageResponse<DashboardSubmission>> {
-    const p = new URLSearchParams({
-        page: String(params.page ?? 0),
-        size: String(params.size ?? 15),
-        sortBy: params.sortBy ?? "createdAt",
-        sortDir: params.sortDir ?? "DESC",
-    });
-    if (params.formId) p.set("formId", params.formId);
-    if (params.search) p.set("search", params.search);
-    return apiRequest(`/admin/submissions?${p}`);
-}
-
-export function getUserSubmissionCounts(): Promise<UserSubmissionCount[]> {
-    return apiRequest("/admin/submissions/by-user");
-}
-
-export function deleteSubmission(id: string): Promise<void> {
-    return apiRequest(`/admin/submissions/${id}`, {method: "DELETE"});
-}
 /** Downloads a form's submissions as CSV (owner only, E3.3). */
 export function exportFormCsv(formId: string): Promise<void> {
     return downloadFile(`/forms/${formId}/export?format=csv`, "submissions.csv");

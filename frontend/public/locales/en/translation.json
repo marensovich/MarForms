@@ -306,51 +306,6 @@
       "backToList": "Back to list"
     }
   },
-  "responses": {
-    "title": "Responses",
-    "subtitle": "View and manage all form submissions",
-    "allResponses": "All Responses",
-    "byUser": "By User",
-    "stats": {
-      "totalResponses": "Total Responses",
-      "inForm": "in \"{{formName}}\"",
-      "acrossAllForms": "across all forms",
-      "forms": "Forms",
-      "activeForms": "{{count}} active",
-      "uniqueUsers": "Unique Users",
-      "withAtLeastOne": "with at least one response"
-    },
-    "filter": {
-      "allForms": "All forms",
-      "searchPlaceholder": "Username or Discord ID…",
-      "date": "Date",
-      "user": "User"
-    },
-    "table": {
-      "user": "User",
-      "form": "Form",
-      "date": "Date",
-      "fields": "Fields",
-      "actions": "Actions",
-      "fieldsCount": "{{count}} fields"
-    },
-    "noResponses": "No responses found.",
-    "noSubmissions": "No submissions yet.",
-    "byUserHint": "All users who have submitted at least one response. Click to view their submissions.",
-    "responseCount_one": "{{count}} response",
-    "responseCount_other": "{{count}} responses",
-    "deleteConfirm": {
-      "title": "Delete submission",
-      "message": "Delete this submission from {{username}}? This cannot be undone.",
-      "confirm": "Delete"
-    },
-    "submissionDetails": "Submission Details",
-    "pagination": {
-      "info": "Page {{page}} of {{total}} · {{elements}} total",
-      "prev": "Prev",
-      "next": "Next"
-    }
-  },
   "users": {
     "title": "Users",
     "subtitle": "Manage user access, roles, and restrictions",
@@ -2068,5 +2023,53 @@
     "connectManager": "Only the owner or a member with «Manage Server» can connect a server.",
     "connectBot": "The bot didn't join the server. Invite it again and keep the permission boxes ticked.",
     "connectError": "Couldn't start connecting"
+  },
+  "adminResponses": {
+    "title": "Submissions",
+    "subtitle": "Every submission on every form of the platform.",
+    "view": "View",
+    "all": "All submissions",
+    "byUser": "By user",
+    "kpi": {
+      "total": "All submissions",
+      "lastWeek_one": "+{{value}} in 7 days",
+      "lastWeek_other": "+{{value}} in 7 days",
+      "forms": "Forms (active)",
+      "perForm": "{{value}} submissions per form on average",
+      "users": "Unique users",
+      "perUser": "{{value}} submissions per person"
+    },
+    "form": "Form",
+    "allForms": "all",
+    "from": "From",
+    "to": "To",
+    "user": "User",
+    "userPlaceholder": "Username or Discord ID",
+    "reset": "Reset",
+    "col": {
+      "user": "User",
+      "form": "Form",
+      "date": "Date",
+      "answered": "Answers",
+      "status": "Status",
+      "submissions": "Submissions",
+      "forms": "Forms",
+      "last": "Latest"
+    },
+    "userSubmissions": "Submissions",
+    "anonymous": "Anonymous",
+    "panel": "Submission",
+    "filled": "{{answered}} of {{fields}} fields",
+    "files_one": "Files · {{count}}",
+    "files_other": "Files · {{count}}",
+    "delete": "Delete submission",
+    "openQueue": "Open in the server's queue",
+    "deleteTitle": "Delete the submission?",
+    "deleteText": "{{user}}'s submission to «{{form}}» and its files are deleted. This can't be undone.",
+    "deleted": "Submission deleted",
+    "deleteError": "Couldn't delete the submission",
+    "loadError": "Couldn't load submissions",
+    "empty": "No submissions yet",
+    "emptyFiltered": "No submissions match these filters."
   }
 }

@@ -2,7 +2,6 @@ package me.marensovich.gta5rpformapp.backend.database.repository;
 
 import me.marensovich.gta5rpformapp.backend.data.forms.SubmissionStatus;
 import me.marensovich.gta5rpformapp.backend.database.entity.Submission;
-import me.marensovich.gta5rpformapp.backend.dto.submission.UserSubmissionCountDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -162,22 +161,24 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID>, J
      */
     Page<Submission> findAllByFormIdAndDiscordIdIn(UUID formId, Collection<Long> discordIds, Pageable pageable);
 
+    /** How many people sent at least one submission (ТЗ 6.2 KPI). */
+    @Query("select count(distinct s.discordId) from Submission s where s.discordId is not null")
+    long countAuthors();
+
     /**
-     * Retrieves a list of submission counts grouped by user.
-     * <p>
-     * Returns the total number of submissions each user has made across all forms.
-     * Results are ordered by count in descending order (highest first).
-     * </p>
-     * <p>
-     * Useful for leaderboards, activity tracking, and administrative dashboards.
-     * </p>
-     *
-     * @return a {@link List} of {@link UserSubmissionCountDto} containing user submission statistics
-     * @since v.0.1
+     * Submissions grouped by author, the most active first (ТЗ 6.2 «По
+     * пользователям»): Discord ID, submissions, distinct forms, the latest.
      */
-    @Query("SELECT new me.marensovich.gta5rpformapp.backend.dto.submission.UserSubmissionCountDto(s.discordId, COUNT(s)) " +
-            "FROM Submission s GROUP BY s.discordId ORDER BY COUNT(s) DESC")
-    List<UserSubmissionCountDto> findUserSubmissionCounts();
+    @Query(value = "select s.discordId, count(s), count(distinct s.formId), max(s.createdAt) from Submission s "
+            + "where s.discordId is not null group by s.discordId order by count(s) desc, max(s.createdAt) desc",
+            countQuery = "select count(distinct s.discordId) from Submission s where s.discordId is not null")
+    Page<Object[]> countByAuthor(Pageable pageable);
+
+    /** The same, for these authors only. */
+    @Query(value = "select s.discordId, count(s), count(distinct s.formId), max(s.createdAt) from Submission s "
+            + "where s.discordId in :authors group by s.discordId order by count(s) desc, max(s.createdAt) desc",
+            countQuery = "select count(distinct s.discordId) from Submission s where s.discordId in :authors")
+    Page<Object[]> countByAuthor(Collection<Long> authors, Pageable pageable);
 
     /**
      * The highest submission number on a server — the next one is this plus one (#114).

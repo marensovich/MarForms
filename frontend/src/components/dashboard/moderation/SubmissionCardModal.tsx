@@ -1,22 +1,20 @@
 import {useEffect, useId, useRef, useState} from "react";
 import {createPortal} from "react-dom";
 import {useTranslation} from "react-i18next";
-import {FiCheck, FiChevronLeft, FiChevronRight, FiFile, FiImage, FiRotateCcw, FiStar, FiX} from "react-icons/fi";
+import {FiCheck, FiChevronLeft, FiChevronRight, FiRotateCcw, FiStar, FiX} from "react-icons/fi";
 import {
     decideSubmission,
     type DecisionStatus,
-    downloadSubmissionFile,
     getSubmissionDetail,
     type ModerationSubmission,
     type SubmissionDetail,
     type SubmissionEvent,
-    type SubmissionFile,
 } from "../../../api/moderation";
 import {ApiError} from "../../../api/client";
 import {describeApiError} from "../../../api/errors";
 import {Avatar, cx, Skeleton, Spinner, useFocusTrap, useToast} from "../../../ui";
 import {SubmissionStatusBadge} from "./SubmissionStatusBadge";
-import {formatBytes} from "../../form/fields/fileRules";
+import Attachment from "./Attachment";
 import {formatAnswer} from "../../submission/formatAnswer";
 
 // Docs: docs/design/mockups/WsSubmissions.dc.html (the card), DarkModeration, R1024Moderation; ТЗ 4.5.3–4.5.6.
@@ -45,28 +43,6 @@ function Rating({value, max}: { value: number; max: number }) {
             ))}
             <span className="ml-1.5 text-xs text-mu">{value}/{max}</span>
         </span>
-    );
-}
-
-/** A file chip: name and size; a click downloads it. */
-function Attachment({file}: { file: SubmissionFile }) {
-    const {t} = useTranslation();
-    const [busy, setBusy] = useState(false);
-    const [failed, setFailed] = useState(false);
-    const Icon = file.contentType?.startsWith("image/") ? FiImage : FiFile;
-    return (
-        <button type="button" disabled={busy} title={t("moderation.card.download")}
-                onClick={() => {
-                    setBusy(true);
-                    setFailed(false);
-                    downloadSubmissionFile(file).catch(() => setFailed(true)).finally(() => setBusy(false));
-                }}
-                className={cx("flex h-10 items-center gap-2 rounded-[10px] border px-3 text-[13px] text-tx hover:bg-s2 disabled:opacity-60",
-                    failed ? "border-rdt" : "border-bd")}>
-            {busy ? <Spinner/> : <Icon size={16} aria-hidden="true" className="text-mu"/>}
-            {file.name}
-            <span className="text-mu">{failed ? t("moderation.card.downloadFailed") : formatBytes(file.size)}</span>
-        </button>
     );
 }
 

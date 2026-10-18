@@ -314,51 +314,6 @@
       "backToList": "Назад к списку"
     }
   },
-  "responses": {
-    "title": "Ответы",
-    "subtitle": "Просмотр и модерация ответов на формы",
-    "allResponses": "Все ответы",
-    "byUser": "По пользователям",
-    "stats": {
-      "totalResponses": "Всего ответов",
-      "inForm": "в «{{formName}}»",
-      "acrossAllForms": "по всем формам",
-      "forms": "Формы",
-      "activeForms": "{{count}} активных",
-      "uniqueUsers": "Уникальных пользователей",
-      "withAtLeastOne": "хотя бы с одним ответом"
-    },
-    "filter": {
-      "allForms": "Все формы",
-      "searchPlaceholder": "Имя или Discord ID…",
-      "date": "Дата",
-      "user": "Пользователь"
-    },
-    "table": {
-      "user": "Пользователь",
-      "form": "Форма",
-      "date": "Дата",
-      "fields": "Поля",
-      "actions": "Действия",
-      "fieldsCount": "{{count}} полей"
-    },
-    "noResponses": "Ответов не найдено.",
-    "noSubmissions": "Ответов пока нет.",
-    "byUserHint": "Все пользователи, подавшие хотя бы один ответ. Нажмите для просмотра.",
-    "responseCount_one": "{{count}} ответ",
-    "responseCount_other": "{{count}} ответов",
-    "deleteConfirm": {
-      "title": "Удалить ответ",
-      "message": "Удалить ответ от {{username}}? Это действие необратимо.",
-      "confirm": "Удалить"
-    },
-    "submissionDetails": "Детали ответа",
-    "pagination": {
-      "info": "Страница {{page}} из {{total}} · всего {{elements}}",
-      "prev": "Назад",
-      "next": "Далее"
-    }
-  },
   "users": {
     "title": "Пользователи",
     "subtitle": "Управление доступом, ролями и ограничениями",
@@ -2112,5 +2067,57 @@
     "connectManager": "Подключить сервер может только владелец или участник с правом «Управлять сервером».",
     "connectBot": "Бот не присоединился к серверу. Повторите приглашение и не снимайте галочки прав.",
     "connectError": "Не удалось начать подключение"
+  },
+  "adminResponses": {
+    "title": "Заявки",
+    "subtitle": "Все отправленные заявки по всем формам платформы.",
+    "view": "Вид",
+    "all": "Все заявки",
+    "byUser": "По пользователям",
+    "kpi": {
+      "total": "Всего заявок",
+      "lastWeek_one": "+{{value}} за 7 дней",
+      "lastWeek_few": "+{{value}} за 7 дней",
+      "lastWeek_many": "+{{value}} за 7 дней",
+      "lastWeek_other": "+{{value}} за 7 дней",
+      "forms": "Форм (активных)",
+      "perForm": "в среднем {{value}} заявки на форму",
+      "users": "Уникальных пользователей",
+      "perUser": "{{value}} заявки на человека"
+    },
+    "form": "Форма",
+    "allForms": "все",
+    "from": "С даты",
+    "to": "По дату",
+    "user": "Пользователь",
+    "userPlaceholder": "Ник или Discord ID",
+    "reset": "Сбросить",
+    "col": {
+      "user": "Пользователь",
+      "form": "Форма",
+      "date": "Дата",
+      "answered": "Ответов",
+      "status": "Статус",
+      "submissions": "Заявок",
+      "forms": "Форм",
+      "last": "Последняя"
+    },
+    "userSubmissions": "Заявки",
+    "anonymous": "Аноним",
+    "panel": "Заявка",
+    "filled": "{{answered}} из {{fields}} полей",
+    "files_one": "Файлы · {{count}}",
+    "files_few": "Файлы · {{count}}",
+    "files_many": "Файлы · {{count}}",
+    "files_other": "Файлы · {{count}}",
+    "delete": "Удалить заявку",
+    "openQueue": "Открыть в очереди сервера",
+    "deleteTitle": "Удалить заявку?",
+    "deleteText": "Заявка {{user}} в форму «{{form}}» и её файлы будут удалены. Действие нельзя отменить.",
+    "deleted": "Заявка удалена",
+    "deleteError": "Не удалось удалить заявку",
+    "loadError": "Не удалось загрузить заявки",
+    "empty": "Заявок пока нет",
+    "emptyFiltered": "С такими фильтрами заявок нет."
   }
 }
