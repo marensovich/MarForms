@@ -149,6 +149,39 @@ class GuildFormControllerTest {
                 .andExpect(status().isConflict());
     }
 
+    @Test
+    void statusesMoveStrictlyByTheSpecTableAndAnArchivedFormComesBackAsACopy() throws Exception {
+        String formId = createDraft(GUILD);
+        addTextField(formId);
+        for (String target : new String[]{"CLOSED", "ARCHIVED"}) {
+            mvc.perform(as(owner, put("/api/v1/guilds/{g}/forms/{f}/status", GUILD, formId))
+                            .content("{\"status\":\"" + target + "\"}"))
+                    .andExpect(status().isConflict());
+        }
+        String slug = slugOf(mvc.perform(as(owner, post("/api/v1/guilds/{g}/forms/{f}/publish", GUILD, formId)))
+                .andReturn().getResponse().getContentAsString());
+        mvc.perform(as(owner, put("/api/v1/guilds/{g}/forms/{f}/status", GUILD, formId)).content("{\"status\":\"ARCHIVED\"}"))
+                .andExpect(jsonPath("$.status").value("ARCHIVED"));
+
+        // Archived is final: no reopening, no republishing.
+        mvc.perform(as(owner, put("/api/v1/guilds/{g}/forms/{f}/status", GUILD, formId)).content("{\"status\":\"CLOSED\"}"))
+                .andExpect(status().isConflict());
+        mvc.perform(as(owner, post("/api/v1/guilds/{g}/forms/{f}/publish", GUILD, formId))).andExpect(status().isConflict());
+
+        mvc.perform(as(moderator, post("/api/v1/guilds/{g}/forms/{f}/copy", GUILD, formId))).andExpect(status().isForbidden());
+        mvc.perform(as(owner, post("/api/v1/guilds/{g}/forms/{f}/copy", GUILD, formId)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value("DRAFT"))
+                .andExpect(jsonPath("$.slug").doesNotExist())
+                .andExpect(jsonPath("$.schema.title").value("Заявка в состав"))
+                .andExpect(jsonPath("$.schema.fields[0].label").value("Nickname"));
+
+        mvc.perform(as(owner, get("/api/v1/guilds/{g}/forms?includeArchived=true", GUILD)))
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.content[?(@.status == 'ARCHIVED')].slug").value(slug))
+                .andExpect(jsonPath("$.content[0].pendingCount").value(0));
+    }
+
     private String slugOf(String json) throws Exception {
         return objectMapper.readTree(json).get("slug").asText();
     }

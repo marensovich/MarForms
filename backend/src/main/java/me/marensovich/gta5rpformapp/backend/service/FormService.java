@@ -6,6 +6,7 @@ import me.marensovich.gta5rpformapp.backend.data.forms.FormAccessMode;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormField;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormSchema;
 import me.marensovich.gta5rpformapp.backend.data.forms.FormStatus;
+import me.marensovich.gta5rpformapp.backend.data.forms.SubmissionStatus;
 import me.marensovich.gta5rpformapp.backend.data.forms.WebhookConfig;
 import me.marensovich.gta5rpformapp.backend.data.forms.WebhookHealth;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
@@ -82,6 +83,7 @@ public class FormService {
     private final org.springframework.transaction.support.TransactionTemplate transactionTemplate;
     private final me.marensovich.gta5rpformapp.backend.database.repository.FormReminderRepository formReminderRepository;
     private final me.marensovich.gta5rpformapp.backend.service.NotificationService notificationService;
+    private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
     // ── Lookup ──────────────────────────────────────────────────────────────
 
@@ -131,7 +133,8 @@ public class FormService {
         Page<Form> page = includeArchived
                 ? formRepository.findAllByServerId(guildId, pageable)
                 : formRepository.findAllByServerIdAndStatusNot(guildId, FormStatus.ARCHIVED, pageable);
-        return page.map(form -> FormSummaryDto.from(form, submissionRepository.countByFormId(form.getId())));
+        return page.map(form -> FormSummaryDto.from(form, submissionRepository.countByFormId(form.getId()),
+                submissionRepository.countByFormIdAndStatus(form.getId(), SubmissionStatus.PENDING)));
     }
 
     /**
@@ -395,10 +398,10 @@ public class FormService {
     }
 
     /**
-     * Moves a form to another status. {@code PUBLISHED} goes through
-     * {@link #publish}; {@code DRAFT} is only possible for a form that has
-     * never been published (a published link must not silently go back to
-     * "under construction" — close it instead).
+     * Moves a form to another status, strictly by ТЗ 4.4.2
+     * ({@link FormStatus#canMoveTo}). {@code PUBLISHED} goes through
+     * {@link #publish}. Nothing goes back to draft, and an archived form
+     * stays archived: it comes back through {@link #copy}.
      *
      * @param formId the form's ID
      * @param target the target status
@@ -410,16 +413,46 @@ public class FormService {
     public Form changeStatus(UUID formId, FormStatus target) {
         if (target == FormStatus.PUBLISHED) return publish(formId);
         Form form = getById(formId);
-        if (target == FormStatus.DRAFT && form.getSlug() != null) {
-            throw new InvalidStateException("A form that has been published can't go back to draft — close it instead");
-        }
         FormStatus old = form.getStatus();
+        if (!old.canMoveTo(target)) {
+            throw new InvalidStateException("A " + old + " form can't become " + target
+                    + (old == FormStatus.ARCHIVED ? " — restore a copy of it instead" : ""));
+        }
         if (old == target) return form;
-        if (old == FormStatus.ARCHIVED) planLimitService.requireRoomFor(form.getServerId(), PlanMetric.ACTIVE_FORMS);
         form.setStatus(target);
         Form saved = formRepository.save(form);
         logStatusChange(saved, old);
         return saved;
+    }
+
+    /**
+     * Copies a form into a new {@code DRAFT} of the same guild (ТЗ 4.4.2:
+     * an archived form is restored this way). The copy keeps the fields,
+     * channels, webhooks, access and limits; it gets its own link on first
+     * publish and none of the original's submissions.
+     *
+     * @param formId the form to copy
+     * @return the new draft
+     * @since v.0.1
+     */
+    @Transactional
+    public Form copy(UUID formId) {
+        Form source = getById(formId);
+        planLimitService.requireRoomFor(source.getServerId(), PlanMetric.ACTIVE_FORMS);
+        Form copy = new Form();
+        copy.setServerId(source.getServerId());
+        copy.setSchema(objectMapper.convertValue(source.getSchema(), FormSchema.class));
+        copy.setChannelsIds(new HashSet<>(source.getChannelsIds()));
+        copy.setWebhooks(source.getWebhooks() == null ? new ArrayList<>() : source.getWebhooks().stream()
+                .map(w -> objectMapper.convertValue(w, WebhookConfig.class))
+                .collect(Collectors.toCollection(ArrayList::new)));
+        copy.setAccessMode(source.getAccessMode());
+        copy.setAllowedRoleIds(new HashSet<>(source.getAllowedRoleIds()));
+        copy.setDeniedRoleIds(new HashSet<>(source.getDeniedRoleIds()));
+        copy.setSubmissionLimitPerUser(source.getSubmissionLimitPerUser());
+        copy.setOpensAt(source.getOpensAt());
+        copy.setClosesAt(source.getClosesAt());
+        return saveNew(copy);
     }
 
     private void logStatusChange(Form form, FormStatus old) {
@@ -626,7 +659,7 @@ public class FormService {
 
     private static void requireNotArchived(Form form) {
         if (form.getStatus() == FormStatus.ARCHIVED) {
-            throw new InvalidStateException("Archived forms can't be published — unarchive it first");
+            throw new InvalidStateException("Archived forms can't be published — restore a copy of it instead");
         }
     }
 

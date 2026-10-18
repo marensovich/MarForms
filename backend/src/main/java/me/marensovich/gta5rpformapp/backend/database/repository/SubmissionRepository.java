@@ -81,6 +81,9 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID>, J
      */
     long countByFormIdAndDiscordId(UUID formId, Long discordId);
 
+    /** A form's submissions in one status — the pending ones beside a form's count (ТЗ 4.4.1). */
+    long countByFormIdAndStatus(UUID formId, SubmissionStatus status);
+
     long countByFormIdAndAnonymousToken(UUID formId, String anonymousToken);
 
     /**

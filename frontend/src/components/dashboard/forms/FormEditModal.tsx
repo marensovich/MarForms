@@ -28,6 +28,8 @@ interface Props {
     form: DashboardForm;
     onClose: () => void;
     onUpdated: () => void;
+    /** Opens on this tab, e.g. "webhooks" from «Проверить вебхуки». */
+    initialTab?: Tab;
 }
 
 type Tab = "basic" | "fields" | "access" | "webhooks";
@@ -63,13 +65,13 @@ function accessOf(def: FormDefinition): AccessSettings {
     };
 }
 
-export default function FormEditModal({form, onClose, onUpdated}: Props) {
+export default function FormEditModal({form, onClose, onUpdated, initialTab = "basic"}: Props) {
     const {t} = useTranslation();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [tab, setTab] = useState<Tab>("basic");
+    const [tab, setTab] = useState<Tab>(initialTab);
     const [definition, setDefinition] = useState<FormDefinition | null>(null);
     const [previewOpen, setPreviewOpen] = useState(false);
 

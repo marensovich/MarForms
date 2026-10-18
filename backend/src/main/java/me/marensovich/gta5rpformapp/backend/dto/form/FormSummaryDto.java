@@ -32,6 +32,9 @@ import java.util.UUID;
  * @param updatedAt       when the form was last modified
  * @param notificationHealth the worst status among the form's webhooks
  *                        ({@code null} if it has none), E2.4
+ * @param notificationReason why the worst webhook is failing (a {@code WebhookHealth.REASON_*}
+ *                        code), {@code null} when notifications are fine
+ * @param pendingCount    submissions waiting for a decision (ТЗ 4.4.1, the «+12» next to the count)
  * @author marensovich
  * @version v.0.1
  * @since v.0.1
@@ -49,9 +52,17 @@ public record FormSummaryDto(
         String slug,
         int fieldCount,
         LocalDateTime updatedAt,
-        WebhookHealth notificationHealth
+        WebhookHealth notificationHealth,
+        String notificationReason,
+        long pendingCount
 ) {
     public static FormSummaryDto from(Form form, long submissionCount) {
+        return from(form, submissionCount, 0);
+    }
+
+    public static FormSummaryDto from(Form form, long submissionCount, long pendingCount) {
+        WebhookConfig worst = worstWebhook(form);
+        WebhookHealth health = worst == null ? null : worst.effectiveHealth();
         return new FormSummaryDto(
                 form.getId(),
                 form.getSchema() != null ? form.getSchema().getTitle() : null,
@@ -65,10 +76,20 @@ public record FormSummaryDto(
                 form.getSchema() != null && form.getSchema().getFields() != null
                         ? form.getSchema().getFields().size() : 0,
                 form.getUpdatedAt(),
-                form.getWebhooks() == null ? null : form.getWebhooks().stream()
-                        .filter(w -> w.getUrl() != null && !w.getUrl().isBlank())
-                        .map(WebhookConfig::effectiveHealth)
-                        .reduce(null, WebhookHealth::worst)
+                health,
+                health == null || health == WebhookHealth.HEALTHY ? null : worst.getHealthReason(),
+                pendingCount
         );
+    }
+
+    /** The webhook in the worst state, or {@code null} if the form has none. */
+    private static WebhookConfig worstWebhook(Form form) {
+        if (form.getWebhooks() == null) return null;
+        WebhookConfig worst = null;
+        for (WebhookConfig w : form.getWebhooks()) {
+            if (w.getUrl() == null || w.getUrl().isBlank()) continue;
+            if (worst == null || w.effectiveHealth().ordinal() > worst.effectiveHealth().ordinal()) worst = w;
+        }
+        return worst;
     }
 }

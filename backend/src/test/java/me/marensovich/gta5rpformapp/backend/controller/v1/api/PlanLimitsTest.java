@@ -141,12 +141,12 @@ class PlanLimitsTest {
                 .andExpect(status().isPaymentRequired())
                 .andExpect(jsonPath("$.metric").value("MODERATORS"));
 
-        // Archiving frees a slot; un-archiving needs one.
+        // Archiving frees a slot; restoring a copy needs one.
         mvc.perform(asOwner(put("/api/v1/guilds/{g}/forms/{f}/status", GUILD, form.getId())).content("{\"status\": \"ARCHIVED\"}"))
                 .andExpect(status().isOk());
         mvc.perform(asOwner(post("/api/v1/guilds/{g}/forms", GUILD)).content(NEW_FORM))
                 .andExpect(status().isCreated());
-        mvc.perform(asOwner(put("/api/v1/guilds/{g}/forms/{f}/status", GUILD, form.getId())).content("{\"status\": \"CLOSED\"}"))
+        mvc.perform(asOwner(post("/api/v1/guilds/{g}/forms/{f}/copy", GUILD, form.getId())))
                 .andExpect(status().isPaymentRequired());
 
         // A paid plan with nothing configured is unlimited.

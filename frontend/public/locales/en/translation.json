@@ -1059,23 +1059,81 @@
     "exportCsv": "Download responses (CSV)",
     "subtitle_one": "{{count}} form",
     "subtitle_other": "{{count}} forms",
-    "fieldCount_one": "{{count}} field",
-    "fieldCount_other": "{{count}} fields",
-    "showArchived": "Show archived",
+    "activeOfLimit": "{{used}} of {{limit}} active on the {{plan}} plan",
+    "emptyTitle": "No forms yet",
     "empty": "This server has no forms yet.",
-    "emptyOwner": "No forms yet — create the first one.",
+    "emptyOwner": "Create the first one with «New form».",
+    "nothingFound": "No forms with this status or name",
     "loadError": "Could not load forms",
     "actionError": "Action failed",
+    "filterLabel": "Form status",
+    "search": "Search by name or link",
+    "segment": {
+      "all": "All",
+      "DRAFT": "Drafts",
+      "PUBLISHED": "Published",
+      "CLOSED": "Closed",
+      "ARCHIVED": "Archive"
+    },
+    "preview": "Preview",
     "copyLink": "Copy link",
+    "noLinkYet": "The link appears once the form is published",
+    "linkCopied": "Link copied: {{link}}",
+    "more": "More: {{title}}",
     "publish": "Publish",
-    "close": "Close",
+    "close": "Stop accepting",
     "archive": "Archive",
-    "unarchive": "Unarchive",
+    "restoreCopy": "Restore as a copy",
+    "delete": "Delete form",
+    "pending_one": "{{count}} submission awaits a decision",
+    "pending_other": "{{count}} submissions await a decision",
+    "done": {
+      "PUBLISHED": "«{{title}}» is published",
+      "CLOSED": "«{{title}}» no longer accepts submissions",
+      "ARCHIVED": "«{{title}}» is archived",
+      "copy": "Draft created — a copy of «{{title}}»",
+      "deleted": "«{{title}}» is deleted"
+    },
+    "banner": {
+      "one": "Notifications of «{{title}}» aren't delivered: {{reason}}.",
+      "many_one": "Notifications of {{count}} form aren't delivered.",
+      "many_other": "Notifications of {{count}} forms aren't delivered.",
+      "check": "Check webhooks",
+      "reason": {
+        "DELIVERY_FAILING": "Discord refuses the webhook's messages",
+        "WEBHOOK_DELETED": "the webhook was deleted in Discord",
+        "BOT_NOT_IN_GUILD": "the bot isn't on the server",
+        "CHANNEL_UNAVAILABLE": "the bot can't access the channel",
+        "MISSING_PERMISSIONS": "the bot lacks «Manage Webhooks»",
+        "DEGRADED": "Discord refuses the webhook's messages",
+        "INVALID": "the webhook doesn't work"
+      }
+    },
+    "notif": {
+      "ok": "Working",
+      "none": "Not set up",
+      "reason": {
+        "DELIVERY_FAILING": "Delivery failing",
+        "WEBHOOK_DELETED": "Webhook deleted",
+        "BOT_NOT_IN_GUILD": "Bot not on server",
+        "CHANNEL_UNAVAILABLE": "No channel access",
+        "MISSING_PERMISSIONS": "No webhook permission"
+      }
+    },
+    "access": {
+      "ROLE_GATED": "Roles",
+      "AUTHENTICATED": "Server members",
+      "OPEN": "Everyone",
+      "ANONYMOUS": "Anonymous"
+    },
     "columns": {
       "title": "Form",
       "status": "Status",
       "access": "Access",
-      "responses": "Responses"
+      "responses": "Submissions",
+      "notifications": "Notifications",
+      "updated": "Updated",
+      "actions": "Actions"
     },
     "status": {
       "DRAFT": "Draft",

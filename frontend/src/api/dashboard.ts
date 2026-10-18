@@ -15,6 +15,10 @@ export interface DashboardForm {
     updatedAt?: string;
     /** Worst status among the form's webhooks; null if it has none. */
     notificationHealth?: WebhookHealth | null;
+    /** Why that webhook fails (WebhookHealth reason code); null while notifications work. */
+    notificationReason?: string | null;
+    /** Submissions waiting for a decision (guild list only). */
+    pendingCount?: number;
 }
 
 // ── Guild-scoped forms (owner panel) ───────────────────────────────────────
@@ -34,6 +38,15 @@ export interface CreateGuildFormPayload {
 
 export function createGuildForm(guildId: string, payload: CreateGuildFormPayload): Promise<FormDefinition> {
     return apiRequest(`/guilds/${guildId}/forms`, {method: "POST", body: payload});
+}
+
+export function getGuildForm(guildId: string, formId: string): Promise<FormDefinition> {
+    return apiRequest(`/guilds/${guildId}/forms/${formId}`);
+}
+
+/** A new draft with the form's content: how an archived form comes back (ТЗ 4.4.2). */
+export function copyGuildForm(guildId: string, formId: string): Promise<FormDefinition> {
+    return apiRequest(`/guilds/${guildId}/forms/${formId}/copy`, {method: "POST"});
 }
 
 export function publishGuildForm(guildId: string, formId: string): Promise<FormDefinition> {

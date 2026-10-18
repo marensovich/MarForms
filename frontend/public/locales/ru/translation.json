@@ -1071,25 +1071,85 @@
     "subtitle_few": "{{count}} формы",
     "subtitle_many": "{{count}} форм",
     "subtitle_other": "{{count}} форм",
-    "fieldCount_one": "{{count}} поле",
-    "fieldCount_few": "{{count}} поля",
-    "fieldCount_many": "{{count}} полей",
-    "fieldCount_other": "{{count}} полей",
-    "showArchived": "Показать архивные",
+    "activeOfLimit": "{{used}} из {{limit}} активных по тарифу {{plan}}",
+    "emptyTitle": "Форм пока нет",
     "empty": "На этом сервере пока нет форм.",
-    "emptyOwner": "Форм пока нет — создайте первую.",
+    "emptyOwner": "Создайте первую форму кнопкой «Новая форма».",
+    "nothingFound": "Форм с таким статусом или названием нет",
     "loadError": "Не удалось загрузить формы",
     "actionError": "Действие не выполнено",
-    "copyLink": "Скопировать ссылку",
+    "filterLabel": "Статус формы",
+    "search": "Поиск по названию или ссылке",
+    "segment": {
+      "all": "Все",
+      "DRAFT": "Черновики",
+      "PUBLISHED": "Опубликованы",
+      "CLOSED": "Закрыты",
+      "ARCHIVED": "Архив"
+    },
+    "preview": "Предпросмотр",
+    "copyLink": "Копировать ссылку",
+    "noLinkYet": "Ссылка появится после публикации",
+    "linkCopied": "Ссылка скопирована: {{link}}",
+    "more": "Ещё: {{title}}",
     "publish": "Опубликовать",
-    "close": "Закрыть",
+    "close": "Закрыть приём",
     "archive": "В архив",
-    "unarchive": "Из архива",
+    "restoreCopy": "Восстановить копией",
+    "delete": "Удалить форму",
+    "pending_one": "{{count}} заявка ждёт решения",
+    "pending_few": "{{count}} заявки ждут решения",
+    "pending_many": "{{count}} заявок ждут решения",
+    "pending_other": "{{count}} заявки ждут решения",
+    "done": {
+      "PUBLISHED": "Форма «{{title}}» опубликована",
+      "CLOSED": "Приём заявок в «{{title}}» закрыт",
+      "ARCHIVED": "Форма «{{title}}» в архиве",
+      "copy": "Создан черновик — копия «{{title}}»",
+      "deleted": "Форма «{{title}}» удалена"
+    },
+    "banner": {
+      "one": "Уведомления формы «{{title}}» не доставляются: {{reason}}.",
+      "many_one": "Уведомления {{count}} формы не доставляются.",
+      "many_few": "Уведомления {{count}} форм не доставляются.",
+      "many_many": "Уведомления {{count}} форм не доставляются.",
+      "many_other": "Уведомления {{count}} форм не доставляются.",
+      "check": "Проверить вебхуки",
+      "reason": {
+        "DELIVERY_FAILING": "Discord не принимает сообщения вебхука",
+        "WEBHOOK_DELETED": "вебхук удалён в Discord",
+        "BOT_NOT_IN_GUILD": "бота нет на сервере",
+        "CHANNEL_UNAVAILABLE": "у бота нет доступа к каналу",
+        "MISSING_PERMISSIONS": "у бота нет права «Управлять вебхуками»",
+        "DEGRADED": "Discord не принимает сообщения вебхука",
+        "INVALID": "вебхук не работает"
+      }
+    },
+    "notif": {
+      "ok": "В норме",
+      "none": "Не настроены",
+      "reason": {
+        "DELIVERY_FAILING": "Сбои доставки",
+        "WEBHOOK_DELETED": "Вебхук удалён",
+        "BOT_NOT_IN_GUILD": "Бота нет на сервере",
+        "CHANNEL_UNAVAILABLE": "Нет доступа к каналу",
+        "MISSING_PERMISSIONS": "Нет прав на вебхуки"
+      }
+    },
+    "access": {
+      "ROLE_GATED": "Роли",
+      "AUTHENTICATED": "Участники сервера",
+      "OPEN": "Все",
+      "ANONYMOUS": "Анонимно"
+    },
     "columns": {
       "title": "Форма",
       "status": "Статус",
       "access": "Доступ",
-      "responses": "Заявки"
+      "responses": "Заявки",
+      "notifications": "Уведомления",
+      "updated": "Изменена",
+      "actions": "Действия"
     },
     "status": {
       "DRAFT": "Черновик",

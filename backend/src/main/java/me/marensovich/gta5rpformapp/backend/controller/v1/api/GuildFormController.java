@@ -97,6 +97,14 @@ public class GuildFormController {
         return FormResponseDto.from(formService.changeStatus(formId, request.status()));
     }
 
+    /** ТЗ 4.4.2: an archived form is restored as a draft copy; any form may be copied. */
+    @PreAuthorize("@guildAccess.hasRole(#guildId, 'OWNER')")
+    @PostMapping("/{formId}/copy")
+    public ResponseEntity<FormResponseDto> copy(@PathVariable Long guildId, @PathVariable UUID formId) {
+        formService.getInGuild(guildId, formId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(FormResponseDto.from(formService.copy(formId)));
+    }
+
     @PreAuthorize("@guildAccess.hasRole(#guildId, 'OWNER')")
     @DeleteMapping("/{formId}")
     public ResponseEntity<Void> delete(@PathVariable Long guildId, @PathVariable UUID formId) {
