@@ -396,7 +396,7 @@ export function exportFormCsv(formId: string): Promise<void> {
     return downloadFile(`/forms/${formId}/export?format=csv`, "submissions.csv");
 }
 
-export type PlanMetric = "ACTIVE_FORMS" | "SUBMISSIONS_PER_MONTH" | "MODERATORS";
+export type PlanMetric = "ACTIVE_FORMS" | "SUBMISSIONS_PER_MONTH" | "MODERATORS" | "FILE_STORAGE";
 
 export interface GuildUsage {
     plan: string;

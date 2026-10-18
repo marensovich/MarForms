@@ -1665,5 +1665,30 @@
     "submissionsThisMonth": "Submissions this month",
     "plan": "{{plan}} plan",
     "tabs": "Server sections"
+  },
+  "plan": {
+    "loadError": "Couldn't load the plan",
+    "pausedTitle": "Payments are unavailable for now.",
+    "pausedText": "Changing the plan comes later — every server runs on Free with the limits below.",
+    "current": "Current plan",
+    "active": "Active",
+    "usedOf": "{{used}} of {{limit}}",
+    "usedUnlimited": "{{used}} · no limit",
+    "mb": "{{count}} MB",
+    "metric": {
+      "ACTIVE_FORMS": "Active forms",
+      "SUBMISSIONS_PER_MONTH": "Submissions a month",
+      "MODERATORS": "Moderators",
+      "FILE_STORAGE": "File storage"
+    },
+    "pro": {
+      "name": "Pro",
+      "text": "More forms, submissions and room for files"
+    },
+    "network": {
+      "name": "Server network",
+      "text": "One plan for several servers"
+    },
+    "soon": "Soon"
   }
 }

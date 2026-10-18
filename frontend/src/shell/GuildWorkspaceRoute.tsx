@@ -1,10 +1,10 @@
-import {Navigate, useNavigate, useParams, useSearchParams} from "react-router-dom";
+import {Navigate, useParams} from "react-router-dom";
 import GuildFormsPanel from "../components/dashboard/GuildFormsPanel";
 import GuildAuditPanel from "../components/dashboard/moderation/GuildAuditPanel";
 import GuildModerationPanel from "../components/dashboard/moderation/GuildModerationPanel";
 import ModeratorsPanel from "../components/dashboard/moderation/ModeratorsPanel";
 import BansPanel from "../components/dashboard/moderation/BansPanel";
-import BillingModal from "../components/dashboard/BillingModal";
+import BillingPanel from "../components/dashboard/moderation/BillingPanel";
 import {TabSkeleton} from "../components/dashboard/shared";
 import {useDashboard} from "./dashboardContext";
 import GuildWorkspaceHeader from "./GuildWorkspaceHeader";
@@ -17,10 +17,7 @@ import NoAccess from "./NoAccess";
  */
 export default function GuildWorkspaceRoute() {
     const {guildId, section} = useParams();
-    const navigate = useNavigate();
     const {guilds} = useDashboard();
-    // Back from Stripe Checkout (billing is paused, #132): …/billing?checkout=success|cancel.
-    const checkout = useSearchParams()[0].get("checkout");
 
     if (!GUILD_SECTIONS.includes(section as GuildSection)) {
         return <Navigate to={`/dashboard/servers/${guildId}/forms`} replace/>;
@@ -31,7 +28,6 @@ export default function GuildWorkspaceRoute() {
     const tab = section as GuildSection;
     if (OWNER_ONLY_SECTIONS.includes(tab) && guild.role !== "OWNER") return <NoAccess/>;
 
-    const back = () => navigate(`/dashboard/servers/${guild.guildId}/forms`);
     const page = (() => {
         switch (tab) {
             case "submissions":
@@ -43,8 +39,7 @@ export default function GuildWorkspaceRoute() {
             case "bans":
                 return <BansPanel guild={guild}/>;
             case "billing":
-                return <BillingModal guild={guild} ownedGuilds={guilds.filter(g => g.role === "OWNER")} onClose={back} asPage
-                                     checkoutResult={checkout === "success" || checkout === "cancel" ? checkout : null}/>;
+                return <BillingPanel guild={guild}/>;
             default:
                 return <GuildFormsPanel guild={guild}/>;
         }

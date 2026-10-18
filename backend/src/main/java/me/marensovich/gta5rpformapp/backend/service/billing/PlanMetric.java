@@ -13,5 +13,7 @@ public enum PlanMetric {
     /** Submissions to the guild's forms this calendar month (server time). Never blocks respondents. */
     SUBMISSIONS_PER_MONTH,
     /** Moderators, the owner not counted. */
-    MODERATORS
+    MODERATORS,
+    /** Files attached to the guild's submissions, in megabytes (ТЗ 4.9.1). Shown to the owner; never blocks respondents. */
+    FILE_STORAGE
 }

@@ -36,8 +36,9 @@ public record PlanLimitsProperties(Map<PlanTier, Limits> limits) {
      * @param activeForms         forms not archived
      * @param submissionsPerMonth submissions to all the guild's forms this calendar month (server time, like submission timestamps)
      * @param moderators          moderators (the owner not counted)
+     * @param fileStorageMb       megabytes of files attached to the guild's submissions
      */
-    public record Limits(Integer activeForms, Integer submissionsPerMonth, Integer moderators) {
+    public record Limits(Integer activeForms, Integer submissionsPerMonth, Integer moderators, Integer fileStorageMb) {
     }
 
     /**
@@ -45,6 +46,6 @@ public record PlanLimitsProperties(Map<PlanTier, Limits> limits) {
      * @return its limits; all unlimited if none are configured
      */
     public Limits of(PlanTier tier) {
-        return limits.getOrDefault(tier, new Limits(null, null, null));
+        return limits.getOrDefault(tier, new Limits(null, null, null, null));
     }
 }

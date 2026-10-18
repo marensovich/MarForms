@@ -46,6 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "app.plans.limits.FREE.active-forms=1",
         "app.plans.limits.FREE.submissions-per-month=1",
         "app.plans.limits.FREE.moderators=1",
+        "app.plans.limits.FREE.file-storage-mb=500",
 })
 @AutoConfigureMockMvc
 @Transactional
@@ -174,6 +175,9 @@ class PlanLimitsTest {
                 .andExpect(jsonPath("$.usage[0].limit").value(1))
                 .andExpect(jsonPath("$.usage[1].metric").value("SUBMISSIONS_PER_MONTH"))
                 .andExpect(jsonPath("$.usage[1].used").value(2))
-                .andExpect(jsonPath("$.usage[2].used").value(1));
+                .andExpect(jsonPath("$.usage[2].used").value(1))
+                .andExpect(jsonPath("$.usage[3].metric").value("FILE_STORAGE"))
+                .andExpect(jsonPath("$.usage[3].used").value(0))
+                .andExpect(jsonPath("$.usage[3].limit").value(500));
     }
 }

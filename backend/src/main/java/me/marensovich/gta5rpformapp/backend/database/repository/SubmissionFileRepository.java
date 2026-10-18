@@ -17,6 +17,10 @@ public interface SubmissionFileRepository extends JpaRepository<SubmissionFile, 
 
     List<SubmissionFile> findAllByFormId(UUID formId);
 
+    /** Bytes of every file of these forms — a guild's storage for its plan (ТЗ 4.9.1). */
+    @Query("select coalesce(sum(f.sizeBytes), 0) from SubmissionFile f where f.formId in :formIds")
+    long totalBytes(Collection<UUID> formIds);
+
     List<SubmissionFile> findAllBySubmissionIdIn(Collection<UUID> submissionIds);
 
     List<SubmissionFile> findAllBySubmissionIdIsNullAndCreatedAtBefore(LocalDateTime cutoff);

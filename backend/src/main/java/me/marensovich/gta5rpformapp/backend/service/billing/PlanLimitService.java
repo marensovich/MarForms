@@ -42,6 +42,9 @@ public class PlanLimitService {
     private final FormRepository formRepository;
     private final SubmissionRepository submissionRepository;
     private final GuildMembershipRepository guildMembershipRepository;
+    private final me.marensovich.gta5rpformapp.backend.database.repository.SubmissionFileRepository submissionFileRepository;
+
+    private static final long MEGABYTE = 1024 * 1024;
 
     /**
      * One metric's usage.
@@ -79,7 +82,8 @@ public class PlanLimitService {
         return new GuildUsage(plan, List.of(
                 usage(guildId, plan, PlanMetric.ACTIVE_FORMS),
                 usage(guildId, plan, PlanMetric.SUBMISSIONS_PER_MONTH),
-                usage(guildId, plan, PlanMetric.MODERATORS)));
+                usage(guildId, plan, PlanMetric.MODERATORS),
+                usage(guildId, plan, PlanMetric.FILE_STORAGE)));
     }
 
     /**
@@ -106,8 +110,8 @@ public class PlanLimitService {
      */
     @Transactional(readOnly = true)
     public void requireRoomFor(Long guildId, PlanMetric metric) {
-        if (metric == PlanMetric.SUBMISSIONS_PER_MONTH) {
-            throw new IllegalArgumentException("Submissions are never refused for plan limits");
+        if (metric == PlanMetric.SUBMISSIONS_PER_MONTH || metric == PlanMetric.FILE_STORAGE) {
+            throw new IllegalArgumentException("Respondents are never refused for plan limits");
         }
         PlanTier plan = planOf(guildId);
         Usage usage = usage(guildId, plan, metric);
@@ -137,6 +141,11 @@ public class PlanLimitService {
                 long count = formIds.isEmpty() ? 0
                         : submissionRepository.countByFormIdInAndCreatedAtGreaterThanEqual(formIds, monthStart);
                 yield new Usage(metric, count, limits.submissionsPerMonth());
+            }
+            case FILE_STORAGE -> {
+                List<UUID> formIds = formRepository.findIdsByServerId(guildId);
+                long bytes = formIds.isEmpty() ? 0 : submissionFileRepository.totalBytes(formIds);
+                yield new Usage(metric, (bytes + MEGABYTE - 1) / MEGABYTE, limits.fileStorageMb());
             }
         };
     }
