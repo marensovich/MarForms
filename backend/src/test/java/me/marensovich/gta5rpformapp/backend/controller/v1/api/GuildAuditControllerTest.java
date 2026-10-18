@@ -138,28 +138,71 @@ class GuildAuditControllerTest {
 
         mvc.perform(as(owner, get("/api/v1/guilds/{g}/audit-log", GUILD)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.page.totalElements").value(5));
+                .andExpect(jsonPath("$.items.length()").value(5))
+                .andExpect(jsonPath("$.nextCursor").doesNotExist());
 
         mvc.perform(as(owner, get("/api/v1/guilds/{g}/audit-log", GUILD).param("action", "SUBMISSION_DECIDED")))
-                .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$.content[0].actorDiscordId").value("2"))
-                .andExpect(jsonPath("$.content[0].actorUsername").value("mod"))
-                .andExpect(jsonPath("$.content[0].targetType").value("SUBMISSION"))
-                .andExpect(jsonPath("$.content[0].targetName").value("Application"))
-                .andExpect(jsonPath("$.content[0].metadata.from").value("PENDING"))
-                .andExpect(jsonPath("$.content[0].metadata.to").value("REJECTED"))
-                .andExpect(jsonPath("$.content[0].metadata.comment").value("Too short"));
+                .andExpect(jsonPath("$.items.length()").value(1))
+                .andExpect(jsonPath("$.items[0].actorDiscordId").value("2"))
+                .andExpect(jsonPath("$.items[0].actorUsername").value("mod"))
+                .andExpect(jsonPath("$.items[0].targetType").value("SUBMISSION"))
+                .andExpect(jsonPath("$.items[0].targetName").value("Application"))
+                .andExpect(jsonPath("$.items[0].metadata.from").value("PENDING"))
+                .andExpect(jsonPath("$.items[0].metadata.to").value("REJECTED"))
+                .andExpect(jsonPath("$.items[0].metadata.comment").value("Too short"));
 
         mvc.perform(as(owner, get("/api/v1/guilds/{g}/audit-log", GUILD).param("actorId", "2")))
-                .andExpect(jsonPath("$.page.totalElements").value(2));
+                .andExpect(jsonPath("$.items.length()").value(2));
 
         mvc.perform(as(owner, get("/api/v1/guilds/{g}/audit-log", GUILD).param("action", "GUILD_BAN_ADDED")))
-                .andExpect(jsonPath("$.content[0].targetName").value("author"))
-                .andExpect(jsonPath("$.content[0].metadata.reason").value("spam"));
+                .andExpect(jsonPath("$.items[0].targetName").value("author"))
+                .andExpect(jsonPath("$.items[0].metadata.reason").value("spam"));
 
         mvc.perform(as(owner, get("/api/v1/guilds/{g}/audit-log", GUILD).param("action", "MODERATOR_ADDED")))
-                .andExpect(jsonPath("$.content[0].targetId").value("3"))
-                .andExpect(jsonPath("$.content[0].targetName").value("newbie"));
+                .andExpect(jsonPath("$.items[0].targetId").value("3"))
+                .andExpect(jsonPath("$.items[0].targetName").value("newbie"));
+    }
+
+    @Test
+    void theFeedFiltersBySeveralActionsAndPagesByCursor() throws Exception {
+        for (long id = 10; id < 15; id++) {
+            mvc.perform(as(moderator, post("/api/v1/guilds/{g}/bans", GUILD)).content("{\"discordId\": \"" + id + "\"}"))
+                    .andExpect(status().isCreated());
+        }
+        mvc.perform(as(owner, post("/api/v1/guilds/{g}/moderators", GUILD)).content("{\"discordId\": \"3\"}"))
+                .andExpect(status().isCreated());
+
+        mvc.perform(as(owner, get("/api/v1/guilds/{g}/audit-log", GUILD)
+                        .param("action", "GUILD_BAN_ADDED", "MODERATOR_ADDED").param("days", "7")))
+                .andExpect(jsonPath("$.items.length()").value(6));
+
+        String first = mvc.perform(as(owner, get("/api/v1/guilds/{g}/audit-log", GUILD).param("size", "4")))
+                .andExpect(jsonPath("$.items.length()").value(4))
+                .andExpect(jsonPath("$.items[0].action").value("MODERATOR_ADDED"))
+                .andReturn().getResponse().getContentAsString();
+        String cursor = com.jayway.jsonpath.JsonPath.read(first, "$.nextCursor");
+        mvc.perform(as(owner, get("/api/v1/guilds/{g}/audit-log", GUILD).param("size", "4").param("cursor", cursor)))
+                .andExpect(jsonPath("$.items.length()").value(2))
+                .andExpect(jsonPath("$.nextCursor").doesNotExist());
+
+        mvc.perform(as(owner, get("/api/v1/guilds/{g}/audit-log/actors", GUILD)))
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[?(@.discordId == '2')].username").value("mod"));
+    }
+
+    @Test
+    void formChangesReachTheServersJournal() throws Exception {
+        String body = mvc.perform(as(owner, post("/api/v1/guilds/{g}/forms", GUILD))
+                        .content("{\"schema\": {\"title\": \"Набор\", \"description\": \"\", \"fields\": [{\"id\": \"a\", \"type\": \"TEXT\", \"label\": \"A\"}]}}"))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        String formId = com.jayway.jsonpath.JsonPath.read(body, "$.id");
+        mvc.perform(as(owner, post("/api/v1/guilds/{g}/forms/{f}/publish", GUILD, formId))).andExpect(status().isOk());
+
+        mvc.perform(as(owner, get("/api/v1/guilds/{g}/audit-log", GUILD).param("action", "FORM_CREATED", "FORM_STATUS_CHANGED")))
+                .andExpect(jsonPath("$.items.length()").value(2))
+                .andExpect(jsonPath("$.items[0].action").value("FORM_STATUS_CHANGED"))
+                .andExpect(jsonPath("$.items[0].metadata.to").value("PUBLISHED"))
+                .andExpect(jsonPath("$.items[0].targetName").value("Набор"));
     }
 
     @Test

@@ -43,15 +43,21 @@ const ACTION_META: Record<AuditAction, { dot: string }> = {
     GUILD_BAN_REMOVED: {dot: "bg-ok"},
     GUILD_CONNECTED: {dot: "bg-pr"},
     GUILD_ROLE_REVOKED: {dot: "bg-dg"},
+    FORM_STATUS_CHANGED: {dot: "bg-pr"},
+    BOT_REMOVED: {dot: "bg-dg"},
+    BOT_RECONNECTED: {dot: "bg-ok"},
+    BOT_PERMISSIONS_MISSING: {dot: "bg-wr"},
+    WEBHOOK_FAILING: {dot: "bg-wr"},
 };
 
 const ACTION_GROUPS: { label: string; actions: AuditAction[] }[] = [
     {label: "Authentication", actions: ["USER_LOGIN"]},
     {label: "Users", actions: ["USER_BANNED", "USER_UNBANNED", "USER_ROLES_UPDATED"]},
-    {label: "Forms", actions: ["FORM_CREATED", "FORM_UPDATED", "FORM_DELETED"]},
+    {label: "Forms", actions: ["FORM_CREATED", "FORM_UPDATED", "FORM_STATUS_CHANGED", "FORM_DELETED"]},
     {label: "Submissions", actions: ["SUBMISSION_CREATED", "SUBMISSION_DELETED", "SUBMISSION_DECIDED", "SUBMISSION_DM_FAILED"]},
     {label: "Roles", actions: ["ROLE_CREATED", "ROLE_UPDATED", "ROLE_DELETED"]},
     {label: "Server moderation", actions: ["MODERATOR_ADDED", "MODERATOR_REMOVED", "GUILD_BAN_ADDED", "GUILD_BAN_REMOVED", "GUILD_CONNECTED", "GUILD_ROLE_REVOKED"]},
+    {label: "Bot and notifications", actions: ["BOT_REMOVED", "BOT_RECONNECTED", "BOT_PERMISSIONS_MISSING", "WEBHOOK_FAILING"]},
     {label: "System", actions: ["SETTINGS_UPDATED"]},
 ];
 

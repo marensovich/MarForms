@@ -498,7 +498,12 @@
       "ROLE_CREATED": "Роль создана",
       "ROLE_UPDATED": "Роль обновлена",
       "ROLE_DELETED": "Роль удалена",
-      "SETTINGS_UPDATED": "Настройки обновлены"
+      "SETTINGS_UPDATED": "Настройки обновлены",
+      "FORM_STATUS_CHANGED": "Статус формы изменён",
+      "BOT_REMOVED": "Бот удалён с сервера",
+      "BOT_RECONNECTED": "Бот вернулся на сервер",
+      "BOT_PERMISSIONS_MISSING": "Боту не хватает прав",
+      "WEBHOOK_FAILING": "Уведомления формы не доставляются"
     }
   },
   "system": {
@@ -617,7 +622,12 @@
         "ROLE_CREATED": "Роль создана",
         "ROLE_UPDATED": "Роль обновлена",
         "ROLE_DELETED": "Роль удалена",
-        "SETTINGS_UPDATED": "Настройки обновлены"
+        "SETTINGS_UPDATED": "Настройки обновлены",
+        "FORM_STATUS_CHANGED": "Статус формы изменён",
+        "BOT_REMOVED": "Бот удалён с сервера",
+        "BOT_RECONNECTED": "Бот вернулся на сервер",
+        "BOT_PERMISSIONS_MISSING": "Боту не хватает прав",
+        "WEBHOOK_FAILING": "Уведомления формы не доставляются"
       }
     },
     "globalEmbed": {
@@ -1279,11 +1289,15 @@
   "guildAudit": {
     "open": "Журнал",
     "subtitle": "Действия модераторов на сервере",
-    "empty": "Записей пока нет",
+    "empty": "За этот период записей нет",
     "loadError": "Не удалось загрузить журнал",
     "filter": {
       "allActions": "Все действия",
-      "allActors": "Все модераторы"
+      "allActors": "все модераторы",
+      "who": "Кто",
+      "action": "Действие",
+      "anyAction": "любое",
+      "period": "Период"
     },
     "actions": {
       "SUBMISSION_DECIDED": "Решение по заявке",
@@ -1295,12 +1309,82 @@
       "GUILD_CONNECTED": "Подключение сервера",
       "GUILD_ROLE_REVOKED": "Отзыв прав",
       "SUBMISSION_DELETED": "Удалена заявка",
-      "FORM_DELETED": "Удалена форма"
+      "FORM_DELETED": "Удалена форма",
+      "FORM_CREATED": "Создана форма",
+      "FORM_UPDATED": "Изменена форма",
+      "FORM_STATUS_CHANGED": "Статус формы",
+      "BOT_REMOVED": "Бот удалён",
+      "BOT_RECONNECTED": "Бот вернулся",
+      "BOT_PERMISSIONS_MISSING": "Боту не хватает прав",
+      "WEBHOOK_FAILING": "Уведомления не доставляются"
     },
     "statusChange": "{{from}} → {{to}}",
     "reason": "Причина: {{reason}}",
     "comment": "Комментарий: {{comment}}",
-    "unknownActor": "Система"
+    "unknownActor": "MarForms",
+    "emptyHint": "Попробуйте другой период или сбросьте фильтры.",
+    "more": "Показать ещё",
+    "today": "Сегодня, {{day}}",
+    "yesterday": "Вчера, {{day}}",
+    "period": {
+      "days_one": "последний {{count}} день",
+      "days_few": "последние {{count}} дня",
+      "days_many": "последние {{count}} дней",
+      "days_other": "последние {{count}} дня",
+      "all": "всё время"
+    },
+    "group": {
+      "decisions": "решения по заявкам",
+      "forms": "формы",
+      "moderators": "модераторы",
+      "bans": "баны",
+      "submissions": "удаление заявок",
+      "bot": "бот и уведомления"
+    },
+    "what": {
+      "decided": {
+        "APPROVED": "· принята заявка",
+        "REJECTED": "· отклонена заявка",
+        "NEEDS_REVISION": "· запрошена доработка",
+        "PENDING": "· пересмотрено решение по заявке"
+      },
+      "formStatus": {
+        "PUBLISHED": "· опубликована форма",
+        "CLOSED": "· закрыт приём в форму",
+        "ARCHIVED": "· отправлена в архив форма",
+        "DRAFT": "· форма стала черновиком"
+      },
+      "FORM_CREATED": "· создана форма",
+      "FORM_UPDATED": "· изменена форма",
+      "FORM_DELETED": "· удалена форма",
+      "SUBMISSION_DELETED": "· удалена заявка",
+      "GUILD_BAN_ADDED": "· забанен пользователь",
+      "GUILD_BAN_REMOVED": "· снят бан с пользователя",
+      "MODERATOR_ADDED": "· добавлен модератор",
+      "MODERATOR_REMOVED": "· снят модератор",
+      "GUILD_ROLE_REVOKED": "· отозваны права на сервере у",
+      "GUILD_CONNECTED": "· подключён сервер",
+      "BOT_REMOVED": "· бот удалён с сервера",
+      "BOT_RECONNECTED": "· бот снова на сервере",
+      "BOT_PERMISSIONS_MISSING": "· боту не хватает прав",
+      "WEBHOOK_FAILING": "· не доставляются уведомления формы",
+      "SUBMISSION_DM_FAILED": "· не доставлено ЛС о решении по заявке в форму"
+    },
+    "detail": {
+      "comment": "комментарий: «{{text}}»",
+      "reason": "причина: «{{text}}»",
+      "changes": "изменено: {{list}}",
+      "submissionsRemoved_one": "удалена {{count}} заявка",
+      "submissionsRemoved_few": "удалено {{count}} заявки",
+      "submissionsRemoved_many": "удалено {{count}} заявок",
+      "submissionsRemoved_other": "удалено {{count}} заявки"
+    },
+    "change": {
+      "title": "название",
+      "fields": "поля",
+      "webhooks": "уведомления",
+      "access": "доступ"
+    }
   },
   "planUsage": {
     "title": "Тариф и лимиты",

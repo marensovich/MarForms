@@ -172,6 +172,41 @@ const ACTION_META: Record<AuditAction, ActionMeta> = {
         border: "border-rdb",
         dot: "bg-dg"
     },
+    FORM_STATUS_CHANGED: {
+        label: "Form Status Changed",
+        bg: "bg-prs",
+        text: "text-prt",
+        border: "border-prs",
+        dot: "bg-pr"
+    },
+    BOT_REMOVED: {
+        label: "Bot Removed",
+        bg: "bg-rdb",
+        text: "text-rdt",
+        border: "border-rdb",
+        dot: "bg-dg"
+    },
+    BOT_RECONNECTED: {
+        label: "Bot Reconnected",
+        bg: "bg-gnb",
+        text: "text-gnt",
+        border: "border-gnb",
+        dot: "bg-ok"
+    },
+    BOT_PERMISSIONS_MISSING: {
+        label: "Bot Lacks Permissions",
+        bg: "bg-amb",
+        text: "text-amt",
+        border: "border-amb",
+        dot: "bg-wr"
+    },
+    WEBHOOK_FAILING: {
+        label: "Webhook Failing",
+        bg: "bg-amb",
+        text: "text-amt",
+        border: "border-amb",
+        dot: "bg-wr"
+    },
 };
 
 const ALL_ACTIONS = Object.keys(ACTION_META) as AuditAction[];

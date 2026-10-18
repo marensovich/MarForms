@@ -152,5 +152,6 @@ public class AuditLog {
      * @since v.0.1
      */
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    // Microseconds, as the database keeps them: the journal's feed cursor compares this value (#129).
+    private LocalDateTime createdAt = LocalDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
 }

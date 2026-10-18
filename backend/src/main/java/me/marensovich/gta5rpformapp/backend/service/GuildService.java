@@ -34,6 +34,7 @@ public class GuildService {
     private final GuildRepository guildRepository;
     private final DiscordBotClient discordBotClient;
     private final me.marensovich.gta5rpformapp.backend.service.NotificationService notificationService;
+    private final AuditLogService auditLogService;
 
     /**
      * Retrieves the {@link Guild} for the given Discord guild ID, creating it
@@ -78,6 +79,7 @@ public class GuildService {
             if (guild.getBotStatus() != GuildBotStatus.KICKED) {
                 guild.setBotStatus(GuildBotStatus.KICKED);
                 guildRepository.save(guild);
+                logBot(discordGuildId, me.marensovich.gta5rpformapp.backend.data.audit.AuditAction.BOT_REMOVED, null);
                 notificationService.notifyOwner(discordGuildId, me.marensovich.gta5rpformapp.backend.data.notifications.NotificationType.BOT_REMOVED, discordGuildId.toString(),
                         java.util.Map.of("server", guild.getName() != null ? guild.getName() : discordGuildId.toString()),
                         "/dashboard/servers");
@@ -100,8 +102,15 @@ public class GuildService {
             if (guild.getBotStatus() != GuildBotStatus.CONNECTED) {
                 guild.setBotStatus(GuildBotStatus.CONNECTED);
                 guildRepository.save(guild);
+                logBot(discordGuildId, me.marensovich.gta5rpformapp.backend.data.audit.AuditAction.BOT_RECONNECTED, null);
             }
         });
+    }
+
+    /** A problem with the bot, or its end, in the server's journal (ТЗ 4.6.1). */
+    private void logBot(Long guildId, me.marensovich.gta5rpformapp.backend.data.audit.AuditAction action,
+                        java.util.Map<String, Object> metadata) {
+        auditLogService.logGuildActionAs(null, "Discord", guildId, action, "BOT", guildId.toString(), null, metadata, null);
     }
 
     /**
@@ -126,7 +135,13 @@ public class GuildService {
         guild.setName(s.name());
         guild.setIconHash(s.icon());
         guild.setMemberCount(s.memberCount());
-        guild.setMissingPermissions(String.join(",", s.missingPermissions()));
+        String missing = String.join(",", s.missingPermissions());
+        boolean wasMissing = guild.getMissingPermissions() != null && !guild.getMissingPermissions().isBlank();
+        if (!missing.isEmpty() && !wasMissing) {
+            logBot(discordGuildId, me.marensovich.gta5rpformapp.backend.data.audit.AuditAction.BOT_PERMISSIONS_MISSING,
+                    java.util.Map.of("permissions", s.missingPermissions()));
+        }
+        guild.setMissingPermissions(missing);
         guild.setSyncedAt(LocalDateTime.now());
         guild.setBotStatus(GuildBotStatus.CONNECTED);
         guildRepository.save(guild);

@@ -163,7 +163,14 @@ export type GuildAuditAction =
     | "GUILD_CONNECTED"
     | "GUILD_ROLE_REVOKED"
     | "SUBMISSION_DELETED"
-    | "FORM_DELETED";
+    | "FORM_CREATED"
+    | "FORM_UPDATED"
+    | "FORM_STATUS_CHANGED"
+    | "FORM_DELETED"
+    | "BOT_REMOVED"
+    | "BOT_RECONNECTED"
+    | "BOT_PERMISSIONS_MISSING"
+    | "WEBHOOK_FAILING";
 
 export interface GuildAuditEntry {
     id: string;
@@ -173,18 +180,31 @@ export interface GuildAuditEntry {
     targetType: string | null;
     targetId: string | null;
     targetName: string | null;
-    metadata: Record<string, string> | null;
+    metadata: Record<string, unknown> | null;
     createdAt: string;
+}
+
+/** A page of a server's journal: `nextCursor` continues it, null at the end (ТЗ 4.6.2). */
+export interface GuildAuditFeed {
+    items: GuildAuditEntry[];
+    nextCursor: string | null;
 }
 
 export function getGuildAuditLog(
     guildId: string,
-    filters: { action?: GuildAuditAction; actorId?: string; page?: number; size?: number }
-): Promise<PageResponse<GuildAuditEntry>> {
-    const p = new URLSearchParams({page: String(filters.page ?? 0), size: String(filters.size ?? 30)});
-    if (filters.action) p.set("action", filters.action);
+    filters: { actions?: GuildAuditAction[]; actorId?: string; days?: number; cursor?: string | null; size?: number }
+): Promise<GuildAuditFeed> {
+    const p = new URLSearchParams({size: String(filters.size ?? 30)});
+    filters.actions?.forEach(a => p.append("action", a));
     if (filters.actorId) p.set("actorId", filters.actorId);
+    if (filters.days) p.set("days", String(filters.days));
+    if (filters.cursor) p.set("cursor", filters.cursor);
     return apiRequest(`/guilds/${guildId}/audit-log?${p}`);
+}
+
+/** Who has acted in a server's journal, for its «Кто» filter. */
+export function getGuildAuditActors(guildId: string): Promise<{ discordId: string; username: string | null }[]> {
+    return apiRequest(`/guilds/${guildId}/audit-log/actors`);
 }
 
 export interface SubmissionFile {

@@ -65,4 +65,17 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, UUID>, JpaSp
      * @since v.0.1
      */
     Page<AuditLog> findAllByActionAndActorDiscordId(AuditAction action, Long actorDiscordId, Pageable pageable);
+
+    /** Who acted in a guild's journal (ТЗ 4.6.2 «Кто»): people only, the bot's own lines have no actor. */
+    @org.springframework.data.jpa.repository.Query("""
+            select a.actorDiscordId as discordId, max(a.actorUsername) as username from AuditLog a
+            where a.guildId = :guildId and a.actorDiscordId is not null
+            group by a.actorDiscordId order by max(a.actorUsername)""")
+    java.util.List<Actor> findActorsByGuildId(Long guildId);
+
+    interface Actor {
+        Long getDiscordId();
+
+        String getUsername();
+    }
 }

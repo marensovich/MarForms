@@ -492,7 +492,12 @@
       "ROLE_CREATED": "Role Created",
       "ROLE_UPDATED": "Role Updated",
       "ROLE_DELETED": "Role Deleted",
-      "SETTINGS_UPDATED": "Settings Updated"
+      "SETTINGS_UPDATED": "Settings Updated",
+      "FORM_STATUS_CHANGED": "Form status changed",
+      "BOT_REMOVED": "Bot removed from server",
+      "BOT_RECONNECTED": "Bot back on server",
+      "BOT_PERMISSIONS_MISSING": "Bot lacks permissions",
+      "WEBHOOK_FAILING": "Form notifications failing"
     }
   },
   "system": {
@@ -610,7 +615,12 @@
         "ROLE_CREATED": "Role Created",
         "ROLE_UPDATED": "Role Updated",
         "ROLE_DELETED": "Role Deleted",
-        "SETTINGS_UPDATED": "Settings Updated"
+        "SETTINGS_UPDATED": "Settings Updated",
+        "FORM_STATUS_CHANGED": "Form status changed",
+        "BOT_REMOVED": "Bot removed from server",
+        "BOT_RECONNECTED": "Bot back on server",
+        "BOT_PERMISSIONS_MISSING": "Bot lacks permissions",
+        "WEBHOOK_FAILING": "Form notifications failing"
       }
     },
     "globalEmbed": {
@@ -1257,11 +1267,15 @@
   "guildAudit": {
     "open": "Audit log",
     "subtitle": "Moderator actions on this server",
-    "empty": "No entries yet",
+    "empty": "Nothing in this period",
     "loadError": "Couldn't load the audit log",
     "filter": {
       "allActions": "All actions",
-      "allActors": "All moderators"
+      "allActors": "all moderators",
+      "who": "Who",
+      "action": "Action",
+      "anyAction": "any",
+      "period": "Period"
     },
     "actions": {
       "SUBMISSION_DECIDED": "Submission decided",
@@ -1273,12 +1287,78 @@
       "GUILD_CONNECTED": "Server connected",
       "GUILD_ROLE_REVOKED": "Role revoked",
       "SUBMISSION_DELETED": "Submission deleted",
-      "FORM_DELETED": "Form deleted"
+      "FORM_DELETED": "Form deleted",
+      "FORM_CREATED": "Form created",
+      "FORM_UPDATED": "Form edited",
+      "FORM_STATUS_CHANGED": "Form status",
+      "BOT_REMOVED": "Bot removed",
+      "BOT_RECONNECTED": "Bot back",
+      "BOT_PERMISSIONS_MISSING": "Bot lacks permissions",
+      "WEBHOOK_FAILING": "Notifications failing"
     },
     "statusChange": "{{from}} → {{to}}",
     "reason": "Reason: {{reason}}",
     "comment": "Comment: {{comment}}",
-    "unknownActor": "System"
+    "unknownActor": "MarForms",
+    "emptyHint": "Try another period or reset the filters.",
+    "more": "Show more",
+    "today": "Today, {{day}}",
+    "yesterday": "Yesterday, {{day}}",
+    "period": {
+      "days_one": "last {{count}} day",
+      "days_other": "last {{count}} days",
+      "all": "all time"
+    },
+    "group": {
+      "decisions": "decisions",
+      "forms": "forms",
+      "moderators": "moderators",
+      "bans": "bans",
+      "submissions": "deleted submissions",
+      "bot": "bot and notifications"
+    },
+    "what": {
+      "decided": {
+        "APPROVED": "approved",
+        "REJECTED": "rejected",
+        "NEEDS_REVISION": "asked to revise",
+        "PENDING": "reopened the decision on"
+      },
+      "formStatus": {
+        "PUBLISHED": "published",
+        "CLOSED": "stopped submissions to",
+        "ARCHIVED": "archived",
+        "DRAFT": "moved to draft"
+      },
+      "FORM_CREATED": "created the form",
+      "FORM_UPDATED": "edited the form",
+      "FORM_DELETED": "deleted the form",
+      "SUBMISSION_DELETED": "deleted a submission to",
+      "GUILD_BAN_ADDED": "banned",
+      "GUILD_BAN_REMOVED": "unbanned",
+      "MODERATOR_ADDED": "added the moderator",
+      "MODERATOR_REMOVED": "removed the moderator",
+      "GUILD_ROLE_REVOKED": "revoked the server role of",
+      "GUILD_CONNECTED": "connected the server",
+      "BOT_REMOVED": "· the bot was removed from the server",
+      "BOT_RECONNECTED": "· the bot is back on the server",
+      "BOT_PERMISSIONS_MISSING": "· the bot lacks permissions",
+      "WEBHOOK_FAILING": "· notifications aren't delivered for",
+      "SUBMISSION_DM_FAILED": "· the decision DM wasn't delivered for"
+    },
+    "detail": {
+      "comment": "comment: «{{text}}»",
+      "reason": "reason: «{{text}}»",
+      "changes": "changed: {{list}}",
+      "submissionsRemoved_one": "{{count}} submission removed",
+      "submissionsRemoved_other": "{{count}} submissions removed"
+    },
+    "change": {
+      "title": "title",
+      "fields": "fields",
+      "webhooks": "notifications",
+      "access": "access"
+    }
   },
   "planUsage": {
     "title": "Plan and limits",

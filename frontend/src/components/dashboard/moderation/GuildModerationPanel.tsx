@@ -1,11 +1,12 @@
 import {useEffect, useState} from "react";
 import {useTranslation} from "react-i18next";
 import {useSearchParams} from "react-router-dom";
-import {FiChevronDown, FiChevronLeft, FiChevronRight, FiSearch} from "react-icons/fi";
+import {FiChevronLeft, FiChevronRight, FiSearch} from "react-icons/fi";
 import {type DashboardForm, getGuildForms, type MyGuild} from "../../../api/dashboard";
 import {getGuildSubmissions, type ModerationSubmission, type SubmissionStatus} from "../../../api/moderation";
 import {describeApiError} from "../../../api/errors";
 import {Avatar, cx, EmptyState, ErrorState, pageList, Skeleton} from "../../../ui";
+import FilterSelect from "./FilterSelect";
 import SubmissionCardModal from "./SubmissionCardModal";
 import {SubmissionStatusBadge} from "./SubmissionStatusBadge";
 
@@ -15,25 +16,6 @@ const PAGE_SIZE = 20;
 const STATUSES: SubmissionStatus[] = ["PENDING", "NEEDS_REVISION", "APPROVED", "REJECTED"];
 /** ?status=all shows every status; no ?status means the default, «На рассмотрении» (ФТ-4.5.1). */
 const ALL = "all";
-
-/** A filter that looks like the mockup's «Статус: <b>На рассмотрении</b> ▾» button, over a native select. */
-function FilterSelect({label, value, onChange, children}: {
-    label: string;
-    value: string;
-    onChange: (value: string) => void;
-    children: React.ReactNode;
-}) {
-    return (
-        <label className="relative flex h-10 items-center gap-2 rounded-xl border border-bd bg-sf pl-3 pr-2 text-sm text-tx focus-within:border-pr">
-            <span>{label}:</span>
-            <select value={value} onChange={e => onChange(e.target.value)}
-                    className="cursor-pointer appearance-none bg-transparent pr-6 font-bold text-tx outline-none">
-                {children}
-            </select>
-            <FiChevronDown size={16} aria-hidden="true" className="pointer-events-none absolute right-2 text-mu"/>
-        </label>
-    );
-}
 
 /**
  * A server's moderation queue (ТЗ 4.5): status, form and author filters kept

@@ -19,7 +19,12 @@ export type AuditAction =
     | "GUILD_BAN_ADDED"
     | "GUILD_BAN_REMOVED"
     | "GUILD_CONNECTED"
-    | "GUILD_ROLE_REVOKED";
+    | "GUILD_ROLE_REVOKED"
+    | "FORM_STATUS_CHANGED"
+    | "BOT_REMOVED"
+    | "BOT_RECONNECTED"
+    | "BOT_PERMISSIONS_MISSING"
+    | "WEBHOOK_FAILING";
 
 export interface AuditLogEntry {
     id: string;

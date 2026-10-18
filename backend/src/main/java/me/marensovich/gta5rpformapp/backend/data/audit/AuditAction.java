@@ -189,5 +189,20 @@ public enum AuditAction {
      * Discord no longer confirms a member's OWNER/MODERATOR role (left the
      * server, or an owner lost Manage Server), so it was revoked (#103).
      */
-    GUILD_ROLE_REVOKED
+    GUILD_ROLE_REVOKED,
+
+    /** Published, closed or archived (metadata {@code from}, {@code to}). */
+    FORM_STATUS_CHANGED,
+
+    /** The bot was removed from the server or lost access to it. */
+    BOT_REMOVED,
+
+    /** The bot is back on the server. */
+    BOT_RECONNECTED,
+
+    /** The bot lost permissions it needs (metadata {@code permissions}). */
+    BOT_PERMISSIONS_MISSING,
+
+    /** A form's webhook stopped delivering (metadata {@code health}, {@code reason}). */
+    WEBHOOK_FAILING
 }

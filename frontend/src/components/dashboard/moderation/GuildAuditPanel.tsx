@@ -1,174 +1,251 @@
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {useTranslation} from "react-i18next";
-import {FiChevronLeft, FiChevronRight, FiList} from "react-icons/fi";
-import {getGuildModerators, type GuildModerator, type MyGuild} from "../../../api/dashboard";
-import {type GuildAuditAction, type GuildAuditEntry, getGuildAuditLog} from "../../../api/moderation";
+import type {IconType} from "react-icons";
+import {FiAlertTriangle, FiCheck, FiEdit2, FiFileText, FiLink, FiSlash, FiTrash2, FiUserMinus, FiUserPlus, FiX} from "react-icons/fi";
+import type {MyGuild} from "../../../api/dashboard";
+import {type GuildAuditAction, type GuildAuditEntry, getGuildAuditActors, getGuildAuditLog} from "../../../api/moderation";
 import {describeApiError} from "../../../api/errors";
-import {Badge, EmptyState, TabSkeleton} from "../shared";
+import {cx, EmptyState, ErrorState, Skeleton, Spinner} from "../../../ui";
+import FilterSelect from "./FilterSelect";
 
-const ACTIONS: GuildAuditAction[] = [
-    "SUBMISSION_DECIDED", "SUBMISSION_DM_FAILED", "MODERATOR_ADDED", "MODERATOR_REMOVED", "GUILD_BAN_ADDED", "GUILD_BAN_REMOVED",
-    "GUILD_CONNECTED", "GUILD_ROLE_REVOKED", "SUBMISSION_DELETED", "FORM_DELETED",
-];
-
-const COLOR: Record<GuildAuditAction, "purple" | "green" | "red"> = {
-    SUBMISSION_DECIDED: "purple",
-    SUBMISSION_DM_FAILED: "red",
-    MODERATOR_ADDED: "green",
-    MODERATOR_REMOVED: "red",
-    GUILD_BAN_ADDED: "red",
-    GUILD_BAN_REMOVED: "green",
-    GUILD_CONNECTED: "purple",
-    GUILD_ROLE_REVOKED: "red",
-    SUBMISSION_DELETED: "red",
-    FORM_DELETED: "red",
-};
+// Docs: docs/design/mockups/WsAudit.dc.html; ТЗ 4.6.
 
 const PAGE_SIZE = 30;
 
-function Details({entry}: { entry: GuildAuditEntry }) {
-    const {t} = useTranslation();
-    const m = entry.metadata ?? {};
-    return (
-        <div className="min-w-0">
-            <p className="truncate text-sm text-tx">
-                {entry.targetName ?? entry.targetId ?? "—"}
-                {entry.targetType === "USER" && entry.targetId && (
-                    <span className="ml-1.5 font-mono text-[11px] text-mu">{entry.targetId}</span>
-                )}
-            </p>
-            {m.from && m.to && (
-                <p className="text-xs text-mu">
-                    {t("guildAudit.statusChange", {
-                        from: t(`moderation.status.${m.from}`),
-                        to: t(`moderation.status.${m.to}`),
-                    })}
-                </p>
-            )}
-            {m.comment && <p className="break-words text-xs text-mu">{t("guildAudit.comment", {comment: m.comment})}</p>}
-            {m.reason && <p className="break-words text-xs text-mu">{t("guildAudit.reason", {reason: m.reason})}</p>}
-        </div>
-    );
+/** «Действие»: kinds of actions, each a set of journal actions (the API takes several). */
+const GROUPS: Record<string, GuildAuditAction[]> = {
+    decisions: ["SUBMISSION_DECIDED"],
+    forms: ["FORM_CREATED", "FORM_UPDATED", "FORM_STATUS_CHANGED", "FORM_DELETED"],
+    moderators: ["MODERATOR_ADDED", "MODERATOR_REMOVED", "GUILD_ROLE_REVOKED"],
+    bans: ["GUILD_BAN_ADDED", "GUILD_BAN_REMOVED"],
+    submissions: ["SUBMISSION_DELETED"],
+    bot: ["BOT_REMOVED", "BOT_RECONNECTED", "BOT_PERMISSIONS_MISSING", "WEBHOOK_FAILING", "SUBMISSION_DM_FAILED", "GUILD_CONNECTED"],
+};
+const PERIODS = [1, 7, 30, 90, 0];
+
+const TONE = {
+    ok: "bg-gnb text-gnt",
+    no: "bg-rdb text-rdt",
+    rev: "bg-prs text-prt",
+    form: "bg-s2 text-tx",
+    warn: "bg-amb text-amt",
+} as const;
+
+const str = (v: unknown) => (typeof v === "string" || typeof v === "number" ? String(v) : undefined);
+
+/** The line's kind: its i18n key, icon and colour. */
+function kindOf(e: GuildAuditEntry): { key: string; icon: IconType; tone: keyof typeof TONE } {
+    const m = e.metadata ?? {};
+    switch (e.action) {
+        case "SUBMISSION_DECIDED": {
+            const to = str(m.to);
+            if (to === "APPROVED") return {key: "decided.APPROVED", icon: FiCheck, tone: "ok"};
+            if (to === "REJECTED") return {key: "decided.REJECTED", icon: FiX, tone: "no"};
+            if (to === "NEEDS_REVISION") return {key: "decided.NEEDS_REVISION", icon: FiEdit2, tone: "rev"};
+            return {key: "decided.PENDING", icon: FiEdit2, tone: "rev"};
+        }
+        case "FORM_STATUS_CHANGED":
+            return {key: `formStatus.${str(m.to) ?? "PUBLISHED"}`, icon: FiFileText, tone: "form"};
+        case "FORM_CREATED":
+        case "FORM_UPDATED":
+            return {key: e.action, icon: FiFileText, tone: "form"};
+        case "FORM_DELETED":
+        case "SUBMISSION_DELETED":
+            return {key: e.action, icon: FiTrash2, tone: "no"};
+        case "GUILD_BAN_ADDED":
+            return {key: e.action, icon: FiSlash, tone: "no"};
+        case "GUILD_BAN_REMOVED":
+            return {key: e.action, icon: FiCheck, tone: "ok"};
+        case "MODERATOR_ADDED":
+            return {key: e.action, icon: FiUserPlus, tone: "warn"};
+        case "MODERATOR_REMOVED":
+        case "GUILD_ROLE_REVOKED":
+            return {key: e.action, icon: FiUserMinus, tone: "warn"};
+        case "GUILD_CONNECTED":
+        case "BOT_RECONNECTED":
+            return {key: e.action, icon: FiLink, tone: "ok"};
+        case "BOT_REMOVED":
+            return {key: e.action, icon: FiX, tone: "no"};
+        default:
+            return {key: e.action, icon: FiAlertTriangle, tone: "warn"};
+    }
+}
+
+/** The grey mono line under an entry: the comment, reason, what changed. */
+function detailOf(e: GuildAuditEntry, t: (k: string, o?: Record<string, unknown>) => string): string | null {
+    const m = e.metadata ?? {};
+    const parts: string[] = [];
+    if (str(m.comment)) parts.push(t("guildAudit.detail.comment", {text: str(m.comment)}));
+    if (str(m.reason) && e.action !== "WEBHOOK_FAILING") parts.push(t("guildAudit.detail.reason", {text: str(m.reason)}));
+    if (e.action === "WEBHOOK_FAILING" && str(m.reason)) {
+        parts.push(t(`guildForms.banner.reason.${str(m.reason)}`, {defaultValue: str(m.reason)}));
+    }
+    if (Array.isArray(m.changes) && m.changes.length) {
+        parts.push(t("guildAudit.detail.changes", {list: m.changes.map(c => t(`guildAudit.change.${c}`)).join(", ")}));
+    }
+    if (Array.isArray(m.permissions) && m.permissions.length) {
+        parts.push(m.permissions.map(p => t(`servers.permission.${p}`)).join(", "));
+    }
+    if (e.action === "FORM_DELETED" && m.submissions !== undefined) {
+        parts.push(t("guildAudit.detail.submissionsRemoved", {count: Number(m.submissions)}));
+    }
+    if (e.targetType === "USER" && e.targetId) parts.push(`ID ${e.targetId}`);
+    return parts.length ? parts.join(" · ") : null;
+}
+
+/** «Сегодня, 15 октября» / «Вчера, 14 октября» / «13 октября». */
+function dayLabel(iso: string, lang: string, t: (k: string, o?: Record<string, unknown>) => string): string {
+    const date = new Date(iso);
+    const day = date.toLocaleDateString(lang, {
+        day: "numeric", month: "long", ...(date.getFullYear() !== new Date().getFullYear() ? {year: "numeric"} : {}),
+    });
+    const start = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const diff = Math.round((start(new Date()) - start(date)) / 86_400_000);
+    if (diff === 0) return t("guildAudit.today", {day});
+    if (diff === 1) return t("guildAudit.yesterday", {day});
+    return day;
 }
 
 /**
- * A server's audit log for its owner (task #78): who decided what, who
- * was made or removed as moderator, who was banned. Moderators can't open
- * it; the API refuses them too.
+ * A server's journal (ТЗ 4.6): staff actions as a feed by day — who, what,
+ * on what, with the comment or reason — filtered by who, the kind of action
+ * and the period, loaded further as the reader scrolls.
  */
 export default function GuildAuditPanel({guild}: { guild: MyGuild }) {
-    const {t} = useTranslation();
-    const [entries, setEntries] = useState<GuildAuditEntry[]>([]);
-    const [moderators, setModerators] = useState<GuildModerator[]>([]);
-    const [action, setAction] = useState<GuildAuditAction | "">("");
-    const [actorId, setActorId] = useState("");
-    const [page, setPage] = useState(0);
-    const [totalPages, setTotalPages] = useState(0);
-    const [loading, setLoading] = useState(true);
+    const {t, i18n} = useTranslation();
+    const [actor, setActor] = useState("");
+    const [group, setGroup] = useState("");
+    const [days, setDays] = useState(7);
+    const [actors, setActors] = useState<{ discordId: string; username: string | null }[]>([]);
+    const [feed, setFeed] = useState<{ key: string; items: GuildAuditEntry[]; next: string | null } | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [more, setMore] = useState(false);
+    const [reloadKey, setReloadKey] = useState(0);
+    const sentinel = useRef<HTMLDivElement>(null);
+
+    const filters = {actions: group ? GROUPS[group] : undefined, actorId: actor || undefined, days: days || undefined};
+    const key = `${guild.guildId}|${actor}|${group}|${days}|${reloadKey}`;
 
     useEffect(() => {
-        getGuildModerators(guild.guildId).then(setModerators).catch(() => setModerators([]));
+        getGuildAuditActors(guild.guildId).then(setActors).catch(() => setActors([]));
     }, [guild.guildId]);
 
     useEffect(() => {
         let cancelled = false;
-        getGuildAuditLog(guild.guildId, {action: action || undefined, actorId: actorId || undefined, page, size: PAGE_SIZE})
+        getGuildAuditLog(guild.guildId, {...filters, size: PAGE_SIZE})
             .then(r => {
                 if (cancelled) return;
-                setEntries(r.content);
-                setTotalPages(r.page.totalPages);
+                setFeed({key, items: r.items, next: r.nextCursor});
                 setError(null);
             })
-            .catch(e => {
-                if (!cancelled) setError(describeApiError(e, t("guildAudit.loadError")));
-            })
-            .finally(() => {
-                if (!cancelled) setLoading(false);
-            });
+            .catch(e => !cancelled && setError(describeApiError(e, t("guildAudit.loadError"))));
         return () => {
             cancelled = true;
         };
-    }, [guild.guildId, action, actorId, page, t]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- `key` stands for the filters
+    }, [key, t]);
 
-    const changePage = (next: number) => {
-        setLoading(true);
-        setPage(next);
+    const loading = !error && feed?.key !== key;
+    const next = feed?.key === key ? feed.next : null;
+
+    const loadMore = async () => {
+        if (!next || more) return;
+        setMore(true);
+        try {
+            const r = await getGuildAuditLog(guild.guildId, {...filters, cursor: next, size: PAGE_SIZE});
+            setFeed(f => f && f.key === key ? {key, items: [...f.items, ...r.items], next: r.nextCursor} : f);
+        } catch (e) {
+            setError(describeApiError(e, t("guildAudit.loadError")));
+        } finally {
+            setMore(false);
+        }
     };
 
+    // Scrolling to the end loads the next page (ФТ-4.6.2); the button stays for keyboards and no-IO browsers.
+    const loadMoreRef = useRef(loadMore);
+    useEffect(() => {
+        loadMoreRef.current = loadMore;
+    });
+    useEffect(() => {
+        const node = sentinel.current;
+        if (!node || !next || typeof IntersectionObserver === "undefined") return;
+        const io = new IntersectionObserver(entries => entries.some(e => e.isIntersecting) && loadMoreRef.current());
+        io.observe(node);
+        return () => io.disconnect();
+    }, [next]);
+
+    const items = feed?.key === key ? feed.items : [];
+    const groups: { day: string; items: GuildAuditEntry[] }[] = [];
+    for (const e of items) {
+        const day = dayLabel(e.createdAt, i18n.language, t);
+        if (groups.at(-1)?.day === day) groups.at(-1)!.items.push(e);
+        else groups.push({day, items: [e]});
+    }
+
     return (
-        <div>
-            <div className="mb-6">
-                <h2 className="text-lg font-semibold text-tx">{t("shell.guild.audit")}</h2>
-                <p className="mt-0.5 text-sm text-mu">{t("guildAudit.subtitle")}</p>
-            </div>
-
-            <div className="mb-4 flex flex-wrap items-center gap-2">
-                <select
-                    value={action}
-                    onChange={e => {
-                        setLoading(true);
-                        setPage(0);
-                        setAction(e.target.value as GuildAuditAction | "");
-                    }}
-                    className="rounded-lg border border-bd bg-sf px-3 py-2 text-xs text-mu outline-none focus:border-pr"
-                >
-                    <option value="">{t("guildAudit.filter.allActions")}</option>
-                    {ACTIONS.map(a => <option key={a} value={a}>{t(`guildAudit.actions.${a}`)}</option>)}
-                </select>
-                <select
-                    value={actorId}
-                    onChange={e => {
-                        setLoading(true);
-                        setPage(0);
-                        setActorId(e.target.value);
-                    }}
-                    className="rounded-lg border border-bd bg-sf px-3 py-2 text-xs text-mu outline-none focus:border-pr"
-                >
+        <div className="flex max-w-[980px] flex-col gap-5 pt-6">
+            <div className="flex flex-wrap gap-2.5">
+                <FilterSelect label={t("guildAudit.filter.who")} value={actor} onChange={setActor} strong={false}>
                     <option value="">{t("guildAudit.filter.allActors")}</option>
-                    {moderators.map(m => <option key={m.discordId} value={m.discordId}>{m.username}</option>)}
-                </select>
+                    {actors.map(a => <option key={a.discordId} value={a.discordId}>{a.username ?? a.discordId}</option>)}
+                </FilterSelect>
+                <FilterSelect label={t("guildAudit.filter.action")} value={group} onChange={setGroup} strong={false}>
+                    <option value="">{t("guildAudit.filter.anyAction")}</option>
+                    {Object.keys(GROUPS).map(g => <option key={g} value={g}>{t(`guildAudit.group.${g}`)}</option>)}
+                </FilterSelect>
+                <FilterSelect label={t("guildAudit.filter.period")} value={String(days)} onChange={v => setDays(Number(v))} strong={false}>
+                    {PERIODS.map(d => <option key={d} value={d}>{t(d ? "guildAudit.period.days" : "guildAudit.period.all", {count: d})}</option>)}
+                </FilterSelect>
             </div>
 
-            {error && (
-                <div className="mb-4 rounded-lg border border-rdb bg-rdb px-3 py-2 text-xs text-rdt">
-                    {error}
+            {error ? (
+                <ErrorState title={t("guildAudit.loadError")} text={error} onRetry={() => setReloadKey(k => k + 1)}
+                            retryLabel={t("ui.retry")}/>
+            ) : loading ? (
+                <div className="flex flex-col gap-2" aria-busy="true">
+                    {[0, 1, 2, 3].map(i => <Skeleton key={i} className="h-16 rounded-xl"/>)}
                 </div>
-            )}
-
-            {loading ? (
-                <TabSkeleton rows={5}/>
-            ) : entries.length === 0 ? (
-                <EmptyState message={t("guildAudit.empty")} icon={<FiList/>}/>
+            ) : items.length === 0 ? (
+                <EmptyState title={t("guildAudit.empty")} text={t("guildAudit.emptyHint")}/>
             ) : (
-                <ul className="divide-y divide-bd overflow-hidden rounded-xl border border-bd bg-sf">
-                    {entries.map(entry => (
-                        <li key={entry.id} className="grid grid-cols-[150px_170px_1fr] items-start gap-4 px-5 py-3">
-                            <div>
-                                <p className="text-xs text-mu">{new Date(entry.createdAt).toLocaleString()}</p>
-                                <p className="mt-0.5 truncate text-xs font-medium text-tx">
-                                    {entry.actorUsername ?? entry.actorDiscordId ?? t("guildAudit.unknownActor")}
-                                </p>
-                            </div>
-                            <div>
-                                <Badge color={COLOR[entry.action]} dot>{t(`guildAudit.actions.${entry.action}`)}</Badge>
-                            </div>
-                            <Details entry={entry}/>
-                        </li>
-                    ))}
-                </ul>
+                groups.map(g => (
+                    <section key={g.day} className="flex flex-col">
+                        <h2 className="m-0 mb-3 text-[13px] font-semibold uppercase tracking-[0.06em] text-mu">{g.day}</h2>
+                        <ol className="m-0 list-none rounded-2xl border border-bd bg-sf p-0 py-1">
+                            {g.items.map(e => {
+                                const kind = kindOf(e);
+                                const detail = detailOf(e, t);
+                                const who = e.actorUsername ?? (e.actorDiscordId ? e.actorDiscordId : t("guildAudit.unknownActor"));
+                                return (
+                                    <li key={e.id} className="flex gap-3.5 px-[18px] py-3.5">
+                                        <span className={cx("grid h-[34px] w-[34px] flex-none place-items-center rounded-[10px]", TONE[kind.tone])}>
+                                            <kind.icon size={16} aria-hidden="true"/>
+                                        </span>
+                                        <div className="flex min-w-0 flex-1 flex-col gap-1">
+                                            <span className="text-sm leading-[1.45]">
+                                                <b>{who}</b> {t(`guildAudit.what.${kind.key}`)}{" "}
+                                                {e.targetName && <span className="font-medium text-prt">{e.targetName}</span>}
+                                            </span>
+                                            {detail && (
+                                                <span className="break-words rounded-[10px] bg-s2 px-2.5 py-2 font-mono text-[13px] text-mu">{detail}</span>
+                                            )}
+                                        </div>
+                                        <time dateTime={e.createdAt} className="flex-none text-[13px] tabular-nums text-mu">
+                                            {new Date(e.createdAt).toLocaleTimeString(i18n.language, {hour: "2-digit", minute: "2-digit"})}
+                                        </time>
+                                    </li>
+                                );
+                            })}
+                        </ol>
+                    </section>
+                ))
             )}
 
-            {totalPages > 1 && (
-                <div className="mt-4 flex items-center justify-end gap-1.5">
-                    <button onClick={() => changePage(Math.max(0, page - 1))} disabled={page === 0}
-                            className="flex items-center gap-1 rounded-lg border border-bd px-3 py-1.5 text-xs text-mu transition-colors hover:text-tx disabled:cursor-not-allowed disabled:opacity-30">
-                        <FiChevronLeft size={13}/> {t("responses.pagination.prev")}
-                    </button>
-                    <span className="px-2 text-xs text-mu">{page + 1} / {totalPages}</span>
-                    <button onClick={() => changePage(Math.min(totalPages - 1, page + 1))} disabled={page >= totalPages - 1}
-                            className="flex items-center gap-1 rounded-lg border border-bd px-3 py-1.5 text-xs text-mu transition-colors hover:text-tx disabled:cursor-not-allowed disabled:opacity-30">
-                        {t("responses.pagination.next")} <FiChevronRight size={13}/>
+            {next && !loading && (
+                <div ref={sentinel} className="self-center">
+                    <button type="button" onClick={loadMore} disabled={more}
+                            className="flex h-10 items-center gap-2 rounded-xl border border-bd bg-sf px-4 text-sm font-medium text-tx hover:bg-s2 disabled:opacity-60">
+                        {more && <Spinner/>}{t("guildAudit.more")}
                     </button>
                 </div>
             )}

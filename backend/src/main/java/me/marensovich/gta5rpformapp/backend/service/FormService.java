@@ -213,9 +213,7 @@ public class FormService {
         // bot install verified through Discord (GuildConnectService). Platform
         // staff creating a form for a guild manage it through FORMS_MANAGE.
 
-        auditLogService.logByCurrentUser(AuditAction.FORM_CREATED,
-                saved.getId().toString(), saved.getSchema().getTitle(),
-                "Form ID: " + saved.getId());
+        logForm(saved, AuditAction.FORM_CREATED, null, "Form ID: " + saved.getId());
         return saved;
     }
 
@@ -283,8 +281,17 @@ public class FormService {
         if (oldWebhookCount != newWebhookCount)
             changes.add("Webhooks: " + oldWebhookCount + " → " + newWebhookCount);
 
-        auditLogService.logByCurrentUser(AuditAction.FORM_UPDATED, saved.getId().toString(), saved.getSchema().getTitle(),
-                changes.isEmpty() ? null : String.join("\n", changes));
+        List<String> changed = new ArrayList<>();
+        if (!oldTitle.equals(newTitle)) changed.add("title");
+        if (oldFieldCount != newFieldCount || request.schema() != null) changed.add("fields");
+        if (request.webhooks() != null) changed.add("webhooks");
+        if (request.settings() != null) changed.add("access");
+        // Publishing or closing reads as its own journal line; the content changes as another.
+        if (oldStatus != saved.getStatus()) logStatusChange(saved, oldStatus);
+        if (!changed.isEmpty() || oldStatus == saved.getStatus()) {
+            logForm(saved, AuditAction.FORM_UPDATED, Map.of("changes", changed),
+                    changes.isEmpty() ? null : String.join("\n", changes));
+        }
         return saved;
     }
 
@@ -304,8 +311,8 @@ public class FormService {
         Form form = getById(formId);
         applySettings(form, request);
         Form saved = formRepository.save(form);
-        auditLogService.logByCurrentUser(AuditAction.FORM_UPDATED, saved.getId().toString(),
-                saved.getSchema().getTitle(), "Access settings: " + request.accessMode());
+        logForm(saved, AuditAction.FORM_UPDATED, Map.of("changes", List.of("access")),
+                "Access settings: " + request.accessMode());
         return saved;
     }
 
@@ -456,8 +463,23 @@ public class FormService {
     }
 
     private void logStatusChange(Form form, FormStatus old) {
-        auditLogService.logByCurrentUser(AuditAction.FORM_UPDATED, form.getId().toString(),
-                form.getSchema().getTitle(), "Status: " + old + " → " + form.getStatus());
+        logForm(form, AuditAction.FORM_STATUS_CHANGED, Map.of("from", old.name(), "to", form.getStatus().name()),
+                "Status: " + old + " → " + form.getStatus());
+    }
+
+    /**
+     * A form's change goes to its server's journal (ТЗ 4.6.1) — and, like
+     * every guild action, to the platform's; a form with no server only to
+     * the platform's.
+     */
+    private void logForm(Form form, AuditAction action, Map<String, Object> metadata, String details) {
+        String title = form.getSchema() != null ? form.getSchema().getTitle() : null;
+        if (form.getServerId() != null) {
+            auditLogService.logGuildAction(form.getServerId(), action, "FORM", form.getId().toString(), title,
+                    metadata, details);
+        } else {
+            auditLogService.logByCurrentUser(action, form.getId().toString(), title, details);
+        }
     }
 
     // ── Fields (task #42) ───────────────────────────────────────────────────
@@ -553,8 +575,7 @@ public class FormService {
         form.setSchema(schema);
         if (form.getStatus() == FormStatus.PUBLISHED) requirePublishable(form);
         Form saved = formRepository.save(form);
-        auditLogService.logByCurrentUser(AuditAction.FORM_UPDATED, saved.getId().toString(),
-                schema.getTitle(), auditDetail);
+        logForm(saved, AuditAction.FORM_UPDATED, Map.of("changes", List.of("fields")), auditDetail);
         return saved;
     }
 
@@ -626,6 +647,12 @@ public class FormService {
             if (changed) formRepository.save(form);
             // Told once, when it goes from working to not (#122).
             if (broke && form.getServerId() != null) {
+                Map<String, Object> metadata = new LinkedHashMap<>();
+                metadata.put("health", health.name());
+                if (reason != null) metadata.put("reason", reason);
+                auditLogService.logGuildActionAs(null, "Discord", form.getServerId(), AuditAction.WEBHOOK_FAILING, "FORM",
+                        form.getId().toString(), form.getSchema() != null ? form.getSchema().getTitle() : null, metadata,
+                        error != null ? WebhookUrlCipher.redact(error) : null);
                 java.util.Map<String, String> params = new java.util.LinkedHashMap<>();
                 params.put("form", form.getSchema() != null ? form.getSchema().getTitle() : null);
                 params.put("reason", reason);

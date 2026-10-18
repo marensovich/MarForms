@@ -10,6 +10,7 @@ import me.marensovich.gta5rpformapp.backend.service.discord.DiscordWebhookUrl;
 import me.marensovich.gta5rpformapp.backend.service.discord.WebhookUrlCipher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -20,6 +21,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -124,22 +126,52 @@ public class AuditLogService {
     }
 
     /**
-     * A guild's audit log, newest first (E2.5).
+     * A page of a guild's journal for its feed (ТЗ 4.6.2): newest first, after
+     * the cursor of the previous page, so new entries never shift what was loaded.
      *
      * @param guildId        the Discord guild snowflake ID
-     * @param action         optional filter by action
+     * @param actions        the actions to show; empty or {@code null} = any
      * @param actorDiscordId optional filter by who acted
-     * @param pageable       pagination
-     * @return the matching entries
+     * @param since          optional lower bound of the period
+     * @param cursor         {@link #cursorOf} of the last entry already shown, or {@code null}
+     * @param size           how many entries
+     * @return the entries, one more than {@code size} if there are more
      * @since v.0.1
      */
-    public Page<AuditLog> listForGuild(Long guildId, AuditAction action, Long actorDiscordId, Pageable pageable) {
+    public List<AuditLog> feedForGuild(Long guildId, java.util.Set<AuditAction> actions, Long actorDiscordId,
+                                       LocalDateTime since, String cursor, int size) {
+        Specification<AuditLog> spec = guildSpec(guildId, actions, actorDiscordId, since);
+        if (cursor != null && !cursor.isBlank()) {
+            int bar = cursor.indexOf('|');
+            if (bar < 0) throw new IllegalArgumentException("Bad cursor");
+            LocalDateTime at = LocalDateTime.parse(cursor.substring(0, bar));
+            UUID id = UUID.fromString(cursor.substring(bar + 1));
+            spec = spec.and((root, query, cb) -> cb.or(cb.lessThan(root.<LocalDateTime>get("createdAt"), at),
+                    cb.and(cb.equal(root.get("createdAt"), at), cb.lessThan(root.<UUID>get("id"), id))));
+        }
+        return auditLogRepository.findAll(spec, org.springframework.data.domain.PageRequest.of(0, size + 1,
+                Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id")))).getContent();
+    }
+
+    /** Where the next feed page starts: after this entry. */
+    public static String cursorOf(AuditLog entry) {
+        return entry.getCreatedAt() + "|" + entry.getId();
+    }
+
+    /** Everyone who has acted in a guild's journal, for its «Кто» filter. */
+    public List<AuditLogRepository.Actor> actorsOfGuild(Long guildId) {
+        return auditLogRepository.findActorsByGuildId(guildId);
+    }
+
+    private static Specification<AuditLog> guildSpec(Long guildId, java.util.Set<AuditAction> actions,
+                                                     Long actorDiscordId, LocalDateTime since) {
         Specification<AuditLog> spec = (root, query, cb) -> cb.equal(root.get("guildId"), guildId);
-        if (action != null) spec = spec.and((root, query, cb) -> cb.equal(root.get("action"), action));
+        if (actions != null && !actions.isEmpty()) spec = spec.and((root, query, cb) -> root.get("action").in(actions));
         if (actorDiscordId != null) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("actorDiscordId"), actorDiscordId));
         }
-        return auditLogRepository.findAll(spec, pageable);
+        if (since != null) spec = spec.and((root, query, cb) -> cb.greaterThanOrEqualTo(root.<LocalDateTime>get("createdAt"), since));
+        return spec;
     }
 
     // ── Query ───────────────────────────────────────────────────────────────
@@ -371,6 +403,11 @@ public class AuditLogService {
             case GUILD_BAN_REMOVED -> "🟢 Server Ban Removed";
             case GUILD_CONNECTED -> "🔗 Server Connected";
             case GUILD_ROLE_REVOKED -> "🔴 Server Role Revoked";
+            case FORM_STATUS_CHANGED -> "🔵 Form Status Changed";
+            case BOT_REMOVED -> "🔴 Bot Removed From Server";
+            case BOT_RECONNECTED -> "🟢 Bot Back On Server";
+            case BOT_PERMISSIONS_MISSING -> "🟡 Bot Lacks Permissions";
+            case WEBHOOK_FAILING -> "🟡 Webhook Not Delivering";
         };
     }
 
@@ -388,7 +425,10 @@ public class AuditLogService {
             case USER_LOGIN, FORM_UPDATED, ROLE_UPDATED -> 0x5865F2;
             case USER_ROLES_UPDATED, SETTINGS_UPDATED -> 0xFEE75C;
             case SUBMISSION_DECIDED -> 0xEB459E;
-            case SUBMISSION_DM_FAILED -> 0xFEE75C;
+            case SUBMISSION_DM_FAILED, BOT_PERMISSIONS_MISSING, WEBHOOK_FAILING -> 0xFEE75C;
+            case FORM_STATUS_CHANGED -> 0x5865F2;
+            case BOT_REMOVED -> 0xED4245;
+            case BOT_RECONNECTED -> 0x57F287;
         };
     }
 }
