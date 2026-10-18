@@ -96,6 +96,14 @@ public class GuildMembership {
      */
     private LocalDateTime staffVerifiedAt;
 
+    /** Who made this member a moderator (their Discord ID), ТЗ 4.7.1; {@code null} for an owner or older rows. */
+    @Column(name = "moderator_added_by")
+    private Long moderatorAddedBy;
+
+    /** When this member was made a moderator. */
+    @Column(name = "moderator_added_at")
+    private LocalDateTime moderatorAddedAt;
+
     /**
      * When this membership row was first created.
      *

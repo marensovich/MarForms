@@ -36,6 +36,14 @@ public class GuildModeratorController {
         return guildMembershipService.listModerators(guildId);
     }
 
+    /** Server members whose name starts with {@code q}, for the «Добавить модератора» picker (ТЗ ФТ-4.7.2). */
+    @PreAuthorize("@guildAccess.hasRole(#guildId, 'OWNER')")
+    @GetMapping("/candidates")
+    public List<GuildMembershipService.MemberCandidate> candidates(@PathVariable Long guildId,
+                                                                   @RequestParam(defaultValue = "") String q) {
+        return guildMembershipService.searchMembers(guildId, q);
+    }
+
     @PreAuthorize("@guildAccess.hasRole(#guildId, 'OWNER')")
     @PostMapping
     public ResponseEntity<ModeratorDto> add(@PathVariable Long guildId, @RequestBody AddModeratorRequest request) {

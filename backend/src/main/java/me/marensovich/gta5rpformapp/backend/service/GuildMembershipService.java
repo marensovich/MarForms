@@ -101,19 +101,51 @@ public class GuildMembershipService {
     }
 
     /**
-     * Lists a guild's moderators.
+     * A guild's team for the «Модераторы» tab (ТЗ 4.7.1): its owners first,
+     * then the moderators oldest first, each with who added them.
      *
      * @param guildDiscordId the Discord guild snowflake ID
-     * @return the moderators, oldest first
+     * @return the team
      * @since v.0.1
      */
     @Transactional(readOnly = true)
     public List<ModeratorDto> listModerators(Long guildDiscordId) {
-        return guildMembershipRepository.findAllByGuild_DiscordGuildIdAndRole(guildDiscordId, GuildRole.MODERATOR)
-                .stream()
-                .map(ModeratorDto::from)
-                .sorted(Comparator.comparing(ModeratorDto::since))
+        List<GuildMembership> team = new java.util.ArrayList<>(
+                guildMembershipRepository.findAllByGuild_DiscordGuildIdAndRole(guildDiscordId, GuildRole.OWNER));
+        team.addAll(guildMembershipRepository.findAllByGuild_DiscordGuildIdAndRole(guildDiscordId, GuildRole.MODERATOR));
+        java.util.Map<Long, String> names = new java.util.HashMap<>();
+        team.stream().map(GuildMembership::getModeratorAddedBy).filter(java.util.Objects::nonNull).distinct()
+                .forEach(id -> userRepository.findByDiscordId(id).ifPresent(u -> names.put(id, u.getDiscordUsername())));
+        return team.stream()
+                .map(m -> ModeratorDto.from(m, names.get(m.getModeratorAddedBy())))
+                .sorted(Comparator.comparing((ModeratorDto d) -> d.role() != GuildRole.OWNER).thenComparing(ModeratorDto::since))
                 .toList();
+    }
+
+    /** A server member the owner may make a moderator (ТЗ ФТ-4.7.2), with their current role here, if any. */
+    public record MemberCandidate(
+            @com.fasterxml.jackson.databind.annotation.JsonSerialize(using = com.fasterxml.jackson.databind.ser.std.ToStringSerializer.class)
+            Long discordId, String username, String displayName, String avatarUrl, GuildRole role) {
+    }
+
+    /**
+     * Members of a server whose name starts with {@code query}, through the bot —
+     * whether or not they have used MarForms yet.
+     *
+     * @param guildDiscordId the Discord guild snowflake ID
+     * @param query          the start of a username or nickname
+     * @return up to 10 members
+     * @since v.0.1
+     */
+    @Transactional(readOnly = true)
+    public List<MemberCandidate> searchMembers(Long guildDiscordId, String query) {
+        if (query == null || query.isBlank()) return List.of();
+        return discordBotClient.searchMembers(guildDiscordId, query, 10).stream().map(m -> {
+            long id = Long.parseUnsignedLong(m.id());
+            GuildRole role = guildMembershipRepository.findByUser_DiscordIdAndGuild_DiscordGuildId(id, guildDiscordId)
+                    .map(GuildMembership::getRole).filter(r -> r != GuildRole.RESPONDENT).orElse(null);
+            return new MemberCandidate(id, m.username(), m.displayName(), m.avatarUrl(), role);
+        }).toList();
     }
 
     /**
@@ -140,7 +172,7 @@ public class GuildMembershipService {
      */
     @Transactional
     public ModeratorDto addModerator(Long guildDiscordId, AddModeratorRequest request) {
-        User user = resolveUser(request);
+        User user = resolveUser(guildDiscordId, request);
         Guild guild = guildService.getOrCreate(guildDiscordId);
 
         GuildMembership membership = guildMembershipRepository
@@ -158,6 +190,8 @@ public class GuildMembershipService {
         if (membership.getRole() != GuildRole.MODERATOR) {
             planLimitService.requireRoomFor(guildDiscordId, PlanMetric.MODERATORS);
             membership.setRole(GuildRole.MODERATOR);
+            membership.setModeratorAddedBy(auditLogService.currentActorId());
+            membership.setModeratorAddedAt(LocalDateTime.now());
             membership = guildMembershipRepository.save(membership);
             auditLogService.logGuildAction(guildDiscordId, AuditAction.MODERATOR_ADDED, "USER",
                     user.getDiscordId().toString(), user.getDiscordUsername(), null, null);
@@ -181,12 +215,18 @@ public class GuildMembershipService {
                 .filter(m -> m.getRole() == GuildRole.MODERATOR)
                 .orElseThrow(() -> new NotFoundException("User " + userDiscordId + " is not a moderator of this server"));
         membership.setRole(GuildRole.RESPONDENT);
+        membership.setModeratorAddedBy(null);
+        membership.setModeratorAddedAt(null);
         guildMembershipRepository.save(membership);
         auditLogService.logGuildAction(guildDiscordId, AuditAction.MODERATOR_REMOVED, "USER",
                 userDiscordId.toString(), membership.getUser().getDiscordUsername(), null, null);
     }
 
-    private User resolveUser(AddModeratorRequest request) {
+    /**
+     * The user a moderator request names (ТЗ ФТ-4.7.2: they must be a member of
+     * the server). A member who never used MarForms is taken from Discord.
+     */
+    private User resolveUser(Long guildDiscordId, AddModeratorRequest request) {
         if (request == null) throw new IllegalArgumentException("Specify a Discord ID or username");
         if (request.discordId() != null && !request.discordId().isBlank()) {
             long discordId;
@@ -195,9 +235,20 @@ public class GuildMembershipService {
             } catch (NumberFormatException e) {
                 throw new IllegalArgumentException("Invalid Discord ID: " + request.discordId());
             }
-            return userRepository.findByDiscordId(discordId)
-                    .orElseThrow(() -> new NotFoundException(
-                            "No user with Discord ID " + discordId + " — they need to log in to MarForms once first"));
+            User known = userRepository.findByDiscordId(discordId).orElse(null);
+            if (known != null) {
+                if (discordBotClient.memberStatus(guildDiscordId, discordId) == DiscordBotClient.MemberStatus.NOT_MEMBER) {
+                    throw new IllegalArgumentException("This user isn't a member of the server");
+                }
+                return known;
+            }
+            DiscordBotClient.MemberInfo member = discordBotClient.fetchMember(guildDiscordId, discordId)
+                    .orElseThrow(() -> new NotFoundException("No member with Discord ID " + discordId + " on this server"));
+            User created = new User();
+            created.setDiscordId(discordId);
+            created.setDiscordUsername(member.username());
+            created.setRoles(new java.util.HashSet<>());
+            return userRepository.save(created);
         }
         if (request.username() != null && !request.username().isBlank()) {
             String username = request.username().trim();

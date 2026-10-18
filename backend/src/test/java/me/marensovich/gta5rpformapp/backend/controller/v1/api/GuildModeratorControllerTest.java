@@ -46,12 +46,18 @@ class GuildModeratorControllerTest {
 
     private Guild guild;
 
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private me.marensovich.gta5rpformapp.backend.service.discord.DiscordBotClient discordBotClient;
+
     @BeforeEach
     void setUp() {
         guild = new Guild();
         guild.setDiscordGuildId(GUILD);
         guild.setName("Test Guild");
         guild = guildRepository.save(guild);
+        // As without a bot session: Discord can't tell, so staff checks keep what is stored.
+        org.mockito.Mockito.when(discordBotClient.memberStatus(org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.anyLong()))
+                .thenReturn(me.marensovich.gta5rpformapp.backend.service.discord.DiscordBotClient.MemberStatus.UNKNOWN);
     }
 
     private User user(long discordId, String name, GuildRole role) {
@@ -80,8 +86,11 @@ class GuildModeratorControllerTest {
 
         mvc.perform(get("/api/v1/guilds/{g}/moderators", GUILD).header("Authorization", bearer(owner)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].discordId").value("2"))
-                .andExpect(jsonPath("$[0].username").value("mod"));
+                .andExpect(jsonPath("$[0].discordId").value("1"))
+                .andExpect(jsonPath("$[0].role").value("OWNER"))
+                .andExpect(jsonPath("$[1].discordId").value("2"))
+                .andExpect(jsonPath("$[1].username").value("mod"))
+                .andExpect(jsonPath("$[1].role").value("MODERATOR"));
     }
 
     @Test
@@ -111,6 +120,34 @@ class GuildModeratorControllerTest {
 
         mvc.perform(delete("/api/v1/guilds/{g}/moderators/{u}", GUILD, 5L).header("Authorization", bearer(owner)))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void theTeamShowsWhoAddedAModeratorAndOnlyServerMembersCanBeAdded() throws Exception {
+        User owner = user(1L, "owner", GuildRole.OWNER);
+        user(6L, "left", null);
+        user(7L, "member", null);
+        org.mockito.Mockito.when(discordBotClient.memberStatus(GUILD, 6L))
+                .thenReturn(me.marensovich.gta5rpformapp.backend.service.discord.DiscordBotClient.MemberStatus.NOT_MEMBER);
+        org.mockito.Mockito.when(discordBotClient.fetchMember(GUILD, 8L)).thenReturn(java.util.Optional.of(
+                new me.marensovich.gta5rpformapp.backend.service.discord.DiscordBotClient.MemberInfo("8", "fresh", "Fresh", null)));
+
+        mvc.perform(post("/api/v1/guilds/{g}/moderators", GUILD).header("Authorization", bearer(owner))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"discordId\":\"6\"}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(post("/api/v1/guilds/{g}/moderators", GUILD).header("Authorization", bearer(owner))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"discordId\":\"7\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.addedById").value("1"));
+        // Never used MarForms, but is on the server: taken from Discord.
+        mvc.perform(post("/api/v1/guilds/{g}/moderators", GUILD).header("Authorization", bearer(owner))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"discordId\":\"8\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.username").value("fresh"));
+
+        mvc.perform(get("/api/v1/guilds/{g}/moderators", GUILD).header("Authorization", bearer(owner)))
+                .andExpect(jsonPath("$.length()").value(3))
+                .andExpect(jsonPath("$[1].addedByName").value("owner"));
     }
 
     @Test

@@ -221,6 +221,54 @@ public class DiscordBotClient {
         }
     }
 
+    /** A server member as the moderator picker shows them (#130). */
+    public record MemberInfo(String id, String username, String displayName, String avatarUrl) {
+        static MemberInfo of(Member m) {
+            return new MemberInfo(m.getId(), m.getUser().getName(), m.getEffectiveName(), m.getEffectiveAvatarUrl());
+        }
+    }
+
+    /**
+     * Members whose username or nickname starts with {@code prefix} (ТЗ ФТ-4.7.2).
+     * A prefix query over the Gateway needs no privileged intent, unlike a full listing.
+     *
+     * @param guildId the Discord guild snowflake ID
+     * @param prefix  the start of the name, not blank
+     * @param limit   at most this many, 1–100
+     * @return the matches, empty without a bot session or on failure
+     * @since v.0.1
+     */
+    public List<MemberInfo> searchMembers(Long guildId, String prefix, int limit) {
+        if (jda == null || prefix == null || prefix.isBlank()) return List.of();
+        Guild guild = jda.getGuildById(guildId);
+        if (guild == null) return List.of();
+        try {
+            return guild.retrieveMembersByPrefix(prefix.trim(), limit).get().stream()
+                    .filter(m -> !m.getUser().isBot()).map(MemberInfo::of).toList();
+        } catch (Exception e) {
+            log.warn("Failed to search members of guild {}: {}", guildId, e.getMessage());
+            return List.of();
+        }
+    }
+
+    /**
+     * One member of a guild, by ID.
+     *
+     * @return the member, empty if they aren't one or it can't be told
+     * @since v.0.1
+     */
+    public Optional<MemberInfo> fetchMember(Long guildId, Long userId) {
+        if (jda == null) return Optional.empty();
+        Guild guild = jda.getGuildById(guildId);
+        if (guild == null) return Optional.empty();
+        try {
+            return Optional.of(MemberInfo.of(guild.retrieveMemberById(userId).complete()));
+        } catch (Exception e) {
+            log.debug("No member {} on guild {}: {}", userId, guildId, e.getMessage());
+            return Optional.empty();
+        }
+    }
+
     /**
      * Names and colours of a guild's roles, from the bot's cache — to show
      * a member's cached role IDs ({@code GuildMembership.discordRoles}) as

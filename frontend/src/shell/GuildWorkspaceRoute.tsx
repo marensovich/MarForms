@@ -2,7 +2,7 @@ import {Navigate, useNavigate, useParams, useSearchParams} from "react-router-do
 import GuildFormsPanel from "../components/dashboard/GuildFormsPanel";
 import GuildAuditPanel from "../components/dashboard/moderation/GuildAuditPanel";
 import GuildModerationPanel from "../components/dashboard/moderation/GuildModerationPanel";
-import ModeratorsModal from "../components/dashboard/ModeratorsModal";
+import ModeratorsPanel from "../components/dashboard/moderation/ModeratorsPanel";
 import BansModal from "../components/dashboard/BansModal";
 import BillingModal from "../components/dashboard/BillingModal";
 import {TabSkeleton} from "../components/dashboard/shared";
@@ -39,7 +39,7 @@ export default function GuildWorkspaceRoute() {
             case "audit":
                 return <GuildAuditPanel guild={guild}/>;
             case "moderators":
-                return <ModeratorsModal guild={guild} onClose={back} asPage/>;
+                return <ModeratorsPanel guild={guild}/>;
             case "bans":
                 return <BansModal guild={guild} onClose={back} asPage/>;
             case "billing":

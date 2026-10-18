@@ -162,14 +162,34 @@ export function refreshMyGuilds(): Promise<MyGuild[]> {
     return apiRequest("/me/guilds/refresh", {method: "POST"});
 }
 
+/** A member of a server's team (ТЗ 4.7.1): its owners first, then the moderators. */
 export interface GuildModerator {
     discordId: string;
     username: string;
+    avatarUrl?: string | null;
+    role?: "OWNER" | "MODERATOR";
+    /** When they became a moderator. */
     since: string;
+    addedById?: string | null;
+    addedByName?: string | null;
 }
 
 export function getGuildModerators(guildId: string): Promise<GuildModerator[]> {
     return apiRequest(`/guilds/${guildId}/moderators`);
+}
+
+/** A server member found through the bot, for the moderator picker (ФТ-4.7.2). */
+export interface MemberCandidate {
+    discordId: string;
+    username: string;
+    displayName: string | null;
+    avatarUrl: string | null;
+    /** OWNER or MODERATOR if they already are one here. */
+    role: "OWNER" | "MODERATOR" | null;
+}
+
+export function searchGuildMembers(guildId: string, q: string, signal?: AbortSignal): Promise<MemberCandidate[]> {
+    return apiRequest(`/guilds/${guildId}/moderators/candidates?q=${encodeURIComponent(q)}`, {signal});
 }
 
 export function addGuildModerator(
