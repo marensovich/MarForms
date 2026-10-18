@@ -346,36 +346,6 @@
       "USER_TIMEOUT_LIFTED": "Снятие тайм-аута"
     }
   },
-  "system": {
-    "title": "Обзор системы",
-    "subtitle": "Метрики сервера в реальном времени — обновляется каждые 3 секунды",
-    "failedFetch": "Не удалось получить данные системы. Проверьте подключение к бэкенду.",
-    "cpu": {
-      "title": "Нагрузка CPU",
-      "label": "Процессор"
-    },
-    "ram": {
-      "title": "Использование RAM",
-      "label": "Память"
-    },
-    "disk": {
-      "title": "Использование диска",
-      "label": "Хранилище"
-    },
-    "of": "из",
-    "info": {
-      "title": "Информация о системе",
-      "os": "Операционная система",
-      "jvm": "Версия JVM",
-      "appVersion": "Версия приложения",
-      "uptime": "Время работы"
-    },
-    "updates": {
-      "title": "Обновления",
-      "currentVersion": "Вы используете актуальную версию",
-      "checkUpdates": "Проверить обновления"
-    }
-  },
   "settings": {
     "title": "Настройки",
     "subtitle": "Конфигурация системы",
@@ -2222,5 +2192,68 @@
     "loadError": "Не удалось загрузить журнал",
     "empty": "Записей пока нет",
     "emptyFiltered": "С такими фильтрами записей нет."
+  },
+  "adminSystem": {
+    "title": "Система",
+    "subtitle": "Состояние сервера приложения и фоновых задач.",
+    "live": "Обновляется каждые 3 секунды",
+    "offline": "Нет связи · данные устарели",
+    "down": "Бэкенд недоступен.",
+    "lastAnswer_one": "Последний ответ {{count}} секунду назад.",
+    "lastAnswer_few": "Последний ответ {{count}} секунды назад.",
+    "lastAnswer_many": "Последний ответ {{count}} секунд назад.",
+    "lastAnswer_other": "Последний ответ {{count}} секунды назад.",
+    "noAnswer": "Ответа ещё не было.",
+    "staleShown": "Показаны устаревшие данные.",
+    "retryIn_one": "Повторная попытка через {{count}} с.",
+    "retryIn_few": "Повторная попытка через {{count}} с.",
+    "retryIn_many": "Повторная попытка через {{count}} с.",
+    "retryIn_other": "Повторная попытка через {{count}} с.",
+    "retryNow": "Повторить сейчас",
+    "disk": "Диск",
+    "cores_one": "{{count}} ядро",
+    "cores_few": "{{count}} ядра",
+    "cores_many": "{{count}} ядер",
+    "cores_other": "{{count}} ядра",
+    "load": "load avg {{value}}",
+    "noLoad": "load avg недоступен",
+    "ofGb": "{{used}} из {{total}} ГБ",
+    "heap": "heap JVM {{used}} из {{max}} ГБ",
+    "uploads": "загрузки {{value}}",
+    "database": "БД {{value}}",
+    "gb": "{{value}} ГБ",
+    "mb": "{{value}} МБ",
+    "lastFive": "Последние 5 минут",
+    "about": {
+      "title": "О системе",
+      "os": "ОС",
+      "version": "Версия",
+      "uptime": "Аптайм"
+    },
+    "uptime": "{{d}} д {{h}} ч {{m}} мин",
+    "jobs": {
+      "title": "Фоновые задачи",
+      "queued": "В очереди",
+      "failed": "Ошибки",
+      "succeeded": "Успешно · 24ч"
+    },
+    "webhooks": {
+      "title": "Доставка вебхуков",
+      "split_one": "{{healthy}}% Healthy · {{degraded}}% Degraded · {{invalid}}% Invalid ({{count}} вебхук)",
+      "split_few": "{{healthy}}% Healthy · {{degraded}}% Degraded · {{invalid}}% Invalid ({{count}} вебхука)",
+      "split_many": "{{healthy}}% Healthy · {{degraded}}% Degraded · {{invalid}}% Invalid ({{count}} вебхуков)",
+      "split_other": "{{healthy}}% Healthy · {{degraded}}% Degraded · {{invalid}}% Invalid ({{count}} вебхука)",
+      "none": "Вебхуков пока нет"
+    },
+    "updates": {
+      "title": "Обновления",
+      "current": "Текущая версия",
+      "available": "Доступна {{version}}:",
+      "notes": "Что нового",
+      "upToDate": "Установлена последняя версия.",
+      "checked": "Проверено {{date}}",
+      "check": "Проверить обновления",
+      "failed": "Не удалось проверить обновления"
+    }
   }
 }

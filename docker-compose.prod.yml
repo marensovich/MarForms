@@ -20,7 +20,11 @@ services:
     restart: unless-stopped
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      args:
+        # Shown in «Система → О системе»: GIT_COMMIT=$(git rev-parse --short HEAD)
+        GIT_COMMIT: ${GIT_COMMIT:-}
     env_file: .env
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-marforms}

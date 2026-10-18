@@ -48,4 +48,10 @@ public interface OutboundJobRepository extends JpaRepository<OutboundJob, UUID> 
     @Transactional
     @Query("DELETE FROM OutboundJob j WHERE j.status IN :statuses AND j.updatedAt < :cutoff")
     int deleteFinishedBefore(Collection<OutboundJobStatus> statuses, LocalDateTime cutoff);
+
+    /** The queue's state for «Система → Фоновые задачи» (ТЗ 6.6). */
+    long countByStatus(OutboundJobStatus status);
+
+    /** Jobs that finished this way since the moment, e.g. succeeded in the last 24 hours. */
+    long countByStatusAndUpdatedAtAfter(OutboundJobStatus status, LocalDateTime since);
 }

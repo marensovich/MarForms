@@ -6,7 +6,9 @@ COPY gradlew settings.gradle build.gradle ./
 COPY gradle gradle
 RUN ./gradlew --no-daemon dependencies > /dev/null
 COPY src src
-RUN ./gradlew --no-daemon bootJar -x test && cp build/libs/*-SNAPSHOT.jar /app.jar
+# The commit for «О системе» (#147): there is no .git in the build context.
+ARG GIT_COMMIT=""
+RUN GIT_COMMIT=$GIT_COMMIT ./gradlew --no-daemon bootJar -x test && cp build/libs/*-SNAPSHOT.jar /app.jar
 
 FROM eclipse-temurin:25-jre
 RUN useradd --system --uid 10001 marforms && mkdir -p /data/uploads && chown marforms /data/uploads

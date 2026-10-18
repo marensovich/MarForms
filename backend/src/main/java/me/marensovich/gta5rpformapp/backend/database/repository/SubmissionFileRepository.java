@@ -39,4 +39,8 @@ public interface SubmissionFileRepository extends JpaRepository<SubmissionFile, 
     @Query("select f from SubmissionFile f where f.submissionId is not null "
             + "and not exists (select s.id from Submission s where s.id = f.submissionId)")
     List<SubmissionFile> findAllWithMissingSubmission();
+
+    /** Bytes of every uploaded file (ТЗ 6.6 «место под загрузки»). */
+    @Query("select coalesce(sum(f.sizeBytes), 0) from SubmissionFile f")
+    long totalBytes();
 }

@@ -82,3 +82,37 @@ tasks.named('bootRun') {
                 }
     }
 }
+
+// «О системе» (ТЗ 6.6, #147): the build's version (META-INF/build-info.properties)
+// and the commit it came from (git.properties). Spring Boot exposes both as beans.
+springBoot {
+    buildInfo {
+        excludes = ['time']
+    }
+}
+
+tasks.register('gitProperties') {
+    def out = layout.buildDirectory.file('generated/git/git.properties')
+    def repo = rootDir
+    outputs.file(out)
+    outputs.upToDateWhen { false }
+    doLast {
+        // The Docker build has no .git: it passes the commit in GIT_COMMIT.
+        String commit = System.getenv('GIT_COMMIT') ?: ''
+        if (!commit) {
+            try {
+                def git = new ProcessBuilder('git', 'rev-parse', '--short', 'HEAD').directory(repo).redirectErrorStream(true).start()
+                if (git.waitFor() == 0) commit = git.inputStream.text.trim()
+            } catch (ignored) {
+                // No git: the commit stays unknown.
+            }
+        }
+        def file = out.get().asFile
+        file.parentFile.mkdirs()
+        file.text = "git.commit.id.abbrev=${commit}\n"
+    }
+}
+
+tasks.named('processResources') {
+    from(tasks.named('gitProperties'))
+}

@@ -338,36 +338,6 @@
       "USER_TIMEOUT_LIFTED": "Time-out Lifted"
     }
   },
-  "system": {
-    "title": "System Overview",
-    "subtitle": "Real-time server metrics — updates every 3 seconds",
-    "failedFetch": "Failed to fetch system info. Check backend connection.",
-    "cpu": {
-      "title": "CPU Usage",
-      "label": "Processor"
-    },
-    "ram": {
-      "title": "RAM Usage",
-      "label": "Memory"
-    },
-    "disk": {
-      "title": "Disk Usage",
-      "label": "Storage"
-    },
-    "of": "of",
-    "info": {
-      "title": "System Information",
-      "os": "Operating System",
-      "jvm": "JVM Version",
-      "appVersion": "App Version",
-      "uptime": "App Uptime"
-    },
-    "updates": {
-      "title": "Updates",
-      "currentVersion": "You are on the current version",
-      "checkUpdates": "Check for updates"
-    }
-  },
   "settings": {
     "title": "Settings",
     "subtitle": "Configure system-wide behaviour",
@@ -2150,5 +2120,60 @@
     "loadError": "Couldn't load the log",
     "empty": "No entries yet",
     "emptyFiltered": "No entries match these filters."
+  },
+  "adminSystem": {
+    "title": "System",
+    "subtitle": "The state of the application server and background jobs.",
+    "live": "Updates every 3 seconds",
+    "offline": "No connection · data is stale",
+    "down": "The backend is unavailable.",
+    "lastAnswer_one": "Last answer {{count}} second ago.",
+    "lastAnswer_other": "Last answer {{count}} seconds ago.",
+    "noAnswer": "No answer yet.",
+    "staleShown": "Showing stale data.",
+    "retryIn_one": "Retrying in {{count}} s.",
+    "retryIn_other": "Retrying in {{count}} s.",
+    "retryNow": "Retry now",
+    "disk": "Disk",
+    "cores_one": "{{count}} core",
+    "cores_other": "{{count}} cores",
+    "load": "load avg {{value}}",
+    "noLoad": "load avg unavailable",
+    "ofGb": "{{used}} of {{total}} GB",
+    "heap": "JVM heap {{used}} of {{max}} GB",
+    "uploads": "uploads {{value}}",
+    "database": "DB {{value}}",
+    "gb": "{{value}} GB",
+    "mb": "{{value}} MB",
+    "lastFive": "Last 5 minutes",
+    "about": {
+      "title": "About",
+      "os": "OS",
+      "version": "Version",
+      "uptime": "Uptime"
+    },
+    "uptime": "{{d}} d {{h}} h {{m}} min",
+    "jobs": {
+      "title": "Background jobs",
+      "queued": "Queued",
+      "failed": "Failed",
+      "succeeded": "Succeeded · 24h"
+    },
+    "webhooks": {
+      "title": "Webhook delivery",
+      "split_one": "{{healthy}}% Healthy · {{degraded}}% Degraded · {{invalid}}% Invalid ({{count}} webhook)",
+      "split_other": "{{healthy}}% Healthy · {{degraded}}% Degraded · {{invalid}}% Invalid ({{count}} webhooks)",
+      "none": "No webhooks yet"
+    },
+    "updates": {
+      "title": "Updates",
+      "current": "Current version",
+      "available": "{{version}} is available:",
+      "notes": "What's new",
+      "upToDate": "This is the latest version.",
+      "checked": "Checked {{date}}",
+      "check": "Check for updates",
+      "failed": "Couldn't check for updates"
+    }
   }
 }
