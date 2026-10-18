@@ -50,6 +50,7 @@ public class AuditLogService {
     private final SettingsService settingsService;
     private final RestTemplate restTemplate;
     private final ApplicationEventPublisher events;
+    private volatile Delivery lastDelivery;
 
     // ── Public logging API ──────────────────────────────────────────────────
 
@@ -115,10 +116,9 @@ public class AuditLogService {
 
     /**
      * Records a moderator action on a guild (E2.5): what its owner reviews
-     * on the server's audit screen. The actor is the current user. Always
-     * stored, whatever the platform's enabled-actions setting says (that
-     * filter is for the platform journal); forwarded to the platform's
-     * log webhook only if the action is enabled there.
+     * on the server's audit screen. The actor is the current user. An action
+     * disabled in the platform's journal filters is written nowhere — neither
+     * journal nor webhook (ТЗ 6.7).
      *
      * @param guildId    the Discord guild snowflake ID
      * @param action     what happened
@@ -144,12 +144,13 @@ public class AuditLogService {
     public void logGuildActionAs(Long actorId, String actorUsername, Long guildId, AuditAction action,
                                  String targetType, String targetId, String targetName,
                                  Map<String, Object> metadata, String details) {
+        if (!isActionEnabled(action)) return;
         AuditLog entry = buildEntry(action, actorId, actorUsername, targetId, targetName, details);
         entry.setGuildId(guildId);
         entry.setTargetType(targetType);
         entry.setMetadata(metadata);
         auditLogRepository.save(entry);
-        if (isActionEnabled(action)) events.publishEvent(new AuditLogDispatcher.Dispatch(entry));
+        events.publishEvent(new AuditLogDispatcher.Dispatch(entry));
         events.publishEvent(new AuditLogStream.Saved(entry));
     }
 
@@ -359,16 +360,60 @@ public class AuditLogService {
             log.warn("Audit log webhook setting is not a Discord webhook URL — not dispatching");
             return;
         }
-        try {
-            Map<String, Object> payload = new LinkedHashMap<>();
-            payload.put("embeds", List.of(buildEmbed(entry)));
+        Delivery d = post(webhook, List.of(buildEmbed(entry)));
+        if (!d.ok()) log.warn("Audit log Discord dispatch failed: {}", d.status());
+    }
 
+    /**
+     * How the journal webhook last answered (ТЗ 6.7 «Последняя доставка»).
+     *
+     * @param ok     Discord took the message
+     * @param status the HTTP status, or why it failed
+     * @param at     when
+     */
+    public record Delivery(boolean ok, String status, LocalDateTime at) {
+    }
+
+    /** The last delivery to the journal webhook since the start, {@code null} if none. */
+    public Delivery lastDelivery() {
+        return lastDelivery;
+    }
+
+    /**
+     * «Отправить тест» (ТЗ 6.7): a test message to the given journal webhook,
+     * or to the saved one if none is given.
+     *
+     * @param url a Discord webhook URL, may be {@code null}
+     * @return how it went
+     * @throws IllegalArgumentException if there is no Discord webhook to send to
+     * @since v.0.1
+     */
+    public Delivery testWebhook(String url) {
+        String target = url != null && !url.isBlank() ? url : settingsService.get(LOG_WEBHOOK_KEY, null);
+        DiscordWebhookUrl webhook = target == null ? null : DiscordWebhookUrl.parse(target).orElse(null);
+        if (webhook == null) throw new IllegalArgumentException("That's not a Discord webhook URL");
+        Map<String, Object> embed = new LinkedHashMap<>();
+        embed.put("title", "MarForms · проверка журнала");
+        embed.put("description", "Сюда будут приходить записи журнала платформы. Отвечать на это сообщение не нужно.");
+        embed.put("color", 0x5865F2);
+        embed.put("timestamp", java.time.OffsetDateTime.now().toString());
+        return post(webhook, List.of(embed));
+    }
+
+    private Delivery post(DiscordWebhookUrl webhook, List<Map<String, Object>> embeds) {
+        Delivery d;
+        try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            restTemplate.postForEntity(webhook.canonical(), new HttpEntity<>(payload, headers), String.class);
+            var response = restTemplate.postForEntity(webhook.canonical(), new HttpEntity<>(Map.of("embeds", embeds), headers), String.class);
+            d = new Delivery(true, String.valueOf(response.getStatusCode().value()), LocalDateTime.now());
+        } catch (org.springframework.web.client.HttpStatusCodeException e) {
+            d = new Delivery(false, String.valueOf(e.getStatusCode().value()), LocalDateTime.now());
         } catch (Exception e) {
-            log.warn("Audit log Discord dispatch failed: {}", WebhookUrlCipher.redact(e.getMessage()));
+            d = new Delivery(false, WebhookUrlCipher.redact(e.getMessage()), LocalDateTime.now());
         }
+        lastDelivery = d;
+        return d;
     }
 
     /**

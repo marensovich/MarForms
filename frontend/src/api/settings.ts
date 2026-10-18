@@ -4,11 +4,12 @@ export interface PublicSettings {
     banMessage: string;
     banAdminContact: string;
     systemName: string;
+    /** Support contact, shown on the sign-in and public pages. */
+    systemContact: string;
     uiLanguage: string;
 }
 
 export interface SystemSettings extends PublicSettings {
-    systemContact: string;
     logWebhookUrl: string;
     logEnabledActions: string;
     globalEmbedColor: string;
@@ -56,4 +57,21 @@ export function updateSettings(payload: Partial<SystemSettings>): Promise<System
             "ui.language": payload.uiLanguage,
         },
     });
+}
+
+/** How the journal webhook last answered (ТЗ 6.7). */
+export interface LogDelivery {
+    ok: boolean;
+    /** The HTTP status, or why it failed. */
+    status: string;
+    at: string;
+}
+
+export function fetchLogWebhook(): Promise<{ configured: boolean; lastDelivery: LogDelivery | null }> {
+    return apiRequest("/settings/log-webhook");
+}
+
+/** «Отправить тест»: to the URL being edited, or the saved one. */
+export function testLogWebhook(url?: string): Promise<LogDelivery> {
+    return apiRequest("/settings/log-webhook/test", {method: "POST", body: {url: url ?? ""}});
 }

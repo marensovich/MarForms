@@ -346,129 +346,6 @@
       "USER_TIMEOUT_LIFTED": "Снятие тайм-аута"
     }
   },
-  "settings": {
-    "title": "Настройки",
-    "subtitle": "Конфигурация системы",
-    "save": "Сохранить настройки",
-    "saving": "Сохранение…",
-    "saved": "Сохранено",
-    "saveError": "Не удалось сохранить настройки.",
-    "unsavedChanges": "Несохранённые изменения",
-    "saveSuccess": "Настройки успешно сохранены",
-    "noPendingChanges": "Нет изменений",
-    "activeLabel": "активен",
-    "notConfigured": "не настроен",
-    "discordLoggingActive": "Discord-логирование активно — включённые события будут пересылаться.",
-    "availableVars": "Доступные переменные",
-    "sections": {
-      "general": "Основное",
-      "generalDesc": "Основная идентичность системы, отображаемая пользователям при входе и в интерфейсе.",
-      "language": "Язык интерфейса",
-      "auditLog": "Вебхук журнала аудита",
-      "auditLogDesc": "Опционально пересылайте каждую запись журнала аудита в Discord в реальном времени.",
-      "logFilters": "Фильтры журнала",
-      "logFiltersDesc": "Выберите, какие типы действий записываются. Отключённые действия молча игнорируются — они не появятся ни в таблице журнала, ни в Discord.",
-      "globalEmbed": "Глобальный Embed",
-      "globalEmbedDesc": "Второй embed, добавляемый к каждому сообщению вебхука. Настраивает блок брендинга, видимый под ответами формы.",
-      "ban": "Настройки бана и ограничений",
-      "banDesc": "Настройте, что видят заблокированные пользователи при попытке входа."
-    },
-    "general": {
-      "systemName": "Название системы",
-      "systemNameDesc": "Отображается на публичных страницах и экране входа",
-      "systemContact": "Контакт системы",
-      "systemContactDesc": "Контактная информация в системных панелях",
-      "banMessage": "Сообщение о бане",
-      "banMessageDesc": "Показывается пользователям при бане",
-      "banContact": "Контакт для апелляции",
-      "banContactDesc": "Discord-ник, email или ссылка на экране бана"
-    },
-    "language": {
-      "label": "Язык интерфейса",
-      "desc": "Применяется для всех пользователей панели администратора",
-      "en": "English",
-      "ru": "Русский"
-    },
-    "auditLog": {
-      "webhookUrl": "Discord Webhook URL",
-      "webhookUrlDesc": "Сюда будут отправляться события аудита"
-    },
-    "logFilters": {
-      "subtitle": "Выберите какие события отправлять в Discord",
-      "selectAll": "Выбрать все",
-      "deselectAll": "Снять все",
-      "enabled": "включено",
-      "noneLabel": "ничего",
-      "allLabel": "все",
-      "actionsSuppressed_one": "{{count}} действие отключено",
-      "actionsSuppressed_few": "{{count}} действия отключено",
-      "actionsSuppressed_other": "{{count}} действий отключено",
-      "groups": {
-        "Authentication": "Аутентификация",
-        "Users": "Пользователи",
-        "Forms": "Формы",
-        "Submissions": "Ответы",
-        "Roles": "Роли",
-        "System": "Система"
-      },
-      "actions": {
-        "USER_LOGIN": "Вход",
-        "USER_BANNED": "Бан",
-        "USER_UNBANNED": "Разбан",
-        "USER_ROLES_UPDATED": "Роли обновлены",
-        "FORM_CREATED": "Форма создана",
-        "FORM_UPDATED": "Форма обновлена",
-        "FORM_DELETED": "Форма удалена",
-        "SUBMISSION_CREATED": "Ответ создан",
-        "SUBMISSION_DELETED": "Ответ удалён",
-        "SUBMISSION_DECIDED": "Решение по заявке",
-        "SUBMISSION_DM_FAILED": "ЛС о решении не доставлено",
-        "MODERATOR_ADDED": "Назначен модератор",
-        "MODERATOR_REMOVED": "Снят модератор",
-        "GUILD_BAN_ADDED": "Бан на сервере",
-        "GUILD_BAN_REMOVED": "Снят бан на сервере",
-        "GUILD_CONNECTED": "Сервер подключён",
-        "GUILD_ROLE_REVOKED": "Права на сервере отозваны",
-        "ROLE_CREATED": "Роль создана",
-        "ROLE_UPDATED": "Роль обновлена",
-        "ROLE_DELETED": "Роль удалена",
-        "SETTINGS_UPDATED": "Настройки обновлены",
-        "FORM_STATUS_CHANGED": "Статус формы изменён",
-        "BOT_REMOVED": "Бот удалён с сервера",
-        "BOT_RECONNECTED": "Бот вернулся на сервер",
-        "BOT_PERMISSIONS_MISSING": "Боту не хватает прав",
-        "WEBHOOK_FAILING": "Уведомления формы не доставляются",
-        "USER_TIMED_OUT": "Тайм-аут",
-        "USER_TIMEOUT_LIFTED": "Снятие тайм-аута"
-      }
-    },
-    "globalEmbed": {
-      "varHint": "Работают во всех текстовых полях. {user_mention} отображается как пинг только в content и description — не в author/title/footer.",
-      "color": "Цвет Embed",
-      "authorGroup": "Автор",
-      "authorName": "Имя автора",
-      "authorNameDesc": "Отображается вверху embed. Поддерживает переменные.",
-      "authorIconUrl": "URL иконки автора",
-      "authorIconDesc": "Маленькое круглое изображение рядом с именем",
-      "authorUrl": "URL автора",
-      "authorUrlDesc": "Делает имя автора кликабельной ссылкой",
-      "contentGroup": "Контент",
-      "embedTitle": "Заголовок Embed",
-      "titleDesc": "Необязательный заголовок embed. Поддерживает переменные.",
-      "embedDesc": "Описание Embed",
-      "descDesc": "Текст под заголовком. Поддерживает markdown и переменные.",
-      "imagesGroup": "Изображения",
-      "thumbnailUrl": "URL миниатюры",
-      "thumbnailDesc": "Маленькое изображение в правом верхнем углу",
-      "imageUrl": "URL изображения",
-      "imageDesc": "Большой баннер под контентом",
-      "footerGroup": "Футер",
-      "footerText": "Текст футера",
-      "footerTextDesc": "Текст внизу embed. Поддерживает переменные.",
-      "footerIconUrl": "URL иконки футера",
-      "footerIconDesc": "Маленькое круглое изображение рядом с текстом футера"
-    }
-  },
   "wizard": {
     "createDraft": "Создать черновик",
     "steps": {
@@ -2255,5 +2132,77 @@
       "check": "Проверить обновления",
       "failed": "Не удалось проверить обновления"
     }
+  },
+  "adminSettings": {
+    "title": "Настройки",
+    "subtitle": "Общесистемные параметры. Действуют для всех серверов и пользователей.",
+    "menu": "Разделы настроек",
+    "section": {
+      "general": "Общие",
+      "webhook": "Вебхук журнала",
+      "filters": "Фильтры журнала",
+      "embed": "Общий embed",
+      "bans": "Баны и ограничения"
+    },
+    "general": {
+      "text": "Название показывается на странице входа и на публичных формах.",
+      "name": "Название системы",
+      "contact": "Контакт поддержки",
+      "language": "Язык интерфейса по умолчанию"
+    },
+    "webhook": {
+      "text": "Копия каждой записи журнала отправляется в канал Discord.",
+      "active": "Активен",
+      "off": "Не настроен",
+      "url": "URL вебхука",
+      "test": "Отправить тест",
+      "last": "Последняя доставка: {{date}} · {{status}}",
+      "never": "Доставок ещё не было.",
+      "testOk": "Тестовое сообщение доставлено",
+      "testFailed": "Discord не принял сообщение: {{status}}",
+      "testError": "Не удалось отправить тест"
+    },
+    "filters": {
+      "text": "Какие действия записывать. Отключённые не попадут ни в журнал, ни в вебхук."
+    },
+    "embed": {
+      "text": "Блок брендинга, добавляемый к каждому уведомлению в Discord.",
+      "title": "Заголовок",
+      "description": "Текст",
+      "color": "Цвет",
+      "colorHex": "Цвет в HEX",
+      "footer": "Футер",
+      "variables": "Переменные",
+      "insert": "Вставить в поле",
+      "more": "Автор и изображения",
+      "globalEmbedAuthorName": "Имя автора",
+      "globalEmbedAuthorIcon": "Иконка автора (URL)",
+      "globalEmbedAuthorUrl": "Ссылка автора",
+      "globalEmbedThumbnail": "Миниатюра (URL)",
+      "globalEmbedImage": "Изображение (URL)",
+      "globalEmbedFooterIcon": "Иконка футера (URL)",
+      "preview": "Предпросмотр в Discord",
+      "bot": "БОТ",
+      "empty": "Общий embed не задан — к уведомлениям ничего не добавится."
+    },
+    "bans": {
+      "text": "Что видит пользователь с ограниченным аккаунтом.",
+      "message": "Текст для ограниченных",
+      "contact": "Контакт для апелляций",
+      "preview": "Предпросмотр",
+      "badge": "Аккаунт ограничен",
+      "heading": "Доступ ограничен",
+      "noMessage": "Текст не задан.",
+      "sampleReason": "Причина: Мультиаккаунты"
+    },
+    "unsaved": "Несохранённые изменения",
+    "reset": "Сбросить",
+    "saved": "Настройки сохранены",
+    "saveError": "Не удалось сохранить настройки",
+    "leaveTitle": "Уйти без сохранения?",
+    "leaveText": "Изменения настроек пропадут.",
+    "leave": "Уйти",
+    "stay": "Остаться",
+    "loadError": "Не удалось загрузить настройки"
   }
 }

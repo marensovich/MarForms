@@ -56,8 +56,38 @@ public class SettingsController {
         pub.put("banMessage", s.banMessage());
         pub.put("banAdminContact", s.banAdminContact());
         pub.put("systemName", s.systemName());
+        pub.put("systemContact", s.systemContact());
         pub.put("uiLanguage", s.uiLanguage());
         return pub;
+    }
+
+    /**
+     * The journal webhook's state (ТЗ 6.7): configured or not, and how it last answered.
+     *
+     * @return {@code configured}, {@code lastDelivery}
+     * @since v.0.1
+     */
+    @GetMapping("/log-webhook")
+    @PreAuthorize("hasAuthority('SYSTEM_ADMIN')")
+    public Map<String, Object> logWebhook() {
+        String url = settingsService.getSettings().logWebhookUrl();
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("configured", url != null && !url.isBlank());
+        out.put("lastDelivery", auditLogService.lastDelivery());
+        return out;
+    }
+
+    /**
+     * «Отправить тест» (ТЗ 6.7): a test message to the URL being edited, or the saved one.
+     *
+     * @param body {@code url}, optional
+     * @return how it went
+     * @since v.0.1
+     */
+    @PostMapping("/log-webhook/test")
+    @PreAuthorize("hasAuthority('SYSTEM_ADMIN')")
+    public AuditLogService.Delivery testLogWebhook(@RequestBody(required = false) Map<String, String> body) {
+        return auditLogService.testWebhook(body == null ? null : body.get("url"));
     }
 
     /**

@@ -9,6 +9,7 @@ import me.marensovich.gta5rpformapp.backend.data.jobs.OutboundJobStatus;
 import me.marensovich.gta5rpformapp.backend.database.entity.OutboundJob;
 import me.marensovich.gta5rpformapp.backend.database.repository.OutboundJobRepository;
 import me.marensovich.gta5rpformapp.backend.service.AuditLogService;
+import me.marensovich.gta5rpformapp.backend.service.NotificationVars;
 import me.marensovich.gta5rpformapp.backend.service.WebhookService;
 import me.marensovich.gta5rpformapp.backend.service.discord.DiscordBotClient;
 import me.marensovich.gta5rpformapp.backend.service.discord.DiscordBotClient.DmResult;
@@ -87,12 +88,13 @@ public class DecisionDmProcessor {
         DecisionDmPayload payload = objectMapper.convertValue(job.getPayload(), DecisionDmPayload.class);
         List<Map<String, Object>> embeds = new ArrayList<>();
         embeds.add(decisionEmbed(payload));
-        Map<String, Object> branding = webhookService.brandingEmbed(Map.of(
-                "form_title", nullToEmpty(payload.formTitle()),
-                "user_id", String.valueOf(payload.recipientId()),
-                "user_mention", "<@" + payload.recipientId() + ">",
-                "submission_id", String.valueOf(payload.submissionId()),
-                "server_id", payload.guildId() != null ? payload.guildId().toString() : ""));
+        Map<String, Object> branding = webhookService.brandingEmbed(NotificationVars.of()
+                .user(payload.recipientId(), null, false)
+                .form(null, payload.formTitle(), null)
+                .server(payload.guildId(), payload.guildName())
+                .status(payload.status())
+                .submission(payload.submissionId())
+                .build());
         if (branding != null) embeds.add(branding);
 
         DmResult result = botClient.sendDirectMessage(payload.recipientId(), embeds);

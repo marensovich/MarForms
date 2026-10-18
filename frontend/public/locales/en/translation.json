@@ -338,128 +338,6 @@
       "USER_TIMEOUT_LIFTED": "Time-out Lifted"
     }
   },
-  "settings": {
-    "title": "Settings",
-    "subtitle": "Configure system-wide behaviour",
-    "save": "Save settings",
-    "saving": "Saving…",
-    "saved": "Saved",
-    "saveError": "Failed to save settings.",
-    "unsavedChanges": "Unsaved changes",
-    "saveSuccess": "Settings saved successfully",
-    "noPendingChanges": "No pending changes",
-    "activeLabel": "active",
-    "notConfigured": "not configured",
-    "discordLoggingActive": "Discord logging is active — enabled events will be forwarded.",
-    "availableVars": "Available variables",
-    "sections": {
-      "general": "General",
-      "generalDesc": "Basic system identity shown to users on login and throughout the interface.",
-      "language": "Interface Language",
-      "auditLog": "Audit Log Webhook",
-      "auditLogDesc": "Optionally forward every audit log entry to a Discord channel in real time.",
-      "logFilters": "Log Filters",
-      "logFiltersDesc": "Choose which action types are recorded. Disabled actions are silently dropped — they won't appear in the log table or Discord.",
-      "globalEmbed": "Global Embed",
-      "globalEmbedDesc": "Second embed appended to every webhook submission message. Configures the branding block visible below the form answers.",
-      "ban": "Ban & Restriction Settings",
-      "banDesc": "Customize what restricted users see when they try to access the system."
-    },
-    "general": {
-      "systemName": "System name",
-      "systemNameDesc": "Displayed on public pages and login screen",
-      "systemContact": "System contact",
-      "systemContactDesc": "Contact info shown in system panels",
-      "banMessage": "Ban message",
-      "banMessageDesc": "Shown to users when they are banned",
-      "banContact": "Admin contact for appeals",
-      "banContactDesc": "Discord handle, email, or link shown on ban screen"
-    },
-    "language": {
-      "label": "Interface Language",
-      "desc": "Applies to all admin panel users",
-      "en": "English",
-      "ru": "Русский"
-    },
-    "auditLog": {
-      "webhookUrl": "Discord Webhook URL",
-      "webhookUrlDesc": "Audit events will be posted here"
-    },
-    "logFilters": {
-      "subtitle": "Choose which events trigger a Discord notification",
-      "selectAll": "Select All",
-      "deselectAll": "Deselect All",
-      "enabled": "enabled",
-      "noneLabel": "none",
-      "allLabel": "all",
-      "actionsSuppressed_one": "{{count}} action suppressed",
-      "actionsSuppressed_other": "{{count}} actions suppressed",
-      "groups": {
-        "Authentication": "Authentication",
-        "Users": "Users",
-        "Forms": "Forms",
-        "Submissions": "Submissions",
-        "Roles": "Roles",
-        "System": "System"
-      },
-      "actions": {
-        "USER_LOGIN": "Login",
-        "USER_BANNED": "User Banned",
-        "USER_UNBANNED": "User Unbanned",
-        "USER_ROLES_UPDATED": "Roles Updated",
-        "FORM_CREATED": "Form Created",
-        "FORM_UPDATED": "Form Updated",
-        "FORM_DELETED": "Form Deleted",
-        "SUBMISSION_CREATED": "Submission Created",
-        "SUBMISSION_DELETED": "Submission Deleted",
-        "SUBMISSION_DECIDED": "Submission Decided",
-        "SUBMISSION_DM_FAILED": "Decision DM not delivered",
-        "MODERATOR_ADDED": "Moderator Added",
-        "MODERATOR_REMOVED": "Moderator Removed",
-        "GUILD_BAN_ADDED": "Server Ban Added",
-        "GUILD_BAN_REMOVED": "Server Ban Removed",
-        "GUILD_CONNECTED": "Server Connected",
-        "GUILD_ROLE_REVOKED": "Server Role Revoked",
-        "ROLE_CREATED": "Role Created",
-        "ROLE_UPDATED": "Role Updated",
-        "ROLE_DELETED": "Role Deleted",
-        "SETTINGS_UPDATED": "Settings Updated",
-        "FORM_STATUS_CHANGED": "Form status changed",
-        "BOT_REMOVED": "Bot removed from server",
-        "BOT_RECONNECTED": "Bot back on server",
-        "BOT_PERMISSIONS_MISSING": "Bot lacks permissions",
-        "WEBHOOK_FAILING": "Form notifications failing",
-        "USER_TIMED_OUT": "User Timed Out",
-        "USER_TIMEOUT_LIFTED": "Time-out Lifted"
-      }
-    },
-    "globalEmbed": {
-      "varHint": "Work in all text fields. {user_mention} renders as a ping only in content and description — not in author/title/footer.",
-      "color": "Embed Color",
-      "authorGroup": "Author",
-      "authorName": "Author Name",
-      "authorNameDesc": "Shown at the top of the embed. Supports variables.",
-      "authorIconUrl": "Author Icon URL",
-      "authorIconDesc": "Small circle image next to the name",
-      "authorUrl": "Author URL",
-      "authorUrlDesc": "Makes the author name a clickable link",
-      "contentGroup": "Content",
-      "embedTitle": "Embed Title",
-      "titleDesc": "Optional embed title. Supports variables.",
-      "embedDesc": "Embed Description",
-      "descDesc": "Text below the title. Supports markdown and variables.",
-      "imagesGroup": "Images",
-      "thumbnailUrl": "Thumbnail URL",
-      "thumbnailDesc": "Small image, top-right corner",
-      "imageUrl": "Image URL",
-      "imageDesc": "Large banner below content",
-      "footerGroup": "Footer",
-      "footerText": "Footer Text",
-      "footerTextDesc": "Text at the bottom of the embed. Supports variables.",
-      "footerIconUrl": "Footer Icon URL",
-      "footerIconDesc": "Small circle image next to the footer text"
-    }
-  },
   "wizard": {
     "createDraft": "Create draft",
     "steps": {
@@ -2175,5 +2053,77 @@
       "check": "Check for updates",
       "failed": "Couldn't check for updates"
     }
+  },
+  "adminSettings": {
+    "title": "Settings",
+    "subtitle": "System-wide settings. They apply to every server and user.",
+    "menu": "Settings sections",
+    "section": {
+      "general": "General",
+      "webhook": "Log webhook",
+      "filters": "Log filters",
+      "embed": "Shared embed",
+      "bans": "Bans and restrictions"
+    },
+    "general": {
+      "text": "The name shows on the sign-in page and on public forms.",
+      "name": "System name",
+      "contact": "Support contact",
+      "language": "Default interface language"
+    },
+    "webhook": {
+      "text": "A copy of every log entry goes to a Discord channel.",
+      "active": "Active",
+      "off": "Not set",
+      "url": "Webhook URL",
+      "test": "Send test",
+      "last": "Last delivery: {{date}} · {{status}}",
+      "never": "Nothing delivered yet.",
+      "testOk": "Test message delivered",
+      "testFailed": "Discord refused the message: {{status}}",
+      "testError": "Couldn't send the test"
+    },
+    "filters": {
+      "text": "Which actions to record. Disabled ones reach neither the log nor the webhook."
+    },
+    "embed": {
+      "text": "A branding block added to every Discord notification.",
+      "title": "Title",
+      "description": "Text",
+      "color": "Colour",
+      "colorHex": "Colour in HEX",
+      "footer": "Footer",
+      "variables": "Variables",
+      "insert": "Insert into the field",
+      "more": "Author and images",
+      "globalEmbedAuthorName": "Author name",
+      "globalEmbedAuthorIcon": "Author icon (URL)",
+      "globalEmbedAuthorUrl": "Author link",
+      "globalEmbedThumbnail": "Thumbnail (URL)",
+      "globalEmbedImage": "Image (URL)",
+      "globalEmbedFooterIcon": "Footer icon (URL)",
+      "preview": "Discord preview",
+      "bot": "BOT",
+      "empty": "No shared embed — nothing is added to notifications."
+    },
+    "bans": {
+      "text": "What a user with a restricted account sees.",
+      "message": "Text for restricted users",
+      "contact": "Appeals contact",
+      "preview": "Preview",
+      "badge": "Account restricted",
+      "heading": "Access restricted",
+      "noMessage": "No text set.",
+      "sampleReason": "Reason: Multiple accounts"
+    },
+    "unsaved": "Unsaved changes",
+    "reset": "Reset",
+    "saved": "Settings saved",
+    "saveError": "Couldn't save the settings",
+    "leaveTitle": "Leave without saving?",
+    "leaveText": "The settings changes will be lost.",
+    "leave": "Leave",
+    "stay": "Stay",
+    "loadError": "Couldn't load the settings"
   }
 }

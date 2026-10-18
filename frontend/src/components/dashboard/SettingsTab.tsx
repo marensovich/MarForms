@@ -1,641 +1,386 @@
-import {useEffect, useMemo, useState} from "react";
+import {type ReactNode, useEffect, useRef, useState} from "react";
 import {useTranslation} from "react-i18next";
-import {fetchSettings, type SystemSettings, updateSettings} from "../../api/settings";
-import {TabSkeleton} from "./shared";
-import i18n from "../../i18n";
+import {FiAlertOctagon, FiSend} from "react-icons/fi";
+import {describeApiError} from "../../api/errors";
+import {fetchLogWebhook, fetchSettings, type LogDelivery, type SystemSettings, testLogWebhook, updateSettings} from "../../api/settings";
 import type {AuditAction} from "../../types/logs";
-import {
-    FiAlertOctagon,
-    FiCheckCircle,
-    FiGlobe,
-    FiImage,
-    FiInfo,
-    FiLink,
-    FiList,
-    FiMessageSquare,
-    FiMinus,
-    FiSave,
-    FiUser,
-    FiMonitor,
-} from "react-icons/fi";
+import {Button, ConfirmDialog, cx, ErrorState, Field, Input, SegmentedControl, Skeleton, Switch, Textarea, useToast} from "../../ui";
+import {useLeaveGuard} from "./useLeaveGuard";
 
-// ── Action groups for the log-filter section ──────────────────────────────────
+// Docs: docs/design/mockups/AdminSettings.dc.html; ТЗ 6.7, 7.3.
 
-const ACTION_META: Record<AuditAction, { dot: string }> = {
-    USER_LOGIN: {dot: "bg-pr"},
-    USER_BANNED: {dot: "bg-dg"},
-    USER_UNBANNED: {dot: "bg-ok"},
-    USER_TIMED_OUT: {dot: "bg-wr"},
-    USER_TIMEOUT_LIFTED: {dot: "bg-ok"},
-    USER_ROLES_UPDATED: {dot: "bg-wr"},
-    FORM_CREATED: {dot: "bg-ok"},
-    FORM_UPDATED: {dot: "bg-pr"},
-    FORM_DELETED: {dot: "bg-dg"},
-    SUBMISSION_CREATED: {dot: "bg-ok"},
-    SUBMISSION_DELETED: {dot: "bg-dg"},
-    SUBMISSION_DECIDED: {dot: "bg-pr"},
-    SUBMISSION_DM_FAILED: {dot: "bg-wr"},
-    ROLE_CREATED: {dot: "bg-ok"},
-    ROLE_UPDATED: {dot: "bg-pr"},
-    ROLE_DELETED: {dot: "bg-dg"},
-    SETTINGS_UPDATED: {dot: "bg-wr"},
-    MODERATOR_ADDED: {dot: "bg-ok"},
-    MODERATOR_REMOVED: {dot: "bg-dg"},
-    GUILD_BAN_ADDED: {dot: "bg-dg"},
-    GUILD_BAN_REMOVED: {dot: "bg-ok"},
-    GUILD_CONNECTED: {dot: "bg-pr"},
-    GUILD_ROLE_REVOKED: {dot: "bg-dg"},
-    FORM_STATUS_CHANGED: {dot: "bg-pr"},
-    BOT_REMOVED: {dot: "bg-dg"},
-    BOT_RECONNECTED: {dot: "bg-ok"},
-    BOT_PERMISSIONS_MISSING: {dot: "bg-wr"},
-    WEBHOOK_FAILING: {dot: "bg-wr"},
-};
+const SECTIONS = ["general", "webhook", "filters", "embed", "bans"] as const;
+type Section = typeof SECTIONS[number];
 
-const ACTION_GROUPS: { label: string; actions: AuditAction[] }[] = [
-    {label: "Authentication", actions: ["USER_LOGIN"]},
-    {label: "Users", actions: ["USER_BANNED", "USER_UNBANNED", "USER_TIMED_OUT", "USER_TIMEOUT_LIFTED", "USER_ROLES_UPDATED"]},
-    {label: "Forms", actions: ["FORM_CREATED", "FORM_UPDATED", "FORM_STATUS_CHANGED", "FORM_DELETED"]},
-    {label: "Submissions", actions: ["SUBMISSION_CREATED", "SUBMISSION_DELETED", "SUBMISSION_DECIDED", "SUBMISSION_DM_FAILED"]},
-    {label: "Roles", actions: ["ROLE_CREATED", "ROLE_UPDATED", "ROLE_DELETED"]},
-    {label: "Server moderation", actions: ["MODERATOR_ADDED", "MODERATOR_REMOVED", "GUILD_BAN_ADDED", "GUILD_BAN_REMOVED", "GUILD_CONNECTED", "GUILD_ROLE_REVOKED"]},
-    {label: "Bot and notifications", actions: ["BOT_REMOVED", "BOT_RECONNECTED", "BOT_PERMISSIONS_MISSING", "WEBHOOK_FAILING"]},
-    {label: "System", actions: ["SETTINGS_UPDATED"]},
+/** The action types the journal can write, in the order of ТЗ 6.5. */
+const ACTIONS: AuditAction[] = [
+    "USER_LOGIN", "USER_BANNED", "USER_UNBANNED", "USER_TIMED_OUT", "USER_TIMEOUT_LIFTED", "USER_ROLES_UPDATED",
+    "FORM_CREATED", "FORM_UPDATED", "FORM_STATUS_CHANGED", "FORM_DELETED",
+    "SUBMISSION_CREATED", "SUBMISSION_DELETED", "SUBMISSION_DECIDED", "SUBMISSION_DM_FAILED",
+    "MODERATOR_ADDED", "MODERATOR_REMOVED", "GUILD_BAN_ADDED", "GUILD_BAN_REMOVED", "GUILD_CONNECTED", "GUILD_ROLE_REVOKED",
+    "ROLE_CREATED", "ROLE_UPDATED", "ROLE_DELETED", "SETTINGS_UPDATED",
+    "BOT_REMOVED", "BOT_RECONNECTED", "BOT_PERMISSIONS_MISSING", "WEBHOOK_FAILING",
 ];
 
-const ALL_ACTIONS = ACTION_GROUPS.flatMap(g => g.actions);
+/** The variables every notification fills (ТЗ 6.7), with what the preview shows for each. */
+const VARIABLES: [string, string][] = [
+    ["{user.mention}", "@dmitry_ballas"], ["{user.name}", "dmitry_ballas"], ["{user.id}", "412988120773"],
+    ["{form.title}", "Набор в LSPD"], ["{form.url}", "marforms.app/f/lspd-academy"], ["{server.name}", "Los Santos RP"],
+    ["{status}", "На рассмотрении"], ["{date}", new Date().toLocaleDateString("ru-RU")],
+];
 
-// ── Reusable sub-components ───────────────────────────────────────────────────
+/** Which settings belong to which section, for «Несохранённые изменения · …». */
+const FIELDS: Record<Section, (keyof SystemSettings)[]> = {
+    general: ["systemName", "systemContact", "uiLanguage"],
+    webhook: ["logWebhookUrl"],
+    filters: ["logEnabledActions"],
+    embed: ["globalEmbedTitle", "globalEmbedDescription", "globalEmbedColor", "globalEmbedFooterText", "globalEmbedFooterIcon",
+        "globalEmbedAuthorName", "globalEmbedAuthorIcon", "globalEmbedAuthorUrl", "globalEmbedThumbnail", "globalEmbedImage"],
+    bans: ["banMessage", "banAdminContact"],
+};
 
-function SettingField({label, description, value, onChange, multiline = false, placeholder, icon}: {
-    label: string;
-    description: string;
-    value: string;
-    onChange: (v: string) => void;
-    multiline?: boolean;
-    placeholder?: string;
-    icon?: React.ReactNode;
-}) {
-    return (
-        <div>
-            <div className="mb-1.5 flex items-center gap-2">
-                {icon && <span className="text-mu">{icon}</span>}
-                <label className="text-sm font-medium text-tx">{label}</label>
-            </div>
-            <p className="mb-2.5 text-xs leading-relaxed text-mu">{description}</p>
-            {multiline ? (
-                <textarea
-                    value={value}
-                    onChange={e => onChange(e.target.value)}
-                    placeholder={placeholder}
-                    rows={3}
-                    className="w-full resize-none rounded-xl border border-bd bg-bg px-4 py-3 text-sm text-tx placeholder-mu/70 outline-none transition-colors focus:border-pr focus:bg-sf"
-                />
-            ) : (
-                <input
-                    type="text"
-                    value={value}
-                    onChange={e => onChange(e.target.value)}
-                    placeholder={placeholder}
-                    className="w-full rounded-xl border border-bd bg-bg px-4 py-3 text-sm text-tx placeholder-mu/70 outline-none transition-colors focus:border-pr focus:bg-sf"
-                />
-            )}
-        </div>
-    );
-}
+/** The enabled actions; an empty setting means every action, including ones added later. */
+const enabledOf = (raw: string) => new Set<string>(raw ? raw.split(",").map(s => s.trim()).filter(Boolean) : ACTIONS);
+const rawOf = (enabled: Set<string>) => ACTIONS.every(a => enabled.has(a)) ? "" : ACTIONS.filter(a => enabled.has(a)).join(",");
 
-function Section({title, description, icon, badge, children}: {
-    title: string;
-    description: string;
-    icon: React.ReactNode;
-    badge?: React.ReactNode;
-    children: React.ReactNode;
-}) {
-    return (
-        <div className="rounded-xl border border-bd bg-sf overflow-hidden">
-            <div className="flex items-start gap-4 border-b border-bd px-6 py-4">
-                <div
-                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-bd bg-bg text-mu">
-                    {icon}
-                </div>
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold text-tx">{title}</p>
-                        {badge}
-                    </div>
-                    <p className="mt-0.5 text-xs text-mu">{description}</p>
-                </div>
-            </div>
-            <div className="flex flex-col gap-5 p-6">
-                {children}
-            </div>
-        </div>
-    );
-}
+const substitute = (text: string) => VARIABLES.reduce((s, [v, sample]) => s.split(v).join(sample), text);
 
-// ── Action checkbox ───────────────────────────────────────────────────────────
-
-function ActionCheckbox({action, checked, onChange}: {
-    action: AuditAction;
-    checked: boolean;
-    onChange: (v: boolean) => void;
-}) {
-    const {t} = useTranslation();
-    const {dot} = ACTION_META[action];
-    return (
-        <label className="flex cursor-pointer items-center gap-2.5 select-none group">
-            <div
-                onClick={() => onChange(!checked)}
-                className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-colors ${
-                    checked
-                        ? "border-pr bg-prs"
-                        : "border-bd bg-sf group-hover:border-bd"
-                }`}
-            >
-                {checked && <div className="h-2 w-2 rounded-sm bg-pr"/>}
-            </div>
-            <span className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${dot}`}/>
-            <span className={`text-xs transition-colors ${checked ? "text-mu" : "text-mu"}`}>
-                {t(`settings.logFilters.actions.${action}`)}
-            </span>
-        </label>
-    );
-}
-
-// ── Main component ────────────────────────────────────────────────────────────
-
+/**
+ * Платформа · Настройки (ТЗ 6.7, SYSTEM_ADMIN): one long page with an anchor
+ * menu and a sticky «Несохранённые изменения · Сохранить» — general settings,
+ * the journal webhook with «Отправить тест» and its last delivery, the journal
+ * filters (a disabled action is written nowhere), the shared embed with
+ * variables inserted by a click and a live Discord preview, and the text of
+ * restricted accounts with a live «Доступ ограничен» preview.
+ */
 export default function SettingsTab() {
-    const {t} = useTranslation();
-    const [loading, setLoading] = useState(true);
+    const {t, i18n} = useTranslation();
+    const toast = useToast();
+    const [saved, setSaved] = useState<SystemSettings | null>(null);
+    const [draft, setDraft] = useState<SystemSettings | null>(null);
+    const [loadError, setLoadError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
-    const [saved, setSaved] = useState(false);
-    const [hasChanges, setHasChanges] = useState(false);
-    const [original, setOriginal] = useState<SystemSettings | null>(null);
-    const [form, setForm] = useState<SystemSettings>({
-        banMessage: "",
-        banAdminContact: "",
-        systemName: "",
-        systemContact: "",
-        logWebhookUrl: "",
-        logEnabledActions: "",
-        globalEmbedColor: "",
-        globalEmbedTitle: "",
-        globalEmbedDescription: "",
-        globalEmbedAuthorName: "",
-        globalEmbedAuthorIcon: "",
-        globalEmbedAuthorUrl: "",
-        globalEmbedThumbnail: "",
-        globalEmbedImage: "",
-        globalEmbedFooterText: "",
-        globalEmbedFooterIcon: "",
-        uiLanguage: "en",
-    });
+    const [reloadKey, setReloadKey] = useState(0);
+    const [active, setActive] = useState<Section>("general");
+    const [delivery, setDelivery] = useState<LogDelivery | null>(null);
+    const [testing, setTesting] = useState(false);
+    const lastField = useRef<{ key: keyof SystemSettings; el: HTMLInputElement | HTMLTextAreaElement } | null>(null);
 
     useEffect(() => {
+        let cancelled = false;
         fetchSettings()
-            .then(data => {
-                setOriginal(data);
-                setForm(data);
+            .then(s => {
+                if (cancelled) return;
+                setSaved(s);
+                setDraft(s);
+                setLoadError(null);
             })
-            .finally(() => setLoading(false));
-    }, []);
+            .catch(e => !cancelled && setLoadError(describeApiError(e, t("adminSettings.loadError"))));
+        fetchLogWebhook().then(w => !cancelled && setDelivery(w.lastDelivery)).catch(() => undefined);
+        return () => {
+            cancelled = true;
+        };
+    }, [reloadKey, t]);
 
-    const handleChange = (key: keyof SystemSettings, value: string) => {
-        setForm(prev => {
-            const next = {...prev, [key]: value};
-            setHasChanges(JSON.stringify(next) !== JSON.stringify(original));
-            return next;
-        });
-        setSaved(false);
+    const changedSections = saved && draft ? SECTIONS.filter(s => FIELDS[s].some(k => (draft[k] ?? "") !== (saved[k] ?? ""))) : [];
+    const dirty = changedSections.length > 0;
+    const guard = useLeaveGuard(dirty);
+
+    const set = (key: keyof SystemSettings, value: string) => setDraft(d => d && {...d, [key]: value});
+    const remember = (key: keyof SystemSettings, e: { currentTarget: HTMLInputElement | HTMLTextAreaElement }) => {
+        lastField.current = {key, el: e.currentTarget};
     };
-
-    const handleSave = async () => {
+    /** A variable goes where the cursor was in the embed field last focused (the text by default). */
+    const insert = (variable: string) => {
+        if (!draft) return;
+        const target = lastField.current ?? null;
+        const key = target?.key ?? "globalEmbedDescription";
+        const value = draft[key] ?? "";
+        const start = target?.el.selectionStart ?? value.length;
+        const end = target?.el.selectionEnd ?? value.length;
+        set(key, value.slice(0, start) + variable + value.slice(end));
+        requestAnimationFrame(() => {
+            if (!target) return;
+            target.el.focus();
+            target.el.setSelectionRange(start + variable.length, start + variable.length);
+        });
+    };
+    const save = async () => {
+        if (!draft) return;
         setSaving(true);
-        setSaved(false);
         try {
-            const updated = await updateSettings(form);
-            setOriginal(updated);
-            setForm(updated);
-            setHasChanges(false);
-            setSaved(true);
-            setTimeout(() => setSaved(false), 3000);
-            if (updated.uiLanguage && i18n.language !== updated.uiLanguage) {
-                i18n.changeLanguage(updated.uiLanguage);
-            }
+            const next = await updateSettings(draft);
+            setSaved(next);
+            setDraft(next);
+            toast({tone: "success", text: t("adminSettings.saved")});
+        } catch (e) {
+            toast({tone: "error", text: describeApiError(e, t("adminSettings.saveError"))});
         } finally {
             setSaving(false);
         }
     };
-
-    // ── Log filter state ──────────────────────────────────────────────────────
-
-    const enabledSet = useMemo<Set<string>>(() => {
-        const raw = form.logEnabledActions?.trim();
-        if (!raw) return new Set(ALL_ACTIONS);
-        return new Set(raw.split(",").map(s => s.trim()).filter(Boolean));
-    }, [form.logEnabledActions]);
-
-    const enabledCount = enabledSet.size;
-    const allEnabled = enabledCount === ALL_ACTIONS.length;
-
-    const toggleAction = (action: AuditAction, checked: boolean) => {
-        const next = new Set(enabledSet);
-        if (checked) next.add(action); else next.delete(action);
-        const value = next.size === ALL_ACTIONS.length ? "" : [...next].join(",");
-        handleChange("logEnabledActions", value);
+    const test = async () => {
+        setTesting(true);
+        try {
+            const d = await testLogWebhook(draft?.logWebhookUrl);
+            setDelivery(d);
+            toast({tone: d.ok ? "success" : "error", text: d.ok ? t("adminSettings.webhook.testOk") : t("adminSettings.webhook.testFailed", {status: d.status})});
+        } catch (e) {
+            toast({tone: "error", text: describeApiError(e, t("adminSettings.webhook.testError"))});
+        } finally {
+            setTesting(false);
+        }
+    };
+    const jump = (s: Section) => {
+        setActive(s);
+        document.getElementById(`settings-${s}`)?.scrollIntoView({behavior: "smooth", block: "start"});
     };
 
-    const selectAll = () => handleChange("logEnabledActions", "");
-    const deselectAll = () => handleChange("logEnabledActions", "__none__");
+    if (loadError) return <ErrorState title={t("adminSettings.loadError")} text={loadError} onRetry={() => setReloadKey(k => k + 1)}/>;
+    if (!draft || !saved) {
+        return (
+            <div className="flex flex-col gap-4" aria-busy="true">
+                <Skeleton className="h-10 w-60 rounded-lg"/>
+                {[0, 1, 2].map(i => <Skeleton key={i} className="h-48 rounded-[14px]"/>)}
+            </div>
+        );
+    }
 
-    const isEnabled = (a: AuditAction) =>
-        form.logEnabledActions?.trim() === "__none__" ? false : enabledSet.has(a);
-
-    if (loading) return <TabSkeleton/>;
-
-    const disabledCount = ALL_ACTIONS.length - (form.logEnabledActions?.trim() === "__none__" ? 0 : enabledCount);
+    const enabled = enabledOf(draft.logEnabledActions ?? "");
+    const webhookActive = !!saved.logWebhookUrl;
+    const when = (iso: string) => new Date(iso).toLocaleString(i18n.language, {day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"});
 
     return (
-        <div className="max-w-2xl">
-            {/* Header */}
-            <div className="mb-6 flex items-start justify-between">
-                <div>
-                    <h1 className="text-xl font-semibold text-tx">{t("settings.title")}</h1>
-                    <p className="mt-0.5 text-sm text-mu">{t("settings.subtitle")}</p>
-                </div>
-                {hasChanges && (
-                    <span
-                        className="flex items-center gap-1.5 rounded-full border border-amb bg-amb px-3 py-1 text-xs text-amt">
-                        <span className="h-1.5 w-1.5 rounded-full bg-wr"/>
-                        {t("settings.unsavedChanges")}
-                    </span>
-                )}
+        <div className="flex flex-col gap-5 pb-20">
+            <div className="flex flex-col gap-1.5">
+                <h1 className="m-0 text-[26px] font-bold tracking-[-0.01em]">{t("adminSettings.title")}</h1>
+                <p className="m-0 text-sm text-mu">{t("adminSettings.subtitle")}</p>
             </div>
 
-            <div className="flex flex-col gap-4">
-                {/* General */}
-                <Section
-                    title={t("settings.sections.general")}
-                    description={t("settings.sections.generalDesc")}
-                    icon={<FiGlobe size={16}/>}
-                >
-                    <SettingField
-                        label={t("settings.general.systemName")}
-                        description={t("settings.general.systemNameDesc")}
-                        value={form.systemName}
-                        onChange={v => handleChange("systemName", v)}
-                        placeholder="e.g. MarForms"
-                        icon={<FiInfo size={13}/>}
-                    />
-                    <SettingField
-                        label={t("settings.general.systemContact")}
-                        description={t("settings.general.systemContactDesc")}
-                        value={form.systemContact}
-                        onChange={v => handleChange("systemContact", v)}
-                        placeholder="e.g. discord.gg/yourserver"
-                        icon={<FiMessageSquare size={13}/>}
-                    />
-                </Section>
+            <div className="flex flex-wrap items-start gap-6">
+                <nav aria-label={t("adminSettings.menu")} className="sticky top-4 flex flex-[1_1_180px] flex-col gap-0.5 max-[900px]:static max-[900px]:flex-row max-[900px]:flex-wrap">
+                    {SECTIONS.map(s => (
+                        <a key={s} href={`#settings-${s}`} aria-current={active === s ? "true" : undefined}
+                           onClick={e => {
+                               e.preventDefault();
+                               jump(s);
+                           }}
+                           className={cx("rounded-[9px] px-3 py-2 text-[13px] font-medium no-underline",
+                               active === s ? "bg-prs text-prt" : "text-mu hover:bg-s2 hover:text-tx")}>
+                            {t(`adminSettings.section.${s}`)}
+                            {changedSections.includes(s) && <span className="ml-1.5 inline-block h-1.5 w-1.5 rounded-full bg-wr align-middle" aria-hidden="true"/>}
+                        </a>
+                    ))}
+                </nav>
 
-                {/* Interface Language */}
-                <Section
-                    title={t("settings.sections.language")}
-                    description={t("settings.language.desc")}
-                    icon={<FiMonitor size={16}/>}
-                >
-                    <div className="flex gap-3">
-                        {(["en", "ru"] as const).map(lang => {
-                            const active = form.uiLanguage === lang;
-                            return (
-                                <button
-                                    key={lang}
-                                    type="button"
-                                    onClick={() => handleChange("uiLanguage", lang)}
-                                    className={`flex items-center gap-2 rounded-xl border px-5 py-3 text-sm font-medium transition-colors ${
-                                        active
-                                            ? "border-pr bg-prs text-prt"
-                                            : "border-bd bg-sf text-mu hover:border-bd hover:text-tx"
-                                    }`}
-                                >
-                                    {active && <div className="h-2 w-2 rounded-full bg-pr"/>}
-                                    {t(`settings.language.${lang}`)}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </Section>
-
-                {/* Audit Log Webhook */}
-                <Section
-                    title={t("settings.sections.auditLog")}
-                    description={t("settings.sections.auditLogDesc")}
-                    icon={<FiLink size={16}/>}
-                >
-                    <SettingField
-                        label={t("settings.auditLog.webhookUrl")}
-                        description={t("settings.auditLog.webhookUrlDesc")}
-                        value={form.logWebhookUrl}
-                        onChange={v => handleChange("logWebhookUrl", v)}
-                        placeholder="https://discord.com/api/webhooks/…"
-                        icon={<FiLink size={13}/>}
-                    />
-                    {form.logWebhookUrl.trim() && (
-                        <div
-                            className="flex items-center gap-2 rounded-lg border border-gnb bg-gnb px-3 py-2 text-xs text-gnt">
-                            <span className="h-1.5 w-1.5 rounded-full bg-ok"/>
-                            {t("settings.discordLoggingActive")}
+                <div className="flex min-w-0 flex-[999_1_620px] flex-col gap-5">
+                    <Card id="general" title={t("adminSettings.section.general")} text={t("adminSettings.general.text")}>
+                        <Field label={t("adminSettings.general.name")}>
+                            <Input value={draft.systemName ?? ""} onChange={e => set("systemName", e.target.value)} maxLength={60}/>
+                        </Field>
+                        <Field label={t("adminSettings.general.contact")}>
+                            <Input value={draft.systemContact ?? ""} onChange={e => set("systemContact", e.target.value)} maxLength={200}/>
+                        </Field>
+                        <div className="flex flex-col gap-1.5">
+                            <span className="text-[13px] font-semibold">{t("adminSettings.general.language")}</span>
+                            <SegmentedControl ariaLabel={t("adminSettings.general.language")} value={draft.uiLanguage === "en" ? "en" : "ru"}
+                                              onChange={v => set("uiLanguage", v)}
+                                              options={[{value: "ru", label: "Русский"}, {value: "en", label: "English"}]}/>
                         </div>
-                    )}
-                </Section>
+                    </Card>
 
-                {/* Log Filters */}
-                <Section
-                    title={t("settings.sections.logFilters")}
-                    description={t("settings.sections.logFiltersDesc")}
-                    icon={<FiList size={16}/>}
-                    badge={
-                        <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${
-                            form.logEnabledActions?.trim() === "__none__"
-                                ? "border-rdb bg-rdb text-rdt"
-                                : allEnabled
-                                    ? "border-gnb bg-gnb text-gnt"
-                                    : "border-amb bg-amb text-amt"
-                        }`}>
-                            {form.logEnabledActions?.trim() === "__none__"
-                                ? t("settings.logFilters.noneLabel")
-                                : allEnabled
-                                    ? t("settings.logFilters.allLabel")
-                                    : `${enabledCount} / ${ALL_ACTIONS.length}`}
+                    <Card id="webhook" title={t("adminSettings.section.webhook")} text={t("adminSettings.webhook.text")}
+                          badge={<span className={cx("rounded-full px-2 py-0.5 text-[11px] font-semibold", webhookActive ? "bg-gnb text-gnt" : "bg-s2 text-mu")}>
+                              {t(webhookActive ? "adminSettings.webhook.active" : "adminSettings.webhook.off")}
+                          </span>}>
+                        <div className="flex flex-wrap items-end gap-2">
+                            <Field label={t("adminSettings.webhook.url")} className="flex-[1_1_320px]">
+                                <Input value={draft.logWebhookUrl ?? ""} onChange={e => set("logWebhookUrl", e.target.value)}
+                                       placeholder="https://discord.com/api/webhooks/…" className="font-mono text-[13px]"/>
+                            </Field>
+                            <Button variant="secondary" icon={<FiSend size={14} aria-hidden="true"/>} loading={testing}
+                                    disabled={!draft.logWebhookUrl} onClick={test}>
+                                {t("adminSettings.webhook.test")}
+                            </Button>
+                        </div>
+                        <p className={cx("m-0 text-xs", delivery && !delivery.ok ? "text-rdt" : "text-mu")}>
+                            {delivery
+                                ? t("adminSettings.webhook.last", {date: when(delivery.at), status: delivery.ok ? `${delivery.status} OK` : delivery.status})
+                                : t("adminSettings.webhook.never")}
+                        </p>
+                    </Card>
+
+                    <Card id="filters" title={t("adminSettings.section.filters")} text={t("adminSettings.filters.text")}>
+                        <ul className="m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(230px,1fr))] gap-x-5 gap-y-1 p-0">
+                            {ACTIONS.map(a => (
+                                <li key={a} className="flex items-center justify-between gap-3 border-b border-bd py-2">
+                                    <span className="text-[13px]">{t(`logs.actions.${a}`)}</span>
+                                    <Switch checked={enabled.has(a)} ariaLabel={t(`logs.actions.${a}`)}
+                                            onChange={on => {
+                                                const next = new Set(enabled);
+                                                if (on) next.add(a);
+                                                else next.delete(a);
+                                                set("logEnabledActions", rawOf(next));
+                                            }}/>
+                                </li>
+                            ))}
+                        </ul>
+                    </Card>
+
+                    <Card id="embed" title={t("adminSettings.section.embed")} text={t("adminSettings.embed.text")}>
+                        <div className="flex flex-wrap gap-5">
+                            <div className="flex min-w-0 flex-[1_1_300px] flex-col gap-4">
+                                <Field label={t("adminSettings.embed.title")}>
+                                    <Input value={draft.globalEmbedTitle ?? ""} onChange={e => set("globalEmbedTitle", e.target.value)}
+                                           onFocus={e => remember("globalEmbedTitle", e)} onSelect={e => remember("globalEmbedTitle", e)} maxLength={256}/>
+                                </Field>
+                                <Field label={t("adminSettings.embed.description")}>
+                                    <Textarea value={draft.globalEmbedDescription ?? ""} rows={4} onChange={e => set("globalEmbedDescription", e.target.value)}
+                                              onFocus={e => remember("globalEmbedDescription", e)} onSelect={e => remember("globalEmbedDescription", e)} maxLength={4000}/>
+                                </Field>
+                                <div className="flex flex-wrap gap-4">
+                                    <div className="flex flex-col gap-1.5">
+                                        <span className="text-[13px] font-semibold">{t("adminSettings.embed.color")}</span>
+                                        <span className="flex items-center gap-2">
+                                            <input type="color" value={/^#[0-9a-f]{6}$/i.test(draft.globalEmbedColor ?? "") ? draft.globalEmbedColor : "#5865F2"}
+                                                   onChange={e => set("globalEmbedColor", e.target.value)} aria-label={t("adminSettings.embed.color")}
+                                                   className="h-[38px] w-12 cursor-pointer rounded-[10px] border border-bd bg-sf"/>
+                                            <Input value={draft.globalEmbedColor ?? ""} onChange={e => set("globalEmbedColor", e.target.value)}
+                                                   aria-label={t("adminSettings.embed.colorHex")} className="w-28 font-mono" maxLength={7}/>
+                                        </span>
+                                    </div>
+                                    <Field label={t("adminSettings.embed.footer")} className="flex-[1_1_180px]">
+                                        <Input value={draft.globalEmbedFooterText ?? ""} onChange={e => set("globalEmbedFooterText", e.target.value)}
+                                               onFocus={e => remember("globalEmbedFooterText", e)} onSelect={e => remember("globalEmbedFooterText", e)} maxLength={2048}/>
+                                    </Field>
+                                </div>
+                                <div className="flex flex-col gap-1.5">
+                                    <span className="text-[13px] font-semibold">{t("adminSettings.embed.variables")}</span>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {VARIABLES.map(([v]) => (
+                                            <button key={v} type="button" onMouseDown={e => e.preventDefault()} onClick={() => insert(v)}
+                                                    title={t("adminSettings.embed.insert")}
+                                                    className="rounded-md border border-bd bg-s2 px-2 py-1 font-mono text-xs text-tx hover:border-pr hover:bg-prs">
+                                                {v}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <details className="rounded-[10px] border border-bd">
+                                    <summary className="cursor-pointer px-3 py-2 text-[13px] font-semibold">{t("adminSettings.embed.more")}</summary>
+                                    <div className="flex flex-col gap-3 border-t border-bd p-3">
+                                        {(["globalEmbedAuthorName", "globalEmbedAuthorIcon", "globalEmbedAuthorUrl", "globalEmbedThumbnail",
+                                            "globalEmbedImage", "globalEmbedFooterIcon"] as const).map(k => (
+                                            <Field key={k} label={t(`adminSettings.embed.${k}`)}>
+                                                <Input value={draft[k] ?? ""} onChange={e => set(k, e.target.value)}
+                                                       onFocus={e => k === "globalEmbedAuthorName" && remember(k, e)}/>
+                                            </Field>
+                                        ))}
+                                    </div>
+                                </details>
+                            </div>
+                            <DiscordPreview settings={draft}/>
+                        </div>
+                    </Card>
+
+                    <Card id="bans" title={t("adminSettings.section.bans")} text={t("adminSettings.bans.text")}>
+                        <div className="flex flex-wrap gap-5">
+                            <div className="flex min-w-0 flex-[1_1_300px] flex-col gap-4">
+                                <Field label={t("adminSettings.bans.message")}>
+                                    <Textarea value={draft.banMessage ?? ""} rows={4} onChange={e => set("banMessage", e.target.value)} maxLength={1000}/>
+                                </Field>
+                                <Field label={t("adminSettings.bans.contact")}>
+                                    <Input value={draft.banAdminContact ?? ""} onChange={e => set("banAdminContact", e.target.value)} maxLength={200}/>
+                                </Field>
+                            </div>
+                            <RestrictedPreview message={draft.banMessage ?? ""} contact={draft.banAdminContact ?? ""}/>
+                        </div>
+                    </Card>
+                </div>
+            </div>
+
+            {dirty && (
+                <div role="region" aria-label={t("adminSettings.unsaved")}
+                     className="sticky bottom-4 z-20 flex flex-wrap items-center gap-3 rounded-[14px] border border-bd bg-inv px-4 py-3 text-white shadow-modal">
+                    <span className="flex-1 text-sm">
+                        {t("adminSettings.unsaved")} · {changedSections.map(s => t(`adminSettings.section.${s}`)).join(", ")}
+                    </span>
+                    <Button variant="ghost" className="text-white hover:bg-white/10" onClick={() => setDraft(saved)}>{t("adminSettings.reset")}</Button>
+                    <Button loading={saving} onClick={save}>{t("common.save")}</Button>
+                </div>
+            )}
+            <ConfirmDialog open={guard.pending !== null} tone="primary" title={t("adminSettings.leaveTitle")} text={t("adminSettings.leaveText")}
+                           confirmLabel={t("adminSettings.leave")} cancelLabel={t("adminSettings.stay")}
+                           onConfirm={guard.leave} onCancel={guard.stay}/>
+        </div>
+    );
+}
+
+function Card({id, title, text, badge, children}: { id: Section; title: string; text: string; badge?: ReactNode; children: ReactNode }) {
+    return (
+        <section id={`settings-${id}`} aria-labelledby={`settings-${id}-title`} className="scroll-mt-4 rounded-[14px] border border-bd bg-sf p-5">
+            <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
+                <div className="flex flex-col gap-1">
+                    <h2 id={`settings-${id}-title`} className="m-0 text-base font-bold">{title}</h2>
+                    <p className="m-0 text-[13px] text-mu">{text}</p>
+                </div>
+                {badge}
+            </div>
+            <div className="flex flex-col gap-4">{children}</div>
+        </section>
+    );
+}
+
+/** The shared embed as Discord shows it under a notification, with sample values. */
+function DiscordPreview({settings}: { settings: SystemSettings }) {
+    const {t} = useTranslation();
+    const color = /^#[0-9a-f]{6}$/i.test(settings.globalEmbedColor ?? "") ? settings.globalEmbedColor : "#5865F2";
+    const empty = !settings.globalEmbedTitle && !settings.globalEmbedDescription && !settings.globalEmbedFooterText && !settings.globalEmbedAuthorName;
+    return (
+        <figure className="m-0 flex min-w-0 flex-[1_1_300px] flex-col gap-2">
+            <figcaption className="text-[13px] font-semibold">{t("adminSettings.embed.preview")}</figcaption>
+            <div data-theme="dark" className="rounded-[10px] bg-[#313338] p-4 text-[#DBDEE1]">
+                <div className="flex gap-3">
+                    <span className="grid h-10 w-10 flex-none place-items-center rounded-full bg-[#5865F2] text-sm font-bold text-white" aria-hidden="true">M</span>
+                    <div className="flex min-w-0 flex-1 flex-col gap-1">
+                        <span className="text-sm">
+                            <b className="text-white">MarForms</b>
+                            <span className="ml-1.5 rounded bg-[#5865F2] px-1 py-px text-[10px] font-bold text-white">{t("adminSettings.embed.bot")}</span>
                         </span>
-                    }
-                >
-                    {/* Bulk controls */}
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={selectAll}
-                            className="rounded-lg border border-bd bg-sf px-3 py-1.5 text-xs text-mu transition-colors hover:border-gnb hover:bg-gnb hover:text-gnt"
-                        >
-                            {t("settings.logFilters.selectAll")}
-                        </button>
-                        <button
-                            onClick={deselectAll}
-                            className="flex items-center gap-1.5 rounded-lg border border-bd bg-sf px-3 py-1.5 text-xs text-mu transition-colors hover:border-rdb hover:bg-rdb hover:text-rdt"
-                        >
-                            <FiMinus size={11}/>
-                            {t("settings.logFilters.deselectAll")}
-                        </button>
-                        {disabledCount > 0 && (
-                            <span className="text-xs text-mu">
-                                {t("settings.logFilters.actionsSuppressed", {count: disabledCount})}
-                            </span>
+                        {empty ? (
+                            <p className="m-0 text-[13px] text-[#949BA4]">{t("adminSettings.embed.empty")}</p>
+                        ) : (
+                            <div className="flex flex-col gap-1.5 rounded border-l-4 bg-[#2B2D31] p-3" style={{borderColor: color}}>
+                                {settings.globalEmbedAuthorName && <span className="text-xs font-semibold text-white">{substitute(settings.globalEmbedAuthorName)}</span>}
+                                {settings.globalEmbedTitle && <b className="text-sm text-white">{substitute(settings.globalEmbedTitle)}</b>}
+                                {settings.globalEmbedDescription && (
+                                    <p className="m-0 whitespace-pre-wrap break-words text-[13px]">{substitute(settings.globalEmbedDescription)}</p>
+                                )}
+                                {settings.globalEmbedFooterText && <span className="text-[11px] text-[#949BA4]">{substitute(settings.globalEmbedFooterText)}</span>}
+                            </div>
                         )}
                     </div>
-
-                    {/* Groups */}
-                    <div className="flex flex-col gap-4">
-                        {ACTION_GROUPS.map(group => (
-                            <div key={group.label}>
-                                <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-wider text-mu">
-                                    {t(`settings.logFilters.groups.${group.label}`)}
-                                </p>
-                                <div className="flex flex-wrap gap-x-6 gap-y-2.5">
-                                    {group.actions.map(action => (
-                                        <ActionCheckbox
-                                            key={action}
-                                            action={action}
-                                            checked={isEnabled(action)}
-                                            onChange={checked => toggleAction(action, checked)}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </Section>
-
-                {/* Global Embed */}
-                <Section
-                    title={t("settings.sections.globalEmbed")}
-                    description={t("settings.sections.globalEmbedDesc")}
-                    icon={<FiImage size={16}/>}
-                    badge={
-                        (form.globalEmbedAuthorName?.trim() || form.globalEmbedFooterText?.trim() || form.globalEmbedTitle?.trim())
-                            ? <span
-                                className="rounded-full border border-gnb bg-gnb px-2 py-0.5 text-[10px] font-medium text-gnt">{t("settings.activeLabel")}</span>
-                            : <span
-                                className="rounded-full border border-bd bg-s2 px-2 py-0.5 text-[10px] font-medium text-mu">{t("settings.notConfigured")}</span>
-                    }
-                >
-                    {/* Variables reference */}
-                    <div className="rounded-lg border border-prs bg-prs px-4 py-3">
-                        <p className="mb-2 text-[11px] font-semibold text-prt">{t("settings.availableVars")}</p>
-                        <div className="flex flex-wrap gap-1.5">
-                            {[
-                                ["{username}", "Discord username"],
-                                ["{user_id}", "Discord ID"],
-                                ["{user_mention}", "<@ID> ping"],
-                                ["{form_title}", "form name"],
-                                ["{form_id}", "form UUID"],
-                                ["{submission_id}", "submission UUID"],
-                                ["{timestamp}", "Discord timestamp"],
-                                ["{date}", "yyyy-MM-dd"],
-                                ["{time}", "HH:mm:ss"],
-                                ["{server_id}", "guild ID"],
-                            ].map(([v, hint]) => (
-                                <span key={v} title={hint}
-                                      className="rounded bg-sf px-1.5 py-0.5 font-mono text-[10px] text-prt border border-prs cursor-default">
-                                    {v}
-                                </span>
-                            ))}
-                        </div>
-                        <p className="mt-2 text-[10px] text-mu">{t("settings.globalEmbed.varHint")}</p>
-                    </div>
-
-                    {/* Color */}
-                    <div>
-                        <span className="text-xs font-medium text-mu">{t("settings.globalEmbed.color")}</span>
-                        <div className="mt-2 flex flex-wrap gap-2 items-center">
-                            {[
-                                {label: "Blurple", hex: "#5865F2", val: "5793266"},
-                                {label: "Green", hex: "#57F287", val: "5763719"},
-                                {label: "Red", hex: "#ED4245", val: "15548997"},
-                                {label: "Gold", hex: "#F1C40F", val: "15844367"},
-                                {label: "Cyan", hex: "#1ABC9C", val: "1752220"},
-                            ].map(p => {
-                                const active = form.globalEmbedColor === p.val;
-                                return (
-                                    <button key={p.val} type="button"
-                                            onClick={() => handleChange("globalEmbedColor", active ? "" : p.val)}
-                                            className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs transition-colors ${active ? "border-bd bg-s2 text-tx" : "border-bd bg-sf text-mu hover:text-tx"}`}>
-                                        <span className="h-3 w-3 rounded-full" style={{background: p.hex}}/>
-                                        {p.label}
-                                        {active && <FiCheckCircle size={10}/>}
-                                    </button>
-                                );
-                            })}
-                            <div
-                                className="flex items-center gap-1.5 rounded-lg border border-bd bg-sf px-2.5 py-1">
-                                <span className="text-xs text-mu">HEX</span>
-                                <input type="text"
-                                       value={form.globalEmbedColor.startsWith("#") || (!form.globalEmbedColor && "") ? form.globalEmbedColor : ""}
-                                       onChange={e => handleChange("globalEmbedColor", e.target.value)}
-                                       placeholder="#5865F2" maxLength={7}
-                                       className="w-20 bg-transparent text-xs text-tx outline-none placeholder-mu/70"/>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Author */}
-                    <div>
-                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-mu">{t("settings.globalEmbed.authorGroup")}</p>
-                        <div className="flex flex-col gap-2.5">
-                            <SettingField
-                                label={t("settings.globalEmbed.authorName")}
-                                description={t("settings.globalEmbed.authorNameDesc")}
-                                value={form.globalEmbedAuthorName}
-                                onChange={v => handleChange("globalEmbedAuthorName", v)}
-                                placeholder="MarForms v1.0 by marensovich"
-                                icon={<FiUser size={13}/>}
-                            />
-                            <div className="grid grid-cols-2 gap-3">
-                                <SettingField
-                                    label={t("settings.globalEmbed.authorIconUrl")}
-                                    description={t("settings.globalEmbed.authorIconDesc")}
-                                    value={form.globalEmbedAuthorIcon}
-                                    onChange={v => handleChange("globalEmbedAuthorIcon", v)}
-                                    placeholder="https://…/logo.png"
-                                    icon={<FiLink size={13}/>}
-                                />
-                                <SettingField
-                                    label={t("settings.globalEmbed.authorUrl")}
-                                    description={t("settings.globalEmbed.authorUrlDesc")}
-                                    value={form.globalEmbedAuthorUrl}
-                                    onChange={v => handleChange("globalEmbedAuthorUrl", v)}
-                                    placeholder="https://…"
-                                    icon={<FiLink size={13}/>}
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Title + Description */}
-                    <div>
-                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-mu">{t("settings.globalEmbed.contentGroup")}</p>
-                        <div className="flex flex-col gap-2.5">
-                            <SettingField
-                                label={t("settings.globalEmbed.embedTitle")}
-                                description={t("settings.globalEmbed.titleDesc")}
-                                value={form.globalEmbedTitle}
-                                onChange={v => handleChange("globalEmbedTitle", v)}
-                                placeholder="Submission received · {form_title}"
-                                icon={<FiInfo size={13}/>}
-                            />
-                            <SettingField
-                                label={t("settings.globalEmbed.embedDesc")}
-                                description={t("settings.globalEmbed.descDesc")}
-                                value={form.globalEmbedDescription}
-                                onChange={v => handleChange("globalEmbedDescription", v)}
-                                placeholder="Submitted by {user_mention} at {timestamp}"
-                                multiline
-                                icon={<FiMessageSquare size={13}/>}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Images */}
-                    <div>
-                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-mu">{t("settings.globalEmbed.imagesGroup")}</p>
-                        <div className="grid grid-cols-2 gap-3">
-                            <SettingField
-                                label={t("settings.globalEmbed.thumbnailUrl")}
-                                description={t("settings.globalEmbed.thumbnailDesc")}
-                                value={form.globalEmbedThumbnail}
-                                onChange={v => handleChange("globalEmbedThumbnail", v)}
-                                placeholder="https://…/thumb.png"
-                                icon={<FiImage size={13}/>}
-                            />
-                            <SettingField
-                                label={t("settings.globalEmbed.imageUrl")}
-                                description={t("settings.globalEmbed.imageDesc")}
-                                value={form.globalEmbedImage}
-                                onChange={v => handleChange("globalEmbedImage", v)}
-                                placeholder="https://…/banner.png"
-                                icon={<FiImage size={13}/>}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Footer */}
-                    <div>
-                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-mu">{t("settings.globalEmbed.footerGroup")}</p>
-                        <div className="flex flex-col gap-2.5">
-                            <SettingField
-                                label={t("settings.globalEmbed.footerText")}
-                                description={t("settings.globalEmbed.footerTextDesc")}
-                                value={form.globalEmbedFooterText}
-                                onChange={v => handleChange("globalEmbedFooterText", v)}
-                                placeholder="MarForms v1.0.0 by marensovich"
-                                icon={<FiInfo size={13}/>}
-                            />
-                            <SettingField
-                                label={t("settings.globalEmbed.footerIconUrl")}
-                                description={t("settings.globalEmbed.footerIconDesc")}
-                                value={form.globalEmbedFooterIcon}
-                                onChange={v => handleChange("globalEmbedFooterIcon", v)}
-                                placeholder="https://…/icon.png"
-                                icon={<FiLink size={13}/>}
-                            />
-                        </div>
-                    </div>
-                </Section>
-
-                {/* Ban Settings */}
-                <Section
-                    title={t("settings.sections.ban")}
-                    description={t("settings.sections.banDesc")}
-                    icon={<FiAlertOctagon size={16}/>}
-                >
-                    <SettingField
-                        label={t("settings.general.banMessage")}
-                        description={t("settings.general.banMessageDesc")}
-                        value={form.banMessage}
-                        onChange={v => handleChange("banMessage", v)}
-                        placeholder="You have been restricted from accessing this system."
-                        multiline
-                        icon={<FiAlertOctagon size={13}/>}
-                    />
-                    <SettingField
-                        label={t("settings.general.banContact")}
-                        description={t("settings.general.banContactDesc")}
-                        value={form.banAdminContact}
-                        onChange={v => handleChange("banAdminContact", v)}
-                        placeholder="e.g. @admin"
-                        icon={<FiUser size={13}/>}
-                    />
-                </Section>
+                </div>
             </div>
+        </figure>
+    );
+}
 
-            {/* Save bar */}
-            <div
-                className="mt-6 flex items-center gap-4 rounded-xl border border-bd bg-sf px-5 py-4">
-                <button
-                    onClick={handleSave}
-                    disabled={saving || !hasChanges}
-                    className="flex items-center gap-2 rounded-xl bg-pr px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-prh disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                    <FiSave size={14}/>
-                    {saving ? t("settings.saving") : t("settings.save")}
-                </button>
-                {saved && (
-                    <div className="flex items-center gap-2 text-sm text-gnt">
-                        <FiCheckCircle size={15}/>
-                        {t("settings.saveSuccess")}
-                    </div>
-                )}
-                {!hasChanges && !saved && (
-                    <p className="text-xs text-mu/70">{t("settings.noPendingChanges")}</p>
-                )}
+/** «Доступ ограничен» as a restricted user sees it (ТЗ 3.5). */
+function RestrictedPreview({message, contact}: { message: string; contact: string }) {
+    const {t} = useTranslation();
+    return (
+        <figure className="m-0 flex min-w-0 flex-[1_1_280px] flex-col gap-2">
+            <figcaption className="text-[13px] font-semibold">{t("adminSettings.bans.preview")}</figcaption>
+            <div className="flex flex-col items-center gap-2.5 rounded-[14px] border border-bd bg-bg p-5 text-center">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-rdb px-2.5 py-1 text-[11px] font-semibold text-rdt">
+                    <FiAlertOctagon size={12} aria-hidden="true"/>{t("adminSettings.bans.badge")}
+                </span>
+                <b className="text-base">{t("adminSettings.bans.heading")}</b>
+                <p className="m-0 whitespace-pre-wrap text-[13px] text-mu">{message || t("adminSettings.bans.noMessage")}</p>
+                <span className="text-xs text-mu">{t("adminSettings.bans.sampleReason")}</span>
+                {contact && <span className="text-[13px] font-semibold text-prt">{contact}</span>}
             </div>
-        </div>
+        </figure>
     );
 }

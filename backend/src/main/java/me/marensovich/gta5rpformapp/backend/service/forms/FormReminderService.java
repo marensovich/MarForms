@@ -103,7 +103,7 @@ public class FormReminderService {
         for (FormReminder reminder : reminderRepository.findDue(FormStatus.PUBLISHED, LocalDateTime.now(), PageRequest.of(0, BATCH))) {
             Form form = formRepository.findById(reminder.getFormId()).orElse(null);
             if (form == null) continue;
-            DmResult result = botClient.sendDirectMessage(reminder.getDiscordId(), embeds(form));
+            DmResult result = botClient.sendDirectMessage(reminder.getDiscordId(), embeds(form, reminder.getDiscordId()));
             reminder.setAttempts(reminder.getAttempts() + 1);
             if (result != DmResult.FAILED || reminder.getAttempts() >= MAX_ATTEMPTS) {
                 reminder.setSentAt(LocalDateTime.now());
@@ -115,7 +115,7 @@ public class FormReminderService {
         }
     }
 
-    List<Map<String, Object>> embeds(Form form) {
+    List<Map<String, Object>> embeds(Form form, Long recipientId) {
         String guildName = form.getServerId() == null ? null
                 : guildRepository.findById(form.getServerId()).map(Guild::getName).orElse(null);
         String link = frontendUrl + "/f/" + form.getSlug();
@@ -132,10 +132,7 @@ public class FormReminderService {
                     "<t:" + form.getClosesAt().atZone(java.time.ZoneId.systemDefault()).toEpochSecond() + ":f>", "inline", false)));
         }
         List<Map<String, Object>> embeds = new ArrayList<>(List.of(embed));
-        Map<String, Object> branding = webhookService.brandingEmbed(Map.of(
-                "form_title", title,
-                "form_id", form.getId().toString(),
-                "server_id", form.getServerId() != null ? form.getServerId().toString() : ""));
+        Map<String, Object> branding = webhookService.brandingEmbed(webhookService.vars(form, recipientId, null, null, null));
         if (branding != null) embeds.add(branding);
         return embeds;
     }

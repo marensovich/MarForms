@@ -51,13 +51,15 @@ public class WebhookService {
 
     private static final int DEFAULT_COLOR = 5793266;
 
-    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     private final SettingsService settingsService;
     private final WebhookUrlCipher webhookUrlCipher;
     private final RestTemplate restTemplate;
     private final SubmissionRepository submissionRepository;
+    private final me.marensovich.gta5rpformapp.backend.database.repository.GuildRepository guildRepository;
+
+    @org.springframework.beans.factory.annotation.Value("${app.frontend-url:http://localhost:5173}")
+    private String frontendUrl;
 
     /**
      * Delivers a submission notification to a single webhook.
@@ -145,10 +147,13 @@ public class WebhookService {
         if (moderatorName != null) fields.add(Map.of("name", "Модератор", "value", moderatorName, "inline", true));
         if (comment != null && !comment.isBlank()) fields.add(Map.of("name", "Комментарий", "value", comment.length() > 1000 ? comment.substring(0, 1000) + "…" : comment));
         if (!fields.isEmpty()) embed.put("fields", fields);
+        List<Map<String, Object>> embeds = new ArrayList<>(List.of(embed));
+        Map<String, Object> branding = buildGlobalEmbed(vars(form, submission.getDiscordId(), null, submission.getId(), submission.getStatus()));
+        if (branding != null) embeds.add(branding);
         for (WebhookConfig cfg : form.getWebhooks()) {
             if (cfg.getUrl() == null || Boolean.TRUE.equals(cfg.getInvalid()) || !cfg.wants(WebhookConfig.EVENT_DECISION)) continue;
             DiscordWebhookUrl.parse(cfg.getUrl()).ifPresent(w -> {
-                TestResult r = post(w, cfg, List.of(embed));
+                TestResult r = post(w, cfg, embeds);
                 if (!r.ok()) log.warn("Decision notice to webhook {} failed: {}", w, r.reason());
             });
         }
@@ -367,20 +372,9 @@ public class WebhookService {
     }
 
     /**
-     * Builds the variable substitution map for a single submission.
-     * Available variables:
-     * <ul>
-     *   <li>{username} — Discord username of the submitter</li>
-     *   <li>{user_id} — Discord snowflake ID</li>
-     *   <li>{user_mention} — {@code <@ID>} mention tag</li>
-     *   <li>{form_title} — title of the form</li>
-     *   <li>{form_id} — UUID of the form</li>
-     *   <li>{submission_id} — UUID of the submission</li>
-     *   <li>{timestamp} — Discord timestamp ({@code <t:unix:f>})</li>
-     *   <li>{date} — server date (yyyy-MM-dd)</li>
-     *   <li>{time} — server time (HH:mm:ss)</li>
-     *   <li>{server_id} — Discord guild / server ID</li>
-     * </ul>
+     * The variables of a submission's notification (ТЗ 6.7, {@link NotificationVars}):
+     * the author (none for an anonymous form), the form with its link, the server
+     * and the status.
      *
      * @param form            the submitted form
      * @param discordId       Discord ID of the submitter
@@ -391,22 +385,34 @@ public class WebhookService {
      */
     private Map<String, String> buildVars(Form form, Long discordId, String discordUsername,
                                           UUID submissionId) {
-        LocalDateTime now = LocalDateTime.now();
-        long epoch = now.toEpochSecond(ZoneOffset.UTC);
-        String uid = discordId != null ? discordId.toString() : "unknown";
+        return vars(form, discordId, discordUsername, submissionId,
+                me.marensovich.gta5rpformapp.backend.data.forms.SubmissionStatus.PENDING);
+    }
 
-        return Map.of(
-                "username", discordUsername != null ? discordUsername : "Unknown",
-                "user_id", uid,
-                "user_mention", discordId != null ? "<@" + discordId + ">" : "Unknown",
-                "form_title", form.getSchema().getTitle(),
-                "form_id", form.getId().toString(),
-                "submission_id", submissionId != null ? submissionId.toString() : "",
-                "timestamp", "<t:" + epoch + ":f>",
-                "date", now.format(DATE_FMT),
-                "time", now.format(TIME_FMT),
-                "server_id", form.getServerId() != null ? form.getServerId().toString() : ""
-        );
+    /**
+     * The variables of any notification about a form (ТЗ 6.7): submissions,
+     * decisions, reminders, direct messages.
+     *
+     * @param form         the form
+     * @param userId       who the notification is about, may be {@code null}
+     * @param userName     their name, may be {@code null}
+     * @param submissionId the submission, may be {@code null}
+     * @param status       the submission's status, may be {@code null}
+     * @return name → value
+     * @since v.0.1
+     */
+    public Map<String, String> vars(Form form, Long userId, String userName, UUID submissionId,
+                                    me.marensovich.gta5rpformapp.backend.data.forms.SubmissionStatus status) {
+        String serverName = form.getServerId() == null ? null
+                : guildRepository.findById(form.getServerId()).map(g -> g.getName()).orElse(null);
+        String url = form.getSlug() != null ? frontendUrl + "/f/" + form.getSlug() : null;
+        return NotificationVars.of()
+                .user(userId, userName, form.getAccessMode() == me.marensovich.gta5rpformapp.backend.data.forms.FormAccessMode.ANONYMOUS)
+                .form(form.getId(), form.getSchema() != null ? form.getSchema().getTitle() : null, url)
+                .server(form.getServerId(), serverName)
+                .status(status)
+                .submission(submissionId)
+                .build();
     }
 
     /**
