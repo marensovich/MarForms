@@ -12,7 +12,8 @@ import jakarta.validation.constraints.Size;
  *
  * @param discordId the user's Discord ID, as a string
  * @param username  the user's exact Discord username (case-insensitive)
- * @param reason    optional reason, shown to staff only
+ * @param reason    optional reason, shown to the user on the form's page
+ * @param expiresAt when the ban ends, {@code null} = forever
  * @author marensovich
  * @version v.0.1
  * @since v.0.1
@@ -20,6 +21,7 @@ import jakarta.validation.constraints.Size;
 public record BanRequest(
         String discordId,
         String username,
-        @Size(max = 500) String reason
+        @Size(max = 500) String reason,
+        java.time.LocalDateTime expiresAt
 ) {
 }

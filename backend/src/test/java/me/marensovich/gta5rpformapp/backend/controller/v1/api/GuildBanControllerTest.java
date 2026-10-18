@@ -47,6 +47,9 @@ class GuildBanControllerTest {
 
     @Autowired
     private MockMvc mvc;
+
+    @Autowired
+    private me.marensovich.gta5rpformapp.backend.database.repository.BanListRepository banListRepository;
     @Autowired
     private JwtUtil jwtUtil;
     @Autowired
@@ -176,5 +179,29 @@ class GuildBanControllerTest {
                 .andExpect(jsonPath("$.viewerAccess").value("GRANTED"));
         mvc.perform(as(respondent, post("/api/v1/public/forms/{s}/submissions", "ban-form")).content(answers))
                 .andExpect(status().isCreated());
+    }
+
+    @Test
+    void aBanForATermShowsItsEndAndStopsWorkingOnceItLapses() throws Exception {
+        publishedForm("term-form");
+        mvc.perform(ban(owner, "{\"discordId\": \"3\", \"expiresAt\": \"2020-01-01T00:00:00\"}"))
+                .andExpect(status().isBadRequest());
+        String until = java.time.LocalDateTime.now().plusDays(7).withNano(0).toString();
+        mvc.perform(ban(owner, "{\"discordId\": \"3\", \"reason\": \"флуд\", \"expiresAt\": \"" + until + "\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.expiresAt").value(until));
+        mvc.perform(as(respondent, get("/api/v1/public/forms/{s}", "term-form")))
+                .andExpect(jsonPath("$.viewerAccess").value("GUILD_BANNED"))
+                .andExpect(jsonPath("$.access.until").value(org.hamcrest.Matchers.startsWith(until.substring(0, 16))));
+
+        // The term runs out: the ban no longer applies, isn't listed, and a new one can be issued.
+        var entry = banListRepository.findByGuildIdAndDiscordId(GUILD, 3L).orElseThrow();
+        entry.setExpiresAt(java.time.LocalDateTime.now().minusMinutes(1));
+        banListRepository.save(entry);
+        mvc.perform(as(respondent, get("/api/v1/public/forms/{s}", "term-form")))
+                .andExpect(jsonPath("$.viewerAccess").value("GRANTED"));
+        mvc.perform(as(owner, get("/api/v1/guilds/{g}/bans", GUILD))).andExpect(jsonPath("$.length()").value(0));
+        mvc.perform(ban(owner, "{\"discordId\": \"3\"}")).andExpect(status().isCreated())
+                .andExpect(jsonPath("$.expiresAt").doesNotExist());
     }
 }

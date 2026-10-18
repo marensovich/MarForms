@@ -193,10 +193,10 @@ public class FormAccessService {
         }
         if (!member && !open) return Decision.of(AccessCode.NOT_GUILD_MEMBER);
 
-        var ban = banListRepository.findByGuildIdAndDiscordId(form.getServerId(), user.getDiscordId());
+        var ban = banListRepository.findActive(form.getServerId(), user.getDiscordId());
         if (ban.isPresent()) {
             return new Decision(AccessCode.GUILD_BANNED, AccessDetailsDto.restriction(ban.get().getReason(),
-                    ban.get().getCreatedAt(), null, settingsService.getSettings().banAdminContact()));
+                    ban.get().getCreatedAt(), ban.get().getExpiresAt(), settingsService.getSettings().banAdminContact()));
         }
         if (!member) return Decision.of(AccessCode.GRANTED);
 

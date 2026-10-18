@@ -51,7 +51,7 @@ public class BanListService {
      */
     @Transactional(readOnly = true)
     public boolean isBanned(Long guildId, Long discordId) {
-        return banListRepository.existsByGuildIdAndDiscordId(guildId, discordId);
+        return banListRepository.findActive(guildId, discordId).isPresent();
     }
 
     /**
@@ -63,7 +63,8 @@ public class BanListService {
      */
     @Transactional(readOnly = true)
     public List<BanDto> list(Long guildId) {
-        List<BanListEntry> entries = banListRepository.findAllByGuildIdOrderByCreatedAtDesc(guildId);
+        List<BanListEntry> entries = banListRepository.findAllByGuildIdOrderByCreatedAtDesc(guildId).stream()
+                .filter(BanListEntry::isActive).toList();
         Set<Long> ids = new HashSet<>();
         for (BanListEntry e : entries) {
             ids.add(e.getDiscordId());
@@ -99,8 +100,14 @@ public class BanListService {
                             ? "The server owner can't be banned"
                             : "This user is a moderator: remove the moderator role first");
                 });
-        if (banListRepository.existsByGuildIdAndDiscordId(guildId, target)) {
-            throw new InvalidStateException("This user is already banned on this server");
+        var existing = banListRepository.findByGuildIdAndDiscordId(guildId, target);
+        if (existing.isPresent()) {
+            if (existing.get().isActive()) throw new InvalidStateException("This user is already banned on this server");
+            banListRepository.delete(existing.get());
+            banListRepository.flush();
+        }
+        if (request.expiresAt() != null && !request.expiresAt().isAfter(java.time.LocalDateTime.now())) {
+            throw new IllegalArgumentException("The ban must end in the future");
         }
 
         guildService.getOrCreate(guildId);
@@ -109,10 +116,14 @@ public class BanListService {
         entry.setDiscordId(target);
         entry.setBannedBy(actorId);
         entry.setReason(request.reason() == null || request.reason().isBlank() ? null : request.reason().trim());
+        entry.setExpiresAt(request.expiresAt());
         entry = banListRepository.save(entry);
         BanDto dto = toDto(entry, usernames(Set.of(target, actorId)));
+        Map<String, Object> metadata = new java.util.LinkedHashMap<>();
+        if (entry.getReason() != null) metadata.put("reason", entry.getReason());
+        if (entry.getExpiresAt() != null) metadata.put("until", entry.getExpiresAt().toString());
         auditLogService.logGuildAction(guildId, AuditAction.GUILD_BAN_ADDED, "USER", target.toString(),
-                dto.username(), entry.getReason() != null ? Map.of("reason", entry.getReason()) : null,
+                dto.username(), metadata.isEmpty() ? null : metadata,
                 entry.getReason() != null ? "Reason: " + entry.getReason() : null);
         return dto;
     }
@@ -127,7 +138,7 @@ public class BanListService {
      */
     @Transactional
     public void unban(Long guildId, Long discordId) {
-        BanListEntry entry = banListRepository.findByGuildIdAndDiscordId(guildId, discordId)
+        BanListEntry entry = banListRepository.findActive(guildId, discordId)
                 .orElseThrow(() -> new NotFoundException("User " + discordId + " is not banned on this server"));
         banListRepository.delete(entry);
         auditLogService.logGuildAction(guildId, AuditAction.GUILD_BAN_REMOVED, "USER", discordId.toString(),
@@ -166,6 +177,6 @@ public class BanListService {
 
     private static BanDto toDto(BanListEntry e, Map<Long, String> names) {
         return new BanDto(e.getDiscordId(), names.get(e.getDiscordId()), e.getReason(), e.getBannedBy(),
-                e.getBannedBy() != null ? names.get(e.getBannedBy()) : null, e.getCreatedAt());
+                e.getBannedBy() != null ? names.get(e.getBannedBy()) : null, e.getCreatedAt(), e.getExpiresAt());
     }
 }

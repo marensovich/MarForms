@@ -3,7 +3,7 @@ import GuildFormsPanel from "../components/dashboard/GuildFormsPanel";
 import GuildAuditPanel from "../components/dashboard/moderation/GuildAuditPanel";
 import GuildModerationPanel from "../components/dashboard/moderation/GuildModerationPanel";
 import ModeratorsPanel from "../components/dashboard/moderation/ModeratorsPanel";
-import BansModal from "../components/dashboard/BansModal";
+import BansPanel from "../components/dashboard/moderation/BansPanel";
 import BillingModal from "../components/dashboard/BillingModal";
 import {TabSkeleton} from "../components/dashboard/shared";
 import {useDashboard} from "./dashboardContext";
@@ -41,7 +41,7 @@ export default function GuildWorkspaceRoute() {
             case "moderators":
                 return <ModeratorsPanel guild={guild}/>;
             case "bans":
-                return <BansModal guild={guild} onClose={back} asPage/>;
+                return <BansPanel guild={guild}/>;
             case "billing":
                 return <BillingModal guild={guild} ownedGuilds={guilds.filter(g => g.role === "OWNER")} onClose={back} asPage
                                      checkoutResult={checkout === "success" || checkout === "cancel" ? checkout : null}/>;

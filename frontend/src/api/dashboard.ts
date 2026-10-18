@@ -210,6 +210,8 @@ export interface GuildBan {
     bannedBy: string | null;
     bannedByUsername: string | null;
     createdAt: string;
+    /** When the ban ends; null = forever (#131). */
+    expiresAt?: string | null;
 }
 
 export function getGuildBans(guildId: string): Promise<GuildBan[]> {
@@ -218,7 +220,7 @@ export function getGuildBans(guildId: string): Promise<GuildBan[]> {
 
 export function banGuildUser(
     guildId: string,
-    payload: { discordId?: string; username?: string; reason?: string }
+    payload: { discordId?: string; username?: string; reason?: string; expiresAt?: string | null }
 ): Promise<GuildBan> {
     return apiRequest(`/guilds/${guildId}/bans`, {method: "POST", body: payload});
 }

@@ -55,4 +55,13 @@ public class BanListEntry {
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    /** When the ban ends (ТЗ ФТ-4.8.2); {@code null} = forever. */
+    @Column(name = "expires_at")
+    private LocalDateTime expiresAt;
+
+    /** Whether the ban still applies — a lapsed one stops working without anyone lifting it. */
+    public boolean isActive() {
+        return expiresAt == null || expiresAt.isAfter(LocalDateTime.now());
+    }
 }

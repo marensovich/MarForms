@@ -26,6 +26,7 @@ public record BanDto(
         @JsonSerialize(using = ToStringSerializer.class)
         Long bannedBy,
         String bannedByUsername,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        LocalDateTime expiresAt
 ) {
 }

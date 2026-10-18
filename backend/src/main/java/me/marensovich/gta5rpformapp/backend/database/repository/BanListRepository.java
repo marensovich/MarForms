@@ -16,4 +16,9 @@ public interface BanListRepository extends JpaRepository<BanListEntry, UUID> {
     Optional<BanListEntry> findByGuildIdAndDiscordId(Long guildId, Long discordId);
 
     List<BanListEntry> findAllByGuildIdOrderByCreatedAtDesc(Long guildId);
+
+    /** The ban that applies now, if any: a lapsed one doesn't (#131). */
+    default Optional<BanListEntry> findActive(Long guildId, Long discordId) {
+        return findByGuildIdAndDiscordId(guildId, discordId).filter(BanListEntry::isActive);
+    }
 }
