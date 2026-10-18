@@ -27,6 +27,8 @@ import java.util.UUID;
  * @param decidedAt          when the last decision was made, if any
  * @param discordUsername    the author's username, when the caller looked it up
  * @param formTitle          the form's title, when the caller looked it up
+ * @param moderatorUsername  who decided, when the caller looked it up
+ * @param number             short number on the server («Заявка #1043»), {@code null} for old submissions
  * @author marensovich
  * @version v.0.1
  * @since v.0.1
@@ -45,7 +47,8 @@ public record SubmissionDto(
         LocalDateTime decidedAt,
         String discordUsername,
         String formTitle,
-        String moderatorUsername
+        String moderatorUsername,
+        Long number
 ) {
     /**
      * Converts a {@link Submission} entity to a {@link SubmissionDto}.
@@ -96,7 +99,8 @@ public record SubmissionDto(
                 submission.getDecidedAt(),
                 discordUsername,
                 formTitle,
-                moderatorUsername
+                moderatorUsername,
+                submission.getNumber()
         );
     }
 }

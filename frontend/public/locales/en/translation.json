@@ -1148,15 +1148,16 @@
     "subtitle_other": "{{count}} submissions",
     "refresh": "Refresh",
     "loadError": "Couldn't load submissions",
-    "empty": "No submissions match these filters",
+    "empty": "No submissions",
     "unknownUser": "Unknown user",
     "anonymous": "Not signed in",
     "filter": {
       "allStatuses": "All",
-      "allForms": "All forms",
+      "allForms": "all",
       "searchPlaceholder": "Username or Discord ID",
       "moderator": "Moderator",
-      "anyModerator": "Any moderator"
+      "anyModerator": "Any moderator",
+      "reset": "Reset"
     },
     "columns": {
       "author": "Author",
@@ -1197,8 +1198,31 @@
       "commentHint": "A comment is required to reject or send back.",
       "conflictBy": "{{name}} already decided {{date}}. The card is refreshed.",
       "reopenPlaceholder": "Why the decision is reopened (optional)",
-      "awaitingRevision": "Sent back for revision — waiting for the author to fix and send it again."
-    }
+      "awaitingRevision": "Sent back for revision — waiting for the author to fix and send it again.",
+      "titleNumber": "Submission #{{number}}",
+      "subtitle": "{{form}} · sent {{date}}",
+      "afterRevision": "(again, after revision)",
+      "prev": "Previous submission",
+      "next": "Next submission",
+      "roles": "Discord roles",
+      "decision": "Decision",
+      "comment": "Comment for the author",
+      "commentRequiredPlaceholder": "Comment for the author — required",
+      "confirm": "Confirm decision",
+      "decided": "Decision «{{status}}» sent to the author",
+      "reopened": "The submission is pending again",
+      "event": {
+        "SUBMITTED": "· submitted",
+        "RESUBMITTED": "· updated the answers",
+        "REOPENED": "· decision reopened",
+        "APPROVED": "· approved",
+        "REJECTED": "· rejected",
+        "NEEDS_REVISION": "· revision requested"
+      }
+    },
+    "emptyFiltered": "Nothing matches these filters — try «Reset».",
+    "emptyPending": "Everything is reviewed. New submissions show up here.",
+    "range": "{{from}}–{{to}} of {{total}}"
   },
   "bans": {
     "title": "Ban list",

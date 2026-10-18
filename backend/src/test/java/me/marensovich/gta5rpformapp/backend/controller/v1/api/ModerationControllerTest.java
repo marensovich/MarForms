@@ -129,6 +129,7 @@ class ModerationControllerTest {
         s.setDiscordId(discordId);
         s.setAnswers(Map.of("q", "a"));
         s.setStatus(status);
+        s.setNumber(1000 + discordId);
         return submissionRepository.save(s);
     }
 
@@ -146,7 +147,8 @@ class ModerationControllerTest {
 
         mvc.perform(as(moderator, get("/api/v1/guilds/{g}/submissions", GUILD).param("status", "PENDING")))
                 .andExpect(jsonPath("$.page.totalElements").value(1))
-                .andExpect(jsonPath("$.content[0].discordUsername").value("alice"));
+                .andExpect(jsonPath("$.content[0].discordUsername").value("alice"))
+                .andExpect(jsonPath("$.content[0].number").value(1002));
 
         mvc.perform(as(moderator, get("/api/v1/guilds/{g}/submissions", GUILD).param("query", "BO")))
                 .andExpect(jsonPath("$.page.totalElements").value(1))

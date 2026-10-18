@@ -20,6 +20,8 @@ export interface ModerationSubmission {
     formTitle: string | null;
     /** Who decided (#118). */
     moderatorUsername?: string | null;
+    /** Short number on the server («Заявка #1043»); null for old submissions. */
+    number?: number | null;
 }
 
 export type SubmissionEventType = "SUBMITTED" | "DECIDED" | "REOPENED" | "RESUBMITTED";
