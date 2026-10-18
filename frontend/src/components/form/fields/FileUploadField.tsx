@@ -147,7 +147,7 @@ export default function FileUploadField({field, value, onChange, onBlur, error}:
                             <span className="max-w-[240px] truncate">{f.name}</span>
                             <span className="text-mu">{formatBytes(f.size)}</span>
                             <button type="button" onClick={() => remove(f.id)} aria-label={t("form.file.removeNamed", {name: f.name})}
-                                    className="grid h-6 w-6 place-items-center rounded text-mu hover:text-tx focus-visible:outline focus-visible:outline-2 focus-visible:outline-pr">
+                                    className="mf-hit grid h-6 w-6 place-items-center rounded text-mu hover:text-tx focus-visible:outline focus-visible:outline-2 focus-visible:outline-pr">
                                 <FiX size={14} aria-hidden="true"/>
                             </button>
                         </span>

@@ -30,7 +30,7 @@ export default function MultiSelectField({field, value, onChange, onBlur, error}
                     <span key={opt} className="inline-flex items-center gap-1.5 rounded-[7px] bg-s2 px-2 py-1 text-[13px] text-tx">
                         {opt}
                         <button type="button" onClick={() => remove(opt)} aria-label={t("form.removeOption", {option: opt})}
-                                className="grid h-5 w-5 place-items-center rounded text-mu hover:text-tx focus-visible:outline focus-visible:outline-2 focus-visible:outline-pr">
+                                className="mf-hit grid h-5 w-5 place-items-center rounded text-mu hover:text-tx focus-visible:outline focus-visible:outline-2 focus-visible:outline-pr">
                             <FiX size={12} aria-hidden="true"/>
                         </button>
                     </span>
@@ -39,7 +39,7 @@ export default function MultiSelectField({field, value, onChange, onBlur, error}
                     <select id={fieldIds(field.id).input} value="" onBlur={onBlur}
                             aria-invalid={error ? true : undefined} aria-describedby={describedBy(field.id, !!field.description, !!error)}
                             onChange={e => e.target.value && onChange([...value, e.target.value])}
-                            className="h-8 min-w-[120px] flex-1 border-0 bg-transparent px-1 text-[13px] text-mu focus:outline-none">
+                            className="h-11 min-w-[120px] flex-1 sm:h-8 border-0 bg-transparent px-1 text-[13px] text-mu focus:outline-none">
                         <option value="">{t("form.placeholder.add")}</option>
                         {rest.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                     </select>

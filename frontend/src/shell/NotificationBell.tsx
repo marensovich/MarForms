@@ -108,7 +108,7 @@ export default function NotificationBell() {
                     className="relative grid h-9 w-9 place-items-center rounded-[10px] border border-bd bg-sf text-tx hover:bg-s2 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-prs">
                 <FiBell size={17} aria-hidden="true"/>
                 {count > 0 && (
-                    <span aria-hidden="true" className="absolute right-[7px] top-1.5 h-2 w-2 rounded-full border-2 border-sf bg-[#DC2626]"/>
+                    <span aria-hidden="true" className="absolute right-[7px] top-1.5 h-2 w-2 rounded-full border-2 border-sf bg-dg"/>
                 )}
             </button>
             {open && (

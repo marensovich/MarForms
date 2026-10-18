@@ -87,3 +87,39 @@ body {
 @media (prefers-reduced-motion: reduce) {
     .mf-skeleton { animation: none; }
 }
+
+/* A visible focus on every control (ТЗ 8.4). Element + pseudo-class outranks
+   Tailwind's .outline-none, which some controls carry for the mouse; text
+   fields keep their own focused border. */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+[role="button"]:focus-visible,
+[role="switch"]:focus-visible,
+[role="radio"]:focus-visible,
+[role="tab"]:focus-visible,
+[role="menuitem"]:focus-visible,
+[role="option"]:focus-visible,
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible,
+input[type="color"]:focus-visible {
+    outline: 2px solid rgb(var(--pr));
+    outline-offset: 2px;
+}
+
+/* Small controls keep their look but get a 44 px tap area on touch screens (ТЗ 8.4). */
+@media (pointer: coarse) {
+    .mf-hit {
+        position: relative;
+    }
+
+    .mf-hit::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: max(100%, 44px);
+        height: max(100%, 44px);
+        transform: translate(-50%, -50%);
+    }
+}

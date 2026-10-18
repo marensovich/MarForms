@@ -5,7 +5,7 @@ import GuildModerationPanel from "../components/dashboard/moderation/GuildModera
 import ModeratorsPanel from "../components/dashboard/moderation/ModeratorsPanel";
 import BansPanel from "../components/dashboard/moderation/BansPanel";
 import BillingPanel from "../components/dashboard/moderation/BillingPanel";
-import {TabSkeleton} from "../components/dashboard/shared";
+import {Skeleton} from "../ui";
 import {useDashboard} from "./dashboardContext";
 import GuildWorkspaceHeader from "./GuildWorkspaceHeader";
 import {GUILD_SECTIONS, type GuildSection, OWNER_ONLY_SECTIONS} from "./navigation";
@@ -22,7 +22,13 @@ export default function GuildWorkspaceRoute() {
     if (!GUILD_SECTIONS.includes(section as GuildSection)) {
         return <Navigate to={`/dashboard/servers/${guildId}/forms`} replace/>;
     }
-    if (guilds === null) return <TabSkeleton rows={4}/>;
+    if (guilds === null) {
+        return (
+            <div className="flex flex-col gap-2" aria-busy="true">
+                {[0, 1, 2, 3].map(i => <Skeleton key={i} className="h-14 rounded-xl"/>)}
+            </div>
+        );
+    }
     const guild = guilds.find(g => g.guildId === guildId);
     if (!guild) return <NoAccess/>;
     const tab = section as GuildSection;

@@ -60,7 +60,7 @@ function ListItem({field, index, selected, insertBefore, onSelect, onMove}: {
                         <span title={t("builder.fields.conditional")}
                               className="rounded-[5px] bg-prs px-[5px] py-px font-mono text-[10px] font-bold text-prt">IF</span>
                     )}
-                    {problem && <span className="h-1.5 w-1.5 flex-none rounded-full bg-[#F59E0B]" title={t(`builder.problem.${problem}`)}/>}
+                    {problem && <span role="img" className="h-1.5 w-1.5 flex-none rounded-full bg-wr" title={t(`builder.problem.${problem}`)} aria-label={t(`builder.problem.${problem}`)}/>}
                 </button>
             </div>
         </li>
@@ -89,7 +89,7 @@ function CanvasField({field, fields}: { field: FormField; fields: FormField[] })
             ) : (
                 <span className="text-sm font-semibold">
                     {field.label || <span className="italic text-mu">{t("builder.fields.untitled")}</span>}
-                    {field.required && <span className="text-[#DC2626]"> *</span>}
+                    {field.required && <span className="text-rdt"> *</span>}
                 </span>
             )}
             {field.description && <span className="whitespace-pre-wrap text-[13px] text-mu">{field.description}</span>}
@@ -106,8 +106,8 @@ function CanvasField({field, fields}: { field: FormField; fields: FormField[] })
             )}
             {field.type === "BOOLEAN" && (
                 <span className="flex gap-2">
-                    <span className="rounded-[10px] border border-bd px-4 py-2 text-[13px]">{t("form.boolean.yes", {defaultValue: "Да"})}</span>
-                    <span className="rounded-[10px] border border-bd px-4 py-2 text-[13px]">{t("form.boolean.no", {defaultValue: "Нет"})}</span>
+                    <span className="rounded-[10px] border border-bd px-4 py-2 text-[13px]">{t("form.yes")}</span>
+                    <span className="rounded-[10px] border border-bd px-4 py-2 text-[13px]">{t("form.no")}</span>
                 </span>
             )}
             {field.type === "RATING" && <span className="text-lg tracking-[0.2em] text-mu">{"★".repeat(field.max ?? 5)}</span>}

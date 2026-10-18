@@ -24,7 +24,7 @@ export default function CheckboxField({field, value, onChange, onBlur, error}: P
                             onChange(!value);
                             onBlur?.();
                         }}
-                        className={cx("flex h-6 w-11 flex-none rounded-full p-0.5 transition-colors",
+                        className={cx("mf-hit flex h-6 w-11 flex-none rounded-full p-0.5 transition-colors",
                             "focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-prs",
                             value ? "justify-end bg-pr" : "justify-start bg-bd", error && !value && "ring-[1.5px] ring-dg")}>
                     <span className="h-5 w-5 rounded-full bg-white shadow-sm"/>

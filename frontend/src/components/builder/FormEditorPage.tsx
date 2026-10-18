@@ -347,7 +347,7 @@ export default function FormEditorPage() {
                                     className={cx("flex h-[30px] items-center gap-1.5 rounded-lg px-3.5 text-[13px]",
                                         tab === item ? "bg-sf font-semibold text-tx shadow-sm" : "font-medium text-mu hover:text-tx")}>
                                 {t(`builder.tabs.${item}`)}
-                                {dots[item] && <span className="h-1.5 w-1.5 rounded-full bg-[#F59E0B]" aria-label={t("builder.tabs.problem")}/>}
+                                {dots[item] && <span className="h-1.5 w-1.5 rounded-full bg-wr" aria-label={t("builder.tabs.problem")}/>}
                             </button>
                         ))}
                     </nav>

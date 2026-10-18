@@ -142,7 +142,7 @@ export default function BansPanel({guild}: { guild: MyGuild }) {
                 </div>
                 {error && <p role="alert" className="m-0 rounded-[10px] bg-rdb px-3 py-2 text-[13px] text-rdt">{error}</p>}
                 <button type="submit" disabled={busy || !target.trim()}
-                        className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[#B91C1C] text-sm font-semibold text-white hover:bg-[#991B1B] disabled:opacity-50">
+                        className="flex h-11 items-center justify-center gap-2 rounded-xl bg-dg text-sm font-semibold text-white hover:bg-dgh disabled:opacity-50">
                     {busy && <Spinner/>}{t("bans.add")}
                 </button>
             </form>

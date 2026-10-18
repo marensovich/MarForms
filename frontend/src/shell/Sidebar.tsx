@@ -4,6 +4,7 @@ import {NavLink} from "react-router-dom";
 import {useAuth} from "../hooks/useAuth";
 import {useTheme} from "../theme/theme";
 import {cx} from "../ui";
+import {rememberLanguage} from "../languageChoice";
 import {type NavItem, SERVERS_NAV, visibleAdminNav} from "./navigation";
 import UserMenu from "./UserMenu";
 
@@ -79,7 +80,10 @@ export default function Sidebar({collapsed, onToggle}: { collapsed: boolean; onT
                              className="flex flex-1 rounded-[10px] border border-bd p-0.5 text-xs font-semibold">
                             {(["ru", "en"] as const).map(code => (
                                 <button key={code} type="button" role="radio" aria-checked={lang === code}
-                                        onClick={() => i18n?.changeLanguage(code)}
+                                        onClick={() => {
+                                            rememberLanguage(code);
+                                            i18n?.changeLanguage(code);
+                                        }}
                                         className={cx("h-7 flex-1 rounded-lg uppercase focus-visible:outline focus-visible:outline-2 focus-visible:outline-pr",
                                             lang === code ? "bg-prs text-prt" : "text-mu hover:text-tx")}>
                                     {code}
