@@ -184,6 +184,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
+    /**
+     * A form saved elsewhere since it was opened (ТЗ 5.7).
+     *
+     * @param ex the conflict, with who saved and when
+     * @return 409 with {@code error}, {@code updatedBy}, {@code updatedAt}
+     * @since v.0.1
+     */
+    @ExceptionHandler(FormConflictException.class)
+    public ResponseEntity<Map<String, Object>> handleFormConflict(FormConflictException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("error", ex.getMessage());
+        body.put("updatedBy", ex.getUpdatedBy());
+        body.put("updatedAt", ex.getUpdatedAt() != null ? ex.getUpdatedAt().toString() : null);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
     @ExceptionHandler(InvalidStateException.class)
     public ResponseEntity<Map<String, String>> handleInvalidState(InvalidStateException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)

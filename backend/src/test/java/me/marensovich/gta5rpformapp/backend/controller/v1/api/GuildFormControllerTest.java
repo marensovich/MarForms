@@ -45,6 +45,8 @@ class GuildFormControllerTest {
     @Autowired
     private MockMvc mvc;
     @Autowired
+    private me.marensovich.gta5rpformapp.backend.database.repository.FormRepository formRepository;
+    @Autowired
     private jakarta.persistence.EntityManager entityManager;
     @Autowired
     private ObjectMapper objectMapper;
@@ -121,7 +123,8 @@ class GuildFormControllerTest {
         String formId = createDraft(GUILD);
 
         mvc.perform(as(owner, post("/api/v1/guilds/{g}/forms/{f}/publish", GUILD, formId)))
-                .andExpect(status().isConflict());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fields.fields").exists());
 
         addTextField(formId);
 
@@ -282,9 +285,11 @@ class GuildFormControllerTest {
                 .andExpect(jsonPath("$.submissionLimitPerUser").value(2));
         entityManager.flush(); // the version moves on when the change is written
 
-        // A second editor still holding the old version gets a 409 instead of overwriting.
+        // A second editor still holding the old version gets a 409 naming who saved, instead of overwriting.
         mvc.perform(as(owner, put("/api/v1/forms/{f}", formId)).content("{\"version\": " + version + ", \"active\": false}"))
-                .andExpect(status().isConflict());
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.updatedBy").value("user1"))
+                .andExpect(jsonPath("$.updatedAt").exists());
     }
 
     @Test
@@ -377,7 +382,66 @@ class GuildFormControllerTest {
                 .content("{\"id\": \"only\", \"type\": \"TEXT\", \"label\": \"Only\"}"));
         mvc.perform(as(owner, post("/api/v1/guilds/{g}/forms/{f}/publish", GUILD, formId))).andExpect(status().isOk());
 
-        mvc.perform(as(owner, delete("/api/v1/forms/{f}/fields/{id}", formId, "only")))
-                .andExpect(status().isConflict());
+        // The removal waits in the draft; publishing it is refused with the reason.
+        mvc.perform(as(owner, delete("/api/v1/forms/{f}/fields/{id}", formId, "only"))).andExpect(status().isOk());
+        mvc.perform(as(owner, post("/api/v1/guilds/{g}/forms/{f}/publish-changes", GUILD, formId)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fields.fields").value("Add at least one field to fill in"));
+    }
+
+    @Test
+    void editsOfAPublishedFormWaitInADraftUntilTheyArePublished() throws Exception {
+        String formId = createDraft(GUILD);
+        addTextField(formId);
+        String slug = slugOf(mvc.perform(as(owner, post("/api/v1/guilds/{g}/forms/{f}/publish", GUILD, formId)))
+                .andReturn().getResponse().getContentAsString());
+
+        mvc.perform(as(owner, post("/api/v1/forms/{f}/fields", formId))
+                        .content("{\"id\": \"age\", \"type\": \"NUMBER\", \"label\": \"Age\"}"))
+                .andExpect(status().isCreated());
+
+        // Respondents still see the published form.
+        mvc.perform(get("/api/v1/public/forms/{s}", slug))
+                .andExpect(jsonPath("$.schema.fields.length()").value(1));
+        mvc.perform(as(owner, get("/api/v1/guilds/{g}/forms/{f}", GUILD, formId)))
+                .andExpect(jsonPath("$.hasUnpublishedChanges").value(true))
+                .andExpect(jsonPath("$.schema.fields.length()").value(1))
+                .andExpect(jsonPath("$.draftSchema.fields.length()").value(2))
+                .andExpect(jsonPath("$.updatedBy").value("1"));
+        mvc.perform(as(owner, get("/api/v1/guilds/{g}/forms", GUILD)))
+                .andExpect(jsonPath("$.content[0].hasUnpublishedChanges").value(true));
+        mvc.perform(as(owner, get("/api/v1/guilds/{g}/forms/{f}/publish-check", GUILD, formId)))
+                .andExpect(jsonPath("$.errors.length()").value(0))
+                .andExpect(jsonPath("$.warnings[0].area").value("notifications"));
+
+        mvc.perform(as(owner, post("/api/v1/guilds/{g}/forms/{f}/publish-changes", GUILD, formId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.hasUnpublishedChanges").value(false))
+                .andExpect(jsonPath("$.status").value("PUBLISHED"));
+        mvc.perform(get("/api/v1/public/forms/{s}", slug))
+                .andExpect(jsonPath("$.schema.fields.length()").value(2));
+
+        // A change undone leaves nothing unpublished; discarding drops a draft.
+        mvc.perform(as(owner, delete("/api/v1/forms/{f}/fields/{id}", formId, "age"))).andExpect(status().isOk());
+        mvc.perform(as(owner, delete("/api/v1/guilds/{g}/forms/{f}/draft", GUILD, formId)))
+                .andExpect(jsonPath("$.hasUnpublishedChanges").value(false))
+                .andExpect(jsonPath("$.schema.fields.length()").value(2));
+    }
+
+    @Test
+    void publishingListsWhatIsWrongByField() throws Exception {
+        String formId = createDraft(GUILD);
+        mvc.perform(as(owner, put("/api/v1/guilds/{g}/forms/{f}/settings", GUILD, formId))
+                .content("{\"accessMode\": \"ROLE_GATED\", \"allowedRoleIds\": [\"5\"], \"deniedRoleIds\": []}"));
+        // A role gate emptied directly in the database stands for an old form with no roles left.
+        var form = formRepository.findById(java.util.UUID.fromString(formId)).orElseThrow();
+        form.getAllowedRoleIds().clear();
+        formRepository.save(form);
+        mvc.perform(as(owner, get("/api/v1/guilds/{g}/forms/{f}/publish-check", GUILD, formId)))
+                .andExpect(jsonPath("$.errors[?(@.area == 'fields')]").exists())
+                .andExpect(jsonPath("$.errors[?(@.area == 'access')]").exists());
+        mvc.perform(as(owner, post("/api/v1/guilds/{g}/forms/{f}/publish", GUILD, formId)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fields.access").exists());
     }
 }

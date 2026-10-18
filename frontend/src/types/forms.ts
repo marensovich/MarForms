@@ -104,6 +104,11 @@ export interface FormDefinition {
     allowedRoleIds?: string[];
     /** RoleGate: any of these Discord roles refuses access; wins over the allow list. */
     deniedRoleIds?: string[];
+    /** Edits not yet published (ТЗ ФТ-5.6.2); the editor shows these instead of `schema`. */
+    draftSchema?: FormSchema | null;
+    hasUnpublishedChanges?: boolean;
+    /** Who saved last (Discord ID). */
+    updatedBy?: string | null;
     createdByDiscordId?: string;
     createdByDiscordUsername?: string;
 }

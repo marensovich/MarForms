@@ -19,6 +19,8 @@ export interface DashboardForm {
     notificationReason?: string | null;
     /** Submissions waiting for a decision (guild list only). */
     pendingCount?: number;
+    /** Edits wait in the form's draft (ТЗ ФТ-5.6.2). */
+    hasUnpublishedChanges?: boolean;
 }
 
 // ── Guild-scoped forms (owner panel) ───────────────────────────────────────
@@ -47,6 +49,11 @@ export function getGuildForm(guildId: string, formId: string): Promise<FormDefin
 /** A new draft with the form's content: how an archived form comes back (ТЗ 4.4.2). */
 export function copyGuildForm(guildId: string, formId: string): Promise<FormDefinition> {
     return apiRequest(`/guilds/${guildId}/forms/${formId}/copy`, {method: "POST"});
+}
+
+/** «Опубликовать изменения» (ТЗ ФТ-5.6.2): the draft goes live, the status stays. */
+export function publishGuildFormChanges(guildId: string, formId: string): Promise<FormDefinition> {
+    return apiRequest(`/guilds/${guildId}/forms/${formId}/publish-changes`, {method: "POST"});
 }
 
 export function publishGuildForm(guildId: string, formId: string): Promise<FormDefinition> {

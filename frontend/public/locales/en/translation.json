@@ -958,7 +958,8 @@
     "saving": "Saving…",
     "saved": "Saved",
     "loadError": "Failed to load form data.",
-    "saveError": "Save failed."
+    "saveError": "Save failed.",
+    "changedElsewhere": "The form was changed elsewhere ({{name}}, {{date}}) — reload the page. Your edits aren't saved."
   },
   "moderators": {
     "title": "Moderators",
@@ -1128,7 +1129,8 @@
       "CLOSED": "«{{title}}» no longer accepts submissions",
       "ARCHIVED": "«{{title}}» is archived",
       "copy": "Draft created — a copy of «{{title}}»",
-      "deleted": "«{{title}}» is deleted"
+      "deleted": "«{{title}}» is deleted",
+      "changes": "Changes to «{{title}}» are published"
     },
     "banner": {
       "one": "Notifications of «{{title}}» aren't delivered: {{reason}}.",
@@ -1176,7 +1178,9 @@
       "PUBLISHED": "Published",
       "CLOSED": "Closed",
       "ARCHIVED": "Archived"
-    }
+    },
+    "publishChanges": "Publish changes",
+    "unpublished": "Unpublished changes"
   },
   "moderation": {
     "open": "Submissions",

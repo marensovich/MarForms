@@ -35,6 +35,7 @@ import java.util.UUID;
  * @param notificationReason why the worst webhook is failing (a {@code WebhookHealth.REASON_*}
  *                        code), {@code null} when notifications are fine
  * @param pendingCount    submissions waiting for a decision (ТЗ 4.4.1, the «+12» next to the count)
+ * @param hasUnpublishedChanges edits wait in the form's draft (ТЗ ФТ-5.6.2)
  * @author marensovich
  * @version v.0.1
  * @since v.0.1
@@ -54,7 +55,8 @@ public record FormSummaryDto(
         LocalDateTime updatedAt,
         WebhookHealth notificationHealth,
         String notificationReason,
-        long pendingCount
+        long pendingCount,
+        boolean hasUnpublishedChanges
 ) {
     public static FormSummaryDto from(Form form, long submissionCount) {
         return from(form, submissionCount, 0);
@@ -78,7 +80,8 @@ public record FormSummaryDto(
                 form.getUpdatedAt(),
                 health,
                 health == null || health == WebhookHealth.HEALTHY ? null : worst.getHealthReason(),
-                pendingCount
+                pendingCount,
+                form.getDraftSchema() != null
         );
     }
 

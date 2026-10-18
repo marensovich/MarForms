@@ -87,10 +87,12 @@ export default function FormEditModal({form, onClose, onUpdated, initialTab = "b
         getForm(form.id)
             .then(def => {
                 setDefinition(def);
-                setTitle(def.schema.title);
-                setDescription(def.schema.description ?? "");
-                setReviewTime(def.schema.reviewTime ?? null);
-                setFields(def.schema.fields ?? []);
+                // A published form is edited in its draft (ТЗ ФТ-5.6.2).
+                const schema = def.draftSchema ?? def.schema;
+                setTitle(schema.title);
+                setDescription(schema.description ?? "");
+                setReviewTime(schema.reviewTime ?? null);
+                setFields(schema.fields ?? []);
                 setWebhooks(def.webhooks ?? []);
                 setAccess(accessOf(def));
             })

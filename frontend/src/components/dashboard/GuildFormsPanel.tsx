@@ -34,6 +34,7 @@ import {
     type GuildUsage,
     type MyGuild,
     publishGuildForm,
+    publishGuildFormChanges,
     setGuildFormStatus,
 } from "../../api/dashboard";
 import {describeApiError} from "../../api/errors";
@@ -258,7 +259,9 @@ export default function GuildFormsPanel({guild}: { guild: MyGuild }) {
 
     const openPreview = async (f: DashboardForm) => {
         try {
-            setPreview(await getGuildForm(guild.guildId, f.id));
+            const def = await getGuildForm(guild.guildId, f.id);
+            // The preview shows what publishing would show (the draft, if any).
+            setPreview(def.draftSchema ? {...def, schema: def.draftSchema} : def);
         } catch (e) {
             toast({tone: "error", text: describeApiError(e, t("guildForms.actionError"))});
         }
@@ -274,6 +277,10 @@ export default function GuildFormsPanel({guild}: { guild: MyGuild }) {
         if (status === "DRAFT" || status === "CLOSED") {
             items.push({label: t("guildForms.publish"), icon: FiSend, onSelect: () =>
                     run(f, () => publishGuildForm(guild.guildId, f.id), t("guildForms.done.PUBLISHED", {title: f.title}))});
+        }
+        if (f.hasUnpublishedChanges && (status === "PUBLISHED" || status === "CLOSED")) {
+            items.push({label: t("guildForms.publishChanges"), icon: FiSend, onSelect: () =>
+                    run(f, () => publishGuildFormChanges(guild.guildId, f.id), t("guildForms.done.changes", {title: f.title}))});
         }
         if (status === "PUBLISHED") items.push({label: t("guildForms.close"), icon: FiSlash, onSelect: () => setStatus("CLOSED")});
         if (status === "PUBLISHED" || status === "CLOSED") {
@@ -367,7 +374,14 @@ export default function GuildFormsPanel({guild}: { guild: MyGuild }) {
                                 <tr key={f.id} aria-busy={busy || undefined} className={cx(busy && "opacity-60")}>
                                     <td className="border-b border-bd px-4 py-3.5">
                                         <div className="flex flex-col gap-[3px]">
-                                            <span className="font-semibold text-tx">{f.title}</span>
+                                            <span className="flex items-center gap-2 font-semibold text-tx">
+                                                {f.title}
+                                                {f.hasUnpublishedChanges && (
+                                                    <span className="rounded-full bg-amb px-2 py-0.5 text-[11px] font-semibold text-amt">
+                                                        {t("guildForms.unpublished")}
+                                                    </span>
+                                                )}
+                                            </span>
                                             <span className="font-mono text-xs text-mu">
                                                 {f.slug ? `/f/${f.slug}` : t("guildForms.noLinkYet")}
                                             </span>

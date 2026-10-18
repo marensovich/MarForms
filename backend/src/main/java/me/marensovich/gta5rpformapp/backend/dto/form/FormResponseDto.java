@@ -56,7 +56,12 @@ public record FormResponseDto(
         @JsonSerialize(contentUsing = ToStringSerializer.class)
         Set<Long> allowedRoleIds,
         @JsonSerialize(contentUsing = ToStringSerializer.class)
-        Set<Long> deniedRoleIds
+        Set<Long> deniedRoleIds,
+        /* Edits not yet published (ТЗ ФТ-5.6.2); null = none. The editor shows these. */
+        FormSchema draftSchema,
+        boolean hasUnpublishedChanges,
+        @JsonSerialize(using = ToStringSerializer.class)
+        Long updatedBy
 ) {
     /**
      * Converts a {@link Form} entity to a {@link FormResponseDto}.
@@ -83,7 +88,10 @@ public record FormResponseDto(
                 form.getUpdatedAt(),
                 form.getVersion(),
                 form.getAllowedRoleIds(),
-                form.getDeniedRoleIds()
+                form.getDeniedRoleIds(),
+                form.getDraftSchema(),
+                form.getDraftSchema() != null,
+                form.getUpdatedBy()
         );
     }
 
@@ -104,6 +112,7 @@ public record FormResponseDto(
             return copy;
         }).toList();
         return new FormResponseDto(id, serverId, channelsIds, schema, masked, active, createdAt, status, accessMode,
-                slug, submissionLimitPerUser, opensAt, closesAt, updatedAt, version, allowedRoleIds, deniedRoleIds);
+                slug, submissionLimitPerUser, opensAt, closesAt, updatedAt, version, allowedRoleIds, deniedRoleIds,
+                draftSchema, hasUnpublishedChanges, updatedBy);
     }
 }

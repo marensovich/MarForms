@@ -17,6 +17,7 @@ import me.marensovich.gta5rpformapp.backend.dto.form.CreateGuildFormRequest;
 import me.marensovich.gta5rpformapp.backend.dto.form.FormSettingsRequest;
 import me.marensovich.gta5rpformapp.backend.dto.form.FormSummaryDto;
 import me.marensovich.gta5rpformapp.backend.dto.form.UpdateFormRequest;
+import me.marensovich.gta5rpformapp.backend.exception.FormConflictException;
 import me.marensovich.gta5rpformapp.backend.exception.InvalidStateException;
 import me.marensovich.gta5rpformapp.backend.exception.NotFoundException;
 import me.marensovich.gta5rpformapp.backend.service.billing.PlanLimitService;
@@ -84,6 +85,7 @@ public class FormService {
     private final me.marensovich.gta5rpformapp.backend.database.repository.FormReminderRepository formReminderRepository;
     private final me.marensovich.gta5rpformapp.backend.service.NotificationService notificationService;
     private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
+    private final me.marensovich.gta5rpformapp.backend.database.repository.UserRepository userRepository;
 
     // ── Lookup ──────────────────────────────────────────────────────────────
 
@@ -236,13 +238,14 @@ public class FormService {
     public Form update(UUID formId, UpdateFormRequest request) {
         Form form = getById(formId);
         if (request.version() != null && !request.version().equals(form.getVersion())) {
-            throw new InvalidStateException("This form was changed elsewhere — reload it to see the latest version");
+            throw new FormConflictException(form.getUpdatedBy() == null ? null : userRepository.findByDiscordId(form.getUpdatedBy())
+                    .map(me.marensovich.gta5rpformapp.backend.database.entity.User::getDiscordUsername).orElse(null), form.getUpdatedAt());
         }
         if (request.settings() != null) applySettings(form, request.settings());
 
-        String oldTitle = form.getSchema().getTitle();
+        String oldTitle = editable(form).getTitle();
         FormStatus oldStatus = form.getStatus();
-        int oldFieldCount = fieldCount(form);
+        int oldFieldCount = editableFields(form).size();
         int oldWebhookCount = form.getWebhooks() != null ? form.getWebhooks().size() : 0;
 
         if (request.channelsIds() != null) {
@@ -253,7 +256,7 @@ public class FormService {
         }
         if (request.schema() != null) {
             FormSchemaValidator.validate(request.schema());
-            form.setSchema(request.schema());
+            setEditable(form, request.schema());
         }
         String oldSlug = form.getSlug();
         if (request.slug() != null && !request.slug().equals(form.getSlug())) {
@@ -262,24 +265,23 @@ public class FormService {
         if (request.active() != null) {
             if (request.active()) {
                 requireNotArchived(form);
-                requirePublishable(form);
+                applyDraft(form);
                 assignSlugIfMissing(form);
                 form.setStatus(FormStatus.PUBLISHED);
             } else if (form.getStatus() == FormStatus.PUBLISHED) {
                 form.setStatus(FormStatus.CLOSED);
             }
         }
-        if (form.getStatus() == FormStatus.PUBLISHED) requirePublishable(form);
-
+        stamp(form);
         Form saved = formRepository.save(form);
 
         List<String> changes = new ArrayList<>();
-        String newTitle = saved.getSchema().getTitle();
+        String newTitle = editable(saved).getTitle();
         if (!oldTitle.equals(newTitle))
             changes.add("Title: \"" + oldTitle + "\" → \"" + newTitle + "\"");
         if (oldStatus != saved.getStatus())
             changes.add("Status: " + oldStatus + " → " + saved.getStatus());
-        int newFieldCount = fieldCount(saved);
+        int newFieldCount = editableFields(saved).size();
         if (oldFieldCount != newFieldCount)
             changes.add("Fields: " + oldFieldCount + " → " + newFieldCount);
         int newWebhookCount = saved.getWebhooks() != null ? saved.getWebhooks().size() : 0;
@@ -316,6 +318,7 @@ public class FormService {
     public Form updateSettings(UUID formId, FormSettingsRequest request) {
         Form form = getById(formId);
         applySettings(form, request);
+        stamp(form);
         Form saved = formRepository.save(form);
         logForm(saved, AuditAction.FORM_UPDATED, Map.of("changes", List.of("access")),
                 "Access settings: " + request.accessMode());
@@ -400,14 +403,154 @@ public class FormService {
     public Form publish(UUID formId) {
         Form form = getById(formId);
         requireNotArchived(form);
-        requirePublishable(form);
-        FormSchemaValidator.validate(form.getSchema());
+        boolean changes = applyDraft(form);
         assignSlugIfMissing(form);
         FormStatus old = form.getStatus();
         form.setStatus(FormStatus.PUBLISHED);
+        stamp(form);
         Form saved = formRepository.save(form);
         if (old != FormStatus.PUBLISHED) logStatusChange(saved, old);
+        if (changes) logForm(saved, AuditAction.FORM_UPDATED, Map.of("changes", List.of("published")), "Changes published");
         return saved;
+    }
+
+    /**
+     * «Опубликовать изменения» (ТЗ ФТ-5.6.2): the draft becomes what respondents
+     * see; the form keeps its status (a closed form stays closed).
+     *
+     * @param formId the form's ID
+     * @return the form
+     * @throws InvalidStateException if there is nothing to publish
+     * @since v.0.1
+     */
+    @Transactional
+    public Form publishChanges(UUID formId) {
+        Form form = getById(formId);
+        requireNotArchived(form);
+        if (form.getDraftSchema() == null) throw new InvalidStateException("There are no unpublished changes");
+        applyDraft(form);
+        stamp(form);
+        Form saved = formRepository.save(form);
+        logForm(saved, AuditAction.FORM_UPDATED, Map.of("changes", List.of("published")), "Changes published");
+        return saved;
+    }
+
+    /**
+     * Drops the unpublished changes: the editor shows the published form again.
+     *
+     * @param formId the form's ID
+     * @return the form
+     * @since v.0.1
+     */
+    @Transactional
+    public Form discardChanges(UUID formId) {
+        Form form = getById(formId);
+        if (form.getDraftSchema() == null) return form;
+        form.setDraftSchema(null);
+        stamp(form);
+        Form saved = formRepository.save(form);
+        logForm(saved, AuditAction.FORM_UPDATED, Map.of("changes", List.of("discarded")), "Unpublished changes discarded");
+        return saved;
+    }
+
+    /** One thing that stops (or, as a warning, doesn't stop) a form's publication (ТЗ ФТ-5.6.1). */
+    public record PublishIssue(String area, String fieldId, String message) {
+    }
+
+    /** What publishing would find: errors stop it, warnings don't. */
+    public record PublishCheck(List<PublishIssue> errors, List<PublishIssue> warnings) {
+    }
+
+    /**
+     * The publication checklist of ТЗ ФТ-5.6.1 for what would be published
+     * (the draft, if any): at least one field, no broken conditions, a role
+     * list for «Определённые роли»; no webhooks is a warning.
+     *
+     * @param formId the form's ID
+     * @return the check
+     * @since v.0.1
+     */
+    @Transactional(readOnly = true)
+    public PublishCheck publishCheck(UUID formId) {
+        return publishCheck(getById(formId));
+    }
+
+    private PublishCheck publishCheck(Form form) {
+        FormSchema candidate = editable(form);
+        List<PublishIssue> errors = new ArrayList<>();
+        List<PublishIssue> warnings = new ArrayList<>();
+        List<FormField> fields = candidate.getFields() == null ? List.of() : candidate.getFields();
+        if (fields.stream().noneMatch(f -> f != null && f.getType() != null && f.getType().isInput())) {
+            errors.add(new PublishIssue("fields", null, "Add at least one field to fill in"));
+        }
+        try {
+            FormSchemaValidator.validate(candidate);
+        } catch (FieldValidationException e) {
+            e.getErrors().forEach((path, message) -> {
+                java.util.regex.Matcher m = java.util.regex.Pattern.compile("^fields\\[(\\d+)]").matcher(path);
+                String fieldId = m.find() && Integer.parseInt(m.group(1)) < fields.size() && fields.get(Integer.parseInt(m.group(1))) != null
+                        ? fields.get(Integer.parseInt(m.group(1))).getId() : null;
+                errors.add(new PublishIssue(path.contains("condition") ? "conditions" : "fields", fieldId, message));
+            });
+        }
+        if (form.getAccessMode() == FormAccessMode.ROLE_GATED
+                && form.getAllowedRoleIds().isEmpty() && form.getDeniedRoleIds().isEmpty()) {
+            errors.add(new PublishIssue("access", null, "Add an allowed or a denied role"));
+        }
+        if (form.getWebhooks() == null || form.getWebhooks().stream().noneMatch(w -> w.getUrl() != null && !w.getUrl().isBlank())) {
+            warnings.add(new PublishIssue("notifications", null, "No webhook: submissions won't be announced in Discord"));
+        }
+        return new PublishCheck(errors, warnings);
+    }
+
+    /**
+     * Before publishing: the checklist must pass, then the draft (if any)
+     * becomes the published schema.
+     *
+     * @return whether a draft was applied
+     */
+    private boolean applyDraft(Form form) {
+        PublishCheck check = publishCheck(form);
+        if (!check.errors().isEmpty()) {
+            Map<String, String> errors = new LinkedHashMap<>();
+            for (PublishIssue issue : check.errors()) {
+                String key = issue.fieldId() != null ? "fields." + issue.fieldId() : issue.area();
+                errors.merge(key, issue.message(), (a, b) -> a + "; " + b);
+            }
+            throw new FieldValidationException("The form can't be published yet", errors);
+        }
+        if (form.getDraftSchema() == null) return false;
+        form.setSchema(form.getDraftSchema());
+        form.setDraftSchema(null);
+        return true;
+    }
+
+    /** What the editor changes: a form respondents may see is edited in its draft (ТЗ ФТ-5.6.2). */
+    private static FormSchema editable(Form form) {
+        if (form.getStatus() == FormStatus.DRAFT) return form.getSchema();
+        return form.getDraftSchema() != null ? form.getDraftSchema() : form.getSchema();
+    }
+
+    private static List<FormField> editableFields(Form form) {
+        FormSchema s = editable(form);
+        return s == null || s.getFields() == null ? List.of() : s.getFields();
+    }
+
+    /** Saves an edit: into the schema before the form is first published, into the draft after. */
+    private void setEditable(Form form, FormSchema schema) {
+        if (form.getStatus() == FormStatus.DRAFT) {
+            form.setSchema(schema);
+            return;
+        }
+        // Back to what is published: nothing is left unpublished.
+        boolean same = objectMapper.valueToTree(schema).equals(objectMapper.valueToTree(form.getSchema()));
+        form.setDraftSchema(same ? null : schema);
+    }
+
+    /** Who saved the form last (ТЗ 5.7). */
+    private void stamp(Form form) {
+        Long actor = auditLogService.currentActorId();
+        if (actor != null) form.setUpdatedBy(actor);
     }
 
     /**
@@ -506,7 +649,7 @@ public class FormService {
         if (field != null && (field.getId() == null || field.getId().isBlank())) {
             field.setId("f_" + UUID.randomUUID().toString().replace("-", "").substring(0, 10));
         }
-        List<FormField> fields = new ArrayList<>(fieldsOf(form));
+        List<FormField> fields = new ArrayList<>(editableFields(form));
         fields.add(field);
         return saveFields(form, fields, "Field added: " + (field != null ? field.getLabel() : null));
     }
@@ -525,7 +668,7 @@ public class FormService {
     public Form updateField(UUID formId, String fieldId, FormField field) {
         Form form = getById(formId);
         FormSchemaValidator.validateField(field);
-        List<FormField> fields = new ArrayList<>(fieldsOf(form));
+        List<FormField> fields = new ArrayList<>(editableFields(form));
         int index = indexOf(fields, fieldId);
         field.setId(fieldId);
         fields.set(index, field);
@@ -544,7 +687,7 @@ public class FormService {
     @Transactional
     public Form deleteField(UUID formId, String fieldId) {
         Form form = getById(formId);
-        List<FormField> fields = new ArrayList<>(fieldsOf(form));
+        List<FormField> fields = new ArrayList<>(editableFields(form));
         FormField removed = fields.remove(indexOf(fields, fieldId));
         return saveFields(form, fields, "Field removed: " + removed.getLabel());
     }
@@ -561,7 +704,7 @@ public class FormService {
     @Transactional
     public Form reorderFields(UUID formId, List<String> fieldIds) {
         Form form = getById(formId);
-        List<FormField> current = fieldsOf(form);
+        List<FormField> current = editableFields(form);
         Set<String> currentIds = current.stream().map(FormField::getId).collect(Collectors.toSet());
         if (fieldIds.size() != current.size() || !new HashSet<>(fieldIds).equals(currentIds)) {
             throw new IllegalArgumentException("fieldIds must list every field of the form exactly once");
@@ -573,13 +716,12 @@ public class FormService {
     }
 
     private Form saveFields(Form form, List<FormField> fields, String auditDetail) {
-        FormSchema schema = new FormSchema();
-        schema.setTitle(form.getSchema().getTitle());
-        schema.setDescription(form.getSchema().getDescription());
+        FormSchema base = editable(form);
+        FormSchema schema = objectMapper.convertValue(base, FormSchema.class);
         schema.setFields(fields);
         FormSchemaValidator.validate(schema);
-        form.setSchema(schema);
-        if (form.getStatus() == FormStatus.PUBLISHED) requirePublishable(form);
+        setEditable(form, schema);
+        stamp(form);
         Form saved = formRepository.save(form);
         logForm(saved, AuditAction.FORM_UPDATED, Map.of("changes", List.of("fields")), auditDetail);
         return saved;

@@ -102,6 +102,21 @@ public class Form {
     private FormSchema schema;
 
     /**
+     * Edits of a form respondents can see, not shown to them until
+     * «Опубликовать изменения» (ТЗ ФТ-5.6.2); {@code null} = nothing unpublished.
+     * A form never published is edited in {@link #schema} itself.
+     *
+     * @since v.0.1
+     */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "draft_schema")
+    private FormSchema draftSchema;
+
+    /** Who saved the form last (Discord ID), for «Форму изменили в другом месте» (ТЗ 5.7). */
+    @Column(name = "updated_by")
+    private Long updatedBy;
+
+    /**
      * A list of Discord webhook configurations for this form.
      * <p>
      * Stored as JSON in the database using Hibernate's JSON mapping.

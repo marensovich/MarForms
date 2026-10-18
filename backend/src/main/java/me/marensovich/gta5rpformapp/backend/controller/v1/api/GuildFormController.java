@@ -97,6 +97,30 @@ public class GuildFormController {
         return FormResponseDto.from(formService.changeStatus(formId, request.status()));
     }
 
+    /** «Опубликовать изменения» (ТЗ ФТ-5.6.2): the draft goes live, the status stays. */
+    @PreAuthorize("hasAuthority('FORMS_MANAGE') or @guildAccess.hasRole(#guildId, 'OWNER')")
+    @PostMapping("/{formId}/publish-changes")
+    public FormResponseDto publishChanges(@PathVariable Long guildId, @PathVariable UUID formId) {
+        formService.getInGuild(guildId, formId);
+        return FormResponseDto.from(formService.publishChanges(formId));
+    }
+
+    /** Drops the unpublished changes. */
+    @PreAuthorize("hasAuthority('FORMS_MANAGE') or @guildAccess.hasRole(#guildId, 'OWNER')")
+    @DeleteMapping("/{formId}/draft")
+    public FormResponseDto discardChanges(@PathVariable Long guildId, @PathVariable UUID formId) {
+        formService.getInGuild(guildId, formId);
+        return FormResponseDto.from(formService.discardChanges(formId));
+    }
+
+    /** The publication checklist (ТЗ ФТ-5.6.1): errors stop publishing, warnings don't. */
+    @PreAuthorize("hasAuthority('FORMS_MANAGE') or @guildAccess.hasRole(#guildId, 'OWNER')")
+    @GetMapping("/{formId}/publish-check")
+    public FormService.PublishCheck publishCheck(@PathVariable Long guildId, @PathVariable UUID formId) {
+        formService.getInGuild(guildId, formId);
+        return formService.publishCheck(formId);
+    }
+
     /** ТЗ 4.4.2: an archived form is restored as a draft copy; any form may be copied. */
     @PreAuthorize("@guildAccess.hasRole(#guildId, 'OWNER')")
     @PostMapping("/{formId}/copy")

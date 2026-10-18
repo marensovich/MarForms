@@ -1,4 +1,5 @@
 import {ApiError} from "./client";
+import i18n from "i18next";
 
 /**
  * Turns an API failure into a readable message. Backend errors are JSON
@@ -9,6 +10,11 @@ export function describeApiError(e: unknown, fallback: string): string {
     if (!(e instanceof ApiError)) return fallback;
     try {
         const parsed = JSON.parse(e.message);
+        // A form saved elsewhere (ТЗ 5.7): who and when.
+        if (parsed && e.status === 409 && "updatedBy" in parsed) {
+            const when = parsed.updatedAt ? new Date(parsed.updatedAt).toLocaleString() : "";
+            return i18n.t("formEdit.changedElsewhere", {name: parsed.updatedBy ?? "—", date: when});
+        }
         if (parsed && typeof parsed === "object") {
             const fields = parsed.fields && typeof parsed.fields === "object"
                 ? Object.values(parsed.fields as Record<string, string>)
