@@ -1,0 +1,32 @@
+name: Идея
+description: Новая возможность или улучшение
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Какую задачу это решает
+      description: Кто и в какой ситуации с этим сталкивается
+      placeholder: Модератору приходится …
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Что предлагаете
+    validations:
+      required: true
+  - type: dropdown
+    id: who
+    attributes:
+      label: Для кого
+      multiple: true
+      options:
+        - Игроки
+        - Модераторы
+        - Владельцы серверов
+        - Администраторы платформы
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Как обходитесь сейчас

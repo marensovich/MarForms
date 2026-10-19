@@ -1,0 +1,50 @@
+name: Баг
+description: Что-то работает не так, как должно
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Уязвимость? Не создавайте задачу, см. [SECURITY.md](https://github.com/marensovich/MarForms/blob/master/SECURITY.md).
+  - type: input
+    id: where
+    attributes:
+      label: Где
+      description: Страница или раздел
+      placeholder: Конструктор формы → вкладка «Сообщение»
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Как воспроизвести
+      placeholder: |
+        1. Открыть …
+        2. Нажать …
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Что происходит
+      description: Текст ошибки, скриншот, строка из лога бэкенда
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Что должно быть
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Насколько мешает
+      options:
+        - Ничего не работает
+        - Мешает, но есть обход
+        - Мелочь
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Версия
+      description: Коммит из «Система → О системе», если знаете
