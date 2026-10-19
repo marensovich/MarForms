@@ -1,0 +1,4 @@
+# Secrets written by install.sh (or copied from backend/.env.example) — never commit them.
+.env
+.env.*
+!.env.example

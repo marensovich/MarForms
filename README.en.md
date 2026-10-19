@@ -140,15 +140,32 @@ npm ci
 npm run dev
 ```
 
-**Production**: Postgres, the backend and the SPA behind nginx on one origin:
+**Installing on a server**: one image, `marforms`, with the site and the API on port 8090, next to
+Postgres. The installer asks for the site's address, the Discord application, the bot token and the
+main administrator's Discord ID, generates the database password and the keys, writes `.env` and
+starts everything in Docker:
 
 ```bash
-cp backend/.env.example .env
-GIT_COMMIT=$(git rev-parse --short HEAD) \
-  docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+git clone https://github.com/marensovich/MarForms.git && cd MarForms
+./install.sh            # builds the image from source; ./install.sh --image uses the published one
 ```
 
-Put TLS in front of the `frontend` service. Every environment variable is described in
+The same by hand:
+
+```bash
+cp backend/.env.example .env      # secrets, the public address in FRONTEND_URL, your ID in ADMIN_DISCORD_IDS
+docker compose -f docker-compose.prod.yml --env-file .env up -d
+```
+
+The image comes from GitHub Packages (`ghcr.io/marensovich/marforms`, version in `MARFORMS_VERSION`);
+`--build` builds it from source. Without compose, with a database of your own:
+
+```bash
+docker build -t marforms .
+docker run -d -p 8090:8090 --env-file .env -v marforms_uploads:/data/uploads marforms
+```
+
+Put TLS in front of port 8090. Every environment variable is described in
 [`backend/README.md`](backend/README.md#environment-variables).
 
 **Tests:**
@@ -162,8 +179,7 @@ cd frontend && npm test && npm run lint
 
 ```mermaid
 flowchart LR
-    B[Browser] -->|HTTPS| N[nginx<br/>SPA + proxy]
-    N -->|/api, /oauth2| S[Spring Boot]
+    B[Browser] -->|HTTPS| S[Spring Boot<br/>site + API]
     S --> P[(PostgreSQL<br/>Flyway, JSONB)]
     S <-->|Gateway WebSocket<br/>JDA| G[Discord Bot API]
     S -->|OAuth2| O[Discord OAuth]
@@ -178,7 +194,7 @@ flowchart LR
 | Data | PostgreSQL 16: form schemas and answers in JSONB |
 | Background work | A delivery queue in the database (`SKIP LOCKED`) with retries: webhook reports and decision DMs |
 | Tests | JUnit 5, Spring MockMvc, Testcontainers, Vitest, Testing Library |
-| Delivery | Docker Compose, nginx, GitHub Actions |
+| Delivery | One Docker image, Docker Compose, GitHub Actions (the image is published on a tag) |
 
 The key decisions are ADRs: [background jobs](docs/adr/0001-background-job-mechanism.md),
 [form fields in JSONB](docs/adr/0002-form-fields-in-jsonb.md), [file storage](docs/adr/0003-file-storage.md).
@@ -198,8 +214,9 @@ The key decisions are ADRs: [background jobs](docs/adr/0001-background-job-mecha
 │   ├── spec/                requirements
 │   ├── adr/                 architecture decisions
 │   └── design/              approved screen mockups
+├── Dockerfile               the single image: site and API
 ├── docker-compose.yml       Postgres for development
-└── docker-compose.prod.yml  the whole stack
+└── docker-compose.prod.yml  the image + Postgres
 ```
 </details>
 

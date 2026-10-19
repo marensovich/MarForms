@@ -69,6 +69,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
 
                 .oauth2Login(oauth2 -> oauth2
+                        // The SPA's own sign-in page: without it Spring draws one at
+                        // GET /login, over the app's page in the single image.
+                        .loginPage("/login")
                         .authorizationEndpoint(auth -> auth
                                 .authorizationRequestResolver(noPkceResolver)
                         )

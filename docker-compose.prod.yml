@@ -1,9 +1,10 @@
-# Full stack: Postgres, the backend and the SPA behind nginx on one origin.
+# MarForms in production: the single image (site + API on one port) and Postgres.
 #   cp backend/.env.example .env   # fill in secrets, see backend/README.md
-#   docker compose -f docker-compose.prod.yml --env-file .env up -d --build
-# Put TLS in front of the frontend service (or terminate it in nginx); set
-# FRONTEND_URL, DISCORD_REDIRECT_URI and DISCORD_BOT_INSTALL_REDIRECT_URI to
-# the public https origin.
+#   docker compose -f docker-compose.prod.yml --env-file .env up -d
+# The image comes from GitHub Packages (set MARFORMS_VERSION, default latest);
+# `--build` builds it from this checkout instead. Put TLS in front of port
+# HTTP_PORT and set FRONTEND_URL, DISCORD_REDIRECT_URI and
+# DISCORD_BOT_INSTALL_REDIRECT_URI to the public https origin.
 services:
   postgres:
     image: postgres:16
@@ -19,33 +20,24 @@ services:
       retries: 5
     restart: unless-stopped
 
-  backend:
+  marforms:
+    image: ghcr.io/marensovich/marforms:${MARFORMS_VERSION:-latest}
     build:
-      context: ./backend
+      context: .
       args:
         # Shown in «Система → О системе»: GIT_COMMIT=$(git rev-parse --short HEAD)
         GIT_COMMIT: ${GIT_COMMIT:-}
     env_file: .env
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-marforms}
-      DB_DRIVER: org.postgresql.Driver
-      SERVER_FORWARD_HEADERS_STRATEGY: native
+      HOST_APP_PORT: "8090"
+    ports:
+      - "${HTTP_PORT:-8090}:8090"
     volumes:
       - uploads:/data/uploads
     depends_on:
       postgres:
         condition: service_healthy
-    restart: unless-stopped
-
-  frontend:
-    build:
-      context: ./frontend
-      args:
-        VITE_API_URL: ""
-    ports:
-      - "${HTTP_PORT:-80}:80"
-    depends_on:
-      - backend
     restart: unless-stopped
 
 volumes:

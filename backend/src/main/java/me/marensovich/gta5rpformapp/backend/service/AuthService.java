@@ -27,6 +27,7 @@ public class AuthService {
     private final UserService userService;
     private final DiscordTokenService discordTokenService;
     private final AuditLogService auditLogService;
+    private final AdminBootstrapService adminBootstrapService;
 
     /**
      * The Discord OAuth2 tokens obtained at login.
@@ -67,6 +68,7 @@ public class AuthService {
 
         User user = userService.findOrCreateDiscordUser(discordId, username);
         userService.refreshProfile(user, username, oauthUser.getAttribute("avatar"));
+        adminBootstrapService.grantIfListed(user);
 
         if (tokens != null) {
             discordTokenService.store(user.getId(), tokens.accessToken(), tokens.refreshToken(),

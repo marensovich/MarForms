@@ -140,15 +140,31 @@ npm ci
 npm run dev
 ```
 
-**Продакшен** — Postgres, бэкенд и SPA за nginx на одном домене:
+**Установка на сервер** — один образ `marforms`: сайт и API на одном порту 8090, рядом Postgres.
+Установщик спросит адрес сайта, данные приложения Discord, токен бота и Discord ID главного
+администратора, сам сгенерирует пароль базы и ключи, запишет `.env` и запустит всё в Docker:
 
 ```bash
-cp backend/.env.example .env
-GIT_COMMIT=$(git rev-parse --short HEAD) \
-  docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+git clone https://github.com/marensovich/MarForms.git && cd MarForms
+./install.sh            # собирает образ из исходников; ./install.sh --image — готовый из GitHub Packages
 ```
 
-TLS ставится перед сервисом `frontend`. Все переменные окружения описаны в
+Вручную то же самое:
+
+```bash
+cp backend/.env.example .env      # секреты, публичный адрес в FRONTEND_URL, свой ID в ADMIN_DISCORD_IDS
+docker compose -f docker-compose.prod.yml --env-file .env up -d
+```
+
+Образ берётся из GitHub Packages (`ghcr.io/marensovich/marforms`, версия в `MARFORMS_VERSION`),
+с флагом `--build` собирается из исходников. Без compose, при своей базе:
+
+```bash
+docker build -t marforms .
+docker run -d -p 8090:8090 --env-file .env -v marforms_uploads:/data/uploads marforms
+```
+
+TLS ставится перед портом 8090. Все переменные окружения описаны в
 [`backend/README.md`](backend/README.md#environment-variables).
 
 **Тесты:**
@@ -162,8 +178,7 @@ cd frontend && npm test && npm run lint
 
 ```mermaid
 flowchart LR
-    B[Браузер] -->|HTTPS| N[nginx<br/>SPA + прокси]
-    N -->|/api, /oauth2| S[Spring Boot]
+    B[Браузер] -->|HTTPS| S[Spring Boot<br/>сайт + API]
     S --> P[(PostgreSQL<br/>Flyway, JSONB)]
     S <-->|Gateway WebSocket<br/>JDA| G[Discord Bot API]
     S -->|OAuth2| O[Discord OAuth]
@@ -178,7 +193,7 @@ flowchart LR
 | Данные | PostgreSQL 16: схемы форм и ответы хранятся в JSONB |
 | Фоновые задачи | Очередь отправок в базе (`SKIP LOCKED`) с повторами: отчёты в вебхуки и личные сообщения о решении |
 | Тесты | JUnit 5, Spring MockMvc, Testcontainers, Vitest, Testing Library |
-| Доставка | Docker Compose, nginx, GitHub Actions |
+| Доставка | Один Docker-образ, Docker Compose, GitHub Actions (образ публикуется по тегу) |
 
 Ключевые решения записаны в ADR: [фоновые задачи](docs/adr/0001-background-job-mechanism.md),
 [поля форм в JSONB](docs/adr/0002-form-fields-in-jsonb.md), [хранение файлов](docs/adr/0003-file-storage.md).
@@ -198,8 +213,9 @@ flowchart LR
 │   ├── spec/                техническое задание
 │   ├── adr/                 архитектурные решения
 │   └── design/              утверждённые макеты экранов
+├── Dockerfile               единый образ: сайт и API
 ├── docker-compose.yml       Postgres для разработки
-└── docker-compose.prod.yml  весь стек
+└── docker-compose.prod.yml  образ + Postgres
 ```
 </details>
 

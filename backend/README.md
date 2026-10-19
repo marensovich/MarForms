@@ -89,6 +89,7 @@ and unauthenticated.
 | `DISCORD_BOT_INSTALL_REDIRECT_URI` | Callback for the "Add to Discord" install flow |
 | `FILES_DIR` | Where uploaded attachments are stored (default `./data/uploads`; a volume in Docker — back it up) |
 | `SERVER_FORWARD_HEADERS_STRATEGY` | Set to `native` behind a reverse proxy, so rate limits see the client's IP, not the proxy's |
+| `ADMIN_DISCORD_IDS` | Discord IDs (comma-separated) given the system role on sign-in — a fresh database has no administrator (`AdminBootstrapService`, set by `install.sh`) |
 | `STRIPE_SECRET_KEY`, `STRIPE_PRICE_PRO`, `STRIPE_WEBHOOK_SECRET` | Stripe billing; blank disables checkout (see Billing) |
 
 Rate limits for anonymous endpoints (per client IP and minute) are properties too:
@@ -102,11 +103,22 @@ Plan limits are plain properties, not env variables: `app.plans.limits.<TIER>.ac
 
 ## Deployment
 
-`docker-compose.prod.yml` (repository root) runs Postgres, this backend and the
-SPA behind nginx on one origin: nginx serves the app, proxies `/api`,
-`/oauth2` and `/login` to the backend, caps request bodies and rate-limits
-the public and sign-in endpoints. The frontend reads the API origin from
-`VITE_API_URL` at build time (empty = same origin); the backend allows
+MarForms ships as one image, built by the `Dockerfile` at the repository root:
+the SPA is built with `VITE_API_URL` empty (same origin) and copied into
+`classpath:/static`, and this backend serves it (`SpaConfig`: files as they
+are, hashed `/assets` cached for a year, `index.html` for any other page
+path; `/api`, `/oauth2` and `/login/…` keep their 404). Responses are
+gzip-compressed, except the live journal stream. The image listens on 8090,
+trusts `X-Forwarded-*` from private networks only
+(`SERVER_FORWARD_HEADERS_STRATEGY=native`) and has a health check on
+`/api/health`. Rate limits are the application's own (`RateLimitFilter`).
+
+`docker-compose.prod.yml` (repository root) runs that image and Postgres.
+A tag `vX.Y.Z` publishes the image to `ghcr.io/marensovich/marforms`
+(`.github/workflows/release.yml`) as `X.Y.Z`, `X.Y` and `latest`.
+
+In development the SPA runs on Vite (`npm run dev`) and calls this backend
+at `VITE_API_URL` (default `http://localhost:8090`); the backend allows
 browser calls from `CORS_ALLOWED_ORIGINS` (comma-separated, defaults to
 `FRONTEND_URL`). `./gradlew bootRun` loads `backend/.env`. CI
 (`.github/workflows/ci.yml`) runs the backend tests and the frontend build.
