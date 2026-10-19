@@ -54,5 +54,7 @@ export interface AuditLogEntry {
     diff: AuditChange[];
     /** The last of back-to-back edits merged into this entry (2026-10-19). */
     lastAt?: string | null;
+    /** How many edits it stands for. */
+    edits?: number;
     createdAt: string;
 }

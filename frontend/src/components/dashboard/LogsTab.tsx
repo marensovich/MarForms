@@ -6,6 +6,7 @@ import {describeApiError} from "../../api/errors";
 import {getAuditLogs, getLogStats, type LogStats, streamAuditLogs} from "../../api/logs";
 import type {AuditAction, AuditLogEntry} from "../../types/logs";
 import {Avatar, cx, DiffView, EmptyState, ErrorState, KpiCard, Pagination, Skeleton} from "../../ui";
+import {foldDiff, foldRuns} from "./auditRuns";
 
 // Docs: docs/design/mockups/AdminLogs.dc.html; ТЗ 6.5, 8.6.
 
@@ -135,7 +136,8 @@ export default function LogsTab() {
     }, [live]);
 
     const loading = !error && data?.key !== key;
-    const rows = data?.key === key ? data.rows : [];
+    // Runs of one action by one person on one object read as one line, as in a server's journal (2026-10-19).
+    const rows = (data?.key === key ? foldRuns(data.rows) : []).map(r => r.runOf.length > 1 ? {...r, diff: foldDiff(r.runOf.map(x => x.diff))} : r);
     const filtered = actions.length > 0 || participant !== "" || from !== "" || to !== "";
     const n = (v: number) => v.toLocaleString(i18n.language);
     const time = (iso: string) => {
@@ -268,6 +270,7 @@ export default function LogsTab() {
                                             <td className="whitespace-nowrap px-3 py-2.5 font-mono text-xs text-mu">
                                                 {time(e.createdAt)}
                                                 {e.lastAt && <span className="block">→ {time(e.lastAt)}</span>}
+                                                {e.count > 1 && <span className="mt-0.5 block font-sans">{t("guildAudit.edits", {count: e.count})}</span>}
                                             </td>
                                             <td className="px-3 py-2.5">
                                                 <span className={cx("inline-flex rounded-full px-2 py-0.5 text-xs font-semibold", BADGE[CATEGORY[e.action] ?? "sys"])}>

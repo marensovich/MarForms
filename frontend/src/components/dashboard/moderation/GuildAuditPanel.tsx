@@ -7,6 +7,7 @@ import {type GuildAuditAction, type GuildAuditEntry, getGuildAuditActors, getGui
 import {describeApiError} from "../../../api/errors";
 import {cx, EmptyState, ErrorState, Skeleton, Spinner} from "../../../ui";
 import FilterSelect from "./FilterSelect";
+import {foldRuns} from "../auditRuns";
 
 // Docs: docs/design/mockups/WsAudit.dc.html; ТЗ 4.6.
 
@@ -80,7 +81,7 @@ function kindOf(e: GuildAuditEntry): { key: string; icon: IconType; tone: keyof 
 }
 
 /** The grey mono line under an entry: the comment, reason, what changed. */
-function detailOf(e: GuildAuditEntry, t: (k: string, o?: Record<string, unknown>) => string): string | null {
+function detailOf(e: GuildAuditEntry & { count?: number }, t: (k: string, o?: Record<string, unknown>) => string): string | null {
     const m = e.metadata ?? {};
     const parts: string[] = [];
     if (str(m.comment)) parts.push(t("guildAudit.detail.comment", {text: str(m.comment)}));
@@ -97,7 +98,7 @@ function detailOf(e: GuildAuditEntry, t: (k: string, o?: Record<string, unknown>
     if (e.action === "FORM_DELETED" && m.submissions !== undefined) {
         parts.push(t("guildAudit.detail.submissionsRemoved", {count: Number(m.submissions)}));
     }
-    if (typeof m.edits === "number" && m.edits > 1) parts.push(t("guildAudit.edits", {count: m.edits}));
+    if ((e.count ?? 1) > 1) parts.push(t("guildAudit.edits", {count: e.count}));
     if (e.targetType === "USER" && e.targetId) parts.push(`ID ${e.targetId}`);
     return parts.length ? parts.join(" · ") : null;
 }
@@ -184,8 +185,8 @@ export default function GuildAuditPanel({guild}: { guild: MyGuild }) {
     }, [next]);
 
     const items = feed?.key === key ? feed.items : [];
-    const groups: { day: string; items: GuildAuditEntry[] }[] = [];
-    for (const e of items) {
+    const groups: { day: string; items: ReturnType<typeof foldRuns<GuildAuditEntry>> }[] = [];
+    for (const e of foldRuns(items)) {
         const day = dayLabel(e.createdAt, i18n.language, t);
         if (groups.at(-1)?.day === day) groups.at(-1)!.items.push(e);
         else groups.push({day, items: [e]});

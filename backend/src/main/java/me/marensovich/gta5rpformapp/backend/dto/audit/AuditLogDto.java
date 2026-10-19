@@ -47,7 +47,9 @@ public record AuditLogDto(
         List<Map<String, Object>> diff,
         LocalDateTime createdAt,
         /** The last of merged back-to-back edits, {@code null} for one (2026-10-19). */
-        LocalDateTime lastAt
+        LocalDateTime lastAt,
+        /** How many edits the entry stands for. */
+        int edits
 ) {
     public static AuditLogDto from(AuditLog log) {
         return from(log, null);
@@ -77,7 +79,8 @@ public record AuditLogDto(
                 AuditDiff.mask(log.getDetails()),
                 diff instanceof List<?> list ? (List<Map<String, Object>>) list : List.of(),
                 log.getCreatedAt(),
-                log.getLastAt()
+                log.getLastAt(),
+                log.getMetadata() != null && log.getMetadata().get("edits") instanceof Number n ? n.intValue() : 1
         );
     }
 
