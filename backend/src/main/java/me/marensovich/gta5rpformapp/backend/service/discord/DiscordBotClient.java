@@ -98,9 +98,8 @@ public class DiscordBotClient {
     public static final List<Permission> REQUIRED_PERMISSIONS =
             List.of(Permission.VIEW_CHANNEL, Permission.MANAGE_WEBHOOKS, Permission.MANAGE_CHANNEL);
 
-    /** The log category and its channels, as the bot names them. */
+    /** The log category and its channel, as the bot names them. */
     public static final String LOG_CATEGORY_NAME = "MarForms";
-    public static final String LOG_RESPONSES_CHANNEL_NAME = "ответы";
     public static final String LOG_AUDIT_CHANNEL_NAME = "аудит";
 
     /**
@@ -192,16 +191,15 @@ public class DiscordBotClient {
     }
 
     /**
-     * The log channels the bot created on a server: a category with
-     * #ответы and #аудит, a webhook in each.
+     * The log channel the bot created on a server: a category with #аудит
+     * in it, and the channel's webhook.
      */
-    public record LogChannels(long categoryId, long responsesChannelId, CreatedWebhook responsesWebhook,
-                              long auditChannelId, CreatedWebhook auditWebhook) {
+    public record LogChannels(long categoryId, long auditChannelId, CreatedWebhook auditWebhook) {
     }
 
     /**
-     * Creates the log category at the top of the server, with #ответы and
-     * #аудит in it, hidden from everyone but the admin roles (server
+     * Creates the log category at the top of the server, with #аудит in it,
+     * hidden from everyone but the admin roles (server
      * administrators see every channel anyway). The access is set while the
      * channels are created: that takes Manage Channels only, while changing
      * it later would take Manage Roles, which the bot doesn't ask for.
@@ -220,12 +218,9 @@ public class DiscordBotClient {
             var categoryAction = guild.createCategory(LOG_CATEGORY_NAME).setPosition(0);
             hideFromEveryone(categoryAction, guild, roles);
             var category = categoryAction.complete();
-            TextChannel responses = hideFromEveryone(category.createTextChannel(LOG_RESPONSES_CHANNEL_NAME), guild, roles).complete();
             TextChannel audit = hideFromEveryone(category.createTextChannel(LOG_AUDIT_CHANNEL_NAME), guild, roles).complete();
-            Webhook responsesHook = responses.createWebhook(LOG_CATEGORY_NAME).complete();
             Webhook auditHook = audit.createWebhook(LOG_CATEGORY_NAME).complete();
             return Optional.of(new LogChannels(category.getIdLong(),
-                    responses.getIdLong(), new CreatedWebhook(responsesHook.getId(), responsesHook.getToken()),
                     audit.getIdLong(), new CreatedWebhook(auditHook.getId(), auditHook.getToken())));
         } catch (Exception e) {
             log.warn("Failed to create the log channels of guild {}: {}", guildId, e.getMessage());

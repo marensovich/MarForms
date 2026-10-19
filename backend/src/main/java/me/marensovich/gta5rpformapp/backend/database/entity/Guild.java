@@ -127,17 +127,10 @@ public class Guild {
     /** The category of the log channels the bot created, if any. */
     private Long logCategoryId;
 
-    /** #ответы: new responses and decisions on them. */
-    private Long logResponsesChannelId;
-
-    /** Its webhook's URL, sealed ({@code WebhookUrlCipher}). */
-    @Column(columnDefinition = "TEXT")
-    private String logResponsesWebhook;
-
-    /** #аудит: changes of forms, the team and settings. */
+    /** #аудит: the server's journal. */
     private Long logAuditChannelId;
 
-    /** Its webhook's URL, sealed. */
+    /** Its webhook's URL, sealed ({@code WebhookUrlCipher}). */
     @Column(columnDefinition = "TEXT")
     private String logAuditWebhook;
 

@@ -111,12 +111,9 @@ function GuildSettingsForm({guildId}: { guildId: string }) {
         }
     };
 
-    const channels = [
-        {key: "responses", channel: settings.responsesChannel},
-        {key: "audit", channel: settings.auditChannel},
-    ] as const;
-    const complete = channels.every(c => c.channel?.name);
-    const anyCreated = channels.some(c => c.channel);
+    const channel = settings.auditChannel;
+    const complete = !!channel?.name;
+    const anyCreated = !!channel;
 
     return (
         <div className="flex flex-col gap-4">
@@ -166,15 +163,11 @@ function GuildSettingsForm({guildId}: { guildId: string }) {
                     <p className="m-0 text-[13px] leading-[1.45] text-mu">{t("guildSettings.channelsText")}</p>
                 </div>
                 {anyCreated && (
-                    <ul className="m-0 flex list-none flex-col gap-1.5 p-0">
-                        {channels.map(({key, channel}) => (
-                            <li key={key} className="flex items-center gap-2 rounded-[10px] bg-s2 px-3 py-2 text-sm">
-                                <FiHash size={14} aria-hidden="true" className="text-mu"/>
-                                <span className="font-medium">{channel?.name ?? t(`guildSettings.${key}`)}</span>
-                                {!channel?.name && <span className="text-xs text-rdt">{t("guildSettings.channelsGone")}</span>}
-                            </li>
-                        ))}
-                    </ul>
+                    <div className="flex items-center gap-2 rounded-[10px] bg-s2 px-3 py-2 text-sm">
+                        <FiHash size={14} aria-hidden="true" className="text-mu"/>
+                        <span className="font-medium">{channel?.name ?? t("guildSettings.audit")}</span>
+                        {!channel?.name && <span className="text-xs text-rdt">{t("guildSettings.channelsGone")}</span>}
+                    </div>
                 )}
                 {!settings.canCreateChannels ? (
                     <div className="flex flex-wrap items-center gap-2 rounded-[10px] bg-amb px-3 py-2 text-[13px] text-amt">

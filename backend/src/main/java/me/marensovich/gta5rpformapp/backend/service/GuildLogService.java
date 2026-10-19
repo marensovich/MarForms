@@ -8,14 +8,10 @@ import me.marensovich.gta5rpformapp.backend.database.entity.Guild;
 import me.marensovich.gta5rpformapp.backend.database.repository.GuildRepository;
 import me.marensovich.gta5rpformapp.backend.service.discord.DiscordWebhookUrl;
 import me.marensovich.gta5rpformapp.backend.service.discord.WebhookUrlCipher;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -23,14 +19,13 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
- * A server's own log channels (2026-10-19): #ответы gets new responses and
- * decisions on them, #аудит the rest of the server's journal. Messages go out
- * after the action's transaction commits, off the request thread; a channel
- * whose webhook Discord no longer knows is forgotten, so the owner can
- * create the channels again.
+ * A server's own log channel (2026-10-19): #аудит gets the server's journal,
+ * decisions on responses included — new responses go to the forms' own
+ * channels. Entries go out after the action's transaction commits, off the
+ * request thread; a channel whose webhook Discord no longer knows is
+ * forgotten, so the owner can create it again.
  *
  * @author marensovich
  * @since v.0.1
@@ -40,64 +35,9 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class GuildLogService {
 
-    /** Which of the server's log channels. */
-    public enum Channel {RESPONSES, AUDIT}
-
-    /** A message waiting for its transaction to commit. */
-    public record Post(Long guildId, Channel channel, Map<String, Object> embed) {
-    }
-
-    /** Journal entries that are about responses, not the server's setup. */
-    private static final Set<AuditAction> RESPONSE_ACTIONS = Set.of(AuditAction.SUBMISSION_CREATED,
-            AuditAction.SUBMISSION_DECIDED, AuditAction.SUBMISSION_DELETED, AuditAction.SUBMISSION_DM_FAILED);
-
     private final GuildRepository guildRepository;
     private final WebhookUrlCipher webhookUrlCipher;
     private final RestTemplate restTemplate;
-    private final ApplicationEventPublisher events;
-
-    @org.springframework.beans.factory.annotation.Value("${app.frontend-url:http://localhost:5173}")
-    private String frontendUrl;
-
-    /**
-     * Queues a message for one of a server's log channels.
-     *
-     * @param guildId the Discord guild snowflake ID; {@code null} sends nothing
-     * @param channel which channel
-     * @param embed   the Discord embed
-     * @since v.0.1
-     */
-    public void post(Long guildId, Channel channel, Map<String, Object> embed) {
-        if (guildId != null) events.publishEvent(new Post(guildId, channel, embed));
-    }
-
-    /**
-     * A new response in #ответы. Its journal entry is the platform's, so it
-     * isn't mirrored from there.
-     *
-     * @param guildId   the form's server
-     * @param formTitle the form's title
-     * @param number    the response's short number, may be {@code null}
-     * @param authorId  who answered, may be {@code null}
-     * @param path      the response's card in the panel, relative to the site
-     * @since v.0.1
-     */
-    public void newResponse(Long guildId, String formTitle, Long number, Long authorId, String path) {
-        Map<String, Object> embed = new LinkedHashMap<>();
-        embed.put("title", number != null ? "Новый ответ #" + number : "Новый ответ");
-        embed.put("description", "Форма «" + formTitle + "»");
-        embed.put("color", 0x57F287);
-        embed.put("url", frontendUrl + path);
-        embed.put("timestamp", java.time.OffsetDateTime.now().toString());
-        if (authorId != null) embed.put("fields", List.of(field("Автор", "<@" + authorId + ">", true)));
-        post(guildId, Channel.RESPONSES, embed);
-    }
-
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
-    public void onPost(Post post) {
-        deliver(post.guildId(), post.channel(), post.embed());
-    }
 
     /**
      * Mirrors a server's journal entry into its log channels. Called by
@@ -108,8 +48,7 @@ public class GuildLogService {
      */
     void dispatch(AuditLog entry) {
         if (entry.getGuildId() == null) return;
-        deliver(entry.getGuildId(), RESPONSE_ACTIONS.contains(entry.getAction()) ? Channel.RESPONSES : Channel.AUDIT,
-                auditEmbed(entry));
+        deliver(entry.getGuildId(), auditEmbed(entry));
     }
 
     /**
@@ -133,10 +72,10 @@ public class GuildLogService {
         }
     }
 
-    private void deliver(Long guildId, Channel channel, Map<String, Object> embed) {
+    private void deliver(Long guildId, Map<String, Object> embed) {
         Guild guild = guildRepository.findById(guildId).orElse(null);
         if (guild == null) return;
-        String sealed = channel == Channel.RESPONSES ? guild.getLogResponsesWebhook() : guild.getLogAuditWebhook();
+        String sealed = guild.getLogAuditWebhook();
         if (sealed == null) return;
         DiscordWebhookUrl webhook = DiscordWebhookUrl.parse(webhookUrlCipher.open(sealed)).orElse(null);
         if (webhook == null) return;
@@ -144,23 +83,18 @@ public class GuildLogService {
             send(webhook, embed);
         } catch (HttpClientErrorException.NotFound e) {
             // The channel or its webhook was deleted in Discord.
-            log.info("The {} log channel of guild {} is gone — forgetting it", channel, guildId);
-            forget(guildId, channel);
+            log.info("The log channel of guild {} is gone — forgetting it", guildId);
+            forget(guildId);
         } catch (Exception e) {
-            log.warn("The {} log channel of guild {} refused a message: {}", channel, guildId,
+            log.warn("The log channel of guild {} refused a message: {}", guildId,
                     WebhookUrlCipher.redact(e.getMessage()));
         }
     }
 
-    private void forget(Long guildId, Channel channel) {
+    private void forget(Long guildId) {
         guildRepository.findById(guildId).ifPresent(g -> {
-            if (channel == Channel.RESPONSES) {
-                g.setLogResponsesWebhook(null);
-                g.setLogResponsesChannelId(null);
-            } else {
-                g.setLogAuditWebhook(null);
-                g.setLogAuditChannelId(null);
-            }
+            g.setLogAuditWebhook(null);
+            g.setLogAuditChannelId(null);
             guildRepository.save(g);
         });
     }

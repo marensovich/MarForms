@@ -14,7 +14,7 @@ import {SubmissionStatusBadge} from "./SubmissionStatusBadge";
 // Docs: docs/design/mockups/WsSubmissions.dc.html, DarkModeration, R1024Moderation; ТЗ 4.5.
 
 const PAGE_SIZE = 20;
-const STATUSES: SubmissionStatus[] = ["PENDING", "NEEDS_REVISION", "APPROVED", "REJECTED"];
+const STATUSES: SubmissionStatus[] = ["PENDING", "NEEDS_REVISION", "APPROVED", "REJECTED", "RECEIVED"];
 /** ?status=all shows every status; no ?status means the default, «На рассмотрении» (ФТ-4.5.1). */
 const ALL = "all";
 

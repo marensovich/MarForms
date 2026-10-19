@@ -51,7 +51,7 @@ export interface SubmissionReceipt {
     id: string;
     /** Short number on the server ("№ 1048"), null for a server the platform doesn't know. */
     number: number | null;
-    status: "PENDING" | "APPROVED" | "REJECTED" | "NEEDS_REVISION";
+    status: "PENDING" | "APPROVED" | "REJECTED" | "NEEDS_REVISION" | "RECEIVED";
     createdAt: string;
 }
 

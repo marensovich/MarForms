@@ -19,6 +19,8 @@ export interface EditorState {
     closesAt: string;
     allowedRoleIds: string[];
     deniedRoleIds: string[];
+    reviewEnabled: boolean;
+    discordMessage: string;
 }
 
 export type SaveStatus =
@@ -48,6 +50,8 @@ export function stateOf(def: FormDefinition): EditorState {
         closesAt: toInput(def.closesAt),
         allowedRoleIds: def.allowedRoleIds ?? [],
         deniedRoleIds: def.deniedRoleIds ?? [],
+        reviewEnabled: def.reviewEnabled ?? false,
+        discordMessage: def.discordMessage ?? "",
     };
 }
 
@@ -58,6 +62,8 @@ function payloadOf(state: EditorState, saved: EditorState, version: number | und
         version,
         schema: {title: state.title.trim(), description: state.description, reviewTime: state.reviewTime || null, fields: state.fields},
         webhooks: state.webhooks.filter(w => w.url.trim()),
+        reviewEnabled: state.reviewEnabled,
+        discordMessage: state.discordMessage,
         ...(state.slug && state.slug !== saved.slug ? {slug: state.slug} : {}),
         ...(access(state) !== access(saved) ? {
             settings: {

@@ -79,7 +79,6 @@ public class SubmissionService {
     private final WebhookUrlCipher webhookUrlCipher;
     private final SubmissionEventRepository submissionEventRepository;
     private final me.marensovich.gta5rpformapp.backend.service.NotificationService notificationService;
-    private final GuildLogService guildLogService;
 
     /**
      * Submits a response to a form, by form ID and submitter Discord ID —
@@ -194,6 +193,8 @@ public class SubmissionService {
         submission.setIdempotencyKey(key);
         submission.setAnonymousToken(tokenHash);
         submission.setNumber(nextNumber(form.getServerId()));
+        // Without review on the site it only goes to Discord: nothing waits for a decision (2026-10-19).
+        if (!form.isReviewEnabled()) submission.setStatus(SubmissionStatus.RECEIVED);
         // The questions as answered (#117): later edits of the form don't change this submission.
         submission.setSchemaSnapshot(form.getSchema() == null ? null : SNAPSHOT_COPIER.convertValue(form.getSchema(), FormSchema.class));
         Submission saved = submissionRepository.save(submission);
@@ -204,11 +205,9 @@ public class SubmissionService {
         String discordUsername = author != null ? author.getDiscordUsername() : null;
         enqueueWebhookDeliveries(form, saved, withFileNames(clean, files), discordUsername, discordId);
 
-        if (form.getServerId() != null) {
+        if (form.getServerId() != null && form.isReviewEnabled()) {
             notificationService.notifyStaff(form.getServerId(), form.getId(), me.marensovich.gta5rpformapp.backend.data.notifications.NotificationType.NEW_SUBMISSION, saved.getId().toString(),
                     notificationParams(form, discordUsername, saved), submissionLink(form, saved), discordId);
-            guildLogService.newResponse(form.getServerId(), form.getSchema().getTitle(), saved.getNumber(), discordId,
-                    submissionLink(form, saved));
         }
 
         auditLogService.log(AuditAction.SUBMISSION_CREATED,

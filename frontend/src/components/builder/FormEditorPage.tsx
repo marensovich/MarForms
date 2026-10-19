@@ -22,12 +22,13 @@ import {useSlugCheck} from "./useSlugCheck";
 import FieldsTab from "./FieldsTab";
 import {fieldProblem} from "./fieldTypes";
 import NotificationsTab from "./NotificationsTab";
+import MessageTab from "./MessageTab";
 import PreviewOverlay from "./PreviewOverlay";
 import {type EditorState, type SaveStatus, useFormEditor} from "./useFormEditor";
 
 // Docs: docs/design/mockups/FormEdit.dc.html, WizStepper.dc.html, Wizard1–4.dc.html, R1024Builder.dc.html; ТЗ 5.1–5.7.
 
-const TABS = ["basic", "fields", "access", "notifications"] as const;
+const TABS = ["basic", "fields", "access", "notifications", "message"] as const;
 type Tab = typeof TABS[number];
 
 interface PublishIssue {
@@ -277,6 +278,7 @@ export default function FormEditorPage() {
         access: errorsOf("access").length > 0,
         notifications: (issues?.warnings.some(w => w.area === "notifications") ?? false)
             || state.webhooks.some(w => w.invalid || (w.health && w.health !== "HEALTHY")),
+        message: false,
     };
     const step = TABS.indexOf(tab);
     const blocking = stepErrors(tab, state, slugProblem);
@@ -301,6 +303,9 @@ export default function FormEditorPage() {
             case "notifications":
                 return <NotificationsTab guildId={guildId} formId={formId} webhooks={state.webhooks}
                                          onChange={webhooks => update({webhooks})} beforeTest={flush} onTested={reload}/>;
+            case "message":
+                return <MessageTab guildId={guildId} message={state.discordMessage} onMessage={discordMessage => update({discordMessage})}
+                                   webhooks={state.webhooks} onWebhooks={webhooks => update({webhooks})}/>;
             default:
                 return <BasicTab state={state} update={update} guild={guild} formId={formId} savedSlug={definition.slug ?? ""}
                                  published={!!definition.slug} titleError={!state.title.trim()}/>;

@@ -245,7 +245,6 @@ export function createGuildWebhook(
 /** A server's own settings (2026-10-19): admin roles and log channels. */
 export interface GuildSettings {
     adminRoles: { id: string; name: string | null; color: number; missing: boolean }[];
-    responsesChannel: { id: string; name: string | null } | null;
     auditChannel: { id: string; name: string | null } | null;
     canCreateChannels: boolean;
     /** After a change of admin roles: whether the log channels followed it. */
@@ -265,6 +264,8 @@ export function createGuildLogChannels(guildId: string): Promise<GuildSettings> 
 }
 
 export interface UpdateFormPayload {
+    reviewEnabled?: boolean;
+    discordMessage?: string;
     schema?: { title: string; description: string; reviewTime?: string | null; fields: unknown[] };
     webhooks?: WebhookConfig[];
     channelsIds?: string[];

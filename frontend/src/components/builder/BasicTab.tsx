@@ -1,7 +1,7 @@
 import {useId, useState} from "react";
 import {useTranslation} from "react-i18next";
 import type {MyGuild} from "../../api/dashboard";
-import {cx, ServerIcon} from "../../ui";
+import {cx, ServerIcon, Switch} from "../../ui";
 import type {EditorState} from "./useFormEditor";
 import {useSlugCheck} from "./useSlugCheck";
 
@@ -15,7 +15,7 @@ const DESCRIPTION_MAX = 1000;
  * see its head.
  */
 export default function BasicTab({state, update, guild, formId, savedSlug, published, titleError}: {
-    state: Pick<EditorState, "title" | "description" | "reviewTime" | "slug">;
+    state: Pick<EditorState, "title" | "description" | "reviewTime" | "slug"> & Partial<Pick<EditorState, "reviewEnabled">>;
     update: (patch: Partial<EditorState>) => void;
     guild: MyGuild | null;
     formId: string | null;
@@ -85,13 +85,21 @@ export default function BasicTab({state, update, guild, formId, savedSlug, publi
                     </div>
                 </div>
 
-                <div className="flex flex-col gap-2">
+                {state.reviewEnabled !== undefined && (
+                    <div className="flex flex-col gap-1.5">
+                        <Switch checked={state.reviewEnabled} onChange={reviewEnabled => update({reviewEnabled})}
+                                label={t("builder.basic.reviewEnabled")}/>
+                        <span className="text-xs text-mu">{t(state.reviewEnabled ? "builder.basic.reviewOnHint" : "builder.basic.reviewOffHint")}</span>
+                    </div>
+                )}
+
+                {state.reviewEnabled !== false && <div className="flex flex-col gap-2">
                     <label htmlFor={ids.review} className="text-sm font-semibold">{t("builder.basic.reviewTime")}</label>
                     <input id={ids.review} value={state.reviewTime} maxLength={60} placeholder={t("builder.basic.reviewTimePlaceholder")}
                            onChange={e => update({reviewTime: e.target.value})}
                            className="h-11 max-w-[360px] rounded-xl border border-bd bg-sf px-3.5 text-sm text-tx outline-none focus:border-pr"/>
                     <span className="text-xs text-mu">{t("builder.basic.reviewTimeHint")}</span>
-                </div>
+                </div>}
 
                 {guild && (
                     <div className="flex flex-col gap-2">

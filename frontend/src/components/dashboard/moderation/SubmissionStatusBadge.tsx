@@ -1,6 +1,6 @@
 import {useTranslation} from "react-i18next";
 import type {IconType} from "react-icons";
-import {FiCheck, FiClock, FiEdit2, FiX} from "react-icons/fi";
+import {FiCheck, FiClock, FiEdit2, FiSend, FiX} from "react-icons/fi";
 import type {SubmissionStatus} from "../../../api/moderation";
 import {cx} from "../../../ui";
 
@@ -11,6 +11,7 @@ const STYLE: Record<SubmissionStatus, { cls: string; icon: IconType }> = {
     APPROVED: {cls: "bg-gnb text-gnt", icon: FiCheck},
     REJECTED: {cls: "bg-rdb text-rdt", icon: FiX},
     NEEDS_REVISION: {cls: "bg-prs text-prt", icon: FiEdit2},
+    RECEIVED: {cls: "bg-inb text-int", icon: FiSend},
 };
 
 export function SubmissionStatusBadge({status}: { status: SubmissionStatus }) {

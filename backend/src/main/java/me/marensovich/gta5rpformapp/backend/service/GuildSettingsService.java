@@ -128,29 +128,23 @@ public class GuildSettingsService {
     @Transactional
     public GuildSettingsDto createLogChannels(Long guildId) {
         Guild guild = require(guildId);
-        boolean responses = discordBotClient.channelName(guildId, guild.getLogResponsesChannelId()).isPresent();
         boolean audit = discordBotClient.channelName(guildId, guild.getLogAuditChannelId()).isPresent();
-        if (responses && audit && guild.getLogResponsesWebhook() != null && guild.getLogAuditWebhook() != null) {
+        if (audit && guild.getLogAuditWebhook() != null) {
             throw new InvalidStateException("The log channels already exist");
         }
         DiscordBotClient.LogChannels created = discordBotClient.createLogChannels(guildId, guild.getAdminRoleIds())
                 .orElseThrow(() -> new InvalidStateException(
                         "The bot could not create the channels — it needs Manage Channels on the server"));
         guild.setLogCategoryId(created.categoryId());
-        guild.setLogResponsesChannelId(created.responsesChannelId());
-        guild.setLogResponsesWebhook(webhookUrlCipher.seal(created.responsesWebhook().url()));
         guild.setLogAuditChannelId(created.auditChannelId());
         guild.setLogAuditWebhook(webhookUrlCipher.seal(created.auditWebhook().url()));
         guildRepository.save(guild);
 
-        guildLogService.sendNow(created.responsesWebhook().url(), greeting(
-                "Сюда будут приходить новые ответы на формы сервера и решения по ним."));
         guildLogService.sendNow(created.auditWebhook().url(), greeting(
-                "Сюда будет приходить журнал сервера: изменения форм, команды и настроек."));
+                "Сюда будет приходить журнал сервера: изменения форм, команды и настроек, решения по ответам."));
         auditLogService.logGuildAction(guildId, AuditAction.GUILD_LOG_CHANNELS_CREATED, "GUILD", guildId.toString(),
-                guild.getName(), Map.of("channels", List.of(DiscordBotClient.LOG_RESPONSES_CHANNEL_NAME,
-                        DiscordBotClient.LOG_AUDIT_CHANNEL_NAME)),
-                "#" + DiscordBotClient.LOG_RESPONSES_CHANNEL_NAME + ", #" + DiscordBotClient.LOG_AUDIT_CHANNEL_NAME);
+                guild.getName(), Map.of("channels", List.of(DiscordBotClient.LOG_AUDIT_CHANNEL_NAME)),
+                "#" + DiscordBotClient.LOG_AUDIT_CHANNEL_NAME);
         return toDto(guild, null);
     }
 
@@ -193,7 +187,6 @@ public class GuildSettingsService {
     private static List<Long> logChannelIds(Guild guild) {
         List<Long> ids = new ArrayList<>();
         if (guild.getLogCategoryId() != null) ids.add(guild.getLogCategoryId());
-        if (guild.getLogResponsesChannelId() != null) ids.add(guild.getLogResponsesChannelId());
         if (guild.getLogAuditChannelId() != null) ids.add(guild.getLogAuditChannelId());
         return ids;
     }
@@ -208,7 +201,6 @@ public class GuildSettingsService {
                             !serverRoles.isEmpty() && r == null);
                 }).toList();
         return new GuildSettingsDto(roles,
-                channel(guildId, guild.getLogResponsesChannelId(), guild.getLogResponsesWebhook()),
                 channel(guildId, guild.getLogAuditChannelId(), guild.getLogAuditWebhook()),
                 !guild.missingPermissionList().contains("MANAGE_CHANNEL"),
                 accessUpdated);

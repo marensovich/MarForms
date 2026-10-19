@@ -32,6 +32,10 @@ public record UpdateFormRequest(
         @Valid FormSettingsRequest settings,
         Long version,
         /* A new address (ТЗ 5.2): the old link stops working. */
-        String slug
+        String slug,
+        /* Review responses on the site (2026-10-19); null = unchanged. */
+        Boolean reviewEnabled,
+        /* The text above the report in Discord, for every channel; null = unchanged, "" = none. */
+        @jakarta.validation.constraints.Size(max = 2000) String discordMessage
 ) {
 }

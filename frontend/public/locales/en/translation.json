@@ -911,7 +911,8 @@
       "PENDING": "Pending",
       "APPROVED": "Approved",
       "REJECTED": "Rejected",
-      "NEEDS_REVISION": "Needs revision"
+      "NEEDS_REVISION": "Needs revision",
+      "RECEIVED": "Received"
     },
     "decide": {
       "APPROVED": "Approve",
@@ -1121,7 +1122,9 @@
       "title": "title",
       "fields": "fields",
       "webhooks": "notifications",
-      "access": "access"
+      "access": "access",
+      "review": "response review",
+      "message": "Discord message"
     },
     "edits_one": "{{count}} save",
     "edits_other": "{{count}} saves",
@@ -1194,7 +1197,8 @@
       "PENDING": "Under review",
       "APPROVED": "Approved",
       "REJECTED": "Rejected",
-      "NEEDS_REVISION": "Needs revision"
+      "NEEDS_REVISION": "Needs revision",
+      "RECEIVED": "Sent"
     },
     "columns": {
       "form": "Form",
@@ -1467,7 +1471,8 @@
       "fields": "Fields",
       "access": "Access",
       "notifications": "Notifications",
-      "problem": "Has a problem"
+      "problem": "Has a problem",
+      "message": "Message"
     },
     "save": {
       "saving": "Saving…",
@@ -1543,7 +1548,10 @@
       "reviewTimeHint": "Shown after a submission is sent.",
       "server": "Server",
       "asSeen": "What participants see",
-      "untitled": "Untitled"
+      "untitled": "Untitled",
+      "reviewEnabled": "Review responses on the site",
+      "reviewOnHint": "Responses go to Submissions: moderators approve, reject or send them back for revision.",
+      "reviewOffHint": "A response just goes to Discord. No statuses or decisions — turn this on if responses need reviewing."
     },
     "fields": {
       "count": "Fields · {{count}}",
@@ -1720,6 +1728,19 @@
         "ROLE_DENIED": "This member gets the ROLE_DENIED screen: a denial beats an allowance.",
         "ROLE_REQUIRED": "This member gets the ROLE_REQUIRED screen listing the roles needed."
       }
+    },
+    "message": {
+      "title": "Message in Discord",
+      "text": "Text above the report: mention roles or add a note. The form's text comes first, then the channel's.",
+      "formTitle": "For every channel of the form",
+      "formHint": "Added to the report in every channel.",
+      "placeholder": "E.g. <@&role> a new response to {form.title}",
+      "channelsTitle": "For each channel",
+      "channelsHint": "Added after the form's text, in this channel only.",
+      "channelPlaceholder": "Text for this channel only",
+      "noChannels": "No channels connected yet — add them on the Notifications tab.",
+      "mentionRole": "Mention a role",
+      "preview": "In Discord:"
     }
   },
   "adminForms": {
@@ -2175,22 +2196,20 @@
     "rolesSaved": "Admin roles saved",
     "rolesError": "Couldn't save the admin roles",
     "accessNotUpdated": "The roles are saved, but the bot lacks Manage Permissions to open the log channels to them. Give them access to the MarForms category in Discord.",
-    "channelsTitle": "Log channels",
-    "channelsText": "The bot creates a MarForms category at the top of the server: #ответы for new responses and decisions, #аудит for the server's journal. The admin roles and the server's administrators see them.",
-    "channelsCreate": "Create channels",
+    "channelsTitle": "Log channel",
+    "channelsText": "The bot creates a MarForms category at the top of the server with #аудит — the server's journal, decisions on responses included. The admin roles and the server's administrators see it.",
+    "channelsCreate": "Create channel",
     "channelsRecreate": "Create again",
-    "channelsCreated": "Log channels created",
-    "channelsError": "Couldn't create the channels",
+    "channelsCreated": "Log channel created",
+    "channelsError": "Couldn't create the channel",
     "channelsGone": "Channel deleted in Discord",
-    "channelsNoPermission": "The bot lacks Manage Channels. Grant it so the bot can create the log channels.",
+    "channelsNoPermission": "The bot lacks Manage Channels. Grant it so the bot can create the log channel.",
     "grant": "Grant permissions",
-    "responses": "Responses",
     "audit": "Audit"
   },
   "guildSetup": {
     "title": "Set up the server",
-    "text": "The server is connected. Choose the admin roles and create the log channels — you can also do this later in Settings.",
-    "later": "Later",
+    "text": "The server is connected. Choose the admin roles and create the log channel — you can also do this later in Settings.",
     "done": "Done"
   }
 }

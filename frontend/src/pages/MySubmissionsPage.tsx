@@ -28,6 +28,7 @@ const STATUS_TONE: Record<SubmissionStatus, Tone> = {
     APPROVED: "green",
     REJECTED: "red",
     NEEDS_REVISION: "primary",
+    RECEIVED: "info",
 };
 
 function StatusBadge({status}: { status: SubmissionStatus }) {

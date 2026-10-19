@@ -111,6 +111,10 @@ export interface FormDefinition {
     updatedBy?: string | null;
     createdByDiscordId?: string;
     createdByDiscordUsername?: string;
+    /** Responses are reviewed on the site (2026-10-19); off: they only go to Discord. */
+    reviewEnabled?: boolean;
+    /** The text above the report in every channel, before each channel's own. */
+    discordMessage?: string | null;
 }
 
 export type FormAnswers = Record<string, string | boolean | number | string[]>;

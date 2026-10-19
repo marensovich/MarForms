@@ -132,12 +132,14 @@ public class WebhookService {
             case REJECTED -> "Отклонена";
             case NEEDS_REVISION -> "Нужна доработка";
             case PENDING -> "Снова на рассмотрении";
+            case RECEIVED -> "Получена";
         };
         int color = switch (submission.getStatus()) {
             case APPROVED -> 0x57F287;
             case REJECTED -> 0xED4245;
             case NEEDS_REVISION -> 0x5865F2;
             case PENDING -> 0xFEE75C;
+            case RECEIVED -> 0x5865F2;
         };
         Map<String, Object> embed = new LinkedHashMap<>();
         embed.put("title", (submission.getNumber() != null ? "Заявка #" + submission.getNumber() : "Заявка") + " · " + status);
@@ -211,12 +213,27 @@ public class WebhookService {
         }
     }
 
+    /**
+     * The text above the report: the form's own (for every channel), then
+     * the channel's (2026-10-19). Discord takes 2000 characters.
+     *
+     * @return the text, {@code null} if neither is set
+     */
+    static String messageOf(Form form, WebhookConfig cfg) {
+        String text = java.util.stream.Stream.of(form.getDiscordMessage(), cfg.getContent())
+                .filter(WebhookService::hasText).map(String::trim)
+                .collect(java.util.stream.Collectors.joining("\n"));
+        if (text.isEmpty()) return null;
+        return text.length() > 2000 ? text.substring(0, 2000) : text;
+    }
+
     @SuppressWarnings("unchecked")
     private String dispatch(Form form, FormSchema questions, Map<String, Object> answers,
                             String discordUsername, WebhookConfig cfg,
                             Map<String, String> vars) {
         Map<String, Object> payload = new LinkedHashMap<>();
-        if (hasText(cfg.getContent())) payload.put("content", sub(cfg.getContent(), vars));
+        String content = messageOf(form, cfg);
+        if (content != null) payload.put("content", sub(content, vars));
         if (hasText(cfg.getBotName())) payload.put("username", cfg.getBotName());
         if (hasText(cfg.getAvatarUrl())) payload.put("avatar_url", cfg.getAvatarUrl());
 
@@ -385,8 +402,9 @@ public class WebhookService {
      */
     private Map<String, String> buildVars(Form form, Long discordId, String discordUsername,
                                           UUID submissionId) {
-        return vars(form, discordId, discordUsername, submissionId,
-                me.marensovich.gta5rpformapp.backend.data.forms.SubmissionStatus.PENDING);
+        return vars(form, discordId, discordUsername, submissionId, form.isReviewEnabled()
+                ? me.marensovich.gta5rpformapp.backend.data.forms.SubmissionStatus.PENDING
+                : me.marensovich.gta5rpformapp.backend.data.forms.SubmissionStatus.RECEIVED);
     }
 
     /**
@@ -468,7 +486,7 @@ public class WebhookService {
      * @return {@code true} if the string has content, {@code false} otherwise
      * @since v.0.1
      */
-    private boolean hasText(String s) {
+    private static boolean hasText(String s) {
         return s != null && !s.isBlank();
     }
 

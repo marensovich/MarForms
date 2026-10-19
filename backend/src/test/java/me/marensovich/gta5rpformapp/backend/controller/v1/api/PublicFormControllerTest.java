@@ -140,7 +140,7 @@ class PublicFormControllerTest {
         mvc.perform(submit("open")).andExpect(status().isUnauthorized());
         mvc.perform(as(user(14L, false), submit("open")))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.status").value("PENDING"));
+                .andExpect(jsonPath("$.status").value("RECEIVED"));
         assertThat(submissionRepository.countByFormIdAndDiscordId(f.getId(), 14L)).isEqualTo(1);
     }
 

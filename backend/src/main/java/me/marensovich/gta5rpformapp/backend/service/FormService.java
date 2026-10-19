@@ -228,6 +228,12 @@ public class FormService {
         if (request.slug() != null && !request.slug().equals(form.getSlug())) {
             form.setSlug(checkedSlug(request.slug(), form.getId()));
         }
+        boolean oldReview = form.isReviewEnabled();
+        String oldMessage = form.getDiscordMessage();
+        if (request.reviewEnabled() != null) form.setReviewEnabled(request.reviewEnabled());
+        if (request.discordMessage() != null) {
+            form.setDiscordMessage(request.discordMessage().isBlank() ? null : request.discordMessage());
+        }
         if (request.active() != null) {
             if (request.active()) {
                 requireNotArchived(form);
@@ -259,6 +265,11 @@ public class FormService {
         if (oldFieldCount != newFieldCount || request.schema() != null) changed.add("fields");
         if (request.webhooks() != null) changed.add("webhooks");
         if (request.settings() != null) changed.add("access");
+        if (oldReview != saved.isReviewEnabled()) {
+            changed.add("review");
+            changes.add("Review: " + (oldReview ? "on" : "off") + " → " + (saved.isReviewEnabled() ? "on" : "off"));
+        }
+        if (!java.util.Objects.equals(oldMessage, saved.getDiscordMessage())) changed.add("message");
         if (!java.util.Objects.equals(oldSlug, saved.getSlug())) changed.add("slug");
         // Publishing or closing reads as its own journal line; the content changes as another.
         if (oldStatus != saved.getStatus()) logStatusChange(saved, oldStatus);
@@ -582,6 +593,8 @@ public class FormService {
         copy.setAllowedRoleIds(new HashSet<>(source.getAllowedRoleIds()));
         copy.setDeniedRoleIds(new HashSet<>(source.getDeniedRoleIds()));
         copy.setSubmissionLimitPerUser(source.getSubmissionLimitPerUser());
+        copy.setReviewEnabled(source.isReviewEnabled());
+        copy.setDiscordMessage(source.getDiscordMessage());
         copy.setOpensAt(source.getOpensAt());
         copy.setClosesAt(source.getClosesAt());
         return saveNew(copy);

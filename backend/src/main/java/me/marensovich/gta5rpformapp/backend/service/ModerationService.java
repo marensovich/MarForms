@@ -237,6 +237,9 @@ public class ModerationService {
         SubmissionStatus old = submission.getStatus();
         String comment = request.comment() == null || request.comment().isBlank() ? null : request.comment().trim();
         boolean reopen = request.status() == SubmissionStatus.PENDING;
+        if (old == SubmissionStatus.RECEIVED || request.status() == SubmissionStatus.RECEIVED) {
+            throw new InvalidStateException("The form doesn't review responses on the site");
+        }
 
         if (reopen) {
             // Пересмотреть решение: only an approved or rejected submission, only by the owner.

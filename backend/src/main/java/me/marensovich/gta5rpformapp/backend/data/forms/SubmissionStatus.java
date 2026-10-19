@@ -10,5 +10,7 @@ public enum SubmissionStatus {
     PENDING,
     APPROVED,
     REJECTED,
-    NEEDS_REVISION
+    NEEDS_REVISION,
+    /** Sent to a form without review on the site (2026-10-19): it only went to Discord, nothing to decide. */
+    RECEIVED
 }

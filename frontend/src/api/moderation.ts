@@ -2,9 +2,10 @@ import {apiRequest, downloadFile} from "./client";
 import type {PageResponse} from "./dashboard";
 import type {FormAnswers, FormSchema} from "../types/forms";
 
-export type SubmissionStatus = "PENDING" | "APPROVED" | "REJECTED" | "NEEDS_REVISION";
+/** RECEIVED: sent to a form without review on the site — it only went to Discord (2026-10-19). */
+export type SubmissionStatus = "PENDING" | "APPROVED" | "REJECTED" | "NEEDS_REVISION" | "RECEIVED";
 
-export type DecisionStatus = Exclude<SubmissionStatus, "PENDING">;
+export type DecisionStatus = Exclude<SubmissionStatus, "PENDING" | "RECEIVED">;
 
 export interface ModerationSubmission {
     id: string;

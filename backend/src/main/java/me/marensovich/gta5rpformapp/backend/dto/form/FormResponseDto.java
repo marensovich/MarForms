@@ -61,7 +61,9 @@ public record FormResponseDto(
         FormSchema draftSchema,
         boolean hasUnpublishedChanges,
         @JsonSerialize(using = ToStringSerializer.class)
-        Long updatedBy
+        Long updatedBy,
+        boolean reviewEnabled,
+        String discordMessage
 ) {
     /**
      * Converts a {@link Form} entity to a {@link FormResponseDto}.
@@ -96,7 +98,9 @@ public record FormResponseDto(
                 form.getDeniedRoleIds(),
                 form.getDraftSchema(),
                 form.getDraftSchema() != null,
-                form.getUpdatedBy()
+                form.getUpdatedBy(),
+                form.isReviewEnabled(),
+                form.getDiscordMessage()
         );
     }
 
@@ -120,6 +124,6 @@ public record FormResponseDto(
         }).toList();
         return new FormResponseDto(id, serverId, channelsIds, schema, masked, active, createdAt, status, accessMode,
                 slug, submissionLimitPerUser, opensAt, closesAt, updatedAt, version, allowedRoleIds, deniedRoleIds,
-                draftSchema, hasUnpublishedChanges, updatedBy);
+                draftSchema, hasUnpublishedChanges, updatedBy, reviewEnabled, discordMessage);
     }
 }

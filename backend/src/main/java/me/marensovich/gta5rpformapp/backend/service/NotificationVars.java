@@ -76,6 +76,7 @@ public final class NotificationVars {
     public static String label(SubmissionStatus status) {
         return switch (status) {
             case PENDING -> "На рассмотрении";
+            case RECEIVED -> "Отправлена";
             case APPROVED -> "Принята";
             case REJECTED -> "Отклонена";
             case NEEDS_REVISION -> "Нужна доработка";

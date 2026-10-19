@@ -159,6 +159,25 @@ public class Form {
     private FormStatus status = FormStatus.DRAFT;
 
     /**
+     * Whether responses are reviewed on the site — the queue, statuses and
+     * decisions (2026-10-19). Off: a response only goes to Discord, as
+     * {@code RECEIVED}.
+     *
+     * @since v.0.1
+     */
+    @Column(name = "review_enabled", nullable = false)
+    private boolean reviewEnabled = false;
+
+    /**
+     * The text above the report in every channel of the form, before each
+     * channel's own (role mentions etc.); supports the template variables.
+     *
+     * @since v.0.1
+     */
+    @Column(name = "discord_message", columnDefinition = "TEXT")
+    private String discordMessage;
+
+    /**
      * Who may fill the form in.
      *
      * @see FormAccessMode
