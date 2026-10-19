@@ -12,6 +12,7 @@ import {
 } from "../../../api/dashboard";
 import {describeApiError} from "../../../api/errors";
 import {Avatar, ConfirmDialog, cx, ErrorState, Skeleton, Spinner, useToast} from "../../../ui";
+import ModeratorFormsDialog from "./ModeratorFormsDialog";
 
 // Docs: docs/design/mockups/WsModerators.dc.html; ТЗ 4.7.
 
@@ -27,7 +28,8 @@ function Highlight({text, query}: { text: string; query: string }) {
 /**
  * A server's team for its owner (ТЗ 4.7): «Добавить модератора» with server
  * members suggested through the bot, and «Команда · N» — who, their role, who
- * added them and when, removal with confirmation. The owner can't be removed.
+ * added them and when, which forms they work with (#18), removal with
+ * confirmation. The owner can't be removed.
  */
 export default function ModeratorsPanel({guild}: { guild: MyGuild }) {
     const {t, i18n} = useTranslation();
@@ -43,6 +45,7 @@ export default function ModeratorsPanel({guild}: { guild: MyGuild }) {
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [removing, setRemoving] = useState<GuildModerator | null>(null);
+    const [scoping, setScoping] = useState<GuildModerator | null>(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -135,6 +138,9 @@ export default function ModeratorsPanel({guild}: { guild: MyGuild }) {
         }
     };
 
+    const formsLabel = (m: GuildModerator) => !m.formsRestricted ? t("moderators.formsAll")
+        : m.formIds?.length ? t("moderators.formsCount", {count: m.formIds.length}) : t("moderators.formsNone");
+
     const addedLine = (m: GuildModerator) => {
         if (m.role === "OWNER") return t("moderators.owner");
         const date = new Date(m.since).toLocaleDateString(i18n.language, {day: "numeric", month: "short"});
@@ -216,6 +222,14 @@ export default function ModeratorsPanel({guild}: { guild: MyGuild }) {
                                         {t(`forms.guilds.role.${owner ? "owner" : "moderator"}`)}
                                     </span>
                                     <span className="w-[180px] text-[13px] text-mu">{addedLine(m)}</span>
+                                    {!owner && (
+                                        <button type="button" onClick={() => setScoping(m)}
+                                                aria-label={`${t("moderators.formsNamed", {name: m.username})}: ${formsLabel(m)}`}
+                                                className={cx("h-9 rounded-[10px] border px-3 text-[13px] font-medium",
+                                                    m.formsRestricted ? "border-pr bg-prs text-prt" : "border-bd bg-sf text-tx hover:bg-s2")}>
+                                            {formsLabel(m)}
+                                        </button>
+                                    )}
                                     {owner ? (
                                         <span className="px-3 text-[13px] font-medium text-mu">{t("moderators.cantRemove")}</span>
                                     ) : (
@@ -231,6 +245,15 @@ export default function ModeratorsPanel({guild}: { guild: MyGuild }) {
                     </ul>
                 )}
             </section>
+
+            {scoping && (
+                <ModeratorFormsDialog guildId={guild.guildId} moderator={scoping} onClose={() => setScoping(null)}
+                                      onSaved={updated => {
+                                          setTeam(list => list && list.map(m => m.discordId === updated.discordId ? {...m, ...updated} : m));
+                                          setScoping(null);
+                                          toast({tone: "success", text: t("moderators.formsSaved", {name: updated.username})});
+                                      }}/>
+            )}
 
             <ConfirmDialog open={removing !== null} title={t("moderators.confirmTitle")}
                            text={removing && t("moderators.confirmText", {name: removing.username})}

@@ -204,7 +204,7 @@ public class SubmissionService {
         enqueueWebhookDeliveries(form, saved, withFileNames(clean, files), discordUsername, discordId);
 
         if (form.getServerId() != null) {
-            notificationService.notifyStaff(form.getServerId(), me.marensovich.gta5rpformapp.backend.data.notifications.NotificationType.NEW_SUBMISSION, saved.getId().toString(),
+            notificationService.notifyStaff(form.getServerId(), form.getId(), me.marensovich.gta5rpformapp.backend.data.notifications.NotificationType.NEW_SUBMISSION, saved.getId().toString(),
                     notificationParams(form, discordUsername, saved), submissionLink(form, saved), discordId);
         }
 
@@ -262,7 +262,7 @@ public class SubmissionService {
 
         enqueueWebhookDeliveries(form, saved, withFileNames(clean, files), user.getDiscordUsername(), user.getDiscordId());
         if (form.getServerId() != null) {
-            notificationService.notifyStaff(form.getServerId(), me.marensovich.gta5rpformapp.backend.data.notifications.NotificationType.SUBMISSION_RESUBMITTED, saved.getId().toString(),
+            notificationService.notifyStaff(form.getServerId(), form.getId(), me.marensovich.gta5rpformapp.backend.data.notifications.NotificationType.SUBMISSION_RESUBMITTED, saved.getId().toString(),
                     notificationParams(form, user.getDiscordUsername(), saved), submissionLink(form, saved), user.getDiscordId());
         }
         auditLogService.logGuildAction(form.getServerId(), AuditAction.SUBMISSION_DECIDED, "SUBMISSION",

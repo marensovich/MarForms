@@ -65,9 +65,13 @@ public class ModerationController {
             @RequestParam(required = false) SubmissionStatus status,
             @RequestParam(required = false) String query,
             @RequestParam(required = false) Long moderator,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @AuthenticationPrincipal CustomUserDetails principal
     ) {
-        return moderationService.search(new ModerationService.Filters(guildId, formId, status, query, moderator), pageable);
+        // A moderator narrowed to some forms sees only their submissions (#18).
+        boolean platform = principal.getAuthorities().stream().anyMatch(a -> "RESPONSES_MANAGE".equals(a.getAuthority()));
+        return moderationService.search(new ModerationService.Filters(guildId, formId, status, query, moderator,
+                platform ? null : guildAccess.formScope(guildId)), pageable);
     }
 
     /**

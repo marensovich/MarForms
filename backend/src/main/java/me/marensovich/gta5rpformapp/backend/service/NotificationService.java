@@ -46,9 +46,11 @@ public class NotificationService {
     private final GuildMembershipRepository guildMembershipRepository;
 
     /**
-     * Tells a server's moderators and owner, except whoever caused it.
+     * Tells a server's moderators and owner, except whoever caused it. About a
+     * form, only moderators who work with it are told (#18).
      *
      * @param guildId  the server
+     * @param formId   the form it is about, or {@code null}
      * @param type     what happened
      * @param targetId the object
      * @param params   names for the text
@@ -57,11 +59,12 @@ public class NotificationService {
      * @since v.0.1
      */
     @Transactional
-    public void notifyStaff(Long guildId, NotificationType type, @Nullable String targetId,
+    public void notifyStaff(Long guildId, @Nullable UUID formId, NotificationType type, @Nullable String targetId,
                             Map<String, String> params, String link, @Nullable Long except) {
         Set<Long> recipients = new LinkedHashSet<>();
         recipients.addAll(memberIds(guildId, GuildRole.OWNER));
-        recipients.addAll(memberIds(guildId, GuildRole.MODERATOR));
+        recipients.addAll(formId == null ? memberIds(guildId, GuildRole.MODERATOR)
+                : guildMembershipRepository.findStaffDiscordIdsForForm(guildId, GuildRole.MODERATOR, formId));
         if (except != null) recipients.remove(except);
         recipients.forEach(r -> save(r, type, guildId, targetId, params, link));
     }

@@ -87,13 +87,15 @@ public class ModerationService {
      * @param status  restrict to one moderation status
      * @param query   author search: an exact Discord ID if numeric, otherwise
      *                part of the username (case-insensitive)
+     * @param formScope with {@code guildId}: the only forms the caller works with
+     *                  (a moderator narrowed by the owner, #18); {@code null} = all
      * @since v.0.1
      */
     public record Filters(@Nullable Long guildId, @Nullable UUID formId,
                           @Nullable SubmissionStatus status, @Nullable String query,
-                          @Nullable Long moderatorDiscordId) {
+                          @Nullable Long moderatorDiscordId, @Nullable Set<UUID> formScope) {
         public Filters(@Nullable Long guildId, @Nullable UUID formId, @Nullable SubmissionStatus status, @Nullable String query) {
-            this(guildId, formId, status, query, null);
+            this(guildId, formId, status, query, null, null);
         }
     }
 
@@ -115,10 +117,13 @@ public class ModerationService {
             if (filters.formId() != null) {
                 Form form = formRepository.findById(filters.formId())
                         .filter(f -> filters.guildId().equals(f.getServerId()))
+                        .filter(f -> filters.formScope() == null || filters.formScope().contains(f.getId()))
                         .orElseThrow(() -> new NotFoundException("Form not found: " + filters.formId()));
                 spec = spec.and(formIs(form.getId()));
             } else {
-                List<UUID> formIds = formRepository.findIdsByServerId(filters.guildId());
+                List<UUID> formIds = formRepository.findIdsByServerId(filters.guildId()).stream()
+                        .filter(id -> filters.formScope() == null || filters.formScope().contains(id))
+                        .toList();
                 if (formIds.isEmpty()) return Page.empty(pageable);
                 spec = spec.and((root, q, cb) -> root.get("formId").in(formIds));
             }

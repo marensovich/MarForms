@@ -2,12 +2,16 @@ package me.marensovich.gta5rpformapp.backend.database.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -109,6 +113,21 @@ public class GuildMembership {
      *
      * @since v.0.1
      */
+    /**
+     * Whether a moderator is narrowed to {@link #formIds} (#18). {@code false}
+     * = every form of the server; {@code true} with no forms = none of them.
+     */
+    @Column(name = "forms_restricted", nullable = false)
+    private boolean formsRestricted;
+
+    /** The forms a restricted moderator works with; read by query where no transaction is open. */
+    @ElementCollection
+    @CollectionTable(name = "moderator_form_access", joinColumns = @JoinColumn(name = "membership_id"))
+    @Column(name = "form_id", nullable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Set<UUID> formIds = new HashSet<>();
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 }

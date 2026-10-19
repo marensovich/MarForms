@@ -1,8 +1,10 @@
 package me.marensovich.gta5rpformapp.backend.controller.v1.api;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.dto.guild.AddModeratorRequest;
 import me.marensovich.gta5rpformapp.backend.dto.guild.ModeratorDto;
+import me.marensovich.gta5rpformapp.backend.dto.guild.ModeratorFormsRequest;
 import me.marensovich.gta5rpformapp.backend.service.GuildMembershipService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,6 +50,14 @@ public class GuildModeratorController {
     @PostMapping
     public ResponseEntity<ModeratorDto> add(@PathVariable Long guildId, @RequestBody AddModeratorRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(guildMembershipService.addModerator(guildId, request));
+    }
+
+    /** Which forms the moderator works with: all of them, or only some (#18). */
+    @PreAuthorize("@guildAccess.hasRole(#guildId, 'OWNER')")
+    @PutMapping("/{discordId}/forms")
+    public ModeratorDto setForms(@PathVariable Long guildId, @PathVariable Long discordId,
+                                 @Valid @RequestBody ModeratorFormsRequest request) {
+        return guildMembershipService.setModeratorForms(guildId, discordId, request);
     }
 
     @PreAuthorize("@guildAccess.hasRole(#guildId, 'OWNER')")

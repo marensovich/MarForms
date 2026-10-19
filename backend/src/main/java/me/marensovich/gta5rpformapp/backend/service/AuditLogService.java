@@ -515,6 +515,7 @@ public class AuditLogService {
             case SETTINGS_UPDATED -> "🟡 Settings Updated";
             case MODERATOR_ADDED -> "🟢 Moderator Added";
             case MODERATOR_REMOVED -> "🔴 Moderator Removed";
+            case MODERATOR_FORMS_CHANGED -> "🟡 Moderator Forms Changed";
             case GUILD_BAN_ADDED -> "🔴 Server Ban Added";
             case GUILD_BAN_REMOVED -> "🟢 Server Ban Removed";
             case GUILD_CONNECTED -> "🔗 Server Connected";
@@ -539,7 +540,7 @@ public class AuditLogService {
             case USER_UNBANNED, USER_TIMEOUT_LIFTED, FORM_CREATED, SUBMISSION_CREATED, ROLE_CREATED, MODERATOR_ADDED, GUILD_BAN_REMOVED, GUILD_CONNECTED -> 0x57F287;
             case USER_BANNED, FORM_DELETED, SUBMISSION_DELETED, ROLE_DELETED, MODERATOR_REMOVED, GUILD_BAN_ADDED, GUILD_ROLE_REVOKED -> 0xED4245;
             case USER_LOGIN, FORM_UPDATED, ROLE_UPDATED -> 0x5865F2;
-            case USER_ROLES_UPDATED, SETTINGS_UPDATED -> 0xFEE75C;
+            case USER_ROLES_UPDATED, SETTINGS_UPDATED, MODERATOR_FORMS_CHANGED -> 0xFEE75C;
             case SUBMISSION_DECIDED -> 0xEB459E;
             case SUBMISSION_DM_FAILED, BOT_PERMISSIONS_MISSING, WEBHOOK_FAILING, USER_TIMED_OUT -> 0xFEE75C;
             case FORM_STATUS_CHANGED -> 0x5865F2;

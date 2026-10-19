@@ -14,6 +14,7 @@ vi.mock("react-i18next", () => ({useTranslation: () => ({t, i18n: {language: "ru
 const add = vi.fn();
 const remove = vi.fn();
 const search = vi.fn();
+const setForms = vi.fn();
 vi.mock("../../../api/dashboard", () => ({
     getGuildModerators: () => Promise.resolve([
         {discordId: "1", username: "kirill", role: "OWNER", since: "2026-09-01T00:00:00"},
@@ -22,6 +23,11 @@ vi.mock("../../../api/dashboard", () => ({
     searchGuildMembers: (...a: unknown[]) => search(...a),
     addGuildModerator: (...a: unknown[]) => add(...a),
     removeGuildModerator: (...a: unknown[]) => remove(...a),
+    setModeratorForms: (...a: unknown[]) => setForms(...a),
+    getGuildForms: () => Promise.resolve({content: [
+        {id: "f1", title: "LSPD Academy", status: "PUBLISHED"},
+        {id: "f2", title: "EMS Academy", status: "ARCHIVED"},
+    ]}),
 }));
 
 const guild = {guildId: "9", guildName: "LSRP", botStatus: "CONNECTED", role: "OWNER", since: ""} as MyGuild;
@@ -32,6 +38,30 @@ describe("server moderators", () => {
         add.mockReset();
         remove.mockReset();
         search.mockReset();
+        setForms.mockReset();
+    });
+
+    it("narrows a moderator to some forms and warns when none is chosen", async () => {
+        setForms.mockImplementation((_g: string, _id: string, p: { restricted: boolean; formIds: string[] }) =>
+            Promise.resolve({discordId: "2", username: "anna", role: "MODERATOR", since: "2026-09-02T00:00:00",
+                formsRestricted: p.restricted, formIds: p.formIds}));
+        const user = userEvent.setup();
+        render(<ToastProvider><ModeratorsPanel guild={guild}/></ToastProvider>);
+
+        // The owner has no forms button; a moderator starts with every form.
+        const ownerRow = (await screen.findByText("kirill", {selector: "span.truncate"})).closest("li")!;
+        expect(within(ownerRow).queryByText("moderators.formsAll")).toBeNull();
+        await user.click(screen.getByRole("button", {name: "moderators.formsNamed:anna: moderators.formsAll"}));
+
+        await user.click(screen.getByRole("radio", {name: "moderators.formsSomeOption"}));
+        expect(await screen.findByText("moderators.formsNoneWarning")).toBeTruthy();
+        expect(screen.getByText("moderators.formsArchived")).toBeTruthy();
+        await user.click(screen.getByRole("checkbox", {name: "LSPD Academy"}));
+        expect(screen.queryByText("moderators.formsNoneWarning")).toBeNull();
+        await user.click(screen.getByRole("button", {name: "common.save"}));
+
+        expect(setForms).toHaveBeenCalledWith("9", "2", {restricted: true, formIds: ["f1"]});
+        expect(await screen.findByRole("button", {name: "moderators.formsNamed:anna: moderators.formsCount:1"})).toBeTruthy();
     });
 
     it("suggests server members, adds the picked one and removes a moderator after confirming", async () => {

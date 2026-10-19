@@ -49,7 +49,8 @@ public class GuildFormController {
                                      @RequestParam(defaultValue = "false") boolean includeArchived,
                                      @PageableDefault(size = 50, sort = "createdAt", direction = Sort.Direction.DESC)
                                      Pageable pageable) {
-        return formService.listByGuild(guildId, includeArchived, pageable);
+        // A moderator narrowed to some forms sees only those (#18).
+        return formService.listByGuild(guildId, includeArchived, guildAccessGuard.formScope(guildId), pageable);
     }
 
     @PreAuthorize("@guildAccess.hasRole(#guildId, 'OWNER')")
@@ -60,7 +61,7 @@ public class GuildFormController {
                 .body(FormResponseDto.from(formService.createInGuild(guildId, request)));
     }
 
-    @PreAuthorize("hasAuthority('FORMS_MANAGE') or @guildAccess.hasRole(#guildId, 'MODERATOR')")
+    @PreAuthorize("hasAuthority('FORMS_MANAGE') or @guildAccess.hasRoleForForm(#formId, 'MODERATOR')")
     @GetMapping("/{formId}")
     public FormResponseDto get(@PathVariable Long guildId, @PathVariable UUID formId) {
         FormResponseDto full = FormResponseDto.from(formService.getInGuild(guildId, formId));

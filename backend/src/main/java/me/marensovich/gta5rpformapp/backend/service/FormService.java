@@ -29,6 +29,7 @@ import me.marensovich.gta5rpformapp.backend.service.discord.DiscordWebhookUrl;
 import me.marensovich.gta5rpformapp.backend.service.discord.WebhookUrlCipher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,18 +51,12 @@ import java.util.stream.Collectors;
  * statistics.
  * </p>
  * <p>
- * Two entry points coexist:
- * <ul>
- *     <li><b>Guild-scoped</b> ({@code /api/v1/guilds/{guildId}/forms}, the
- *     owner panel) — forms start as {@code DRAFT} and go live via
- *     {@link #publish}. Every guild-scoped lookup goes through
- *     {@link #getInGuild}, so a form ID from another guild is a 404 even
- *     for someone who owns the guild in the URL.</li>
- *     <li><b>Legacy platform-admin</b> ({@code /api/v1/forms}) — kept as is:
- *     a created form is published immediately, and {@code active} toggles
- *     publish/close.</li>
- * </ul>
- * Every schema write is checked by {@link FormSchemaValidator}.
+ * Forms are written through the guild-scoped API only
+ * ({@code /api/v1/guilds/{guildId}/forms}, #103): they start as {@code DRAFT}
+ * and go live via {@link #publish}; {@code active} in an update toggles
+ * publish/close. Every guild-scoped lookup goes through {@link #getInGuild},
+ * so a form ID from another guild is a 404 even for someone who owns the
+ * guild in the URL. Every schema write is checked by {@link FormSchemaValidator}.
  * </p>
  *
  * @author marensovich
@@ -126,15 +121,25 @@ public class FormService {
      *
      * @param guildId         the Discord guild snowflake ID
      * @param includeArchived whether archived forms are included
+     * @param scope           only these forms (a narrowed moderator, #18); {@code null} = all
      * @param pageable        pagination parameters
      * @return form summaries with submission counts
      * @since v.0.1
      */
     @Transactional(readOnly = true)
-    public Page<FormSummaryDto> listByGuild(Long guildId, boolean includeArchived, Pageable pageable) {
-        Page<Form> page = includeArchived
-                ? formRepository.findAllByServerId(guildId, pageable)
-                : formRepository.findAllByServerIdAndStatusNot(guildId, FormStatus.ARCHIVED, pageable);
+    public Page<FormSummaryDto> listByGuild(Long guildId, boolean includeArchived, @Nullable Set<UUID> scope,
+                                            Pageable pageable) {
+        if (scope != null && scope.isEmpty()) return Page.empty(pageable);
+        Page<Form> page;
+        if (scope != null) {
+            page = includeArchived
+                    ? formRepository.findAllByServerIdAndIdIn(guildId, scope, pageable)
+                    : formRepository.findAllByServerIdAndIdInAndStatusNot(guildId, scope, FormStatus.ARCHIVED, pageable);
+        } else {
+            page = includeArchived
+                    ? formRepository.findAllByServerId(guildId, pageable)
+                    : formRepository.findAllByServerIdAndStatusNot(guildId, FormStatus.ARCHIVED, pageable);
+        }
         return page.map(form -> FormSummaryDto.from(form, submissionRepository.countByFormId(form.getId()),
                 submissionRepository.countByFormIdAndStatus(form.getId(), SubmissionStatus.PENDING)));
     }

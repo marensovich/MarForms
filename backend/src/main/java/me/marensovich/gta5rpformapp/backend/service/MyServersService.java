@@ -19,6 +19,8 @@ import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -81,6 +83,13 @@ public class MyServersService {
     private GuildMembershipDto card(GuildMembership m) {
         if (m.getRole() == GuildRole.RESPONDENT) return GuildMembershipDto.from(m);
         Long guildId = m.getGuild().getDiscordGuildId();
+        if (m.getRole() == GuildRole.MODERATOR && m.isFormsRestricted()) {
+            // Only the forms the owner left them (#18).
+            Set<UUID> forms = guildMembershipRepository.findFormIds(m.getId());
+            return forms.isEmpty() ? GuildMembershipDto.from(m, 0, 0)
+                    : GuildMembershipDto.from(m, formRepository.countByIdInAndStatus(forms, FormStatus.PUBLISHED),
+                    submissionRepository.countByFormIdInAndStatus(forms, SubmissionStatus.PENDING));
+        }
         return GuildMembershipDto.from(m, formRepository.countByServerIdAndStatus(guildId, FormStatus.PUBLISHED),
                 submissionRepository.countInGuildByStatus(guildId, SubmissionStatus.PENDING));
     }

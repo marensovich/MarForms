@@ -182,6 +182,9 @@ public enum AuditAction {
     /** A guild moderator was demoted back to respondent (guild-scoped, E2.5). */
     MODERATOR_REMOVED,
 
+    /** The owner changed which forms a moderator works with (guild-scoped, #18). */
+    MODERATOR_FORMS_CHANGED,
+
     /** A user was put on a guild's ban list (guild-scoped, E2.5). */
     GUILD_BAN_ADDED,
 

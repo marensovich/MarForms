@@ -136,6 +136,9 @@ export interface GuildModerator {
     since: string;
     addedById?: string | null;
     addedByName?: string | null;
+    /** Narrowed by the owner to {@link formIds} (#18); none chosen = no forms. */
+    formsRestricted?: boolean;
+    formIds?: string[];
 }
 
 export function getGuildModerators(guildId: string): Promise<GuildModerator[]> {
@@ -161,6 +164,15 @@ export function addGuildModerator(
     target: { discordId?: string; username?: string }
 ): Promise<GuildModerator> {
     return apiRequest(`/guilds/${guildId}/moderators`, {method: "POST", body: target});
+}
+
+/** All the server's forms, or only some (#18). */
+export function setModeratorForms(
+    guildId: string,
+    discordId: string,
+    payload: { restricted: boolean; formIds: string[] }
+): Promise<GuildModerator> {
+    return apiRequest(`/guilds/${guildId}/moderators/${discordId}/forms`, {method: "PUT", body: payload});
 }
 
 export function removeGuildModerator(guildId: string, discordId: string): Promise<void> {

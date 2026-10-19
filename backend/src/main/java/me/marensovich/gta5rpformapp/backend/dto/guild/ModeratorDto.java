@@ -6,6 +6,8 @@ import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.database.entity.GuildMembership;
 
 import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * A member of a server's team, as the «Модераторы» tab lists it (ТЗ 4.7.1).
@@ -17,6 +19,8 @@ import java.time.LocalDateTime;
  * @param since       when they became a moderator (or joined the team, for older rows)
  * @param addedById   who made them a moderator, {@code null} if unknown or an owner
  * @param addedByName that person's username
+ * @param formsRestricted whether the owner narrowed them to {@code formIds} (#18); never for an owner
+ * @param formIds     the forms they work with when restricted (none = no forms)
  * @author marensovich
  * @version v.0.1
  * @since v.0.1
@@ -30,7 +34,9 @@ public record ModeratorDto(
         LocalDateTime since,
         @JsonSerialize(using = ToStringSerializer.class)
         Long addedById,
-        String addedByName
+        String addedByName,
+        boolean formsRestricted,
+        Set<UUID> formIds
 ) {
     public static ModeratorDto from(GuildMembership membership) {
         return from(membership, null);
@@ -46,6 +52,8 @@ public record ModeratorDto(
                 membership.getRole(),
                 membership.getModeratorAddedAt() != null ? membership.getModeratorAddedAt() : membership.getCreatedAt(),
                 membership.getModeratorAddedBy(),
-                addedByName);
+                addedByName,
+                membership.isFormsRestricted(),
+                membership.isFormsRestricted() ? Set.copyOf(membership.getFormIds()) : Set.of());
     }
 }

@@ -4,10 +4,13 @@ import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.database.entity.GuildMembership;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -68,4 +71,19 @@ public interface GuildMembershipRepository extends JpaRepository<GuildMembership
     List<GuildMembership> findAllByGuild_DiscordGuildId(Long guildId);
 
     long countByGuild_DiscordGuildIdAndRole(Long guildId, GuildRole role);
+
+    /** The forms a moderator is narrowed to (#18); only meaningful when {@code formsRestricted}. */
+    @Query("select f from GuildMembership m join m.formIds f where m.id = :membershipId")
+    Set<UUID> findFormIds(@Param("membershipId") UUID membershipId);
+
+    /**
+     * Discord IDs of a guild's members of {@code role} who work with a form: not narrowed,
+     * or narrowed to a list that holds it (#18).
+     */
+    @Query("""
+            select m.user.discordId from GuildMembership m
+            where m.guild.discordGuildId = :guildId and m.role = :role
+              and (m.formsRestricted = false or :formId member of m.formIds)""")
+    List<Long> findStaffDiscordIdsForForm(@Param("guildId") Long guildId, @Param("role") GuildRole role,
+                                         @Param("formId") UUID formId);
 }

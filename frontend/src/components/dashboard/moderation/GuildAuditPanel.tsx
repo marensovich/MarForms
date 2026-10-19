@@ -16,7 +16,7 @@ const PAGE_SIZE = 30;
 const GROUPS: Record<string, GuildAuditAction[]> = {
     decisions: ["SUBMISSION_DECIDED"],
     forms: ["FORM_CREATED", "FORM_UPDATED", "FORM_STATUS_CHANGED", "FORM_DELETED"],
-    moderators: ["MODERATOR_ADDED", "MODERATOR_REMOVED", "GUILD_ROLE_REVOKED"],
+    moderators: ["MODERATOR_ADDED", "MODERATOR_REMOVED", "MODERATOR_FORMS_CHANGED", "GUILD_ROLE_REVOKED"],
     bans: ["GUILD_BAN_ADDED", "GUILD_BAN_REMOVED"],
     submissions: ["SUBMISSION_DELETED"],
     bot: ["BOT_REMOVED", "BOT_RECONNECTED", "BOT_PERMISSIONS_MISSING", "WEBHOOK_FAILING", "SUBMISSION_DM_FAILED", "GUILD_CONNECTED"],
@@ -58,6 +58,8 @@ function kindOf(e: GuildAuditEntry): { key: string; icon: IconType; tone: keyof 
             return {key: e.action, icon: FiCheck, tone: "ok"};
         case "MODERATOR_ADDED":
             return {key: e.action, icon: FiUserPlus, tone: "warn"};
+        case "MODERATOR_FORMS_CHANGED":
+            return {key: e.action, icon: FiFileText, tone: "warn"};
         case "MODERATOR_REMOVED":
         case "GUILD_ROLE_REVOKED":
             return {key: e.action, icon: FiUserMinus, tone: "warn"};

@@ -126,6 +126,9 @@ public interface SubmissionRepository extends JpaRepository<Submission, UUID>, J
             where s.status = :status and s.formId in (select f.id from Form f where f.serverId = :guildId)""")
     long countInGuildByStatus(Long guildId, SubmissionStatus status);
 
+    /** Submissions of some forms in one status — a narrowed moderator's queue count (#18). */
+    long countByFormIdInAndStatus(java.util.Collection<UUID> formIds, SubmissionStatus status);
+
     long countByDiscordIdAndStatus(Long discordId, SubmissionStatus status);
 
     /**

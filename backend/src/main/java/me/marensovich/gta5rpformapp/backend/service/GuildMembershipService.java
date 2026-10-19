@@ -8,6 +8,7 @@ import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.database.entity.Guild;
 import me.marensovich.gta5rpformapp.backend.database.entity.GuildMembership;
 import me.marensovich.gta5rpformapp.backend.database.entity.User;
+import me.marensovich.gta5rpformapp.backend.database.repository.FormRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.GuildMembershipRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.UserRepository;
 import me.marensovich.gta5rpformapp.backend.exception.NotFoundException;
@@ -20,12 +21,18 @@ import org.springframework.transaction.annotation.Transactional;
 
 import me.marensovich.gta5rpformapp.backend.dto.guild.AddModeratorRequest;
 import me.marensovich.gta5rpformapp.backend.dto.guild.ModeratorDto;
+import me.marensovich.gta5rpformapp.backend.dto.guild.ModeratorFormsRequest;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Service for managing {@link GuildMembership} entities.
@@ -43,7 +50,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class GuildMembershipService {
 
+    /** How the journal shows «every form» in a moderator's forms change (#18). */
+    private static final String ALL_FORMS = "ALL";
+
     private final GuildMembershipRepository guildMembershipRepository;
+    private final FormRepository formRepository;
     private final GuildService guildService;
     private final AuditLogService auditLogService;
     private final PlanLimitService planLimitService;
@@ -191,6 +202,9 @@ public class GuildMembershipService {
         if (membership.getRole() != GuildRole.MODERATOR) {
             planLimitService.requireRoomFor(guildDiscordId, PlanMetric.MODERATORS);
             membership.setRole(GuildRole.MODERATOR);
+            // A new moderator works with every form until the owner narrows it (#18).
+            membership.setFormsRestricted(false);
+            membership.getFormIds().clear();
             membership.setModeratorAddedBy(auditLogService.currentActorId());
             membership.setModeratorAddedAt(LocalDateTime.now());
             membership = guildMembershipRepository.save(membership);
@@ -219,10 +233,60 @@ public class GuildMembershipService {
         membership.setRole(GuildRole.RESPONDENT);
         membership.setModeratorAddedBy(null);
         membership.setModeratorAddedAt(null);
+        membership.setFormsRestricted(false);
+        membership.getFormIds().clear();
         guildMembershipRepository.save(membership);
         auditLogService.logGuildAction(guildDiscordId, AuditAction.MODERATOR_REMOVED, "USER",
                 userDiscordId.toString(), membership.getUser().getDiscordUsername(),
                 new AuditDiff().add("role", GuildRole.MODERATOR, GuildRole.RESPONDENT).into(null), null);
+    }
+
+    /**
+     * Narrows a moderator to some forms of the server, or gives them all of
+     * them back (#18, #91). It applies at once: lists, the queue, search and
+     * notifications follow it.
+     *
+     * @param guildDiscordId the Discord guild snowflake ID
+     * @param userDiscordId  the moderator's Discord ID
+     * @param request        all forms, or only the listed ones
+     * @return the moderator
+     * @throws NotFoundException        if the user isn't a moderator of this guild, or a form isn't one of its forms
+     * @since v.0.1
+     */
+    @Transactional
+    public ModeratorDto setModeratorForms(Long guildDiscordId, Long userDiscordId, ModeratorFormsRequest request) {
+        GuildMembership membership = guildMembershipRepository
+                .findByUser_DiscordIdAndGuild_DiscordGuildId(userDiscordId, guildDiscordId)
+                .filter(m -> m.getRole() == GuildRole.MODERATOR)
+                .orElseThrow(() -> new NotFoundException("User " + userDiscordId + " is not a moderator of this server"));
+        Set<UUID> forms = request.restricted() ? Set.copyOf(request.formIds()) : Set.of();
+        Map<UUID, String> titles = new HashMap<>();
+        formRepository.findAllById(forms).forEach(f -> {
+            if (guildDiscordId.equals(f.getServerId())) titles.put(f.getId(), f.getTitle());
+        });
+        for (UUID id : forms) {
+            if (!titles.containsKey(id)) throw new NotFoundException("Form not found: " + id);
+        }
+
+        Object before = membership.isFormsRestricted() ? formTitles(membership.getFormIds()) : ALL_FORMS;
+        Object after = request.restricted() ? forms.stream().map(titles::get).sorted().toList() : ALL_FORMS;
+        membership.setFormsRestricted(request.restricted());
+        membership.getFormIds().clear();
+        membership.getFormIds().addAll(forms);
+        guildMembershipRepository.save(membership);
+        if (!before.equals(after)) {
+            auditLogService.logGuildAction(guildDiscordId, AuditAction.MODERATOR_FORMS_CHANGED, "USER",
+                    userDiscordId.toString(), membership.getUser().getDiscordUsername(),
+                    new AuditDiff().add("forms", before, after).into(null), null);
+        }
+        return ModeratorDto.from(membership);
+    }
+
+    private List<String> formTitles(Set<UUID> ids) {
+        List<String> titles = new ArrayList<>();
+        formRepository.findAllById(ids).forEach(f -> titles.add(f.getTitle()));
+        titles.sort(null);
+        return titles;
     }
 
     /**

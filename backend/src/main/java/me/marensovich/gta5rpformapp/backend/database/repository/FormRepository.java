@@ -63,6 +63,15 @@ public interface FormRepository extends JpaRepository<Form, UUID>,
      */
     Page<Form> findAllByServerIdAndStatusNot(Long serverId, FormStatus status, Pageable pageable);
 
+    /** Some of a guild's forms — those a narrowed moderator works with (#18). */
+    Page<Form> findAllByServerIdAndIdIn(Long serverId, Collection<UUID> ids, Pageable pageable);
+
+    /** Same, without one status (archived forms hidden). */
+    Page<Form> findAllByServerIdAndIdInAndStatusNot(Long serverId, Collection<UUID> ids, FormStatus status, Pageable pageable);
+
+    /** Published forms among some — the «Мои серверы» count of a narrowed moderator (#18). */
+    long countByIdInAndStatus(Collection<UUID> ids, FormStatus status);
+
     /**
      * Whether a slug is already taken.
      *

@@ -5,6 +5,7 @@ import me.marensovich.gta5rpformapp.backend.data.guilds.GuildRole;
 import me.marensovich.gta5rpformapp.backend.data.roles.Permission;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import me.marensovich.gta5rpformapp.backend.database.entity.Guild;
+import me.marensovich.gta5rpformapp.backend.database.entity.GuildMembership;
 import me.marensovich.gta5rpformapp.backend.database.entity.Submission;
 import me.marensovich.gta5rpformapp.backend.database.entity.User;
 import me.marensovich.gta5rpformapp.backend.database.repository.FormRepository;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -90,8 +92,11 @@ public class SearchService {
         Pageable limit = PageRequest.of(0, LIMIT);
         String pattern = "%" + escapeLike(q.toLowerCase()) + "%";
 
+        // A moderator the owner narrowed to some forms finds only those (#18).
+        Map<Long, Set<UUID>> narrowed = narrowedForms(caller);
         List<Form> forms = allForms || !staffGuilds.isEmpty()
                 ? formRepository.search(allForms, scope, pattern, limit) : List.of();
+        if (!allForms) forms = forms.stream().filter(f -> reaches(narrowed, f)).toList();
 
         List<Submission> submissions = List.of();
         Map<Long, User> authors = Map.of();
@@ -105,6 +110,11 @@ public class SearchService {
         Map<UUID, Form> submissionForms = formRepository.findAllById(
                         submissions.stream().map(Submission::getFormId).collect(Collectors.toSet())).stream()
                 .collect(Collectors.toMap(Form::getId, Function.identity()));
+        if (!allSubmissions) {
+            submissions = submissions.stream()
+                    .filter(s -> submissionForms.containsKey(s.getFormId()) && reaches(narrowed, submissionForms.get(s.getFormId())))
+                    .toList();
+        }
         Set<Long> guildIds = new LinkedHashSet<>();
         forms.forEach(f -> guildIds.add(f.getServerId()));
         submissionForms.values().forEach(f -> guildIds.add(f.getServerId()));
@@ -147,6 +157,22 @@ public class SearchService {
                 .filter(m -> m.getRole() == GuildRole.OWNER || m.getRole() == GuildRole.MODERATOR)
                 .map(m -> m.getGuild().getDiscordGuildId())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    /** The forms of each server where the caller is a moderator narrowed by the owner (#18). */
+    private Map<Long, Set<UUID>> narrowedForms(User caller) {
+        Map<Long, Set<UUID>> narrowed = new HashMap<>();
+        for (GuildMembership m : guildMembershipRepository.findAllByUser_Id(caller.getId())) {
+            if (m.getRole() == GuildRole.MODERATOR && m.isFormsRestricted()) {
+                narrowed.put(m.getGuild().getDiscordGuildId(), guildMembershipRepository.findFormIds(m.getId()));
+            }
+        }
+        return narrowed;
+    }
+
+    private static boolean reaches(Map<Long, Set<UUID>> narrowed, Form form) {
+        Set<UUID> forms = narrowed.get(form.getServerId());
+        return forms == null || forms.contains(form.getId());
     }
 
     /** Users by exact Discord ID (all digits) or by part of the nick, keyed by Discord ID. */

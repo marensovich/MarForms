@@ -33,6 +33,7 @@ const CATEGORY: Record<AuditAction, Category> = {
     SETTINGS_UPDATED: "sys",
     MODERATOR_ADDED: "mod",
     MODERATOR_REMOVED: "mod",
+    MODERATOR_FORMS_CHANGED: "mod",
     GUILD_BAN_ADDED: "ban",
     GUILD_BAN_REMOVED: "ban",
     GUILD_CONNECTED: "sys",

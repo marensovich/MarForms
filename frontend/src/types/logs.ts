@@ -18,6 +18,7 @@ export type AuditAction =
     | "SETTINGS_UPDATED"
     | "MODERATOR_ADDED"
     | "MODERATOR_REMOVED"
+    | "MODERATOR_FORMS_CHANGED"
     | "GUILD_BAN_ADDED"
     | "GUILD_BAN_REMOVED"
     | "GUILD_CONNECTED"
