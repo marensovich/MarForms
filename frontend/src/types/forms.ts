@@ -138,6 +138,12 @@ export interface WebhookConfig {
     imageUrl?: string;
     // Embed: fields display
     fieldsInline?: boolean;
+    titleUrl?: string;
+    // Embed: footer
+    footerText?: string;
+    footerIconUrl?: string;
+    /** When it was sent, under the embed; absent = shown. */
+    timestamp?: boolean;
     // System-managed delivery status (E2.4)
     invalid?: boolean | null;
     lastError?: string | null;

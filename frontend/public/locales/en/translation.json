@@ -62,7 +62,8 @@
     "nav": {
       "how": "How it works",
       "staff": "For servers",
-      "mySubmissions": "My submissions"
+      "mySubmissions": "My submissions",
+      "feedback": "Feedback"
     },
     "signIn": "Sign in",
     "panel": "Dashboard",
@@ -1527,7 +1528,8 @@
       "next": {
         "fields": "Next: fields",
         "access": "Next: access",
-        "notifications": "Next: notifications"
+        "notifications": "Next: notifications",
+        "message": "Next: message"
       },
       "blocked": {
         "basic": "Enter a title and a valid address",
@@ -1740,16 +1742,61 @@
     },
     "message": {
       "title": "Message in Discord",
-      "text": "Text above the report: mention roles or add a note. The form's text comes first, then the channel's.",
+      "text": "The text above the report and the embed's look. The text for every channel comes first, then the channel's.",
       "formTitle": "For every channel of the form",
       "formHint": "Added to the report in every channel.",
       "placeholder": "E.g. <@&role> a new response to {form.title}",
-      "channelsTitle": "For each channel",
-      "channelsHint": "Added after the form's text, in this channel only.",
-      "channelPlaceholder": "Text for this channel only",
+      "channelsTitle": "Channels",
+      "channelsHint": "Each channel has its own text and its own look of the report.",
+      "channelPlaceholder": "For example: <@&role> please review",
       "noChannels": "No channels connected yet — add them on the Notifications tab.",
       "mentionRole": "Mention a role",
-      "preview": "In Discord:"
+      "channelText": "Text for {{channel}}",
+      "customized": "Customized",
+      "previewTitle": "Preview",
+      "previewHint": "An example response. If the platform's settings set a common embed, it goes under the report.",
+      "today": "Today at {{time}}",
+      "app": "BOT",
+      "untitled": "Untitled",
+      "defaultAuthor": "Response from {{name}}",
+      "sample": {
+        "yes": "Yes",
+        "text": "Example answer"
+      },
+      "groups": {
+        "embed": "Embed",
+        "author": "Author",
+        "images": "Images",
+        "footer": "Footer",
+        "sender": "Sender"
+      },
+      "color": "Bar colour",
+      "resetColor": "Default",
+      "embedTitle": "Title",
+      "embedTitlePlaceholder": "Empty — the form's name",
+      "titleUrl": "Title link",
+      "description": "Description",
+      "descriptionPlaceholder": "Text under the title, variables allowed",
+      "fieldsInline": "Answers in columns",
+      "authorName": "Author name",
+      "authorNamePlaceholder": "Empty — “Response from <name>”",
+      "authorIconUrl": "Author icon",
+      "authorUrl": "Author link",
+      "thumbnailUrl": "Thumbnail",
+      "thumbnailHint": "A small picture at the top right.",
+      "imageUrl": "Image",
+      "imageHint": "A large picture under the answers.",
+      "footerText": "Footer text",
+      "footerPlaceholder": "For example: {server.name}",
+      "footerIconUrl": "Footer icon",
+      "footerIconHint": "Shown only with a footer text.",
+      "timestamp": "Show when it was sent",
+      "botName": "Sender name",
+      "botNameHint": "Empty — the webhook's name in Discord ({{name}}).",
+      "avatarUrl": "Sender avatar",
+      "badLink": "Must be a link starting with https://",
+      "copyLook": "Apply this look to the other channels",
+      "copied": "Look copied to channels: {{count}}"
     }
   },
   "adminForms": {

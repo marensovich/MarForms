@@ -47,6 +47,10 @@ describe("landing", () => {
         show(null);
         expect(screen.getAllByRole("link", {name: "landing.signIn"})[0].getAttribute("href")).toBe("/login");
         expect(screen.queryByRole("link", {name: "landing.panel"})).toBeNull();
+        // Feedback from the start page too, header and footer (phones have only the footer).
+        const feedback = screen.getAllByRole("link", {name: "landing.nav.feedback"});
+        expect(feedback).toHaveLength(2);
+        expect(feedback[0].getAttribute("href")).toBe("/feedback?from=%2F");
     });
 
     it("shows the panel to a server owner and only the user menu to a respondent", async () => {

@@ -932,6 +932,7 @@ public class FormService {
                 }
                 webhook.setUrl(parsed.canonical());
             }
+            checkEmbed(webhook, "webhooks[" + i + "].", errors);
             WebhookConfig before = previous == null ? null : previous.stream()
                     .filter(w -> webhook.getUrl() != null && webhook.getUrl().equals(canonicalUrl(w.getUrl())))
                     .findFirst().orElse(null);
@@ -946,6 +947,40 @@ public class FormService {
         }
         if (!errors.isEmpty()) throw new FieldValidationException("Invalid webhooks", errors);
         return result;
+    }
+
+    private static final java.util.regex.Pattern EMBED_LINK = java.util.regex.Pattern.compile("^https?://\\S{1,2000}$");
+
+    /**
+     * Discord refuses the whole message over one bad link or a text past its
+     * limit, so a report would never arrive: refused on save instead.
+     */
+    private static void checkEmbed(WebhookConfig w, String at, Map<String, String> errors) {
+        java.util.function.BiConsumer<String, String> link = (name, value) -> {
+            if (value != null && !value.isBlank() && !EMBED_LINK.matcher(value.trim()).matches())
+                errors.put(at + name, "Must be a link starting with https://");
+        };
+        link.accept("avatarUrl", w.getAvatarUrl());
+        link.accept("titleUrl", w.getTitleUrl());
+        link.accept("authorIconUrl", w.getAuthorIconUrl());
+        link.accept("authorUrl", w.getAuthorUrl());
+        link.accept("thumbnailUrl", w.getThumbnailUrl());
+        link.accept("imageUrl", w.getImageUrl());
+        link.accept("footerIconUrl", w.getFooterIconUrl());
+
+        atMost(errors, at + "botName", w.getBotName(), 80);
+        atMost(errors, at + "content", w.getContent(), 2000);
+        atMost(errors, at + "embedTitle", w.getEmbedTitle(), 256);
+        atMost(errors, at + "embedDescription", w.getEmbedDescription(), 4096);
+        atMost(errors, at + "authorName", w.getAuthorName(), 256);
+        atMost(errors, at + "footerText", w.getFooterText(), 2048);
+
+        if (w.getColor() != null && (w.getColor() < 0 || w.getColor() > 0xFFFFFF))
+            errors.put(at + "color", "Must be a colour from #000000 to #FFFFFF");
+    }
+
+    private static void atMost(Map<String, String> errors, String key, String value, int max) {
+        if (value != null && value.length() > max) errors.put(key, "At most " + max + " characters");
     }
 
     private static String canonicalUrl(String url) {

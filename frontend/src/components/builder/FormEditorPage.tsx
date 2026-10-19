@@ -304,7 +304,9 @@ export default function FormEditorPage() {
                 return <NotificationsTab guildId={guildId} formId={formId} webhooks={state.webhooks}
                                          onChange={webhooks => update({webhooks})} beforeTest={flush} onTested={reload}/>;
             case "message":
-                return <MessageTab guildId={guildId} message={state.discordMessage} onMessage={discordMessage => update({discordMessage})}
+                return <MessageTab guildId={guildId} guildName={guild?.guildName ?? ""} formTitle={state.title} formSlug={state.slug}
+                                   reviewEnabled={state.reviewEnabled} fields={state.fields}
+                                   message={state.discordMessage} onMessage={discordMessage => update({discordMessage})}
                                    webhooks={state.webhooks} onWebhooks={webhooks => update({webhooks})}/>;
             default:
                 return <BasicTab state={state} update={update} guild={guild} formId={formId} savedSlug={definition.slug ?? ""}

@@ -31,6 +31,9 @@ const SHOT = [
     {n: "kate_wl", c: "#15803D", r: "trainee", rc: "#3B82F6", s: "approved"},
 ] as const;
 
+/** Feedback about MarForms (2026-10-19): asks to sign in first, then comes back here. */
+const FEEDBACK_PATH = "/feedback?from=%2F";
+
 const SHOT_STATUS = {
     pending: "bg-amb text-amt",
     approved: "bg-gnb text-gnt",
@@ -96,6 +99,7 @@ export default function LandingPage() {
                         <a href="#how" className="text-tx hover:text-prt">{t("landing.nav.how")}</a>
                         <a href="#staff" className="text-tx hover:text-prt">{t("landing.nav.staff")}</a>
                         <Link to={MY_SUBMISSIONS_PATH} className="text-tx hover:text-prt">{t("landing.nav.mySubmissions")}</Link>
+                        <Link to={FEEDBACK_PATH} className="text-tx hover:text-prt">{t("landing.nav.feedback")}</Link>
                     </nav>
                     <span className="flex-1"/>
                     <LanguageSwitch/>
@@ -251,6 +255,7 @@ export default function LandingPage() {
                         {(["terms", "privacy", "support", "status"] as const).map(k => (
                             <a key={k} href="#" className="text-mu underline hover:text-tx">{t(`landing.footer.${k}`)}</a>
                         ))}
+                        <Link to={FEEDBACK_PATH} className="text-mu underline hover:text-tx">{t("landing.nav.feedback")}</Link>
                     </nav>
                 </div>
             </footer>

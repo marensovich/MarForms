@@ -107,7 +107,7 @@ public class WebhookConfig {
     /**
      * Author name override.
      * <p>
-     * Defaults to "Submitted by {username}" if not specified.
+     * Defaults to "Ответ от {username}" ("Анонимный ответ" without one).
      * Supports variable substitution.
      * </p>
      *
@@ -161,6 +161,18 @@ public class WebhookConfig {
      * @since v.0.1
      */
     private Boolean fieldsInline;
+
+    /** Where the embed's title links to. */
+    private String titleUrl;
+
+    /** The embed's footer text; supports variable substitution. */
+    private String footerText;
+
+    /** The footer's icon, shown only with {@link #footerText}. */
+    private String footerIconUrl;
+
+    /** Whether the embed shows when it was sent; {@code null} = yes. */
+    private Boolean timestamp;
 
     /**
      * Set when Discord has told us this webhook no longer exists (404 —

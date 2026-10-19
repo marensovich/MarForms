@@ -271,13 +271,15 @@ public class WebhookService {
      * @return a {@link Map} representing the Discord embed
      * @since v.0.1
      */
-    private Map<String, Object> buildFormEmbed(Form form, FormSchema questions, Map<String, Object> answers,
-                                               String discordUsername, WebhookConfig cfg,
-                                               Map<String, String> vars) {
+    Map<String, Object> buildFormEmbed(Form form, FormSchema questions, Map<String, Object> answers,
+                                       String discordUsername, WebhookConfig cfg,
+                                       Map<String, String> vars) {
         Map<String, Object> embed = new LinkedHashMap<>();
 
         embed.put("title", hasText(cfg.getEmbedTitle())
                 ? sub(cfg.getEmbedTitle(), vars) : form.getSchema().getTitle());
+
+        if (hasText(cfg.getTitleUrl())) embed.put("url", cfg.getTitleUrl());
 
         if (hasText(cfg.getEmbedDescription()))
             embed.put("description", sub(cfg.getEmbedDescription(), vars));
@@ -287,7 +289,7 @@ public class WebhookService {
         Map<String, String> author = new LinkedHashMap<>();
         author.put("name", hasText(cfg.getAuthorName())
                 ? sub(cfg.getAuthorName(), vars)
-                : "Submitted by " + (discordUsername != null ? discordUsername : "Unknown"));
+                : (discordUsername != null ? "Ответ от " + discordUsername : "Анонимный ответ"));
         if (hasText(cfg.getAuthorIconUrl())) author.put("icon_url", cfg.getAuthorIconUrl());
         if (hasText(cfg.getAuthorUrl())) author.put("url", cfg.getAuthorUrl());
         embed.put("author", author);
@@ -314,7 +316,15 @@ public class WebhookService {
         if (hasText(cfg.getImageUrl()))
             embed.put("image", Map.of("url", cfg.getImageUrl()));
 
-        embed.put("timestamp", java.time.OffsetDateTime.now().toString());
+        if (hasText(cfg.getFooterText())) {
+            Map<String, String> footer = new LinkedHashMap<>();
+            footer.put("text", sub(cfg.getFooterText(), vars));
+            if (hasText(cfg.getFooterIconUrl())) footer.put("icon_url", cfg.getFooterIconUrl());
+            embed.put("footer", footer);
+        }
+
+        if (!Boolean.FALSE.equals(cfg.getTimestamp()))
+            embed.put("timestamp", java.time.OffsetDateTime.now().toString());
 
         return embed;
     }

@@ -186,6 +186,23 @@ class GuildFormControllerTest {
     }
 
     @Test
+    void anEmbedWithABadLinkOrTooLongATitleIsRefusedOnSave() throws Exception {
+        String formId = createDraft(GUILD);
+        mvc.perform(as(owner, put("/api/v1/guilds/{g}/forms/{f}", GUILD, formId))
+                        .content("{\"webhooks\": [{\"url\": \"https://discord.com/api/webhooks/77/t\", \"thumbnailUrl\": \"javascript:alert(1)\", \"embedTitle\": \""
+                                + "a".repeat(257) + "\", \"color\": 16777216}]}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fields['webhooks[0].thumbnailUrl']").exists())
+                .andExpect(jsonPath("$.fields['webhooks[0].embedTitle']").exists())
+                .andExpect(jsonPath("$.fields['webhooks[0].color']").exists());
+        mvc.perform(as(owner, put("/api/v1/guilds/{g}/forms/{f}", GUILD, formId))
+                        .content("{\"webhooks\": [{\"url\": \"https://discord.com/api/webhooks/77/t\", \"footerText\": \"MarForms\", \"timestamp\": false}]}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.webhooks[0].footerText").value("MarForms"))
+                .andExpect(jsonPath("$.webhooks[0].timestamp").value(false));
+    }
+
+    @Test
     void anOwnerChoosesTheFormsAddressAndItMustBeFreeAndWellFormed() throws Exception {
         mvc.perform(as(owner, post("/api/v1/guilds/{g}/forms", GUILD))
                         .content("{\"schema\": {\"title\": \"LSPD\", \"description\": \"\", \"fields\": []}, \"slug\": \"Bad Slug\"}"))
