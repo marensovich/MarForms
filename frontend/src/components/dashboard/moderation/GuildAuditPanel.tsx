@@ -15,11 +15,11 @@ const PAGE_SIZE = 30;
 /** «Действие»: kinds of actions, each a set of journal actions (the API takes several). */
 const GROUPS: Record<string, GuildAuditAction[]> = {
     decisions: ["SUBMISSION_DECIDED"],
-    forms: ["FORM_CREATED", "FORM_UPDATED", "FORM_STATUS_CHANGED", "FORM_DELETED"],
-    moderators: ["MODERATOR_ADDED", "MODERATOR_REMOVED", "MODERATOR_FORMS_CHANGED", "GUILD_ROLE_REVOKED"],
+    forms: ["FORM_CREATED", "FORM_UPDATED", "FORM_STATUS_CHANGED", "FORM_DELETED", "WEBHOOK_CREATED"],
+    moderators: ["MODERATOR_ADDED", "MODERATOR_REMOVED", "MODERATOR_FORMS_CHANGED", "GUILD_ROLE_REVOKED", "GUILD_ROLE_GRANTED", "GUILD_ADMIN_ROLES_CHANGED"],
     bans: ["GUILD_BAN_ADDED", "GUILD_BAN_REMOVED"],
     submissions: ["SUBMISSION_DELETED"],
-    bot: ["BOT_REMOVED", "BOT_RECONNECTED", "BOT_PERMISSIONS_MISSING", "WEBHOOK_FAILING", "SUBMISSION_DM_FAILED", "GUILD_CONNECTED"],
+    bot: ["BOT_REMOVED", "BOT_RECONNECTED", "BOT_PERMISSIONS_MISSING", "WEBHOOK_FAILING", "SUBMISSION_DM_FAILED", "GUILD_CONNECTED", "GUILD_LOG_CHANNELS_CREATED"],
 };
 const PERIODS = [1, 7, 30, 90, 0];
 
@@ -57,7 +57,13 @@ function kindOf(e: GuildAuditEntry): { key: string; icon: IconType; tone: keyof 
         case "GUILD_BAN_REMOVED":
             return {key: e.action, icon: FiCheck, tone: "ok"};
         case "MODERATOR_ADDED":
+        case "GUILD_ROLE_GRANTED":
             return {key: e.action, icon: FiUserPlus, tone: "warn"};
+        case "GUILD_ADMIN_ROLES_CHANGED":
+            return {key: e.action, icon: FiEdit2, tone: "warn"};
+        case "WEBHOOK_CREATED":
+        case "GUILD_LOG_CHANNELS_CREATED":
+            return {key: e.action, icon: FiLink, tone: "ok"};
         case "MODERATOR_FORMS_CHANGED":
             return {key: e.action, icon: FiFileText, tone: "warn"};
         case "MODERATOR_REMOVED":
@@ -91,6 +97,7 @@ function detailOf(e: GuildAuditEntry, t: (k: string, o?: Record<string, unknown>
     if (e.action === "FORM_DELETED" && m.submissions !== undefined) {
         parts.push(t("guildAudit.detail.submissionsRemoved", {count: Number(m.submissions)}));
     }
+    if (typeof m.edits === "number" && m.edits > 1) parts.push(t("guildAudit.edits", {count: m.edits}));
     if (e.targetType === "USER" && e.targetId) parts.push(`ID ${e.targetId}`);
     return parts.length ? parts.join(" · ") : null;
 }
@@ -233,7 +240,12 @@ export default function GuildAuditPanel({guild}: { guild: MyGuild }) {
                                             )}
                                         </div>
                                         <time dateTime={e.createdAt} className="flex-none text-[13px] tabular-nums text-mu">
-                                            {new Date(e.createdAt).toLocaleTimeString(i18n.language, {hour: "2-digit", minute: "2-digit"})}
+                                            {(() => {
+                                                const at = (iso: string) => new Date(iso).toLocaleTimeString(i18n.language, {hour: "2-digit", minute: "2-digit"});
+                                                // Back-to-back edits merged into one entry read as a span (2026-10-19).
+                                                return e.lastAt && at(e.lastAt) !== at(e.createdAt)
+                                                    ? t("guildAudit.range", {from: at(e.createdAt), to: at(e.lastAt)}) : at(e.createdAt);
+                                            })()}
                                         </time>
                                     </li>
                                 );

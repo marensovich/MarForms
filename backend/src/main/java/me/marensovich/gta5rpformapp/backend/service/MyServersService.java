@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Comparator;
+import org.springframework.transaction.support.TransactionTemplate;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,16 +32,23 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author marensovich
  * @since v.0.1
  */
+@lombok.extern.slf4j.Slf4j
 @Service
 @RequiredArgsConstructor
 public class MyServersService {
 
     static final Duration REFRESH_INTERVAL = Duration.ofMinutes(1);
+    /** How often «Мои серверы» looks for servers where the user holds an admin role (2026-10-19). */
+    static final Duration CLAIM_INTERVAL = Duration.ofMinutes(2);
 
     private final GuildMembershipRepository guildMembershipRepository;
     private final FormRepository formRepository;
     private final SubmissionRepository submissionRepository;
     private final GuildService guildService;
+    private final GuildSettingsService guildSettingsService;
+    private final org.springframework.transaction.PlatformTransactionManager transactionManager;
+    /** Last look for servers where the user holds an admin role. */
+    private final Map<Long, Instant> lastClaim = new ConcurrentHashMap<>();
     /** Last refresh per user; a refresh calls Discord once per server. */
     private final Map<Long, Instant> lastRefresh = new ConcurrentHashMap<>();
 
@@ -51,12 +60,32 @@ public class MyServersService {
      * @return their servers
      * @since v.0.1
      */
-    @Transactional(readOnly = true)
     public List<GuildMembershipDto> list(User user) {
-        return guildMembershipRepository.findAllByUser_Id(user.getId()).stream()
+        Instant now = Instant.now();
+        Instant previous = lastClaim.get(user.getId());
+        if (previous == null || previous.plus(CLAIM_INTERVAL).isBefore(now)) {
+            lastClaim.put(user.getId(), now);
+            claim(user);
+        }
+        return cards(user);
+    }
+
+    private void claim(User user) {
+        try {
+            guildSettingsService.claimAdminRoleOwnerships(user);
+        } catch (Exception e) {
+            log.warn("Could not look for admin roles of user {}: {}", user.getDiscordId(), e.getMessage());
+        }
+    }
+
+    /** Read in one transaction: the cards read the rows' lazy guilds. */
+    private List<GuildMembershipDto> cards(User user) {
+        TransactionTemplate tx = new TransactionTemplate(transactionManager);
+        tx.setReadOnly(true);
+        return tx.execute(status -> guildMembershipRepository.findAllByUser_Id(user.getId()).stream()
                 .map(this::card)
                 .sorted(Comparator.comparing(GuildMembershipDto::since).reversed())
-                .toList();
+                .toList());
     }
 
     /**
@@ -74,10 +103,12 @@ public class MyServersService {
             throw new TooManyRequestsException("The servers were refreshed less than a minute ago");
         }
         lastRefresh.put(user.getId(), now);
+        lastClaim.put(user.getId(), now);
+        claim(user);
         for (GuildMembership m : guildMembershipRepository.findAllByUser_Id(user.getId())) {
             if (m.getRole() != GuildRole.RESPONDENT) guildService.sync(m.getGuild().getDiscordGuildId());
         }
-        return list(user);
+        return cards(user);
     }
 
     private GuildMembershipDto card(GuildMembership m) {

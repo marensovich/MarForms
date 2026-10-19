@@ -27,7 +27,11 @@ export type AuditAction =
     | "BOT_REMOVED"
     | "BOT_RECONNECTED"
     | "BOT_PERMISSIONS_MISSING"
-    | "WEBHOOK_FAILING";
+    | "WEBHOOK_FAILING"
+    | "WEBHOOK_CREATED"
+    | "GUILD_ADMIN_ROLES_CHANGED"
+    | "GUILD_ROLE_GRANTED"
+    | "GUILD_LOG_CHANNELS_CREATED";
 
 /** A field a change changed (ТЗ 6.5): before and after, secrets masked. */
 export interface AuditChange {
@@ -48,5 +52,7 @@ export interface AuditLogEntry {
     guildId: string | null;
     details: string | null;
     diff: AuditChange[];
+    /** The last of back-to-back edits merged into this entry (2026-10-19). */
+    lastAt?: string | null;
     createdAt: string;
 }

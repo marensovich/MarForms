@@ -87,15 +87,21 @@ public class DiscordBotClient {
     }
 
     /**
-     * What the bot needs on a server (ТЗ 7.1): see its channels and create
-     * webhooks in them. Reading members and their roles goes through the API and
-     * needs no permission, so a revoked role is noticed without Manage Roles —
-     * the bot never changes roles, and doesn't ask for that right (2026-10-19).
+     * What the bot needs on a server (ТЗ 7.1): see its channels, create
+     * webhooks in them, and create the server's log channels. Reading members
+     * and their roles goes through the API and needs no permission, so a
+     * revoked role is noticed without Manage Roles — the bot never changes
+     * roles, and doesn't ask for that right (2026-10-19).
      *
      * @since v.0.1
      */
     public static final List<Permission> REQUIRED_PERMISSIONS =
-            List.of(Permission.VIEW_CHANNEL, Permission.MANAGE_WEBHOOKS);
+            List.of(Permission.VIEW_CHANNEL, Permission.MANAGE_WEBHOOKS, Permission.MANAGE_CHANNEL);
+
+    /** The log category and its channels, as the bot names them. */
+    public static final String LOG_CATEGORY_NAME = "MarForms";
+    public static final String LOG_RESPONSES_CHANNEL_NAME = "ответы";
+    public static final String LOG_AUDIT_CHANNEL_NAME = "аудит";
 
     /**
      * A server as the bot sees it now (#124).
@@ -183,6 +189,104 @@ public class DiscordBotClient {
             log.warn("Failed to create webhook in channel {}: {}", channelId, e.getMessage());
             return Optional.empty();
         }
+    }
+
+    /**
+     * The log channels the bot created on a server: a category with
+     * #ответы and #аудит, a webhook in each.
+     */
+    public record LogChannels(long categoryId, long responsesChannelId, CreatedWebhook responsesWebhook,
+                              long auditChannelId, CreatedWebhook auditWebhook) {
+    }
+
+    /**
+     * Creates the log category at the top of the server, with #ответы and
+     * #аудит in it, hidden from everyone but the admin roles (server
+     * administrators see every channel anyway). The access is set while the
+     * channels are created: that takes Manage Channels only, while changing
+     * it later would take Manage Roles, which the bot doesn't ask for.
+     *
+     * @param guildId      the Discord guild snowflake ID
+     * @param adminRoleIds the roles that see the channels; ones not on the server are skipped
+     * @return the channels, empty if the bot couldn't create them
+     * @since v.0.1
+     */
+    public Optional<LogChannels> createLogChannels(Long guildId, java.util.Collection<Long> adminRoleIds) {
+        if (jda == null) return Optional.empty();
+        try {
+            Guild guild = jda.getGuildById(guildId);
+            if (guild == null) return Optional.empty();
+            List<Long> roles = adminRoleIds.stream().filter(id -> guild.getRoleById(id) != null).toList();
+            var categoryAction = guild.createCategory(LOG_CATEGORY_NAME).setPosition(0);
+            hideFromEveryone(categoryAction, guild, roles);
+            var category = categoryAction.complete();
+            TextChannel responses = hideFromEveryone(category.createTextChannel(LOG_RESPONSES_CHANNEL_NAME), guild, roles).complete();
+            TextChannel audit = hideFromEveryone(category.createTextChannel(LOG_AUDIT_CHANNEL_NAME), guild, roles).complete();
+            Webhook responsesHook = responses.createWebhook(LOG_CATEGORY_NAME).complete();
+            Webhook auditHook = audit.createWebhook(LOG_CATEGORY_NAME).complete();
+            return Optional.of(new LogChannels(category.getIdLong(),
+                    responses.getIdLong(), new CreatedWebhook(responsesHook.getId(), responsesHook.getToken()),
+                    audit.getIdLong(), new CreatedWebhook(auditHook.getId(), auditHook.getToken())));
+        } catch (Exception e) {
+            log.warn("Failed to create the log channels of guild {}: {}", guildId, e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    private static <T extends net.dv8tion.jda.api.requests.restaction.ChannelAction<?>> T hideFromEveryone(
+            T action, Guild guild, List<Long> roles) {
+        action.addRolePermissionOverride(guild.getIdLong(), List.of(), List.of(Permission.VIEW_CHANNEL));
+        for (Long role : roles) action.addRolePermissionOverride(role, List.of(Permission.VIEW_CHANNEL), List.of());
+        action.addMemberPermissionOverride(guild.getSelfMember().getIdLong(),
+                List.of(Permission.VIEW_CHANNEL, Permission.MANAGE_WEBHOOKS), List.of());
+        return action;
+    }
+
+    /**
+     * Gives the log channels to a new set of admin roles. Discord asks Manage
+     * Roles for this; without it the access stays as it was.
+     *
+     * @param guildId    the Discord guild snowflake ID
+     * @param channelIds the category and its channels
+     * @param previous   the roles that saw them
+     * @param current    the roles that should see them
+     * @return whether Discord took the change
+     * @since v.0.1
+     */
+    public boolean updateLogChannelAccess(Long guildId, List<Long> channelIds,
+                                          java.util.Collection<Long> previous, java.util.Collection<Long> current) {
+        if (jda == null) return false;
+        try {
+            Guild guild = jda.getGuildById(guildId);
+            if (guild == null) return false;
+            for (Long id : channelIds) {
+                GuildChannel channel = guild.getGuildChannelById(id);
+                if (!(channel instanceof net.dv8tion.jda.api.entities.channel.attribute.IPermissionContainer container)) continue;
+                var manager = container.getPermissionContainer().getManager();
+                for (Long role : previous) if (!current.contains(role)) manager.removePermissionOverride(role);
+                for (Long role : current) {
+                    if (guild.getRoleById(role) != null) manager.putRolePermissionOverride(role, List.of(Permission.VIEW_CHANNEL), List.of());
+                }
+                manager.complete();
+            }
+            return true;
+        } catch (Exception e) {
+            log.info("Could not change who sees the log channels of guild {}: {}", guildId, e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * A channel's name, if the bot sees it.
+     *
+     * @return its name, empty if it's gone or there is no bot
+     * @since v.0.1
+     */
+    public Optional<String> channelName(Long guildId, Long channelId) {
+        if (jda == null || channelId == null) return Optional.empty();
+        Guild guild = jda.getGuildById(guildId);
+        GuildChannel channel = guild == null ? null : guild.getGuildChannelById(channelId);
+        return channel == null ? Optional.empty() : Optional.of(channel.getName());
     }
 
     /**

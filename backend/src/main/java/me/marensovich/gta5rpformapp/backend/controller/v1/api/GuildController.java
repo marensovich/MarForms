@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import me.marensovich.gta5rpformapp.backend.dto.guild.CreateWebhookRequest;
 import me.marensovich.gta5rpformapp.backend.dto.guild.CreatedWebhookResponse;
 import me.marensovich.gta5rpformapp.backend.dto.guild.DiscordChannelDto;
+import me.marensovich.gta5rpformapp.backend.data.audit.AuditAction;
 import me.marensovich.gta5rpformapp.backend.exception.NotFoundException;
 import me.marensovich.gta5rpformapp.backend.service.discord.DiscordBotClient;
 import org.springframework.http.HttpStatus;
@@ -38,6 +39,9 @@ import java.util.Map;
 public class GuildController {
 
     private final DiscordBotClient discordBotClient;
+    private final me.marensovich.gta5rpformapp.backend.database.repository.FormRepository formRepository;
+    private final me.marensovich.gta5rpformapp.backend.service.GuildLogService guildLogService;
+    private final me.marensovich.gta5rpformapp.backend.service.AuditLogService auditLogService;
     private final me.marensovich.gta5rpformapp.backend.database.repository.GuildMembershipRepository guildMembershipRepository;
 
     /**
@@ -118,6 +122,28 @@ public class GuildController {
                 .orElseThrow(() -> new NotFoundException(
                         "Could not create a webhook in channel " + channelId
                                 + " — the bot may not have access to it"));
+
+        // Tell the channel what it now gets, and keep a record of it (2026-10-19): the
+        // webhook lands on the form only when the form is saved.
+        var form = request != null && request.formId() != null
+                ? formRepository.findById(request.formId()).filter(f -> guildId.equals(f.getServerId())).orElse(null)
+                : null;
+        String formTitle = form != null && form.getSchema() != null ? form.getSchema().getTitle() : null;
+        String channel = discordBotClient.channelName(guildId, channelId).orElse(channelId.toString());
+        Map<String, Object> embed = new java.util.LinkedHashMap<>();
+        embed.put("title", "Канал подключён к MarForms");
+        embed.put("description", formTitle != null
+                ? "Сюда будут приходить ответы на форму «" + formTitle + "»."
+                : "Сюда будут приходить ответы на форму сервера.");
+        embed.put("color", 0x5865F2);
+        embed.put("timestamp", java.time.OffsetDateTime.now().toString());
+        guildLogService.sendNow(webhook.url(), embed);
+        Map<String, Object> metadata = new java.util.LinkedHashMap<>();
+        metadata.put("channel", channel);
+        if (form != null) metadata.put("formId", form.getId().toString());
+        auditLogService.logGuildAction(guildId, AuditAction.WEBHOOK_CREATED, form != null ? "FORM" : "CHANNEL",
+                form != null ? form.getId().toString() : channelId.toString(), formTitle != null ? formTitle : "#" + channel,
+                metadata, "Webhook created in #" + channel);
         return ResponseEntity.status(HttpStatus.CREATED).body(new CreatedWebhookResponse(webhook.url()));
     }
 }

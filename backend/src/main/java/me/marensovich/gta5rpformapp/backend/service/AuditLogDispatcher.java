@@ -22,6 +22,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class AuditLogDispatcher {
 
     private final AuditLogService auditLogService;
+    private final GuildLogService guildLogService;
 
     /** An audit entry waiting to be sent. */
     public record Dispatch(AuditLog entry) {
@@ -35,5 +36,7 @@ public class AuditLogDispatcher {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
     public void onDispatch(Dispatch event) {
         auditLogService.dispatch(event.entry());
+        // And the server's own #аудит / #ответы (2026-10-19).
+        guildLogService.dispatch(event.entry());
     }
 }

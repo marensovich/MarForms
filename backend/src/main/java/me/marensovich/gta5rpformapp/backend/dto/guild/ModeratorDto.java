@@ -36,7 +36,9 @@ public record ModeratorDto(
         Long addedById,
         String addedByName,
         boolean formsRestricted,
-        Set<UUID> formIds
+        Set<UUID> formIds,
+        /** An owner through one of the server's admin roles, not its installer (2026-10-19). */
+        boolean ownerByAdminRole
 ) {
     public static ModeratorDto from(GuildMembership membership) {
         return from(membership, null);
@@ -54,6 +56,7 @@ public record ModeratorDto(
                 membership.getModeratorAddedBy(),
                 addedByName,
                 membership.isFormsRestricted(),
-                membership.isFormsRestricted() ? Set.copyOf(membership.getFormIds()) : Set.of());
+                membership.isFormsRestricted() ? Set.copyOf(membership.getFormIds()) : Set.of(),
+                membership.isOwnerByAdminRole());
     }
 }

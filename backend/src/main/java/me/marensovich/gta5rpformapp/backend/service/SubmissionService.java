@@ -79,6 +79,7 @@ public class SubmissionService {
     private final WebhookUrlCipher webhookUrlCipher;
     private final SubmissionEventRepository submissionEventRepository;
     private final me.marensovich.gta5rpformapp.backend.service.NotificationService notificationService;
+    private final GuildLogService guildLogService;
 
     /**
      * Submits a response to a form, by form ID and submitter Discord ID —
@@ -206,6 +207,8 @@ public class SubmissionService {
         if (form.getServerId() != null) {
             notificationService.notifyStaff(form.getServerId(), form.getId(), me.marensovich.gta5rpformapp.backend.data.notifications.NotificationType.NEW_SUBMISSION, saved.getId().toString(),
                     notificationParams(form, discordUsername, saved), submissionLink(form, saved), discordId);
+            guildLogService.newResponse(form.getServerId(), form.getSchema().getTitle(), saved.getNumber(), discordId,
+                    submissionLink(form, saved));
         }
 
         auditLogService.log(AuditAction.SUBMISSION_CREATED,

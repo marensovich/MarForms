@@ -213,5 +213,17 @@ public enum AuditAction {
     BOT_PERMISSIONS_MISSING,
 
     /** A form's webhook stopped delivering (metadata {@code health}, {@code reason}). */
-    WEBHOOK_FAILING
+    WEBHOOK_FAILING,
+
+    /** The bot created a webhook in a channel for a form (metadata {@code channel}, {@code formId}). */
+    WEBHOOK_CREATED,
+
+    /** The owner set the server's admin roles (metadata {@code from}, {@code to}: role names). */
+    GUILD_ADMIN_ROLES_CHANGED,
+
+    /** A member became an owner of the server through one of its admin roles. */
+    GUILD_ROLE_GRANTED,
+
+    /** The bot created the server's log category and channels. */
+    GUILD_LOG_CHANNELS_CREATED
 }

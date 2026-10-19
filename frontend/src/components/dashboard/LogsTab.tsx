@@ -42,6 +42,10 @@ const CATEGORY: Record<AuditAction, Category> = {
     BOT_RECONNECTED: "sys",
     BOT_PERMISSIONS_MISSING: "sys",
     WEBHOOK_FAILING: "sys",
+    WEBHOOK_CREATED: "form",
+    GUILD_ADMIN_ROLES_CHANGED: "role",
+    GUILD_ROLE_GRANTED: "role",
+    GUILD_LOG_CHANNELS_CREATED: "sys",
 };
 const BADGE: Record<Category, string> = {
     ban: "bg-rdb text-rdt", role: "bg-prs text-prt", form: "bg-inb text-int", sub: "bg-gnb text-gnt", mod: "bg-amb text-amt", sys: "bg-s2 text-tx",
@@ -261,7 +265,10 @@ export default function LogsTab() {
                                                     </button>
                                                 )}
                                             </td>
-                                            <td className="whitespace-nowrap px-3 py-2.5 font-mono text-xs text-mu">{time(e.createdAt)}</td>
+                                            <td className="whitespace-nowrap px-3 py-2.5 font-mono text-xs text-mu">
+                                                {time(e.createdAt)}
+                                                {e.lastAt && <span className="block">→ {time(e.lastAt)}</span>}
+                                            </td>
                                             <td className="px-3 py-2.5">
                                                 <span className={cx("inline-flex rounded-full px-2 py-0.5 text-xs font-semibold", BADGE[CATEGORY[e.action] ?? "sys"])}>
                                                     {t(`logs.actions.${e.action}`, {defaultValue: e.action})}

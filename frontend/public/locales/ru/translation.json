@@ -260,7 +260,7 @@
       "connected": "Подключён",
       "kicked": "Бот удалён",
       "role": {
-        "owner": "Владелец",
+        "owner": "Владелец сервера",
         "moderator": "Модератор",
         "respondent": "Респондент"
       }
@@ -344,7 +344,11 @@
       "BOT_PERMISSIONS_MISSING": "Боту не хватает прав",
       "WEBHOOK_FAILING": "Уведомления формы не доставляются",
       "USER_TIMED_OUT": "Тайм-аут",
-      "USER_TIMEOUT_LIFTED": "Снятие тайм-аута"
+      "USER_TIMEOUT_LIFTED": "Снятие тайм-аута",
+      "WEBHOOK_CREATED": "Канал подключён к форме",
+      "GUILD_ADMIN_ROLES_CHANGED": "Изменены админ-роли",
+      "GUILD_ROLE_GRANTED": "Владелец сервера по админ-роли",
+      "GUILD_LOG_CHANNELS_CREATED": "Созданы каналы логов"
     }
   },
   "wizard": {
@@ -688,7 +692,8 @@
     "formsNoneWarning": "Ничего не выбрано — модератор не увидит ни одной формы.",
     "formsSaved": "Формы {{name}} сохранены",
     "formsError": "Не удалось сохранить формы",
-    "formsLoadError": "Не удалось загрузить формы сервера"
+    "formsLoadError": "Не удалось загрузить формы сервера",
+    "adminRoleOwner": "Владелец по админ-роли"
   },
   "servers": {
     "openForms": "Формы",
@@ -724,7 +729,8 @@
     },
     "permission": {
       "VIEW_CHANNEL": "View Channels",
-      "MANAGE_WEBHOOKS": "Manage Webhooks"
+      "MANAGE_WEBHOOKS": "Manage Webhooks",
+      "MANAGE_CHANNEL": "Manage Channels"
     },
     "grant": "Выдать права",
     "inviteAgain": "Пригласить снова",
@@ -1068,7 +1074,11 @@
       "BOT_REMOVED": "Бот удалён",
       "BOT_RECONNECTED": "Бот вернулся",
       "BOT_PERMISSIONS_MISSING": "Боту не хватает прав",
-      "WEBHOOK_FAILING": "Уведомления не доставляются"
+      "WEBHOOK_FAILING": "Уведомления не доставляются",
+      "WEBHOOK_CREATED": "Подключение канала",
+      "GUILD_ADMIN_ROLES_CHANGED": "Админ-роли",
+      "GUILD_ROLE_GRANTED": "Владелец по роли",
+      "GUILD_LOG_CHANNELS_CREATED": "Каналы логов"
     },
     "statusChange": "{{from}} → {{to}}",
     "reason": "Причина: {{reason}}",
@@ -1121,7 +1131,11 @@
       "BOT_RECONNECTED": "· бот снова на сервере",
       "BOT_PERMISSIONS_MISSING": "· боту не хватает прав",
       "WEBHOOK_FAILING": "· не доставляются уведомления формы",
-      "SUBMISSION_DM_FAILED": "· не доставлено ЛС о решении по заявке в форму"
+      "SUBMISSION_DM_FAILED": "· не доставлено ЛС о решении по заявке в форму",
+      "WEBHOOK_CREATED": "· подключён канал к форме",
+      "GUILD_ADMIN_ROLES_CHANGED": "· изменены админ-роли сервера",
+      "GUILD_ROLE_GRANTED": "· стал владельцем сервера по админ-роли:",
+      "GUILD_LOG_CHANNELS_CREATED": "· созданы каналы логов"
     },
     "detail": {
       "comment": "комментарий: «{{text}}»",
@@ -1137,7 +1151,12 @@
       "fields": "поля",
       "webhooks": "уведомления",
       "access": "доступ"
-    }
+    },
+    "edits_one": "{{count}} сохранение",
+    "edits_few": "{{count}} сохранения",
+    "edits_many": "{{count}} сохранений",
+    "edits_other": "{{count}} сохранения",
+    "range": "{{from}} – {{to}}"
   },
   "planUsage": {
     "title": "Тариф и лимиты",
@@ -1280,7 +1299,8 @@
       "audit": "Журнал",
       "moderators": "Модераторы",
       "bans": "Баны",
-      "billing": "Тариф"
+      "billing": "Тариф",
+      "settings": "Настройки"
     },
     "openMenu": "Открыть меню",
     "bottomNav": "Нижняя навигация",
@@ -2221,5 +2241,37 @@
     "leave": "Уйти",
     "stay": "Остаться",
     "loadError": "Не удалось загрузить настройки"
+  },
+  "guildSettings": {
+    "title": "Настройки сервера",
+    "text": "Кто управляет сервером в MarForms и куда бот пишет логи.",
+    "loadError": "Не удалось загрузить настройки сервера",
+    "rolesTitle": "Админ-роли",
+    "rolesText": "Участники с этими ролями Discord — владельцы сервера в MarForms: формы, модераторы и настройки. Права платформы MarForms роли не дают. Если роль снять в Discord, права пропадут в течение 10 минут.",
+    "rolesEmpty": "Админ-роли не выбраны: сервером управляют только вы и участники с правом «Управлять сервером».",
+    "rolesPick": "Выбрать роли",
+    "rolesSearch": "Найти роль",
+    "rolesNone": "Роли сервера не загрузились — бот не видит сервер?",
+    "roleMissing": "роль удалена",
+    "rolesSaved": "Админ-роли сохранены",
+    "rolesError": "Не удалось сохранить админ-роли",
+    "accessNotUpdated": "Роли сохранены, но боту не хватает права «Управлять правами», чтобы открыть им каналы логов. Откройте доступ к категории MarForms в Discord вручную.",
+    "channelsTitle": "Каналы логов",
+    "channelsText": "Бот создаёт наверху сервера категорию MarForms: #ответы — новые ответы и решения по ним, #аудит — журнал сервера. Каналы видят админ-роли и администраторы сервера.",
+    "channelsCreate": "Создать каналы",
+    "channelsRecreate": "Создать заново",
+    "channelsCreated": "Каналы логов созданы",
+    "channelsError": "Не удалось создать каналы",
+    "channelsGone": "Канал удалён в Discord",
+    "channelsNoPermission": "У бота нет права «Управлять каналами». Выдайте его, чтобы бот создал каналы логов.",
+    "grant": "Выдать права",
+    "responses": "Ответы",
+    "audit": "Аудит"
+  },
+  "guildSetup": {
+    "title": "Настройка сервера",
+    "text": "Сервер подключён. Укажите админ-роли и создайте каналы логов — это можно сделать и позже во вкладке «Настройки».",
+    "later": "Позже",
+    "done": "Готово"
   }
 }

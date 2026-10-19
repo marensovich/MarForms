@@ -420,10 +420,11 @@ public class GuildMembershipService {
         if (status == DiscordBotClient.MemberStatus.UNKNOWN) return membership;
 
         boolean holds = role == GuildRole.OWNER
-                ? status == DiscordBotClient.MemberStatus.MANAGER
+                ? status == DiscordBotClient.MemberStatus.MANAGER || holdsAdminRole(membership.getGuild(), userId, status)
                 : status != DiscordBotClient.MemberStatus.NOT_MEMBER;
         if (!holds) {
             membership.setRole(GuildRole.RESPONDENT);
+            membership.setOwnerByAdminRole(false);
             log.warn("Discord no longer confirms {} of user {} on guild {} ({}) — revoked", role, userId, guildId, status);
             auditLogService.logGuildActionAs(null, "Discord check", guildId, AuditAction.GUILD_ROLE_REVOKED, "USER",
                     userId.toString(), membership.getUser().getDiscordUsername(),
@@ -431,5 +432,14 @@ public class GuildMembershipService {
         }
         membership.setStaffVerifiedAt(LocalDateTime.now());
         return guildMembershipRepository.save(membership);
+    }
+
+    /** An owner of the server through one of its admin roles (2026-10-19), as Discord says now. */
+    private boolean holdsAdminRole(Guild guild, Long userId, DiscordBotClient.MemberStatus status) {
+        if (status != DiscordBotClient.MemberStatus.MEMBER || guild.getAdminRoleIds().isEmpty()) return false;
+        // Not told: keep the role, as for a Discord outage above.
+        return discordBotClient.fetchMemberRoleIds(guild.getDiscordGuildId(), userId)
+                .map(roles -> roles.stream().anyMatch(guild.getAdminRoleIds()::contains))
+                .orElse(true);
     }
 }

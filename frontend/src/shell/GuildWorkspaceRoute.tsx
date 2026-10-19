@@ -5,6 +5,7 @@ import GuildModerationPanel from "../components/dashboard/moderation/GuildModera
 import ModeratorsPanel from "../components/dashboard/moderation/ModeratorsPanel";
 import BansPanel from "../components/dashboard/moderation/BansPanel";
 import BillingPanel from "../components/dashboard/moderation/BillingPanel";
+import GuildSettingsPanel from "../components/dashboard/moderation/GuildSettingsPanel";
 import {Skeleton} from "../ui";
 import {useDashboard} from "./dashboardContext";
 import GuildWorkspaceHeader from "./GuildWorkspaceHeader";
@@ -46,6 +47,8 @@ export default function GuildWorkspaceRoute() {
                 return <BansPanel guild={guild}/>;
             case "billing":
                 return <BillingPanel guild={guild}/>;
+            case "settings":
+                return <GuildSettingsPanel guild={guild}/>;
             default:
                 return <GuildFormsPanel guild={guild}/>;
         }

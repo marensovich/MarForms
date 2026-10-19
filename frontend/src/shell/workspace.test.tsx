@@ -85,7 +85,7 @@ describe("server workspace header", () => {
         render(<MemoryRouter><GuildWorkspaceHeader guild={GUILDS[0]} section="forms"/></MemoryRouter>);
         const tabs = within(screen.getByRole("navigation")).getAllByRole("link").map(l => l.textContent);
         expect(tabs).toEqual(["shell.guild.forms", "shell.guild.submissions5", "shell.guild.audit",
-            "shell.guild.moderators", "shell.guild.bans", "shell.guild.billing"]);
+            "shell.guild.moderators", "shell.guild.bans", "shell.guild.billing", "shell.guild.settings"]);
         expect(await screen.findByRole("progressbar", {name: "workspace.activeForms"})).toBeTruthy();
     });
 

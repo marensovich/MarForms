@@ -112,6 +112,36 @@ public class Guild {
     private LocalDateTime syncedAt;
 
     /**
+     * Discord roles whose holders own this server in MarForms (not the
+     * platform) and see its log channels (2026-10-19).
+     *
+     * @since v.0.1
+     */
+    @ElementCollection
+    @CollectionTable(name = "guild_admin_roles", joinColumns = @JoinColumn(name = "guild_id"))
+    @Column(name = "role_id", nullable = false)
+    @lombok.EqualsAndHashCode.Exclude
+    @lombok.ToString.Exclude
+    private java.util.Set<Long> adminRoleIds = new java.util.HashSet<>();
+
+    /** The category of the log channels the bot created, if any. */
+    private Long logCategoryId;
+
+    /** #ответы: new responses and decisions on them. */
+    private Long logResponsesChannelId;
+
+    /** Its webhook's URL, sealed ({@code WebhookUrlCipher}). */
+    @Column(columnDefinition = "TEXT")
+    private String logResponsesWebhook;
+
+    /** #аудит: changes of forms, the team and settings. */
+    private Long logAuditChannelId;
+
+    /** Its webhook's URL, sealed. */
+    @Column(columnDefinition = "TEXT")
+    private String logAuditWebhook;
+
+    /**
      * The missing permissions as a list.
      *
      * @return their names, empty if none

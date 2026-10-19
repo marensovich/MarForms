@@ -78,7 +78,7 @@ export default function NotificationsTab({guildId, formId, webhooks, onChange, b
         setBusy("create");
         setError(null);
         try {
-            const created = await createGuildWebhook(guildId, channelId);
+            const created = await createGuildWebhook(guildId, channelId, {formId});
             const name = channels?.find(c => c.id === channelId)?.name ?? webhooks[replace ?? -1]?.channelName;
             const webhook: WebhookConfig = {...(replace !== undefined ? webhooks[replace] : {events: [...EVENTS]}),
                 url: created.url, channelId, channelName: name, health: null, healthReason: null, invalid: null};

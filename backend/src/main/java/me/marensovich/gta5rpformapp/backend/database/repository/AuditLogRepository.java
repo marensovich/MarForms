@@ -33,6 +33,10 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, UUID>, JpaSp
             group by a.actorDiscordId order by max(a.actorUsername)""")
     java.util.List<Actor> findActorsByGuildId(Long guildId);
 
+    /** The latest entry of one kind by one person on one target — to merge back-to-back edits into it. */
+    java.util.Optional<AuditLog> findFirstByGuildIdAndActionAndTargetIdAndActorDiscordIdOrderByCreatedAtDesc(
+            Long guildId, me.marensovich.gta5rpformapp.backend.data.audit.AuditAction action, String targetId, Long actorDiscordId);
+
     interface Actor {
         Long getDiscordId();
 

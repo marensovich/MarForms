@@ -289,6 +289,12 @@ public class GlobalExceptionHandler {
                     .body(Map.of("error", response.getBody().getDetail() != null
                             ? response.getBody().getDetail() : HttpStatus.valueOf(response.getStatusCode().value()).getReasonPhrase()));
         }
+        // The browser went away mid-response (a closed journal tab on the live
+        // stream): nothing to answer, and nobody to answer to.
+        if (ex instanceof java.io.IOException || ex instanceof org.springframework.web.context.request.async.AsyncRequestNotUsableException) {
+            log.debug("Client disconnected: {}", ex.getMessage());
+            return null;
+        }
         String correlationId = UUID.randomUUID().toString();
         log.error("Unhandled error [{}]", correlationId, ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

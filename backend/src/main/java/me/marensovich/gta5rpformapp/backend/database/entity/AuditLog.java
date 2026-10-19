@@ -154,4 +154,13 @@ public class AuditLog {
     @Column(name = "created_at", nullable = false, updatable = false)
     // Microseconds, as the database keeps them: the journal's feed cursor compares this value (#129).
     private LocalDateTime createdAt = LocalDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
+
+    /**
+     * The last of back-to-back edits merged into this entry, {@code null} for a
+     * single edit (2026-10-19). The entry stays where {@link #createdAt} puts it.
+     *
+     * @since v.0.1
+     */
+    @Column(name = "last_at")
+    private LocalDateTime lastAt;
 }

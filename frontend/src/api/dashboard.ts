@@ -111,7 +111,7 @@ export interface MyGuild {
     guildIconUrl?: string | null;
     memberCount?: number | null;
     botState?: BotState;
-    /** VIEW_CHANNEL, MANAGE_WEBHOOKS the bot lacks. */
+    /** VIEW_CHANNEL, MANAGE_WEBHOOKS, MANAGE_CHANNEL the bot lacks. */
     missingPermissions?: string[];
     activeForms?: number;
     pendingSubmissions?: number;
@@ -139,6 +139,8 @@ export interface GuildModerator {
     /** Narrowed by the owner to {@link formIds} (#18); none chosen = no forms. */
     formsRestricted?: boolean;
     formIds?: string[];
+    /** An owner through one of the server's admin roles (2026-10-19). */
+    ownerByAdminRole?: boolean;
 }
 
 export function getGuildModerators(guildId: string): Promise<GuildModerator[]> {
@@ -228,15 +230,38 @@ export function getGuildRoles(guildId: string): Promise<DiscordRole[]> {
     return apiRequest(`/guilds/${guildId}/roles`);
 }
 
+/** Creates a webhook in the channel; with `formId` the bot greets the channel with the form's name. */
 export function createGuildWebhook(
     guildId: string,
     channelId: string,
-    name?: string
+    options: { name?: string; formId?: string | null } = {}
 ): Promise<{ url: string }> {
     return apiRequest(`/guilds/${guildId}/channels/${channelId}/webhooks`, {
         method: "POST",
-        body: name ? {name} : {},
+        body: {...(options.name ? {name: options.name} : {}), ...(options.formId ? {formId: options.formId} : {})},
     });
+}
+
+/** A server's own settings (2026-10-19): admin roles and log channels. */
+export interface GuildSettings {
+    adminRoles: { id: string; name: string | null; color: number; missing: boolean }[];
+    responsesChannel: { id: string; name: string | null } | null;
+    auditChannel: { id: string; name: string | null } | null;
+    canCreateChannels: boolean;
+    /** After a change of admin roles: whether the log channels followed it. */
+    channelAccessUpdated: boolean | null;
+}
+
+export function getGuildSettings(guildId: string): Promise<GuildSettings> {
+    return apiRequest(`/guilds/${guildId}/settings`);
+}
+
+export function setGuildAdminRoles(guildId: string, roleIds: string[]): Promise<GuildSettings> {
+    return apiRequest(`/guilds/${guildId}/settings/admin-roles`, {method: "PUT", body: {roleIds}});
+}
+
+export function createGuildLogChannels(guildId: string): Promise<GuildSettings> {
+    return apiRequest(`/guilds/${guildId}/settings/log-channels`, {method: "POST"});
 }
 
 export interface UpdateFormPayload {

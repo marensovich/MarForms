@@ -171,7 +171,11 @@ export type GuildAuditAction =
     | "BOT_REMOVED"
     | "BOT_RECONNECTED"
     | "BOT_PERMISSIONS_MISSING"
-    | "WEBHOOK_FAILING";
+    | "WEBHOOK_FAILING"
+    | "WEBHOOK_CREATED"
+    | "GUILD_ADMIN_ROLES_CHANGED"
+    | "GUILD_ROLE_GRANTED"
+    | "GUILD_LOG_CHANNELS_CREATED";
 
 export interface GuildAuditEntry {
     id: string;
@@ -183,6 +187,8 @@ export interface GuildAuditEntry {
     targetName: string | null;
     metadata: Record<string, unknown> | null;
     createdAt: string;
+    /** The last of back-to-back edits merged into this entry (2026-10-19). */
+    lastAt?: string | null;
 }
 
 /** A page of a server's journal: `nextCursor` continues it, null at the end (ТЗ 4.6.2). */

@@ -35,10 +35,13 @@ public record GuildAuditEntryDto(
         String targetId,
         String targetName,
         Map<String, Object> metadata,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        /** The last of merged back-to-back edits, {@code null} for one (2026-10-19). */
+        LocalDateTime lastAt
 ) {
     public static GuildAuditEntryDto from(AuditLog log) {
         return new GuildAuditEntryDto(log.getId(), log.getAction(), log.getActorDiscordId(), log.getActorUsername(),
-                log.getTargetType(), log.getTargetId(), log.getTargetName(), log.getMetadata(), log.getCreatedAt());
+                log.getTargetType(), log.getTargetId(), log.getTargetName(), log.getMetadata(), log.getCreatedAt(),
+                log.getLastAt());
     }
 }

@@ -6,6 +6,7 @@ import {ApiError} from "../../api/client";
 import {getGuildConnectUrl, type MyGuild, refreshMyGuilds} from "../../api/dashboard";
 import {useDashboard} from "../../shell/dashboardContext";
 import {cx, SegmentedControl, ServerIcon, Skeleton} from "../../ui";
+import {GuildSetupDialog} from "./moderation/GuildSettingsPanel";
 
 // Docs: docs/design/mockups/Servers.dc.html, DarkServers.dc.html; ТЗ 4.2, #125.
 
@@ -30,6 +31,9 @@ export default function ServersTab() {
     const [refreshed, setRefreshed] = useState<MyGuild[] | null>(null);
     const [refreshing, setRefreshing] = useState(false);
     const [connecting, setConnecting] = useState<string | null>(null);
+    // Right after an install: admin roles and log channels (2026-10-19).
+    const [setupGuild, setSetupGuild] = useState<string | null>(
+        () => new URLSearchParams(window.location.search).get("connectedGuild"));
     // The result of a bot install: Discord comes back to /dashboard/servers?connectedGuild=… (#151).
     const [banner, setBanner] = useState<{ type: "success" | "error"; text: string } | null>(() => {
         const params = new URLSearchParams(window.location.search);
@@ -86,6 +90,10 @@ export default function ServersTab() {
 
     return (
         <div className="flex flex-col gap-6">
+            {setupGuild && <GuildSetupDialog guildId={setupGuild} onClose={() => {
+                setSetupGuild(null);
+                reloadGuilds();
+            }}/>}
             <div className="flex flex-wrap items-end justify-between gap-4">
                 <div className="flex flex-col gap-1.5">
                     <h1 className="m-0 text-[28px] font-bold tracking-[-0.01em]">{t("servers.title")}</h1>

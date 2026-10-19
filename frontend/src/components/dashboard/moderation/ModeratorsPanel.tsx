@@ -142,7 +142,7 @@ export default function ModeratorsPanel({guild}: { guild: MyGuild }) {
         : m.formIds?.length ? t("moderators.formsCount", {count: m.formIds.length}) : t("moderators.formsNone");
 
     const addedLine = (m: GuildModerator) => {
-        if (m.role === "OWNER") return t("moderators.owner");
+        if (m.role === "OWNER") return t(m.ownerByAdminRole ? "moderators.adminRoleOwner" : "moderators.owner");
         const date = new Date(m.since).toLocaleDateString(i18n.language, {day: "numeric", month: "short"});
         return m.addedByName ? t("moderators.addedBy", {date, name: m.addedByName}) : t("moderators.addedOn", {date});
     };

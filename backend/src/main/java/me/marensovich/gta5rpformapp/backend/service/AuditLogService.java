@@ -145,6 +145,7 @@ public class AuditLogService {
                                  String targetType, String targetId, String targetName,
                                  Map<String, Object> metadata, String details) {
         if (!isActionEnabled(action)) return;
+        if (mergeIntoLast(actorId, guildId, action, targetId, targetName, metadata, details)) return;
         AuditLog entry = buildEntry(action, actorId, actorUsername, targetId, targetName, details);
         entry.setGuildId(guildId);
         entry.setTargetType(targetType);
@@ -152,6 +153,79 @@ public class AuditLogService {
         auditLogRepository.save(entry);
         events.publishEvent(new AuditLogDispatcher.Dispatch(entry));
         events.publishEvent(new AuditLogStream.Saved(entry));
+    }
+
+    /** Edits this close to the previous one by the same person join its entry (2026-10-19). */
+    static final java.time.Duration MERGE_GAP = java.time.Duration.ofMinutes(10);
+    /** ...as long as the entry spans no more than this. */
+    static final java.time.Duration MERGE_SPAN = java.time.Duration.ofHours(1);
+    private static final int MAX_DETAIL_LINES = 50;
+
+    /**
+     * Back-to-back saves of one form by one person — building a new form
+     * saves it many times — read as one «Форма изменена» from the first to
+     * the last (2026-10-19): the changes are added to the previous entry
+     * instead of a new one. Such an edit isn't announced again.
+     *
+     * @return whether the edit went into an existing entry
+     */
+    private boolean mergeIntoLast(Long actorId, Long guildId, AuditAction action, String targetId, String targetName,
+                                  Map<String, Object> metadata, String details) {
+        if (action != AuditAction.FORM_UPDATED || actorId == null || guildId == null || targetId == null) return false;
+        AuditLog last = auditLogRepository
+                .findFirstByGuildIdAndActionAndTargetIdAndActorDiscordIdOrderByCreatedAtDesc(guildId, action, targetId, actorId)
+                .orElse(null);
+        if (last == null) return false;
+        LocalDateTime now = LocalDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
+        LocalDateTime lastAt = last.getLastAt() != null ? last.getLastAt() : last.getCreatedAt();
+        if (lastAt.isBefore(now.minus(MERGE_GAP)) || last.getCreatedAt().isBefore(now.minus(MERGE_SPAN))) return false;
+
+        last.setLastAt(now);
+        if (targetName != null) last.setTargetName(targetName);
+        last.setMetadata(mergeMetadata(last.getMetadata(), metadata));
+        last.setDetails(mergeDetails(last.getDetails(), details));
+        auditLogRepository.save(last);
+        return true;
+    }
+
+    @SuppressWarnings("unchecked")
+    static Map<String, Object> mergeMetadata(Map<String, Object> before, Map<String, Object> next) {
+        Map<String, Object> out = before == null ? new LinkedHashMap<>() : new LinkedHashMap<>(before);
+        int edits = out.get("edits") instanceof Number n ? n.intValue() : 1;
+        out.put("edits", edits + 1);
+        if (next == null) return out;
+        // What changed: every kind once, in order of first change.
+        Set<Object> changes = new LinkedHashSet<>();
+        if (out.get("changes") instanceof Collection<?> c) changes.addAll(c);
+        if (next.get("changes") instanceof Collection<?> c) changes.addAll(c);
+        if (!changes.isEmpty()) out.put("changes", List.copyOf(changes));
+        // The diff, per field: the value before the first edit, after the last; a field put back drops out.
+        Map<String, Map<String, Object>> diff = new LinkedHashMap<>();
+        for (Object list : new Object[]{out.get(AuditDiff.KEY), next.get(AuditDiff.KEY)}) {
+            if (!(list instanceof Collection<?> items)) continue;
+            for (Object item : items) {
+                if (!(item instanceof Map<?, ?> change) || !(change.get("field") instanceof String field)) continue;
+                Map<String, Object> merged = diff.get(field);
+                if (merged == null) diff.put(field, new LinkedHashMap<>((Map<String, Object>) change));
+                else merged.put("after", change.get("after"));
+            }
+        }
+        List<Map<String, Object>> kept = diff.values().stream()
+                .filter(c -> !Objects.equals(c.get("before"), c.get("after"))).limit(100).toList();
+        if (kept.isEmpty()) out.remove(AuditDiff.KEY);
+        else out.put(AuditDiff.KEY, kept);
+        next.forEach((key, value) -> {
+            if (!key.equals("changes") && !key.equals(AuditDiff.KEY) && !key.equals("edits")) out.put(key, value);
+        });
+        return out;
+    }
+
+    static String mergeDetails(String before, String next) {
+        if (next == null || next.isBlank()) return before;
+        if (before == null || before.isBlank()) return next;
+        Set<String> lines = new LinkedHashSet<>(before.lines().toList());
+        lines.addAll(next.lines().toList());
+        return lines.stream().limit(MAX_DETAIL_LINES).collect(Collectors.joining("\n"));
     }
 
     /**
@@ -525,6 +599,10 @@ public class AuditLogService {
             case BOT_RECONNECTED -> "🟢 Bot Back On Server";
             case BOT_PERMISSIONS_MISSING -> "🟡 Bot Lacks Permissions";
             case WEBHOOK_FAILING -> "🟡 Webhook Not Delivering";
+            case WEBHOOK_CREATED -> "🔗 Webhook Created";
+            case GUILD_ADMIN_ROLES_CHANGED -> "🟡 Server Admin Roles Changed";
+            case GUILD_ROLE_GRANTED -> "🟢 Server Owner By Admin Role";
+            case GUILD_LOG_CHANNELS_CREATED -> "🟢 Log Channels Created";
         };
     }
 
@@ -545,7 +623,8 @@ public class AuditLogService {
             case SUBMISSION_DM_FAILED, BOT_PERMISSIONS_MISSING, WEBHOOK_FAILING, USER_TIMED_OUT -> 0xFEE75C;
             case FORM_STATUS_CHANGED -> 0x5865F2;
             case BOT_REMOVED -> 0xED4245;
-            case BOT_RECONNECTED -> 0x57F287;
+            case BOT_RECONNECTED, WEBHOOK_CREATED, GUILD_ROLE_GRANTED, GUILD_LOG_CHANNELS_CREATED -> 0x57F287;
+            case GUILD_ADMIN_ROLES_CHANGED -> 0xFEE75C;
         };
     }
 }

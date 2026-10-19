@@ -121,6 +121,10 @@ public class GuildMembership {
     private boolean formsRestricted;
 
     /** The forms a restricted moderator works with; read by query where no transaction is open. */
+    /** An {@code OWNER} through one of the server's admin roles (2026-10-19). */
+    @Column(name = "owner_by_admin_role", nullable = false)
+    private boolean ownerByAdminRole;
+
     @ElementCollection
     @CollectionTable(name = "moderator_form_access", joinColumns = @JoinColumn(name = "membership_id"))
     @Column(name = "form_id", nullable = false)

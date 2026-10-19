@@ -252,7 +252,7 @@
       "connected": "Connected",
       "kicked": "Bot removed",
       "role": {
-        "owner": "Owner",
+        "owner": "Server owner",
         "moderator": "Moderator",
         "respondent": "Respondent"
       }
@@ -336,7 +336,11 @@
       "BOT_PERMISSIONS_MISSING": "Bot lacks permissions",
       "WEBHOOK_FAILING": "Form notifications failing",
       "USER_TIMED_OUT": "User Timed Out",
-      "USER_TIMEOUT_LIFTED": "Time-out Lifted"
+      "USER_TIMEOUT_LIFTED": "Time-out Lifted",
+      "WEBHOOK_CREATED": "Channel connected to a form",
+      "GUILD_ADMIN_ROLES_CHANGED": "Admin roles changed",
+      "GUILD_ROLE_GRANTED": "Server owner by admin role",
+      "GUILD_LOG_CHANNELS_CREATED": "Log channels created"
     }
   },
   "wizard": {
@@ -679,7 +683,8 @@
     "formsNoneWarning": "Nothing chosen — the moderator won't see any form.",
     "formsSaved": "{{name}}'s forms saved",
     "formsError": "Couldn't save the forms",
-    "formsLoadError": "Couldn't load the server's forms"
+    "formsLoadError": "Couldn't load the server's forms",
+    "adminRoleOwner": "Owner by admin role"
   },
   "servers": {
     "openForms": "Forms",
@@ -713,7 +718,8 @@
     },
     "permission": {
       "VIEW_CHANNEL": "View Channels",
-      "MANAGE_WEBHOOKS": "Manage Webhooks"
+      "MANAGE_WEBHOOKS": "Manage Webhooks",
+      "MANAGE_CHANNEL": "Manage Channels"
     },
     "grant": "Grant permissions",
     "inviteAgain": "Invite again",
@@ -1043,7 +1049,11 @@
       "BOT_REMOVED": "Bot removed",
       "BOT_RECONNECTED": "Bot back",
       "BOT_PERMISSIONS_MISSING": "Bot lacks permissions",
-      "WEBHOOK_FAILING": "Notifications failing"
+      "WEBHOOK_FAILING": "Notifications failing",
+      "WEBHOOK_CREATED": "Channel connected",
+      "GUILD_ADMIN_ROLES_CHANGED": "Admin roles",
+      "GUILD_ROLE_GRANTED": "Owner by role",
+      "GUILD_LOG_CHANNELS_CREATED": "Log channels"
     },
     "statusChange": "{{from}} → {{to}}",
     "reason": "Reason: {{reason}}",
@@ -1094,7 +1104,11 @@
       "BOT_RECONNECTED": "· the bot is back on the server",
       "BOT_PERMISSIONS_MISSING": "· the bot lacks permissions",
       "WEBHOOK_FAILING": "· notifications aren't delivered for",
-      "SUBMISSION_DM_FAILED": "· the decision DM wasn't delivered for"
+      "SUBMISSION_DM_FAILED": "· the decision DM wasn't delivered for",
+      "WEBHOOK_CREATED": "· connected a channel to the form",
+      "GUILD_ADMIN_ROLES_CHANGED": "· changed the server's admin roles",
+      "GUILD_ROLE_GRANTED": "· became a server owner by admin role:",
+      "GUILD_LOG_CHANNELS_CREATED": "· created the log channels"
     },
     "detail": {
       "comment": "comment: «{{text}}»",
@@ -1108,7 +1122,10 @@
       "fields": "fields",
       "webhooks": "notifications",
       "access": "access"
-    }
+    },
+    "edits_one": "{{count}} save",
+    "edits_other": "{{count}} saves",
+    "range": "{{from}} – {{to}}"
   },
   "planUsage": {
     "title": "Plan and limits",
@@ -1249,7 +1266,8 @@
       "audit": "Audit log",
       "moderators": "Moderators",
       "bans": "Bans",
-      "billing": "Plan"
+      "billing": "Plan",
+      "settings": "Settings"
     },
     "openMenu": "Open the menu",
     "bottomNav": "Bottom navigation",
@@ -2142,5 +2160,37 @@
     "leave": "Leave",
     "stay": "Stay",
     "loadError": "Couldn't load the settings"
+  },
+  "guildSettings": {
+    "title": "Server settings",
+    "text": "Who runs the server in MarForms, and where the bot posts its logs.",
+    "loadError": "Couldn't load the server settings",
+    "rolesTitle": "Admin roles",
+    "rolesText": "Members with these Discord roles own the server in MarForms: forms, moderators and settings. The roles give no MarForms platform rights. Once a role is taken away in Discord, the rights go within 10 minutes.",
+    "rolesEmpty": "No admin roles: only you and members with Manage Server run the server.",
+    "rolesPick": "Choose roles",
+    "rolesSearch": "Find a role",
+    "rolesNone": "The server's roles didn't load — can the bot see the server?",
+    "roleMissing": "role deleted",
+    "rolesSaved": "Admin roles saved",
+    "rolesError": "Couldn't save the admin roles",
+    "accessNotUpdated": "The roles are saved, but the bot lacks Manage Permissions to open the log channels to them. Give them access to the MarForms category in Discord.",
+    "channelsTitle": "Log channels",
+    "channelsText": "The bot creates a MarForms category at the top of the server: #ответы for new responses and decisions, #аудит for the server's journal. The admin roles and the server's administrators see them.",
+    "channelsCreate": "Create channels",
+    "channelsRecreate": "Create again",
+    "channelsCreated": "Log channels created",
+    "channelsError": "Couldn't create the channels",
+    "channelsGone": "Channel deleted in Discord",
+    "channelsNoPermission": "The bot lacks Manage Channels. Grant it so the bot can create the log channels.",
+    "grant": "Grant permissions",
+    "responses": "Responses",
+    "audit": "Audit"
+  },
+  "guildSetup": {
+    "title": "Set up the server",
+    "text": "The server is connected. Choose the admin roles and create the log channels — you can also do this later in Settings.",
+    "later": "Later",
+    "done": "Done"
   }
 }
