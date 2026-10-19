@@ -133,8 +133,11 @@ A form's fields live inside its JSONB `schema`, not in a separate table —
 see [`docs/adr/0002-form-fields-in-jsonb.md`](../docs/adr/0002-form-fields-in-jsonb.md).
 Lifecycle: `DRAFT` → `PUBLISHED` (gets a permanent public slug) →
 `CLOSED` / `ARCHIVED`. Owners manage forms via
-`/api/v1/guilds/{guildId}/forms`; the older `/api/v1/forms` endpoints are
-kept for platform admins.
+`/api/v1/guilds/{guildId}/forms` (platform admins with `FORMS_MANAGE` too);
+`/api/v1/forms` only reads one form (`GET /{id}`) and checks a slug
+(`GET /slug-available`). A form reviews responses on the site only with
+`reviewEnabled`; otherwise a response just goes to Discord as `RECEIVED`.
+`discordMessage` and each webhook's `content` go above the report.
 
 Respondents use `/api/v1/public/forms/{slug}` (no session needed; never
 returns webhooks). Access modes (`FormAccessService`):
@@ -170,6 +173,20 @@ respondents see their own at `/api/v1/me/submissions`. Moderator actions
 guild id; the owner reads them at `/api/v1/guilds/{id}/audit-log`. Owners
 export a form's submissions as streamed CSV at
 `/api/v1/forms/{id}/export?format=csv`.
+
+## Server settings
+
+A server's owners set its admin roles (holders own the server in MarForms —
+not the platform — while Discord shows the role), create its log category
+with #аудит, and set the bot's nickname, avatar, banner and «Обо мне» there:
+`/api/v1/guilds/{guildId}/settings`. The bot's status is one for every server:
+`/api/v1/settings/bot-presence` (`SYSTEM_ADMIN`).
+
+## Feedback
+
+Signed-in users report bugs, ideas and potential problems at
+`POST /api/v1/feedback` (each kind has its own questions, 5 an hour). It is
+kept in `feedback` and posted to the webhook set at `/api/v1/settings/feedback`.
 
 ## Billing
 

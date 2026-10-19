@@ -29,8 +29,16 @@ function stubUserFromToken(token: string): AuthUser | null {
 }
 
 export function AuthProvider({children}: { children: ReactNode }) {
-    const [user, setUser] = useState<AuthUser | null>(null);
-    const [loading, setLoading] = useState(true);
+    // The saved token is read before the first render: the stub user shows at
+    // once, and there is nothing to load without a valid token.
+    const [user, setUser] = useState<AuthUser | null>(() => {
+        const token = getToken();
+        return token && isTokenValid(token) ? stubUserFromToken(token) : null;
+    });
+    const [loading, setLoading] = useState(() => {
+        const token = getToken();
+        return !!token && isTokenValid(token);
+    });
     const [banData, setBanData] = useState<BannedError | null>(null);
     const location = useLocation();
 
@@ -76,13 +84,11 @@ export function AuthProvider({children}: { children: ReactNode }) {
 
         if (!token || !isTokenValid(token)) {
             clearToken();
-            setLoading(false);
             return;
         }
 
-        const stub = stubUserFromToken(token);
-        setUser(stub);
-
+        // loadMe sets state only after the request answers, never during the effect.
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- async: the first setState is past an await
         loadMe().finally(() => setLoading(false));
     }, [loadMe]);
 
