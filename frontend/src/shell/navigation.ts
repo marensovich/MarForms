@@ -1,5 +1,5 @@
 import type {IconType} from "react-icons";
-import {FiActivity, FiFileText, FiInbox, FiList, FiServer, FiShield, FiSliders, FiUsers} from "react-icons/fi";
+import {FiActivity, FiFileText, FiInbox, FiList, FiMessageSquare, FiServer, FiShield, FiSliders, FiUsers} from "react-icons/fi";
 import type {AuthUser} from "../types/auth";
 
 // Dashboard navigation (ТЗ 2.2, 2.3, 4.1; docs/design/mockups/Sidebar.dc.html).
@@ -14,6 +14,9 @@ export interface NavItem<T extends string = string> {
 }
 
 export const SERVERS_NAV: NavItem = {id: "servers", labelKey: "nav.servers", icon: FiServer, to: "/dashboard/servers"};
+
+/** «Обратная связь» (2026-10-19): bugs, ideas and problems of MarForms itself. */
+export const FEEDBACK_NAV: NavItem = {id: "feedback", labelKey: "nav.feedback", icon: FiMessageSquare, to: "/feedback"};
 
 /** Platform administration, each behind its permission (sidebar items show only with it). */
 export const ADMIN_NAV: (NavItem<AdminSection> & { permission: string })[] = [

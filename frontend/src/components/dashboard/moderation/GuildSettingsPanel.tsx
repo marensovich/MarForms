@@ -13,6 +13,7 @@ import {
 } from "../../../api/dashboard";
 import {describeApiError} from "../../../api/errors";
 import {Button, Combobox, discordColor, ErrorState, Modal, RoleChip, Skeleton, useToast} from "../../../ui";
+import BotProfileSection from "./BotProfileSection";
 
 // Not in the mockups: the owner's answer of 2026-10-19 — admin roles own the
 // server in MarForms (not the platform), and the bot keeps the server's logs
@@ -201,6 +202,7 @@ export default function GuildSettingsPanel({guild}: { guild: MyGuild }) {
                 <p className="m-0 text-[14px] text-mu">{t("guildSettings.text")}</p>
             </div>
             <GuildSettingsForm guildId={guild.guildId}/>
+            <BotProfileSection guildId={guild.guildId}/>
         </div>
     );
 }

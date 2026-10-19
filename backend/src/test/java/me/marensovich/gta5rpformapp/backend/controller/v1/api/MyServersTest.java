@@ -120,7 +120,7 @@ class MyServersTest {
         // FORMS_MANAGE isn't needed any more (#151), nor MANAGE_ROLES; VIEW_CHANNEL | MANAGE_WEBHOOKS.
         mvc.perform(as(get("/api/v1/guilds/connect").param("guildId", String.valueOf(GUILD))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.url", containsString("&permissions=536871952")))
+                .andExpect(jsonPath("$.url", containsString("&permissions=603980816")))
                 .andExpect(jsonPath("$.url", containsString("&guild_id=" + GUILD + "&disable_guild_select=true")));
     }
 

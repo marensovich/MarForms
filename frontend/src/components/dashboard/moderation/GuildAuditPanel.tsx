@@ -20,7 +20,7 @@ const GROUPS: Record<string, GuildAuditAction[]> = {
     moderators: ["MODERATOR_ADDED", "MODERATOR_REMOVED", "MODERATOR_FORMS_CHANGED", "GUILD_ROLE_REVOKED", "GUILD_ROLE_GRANTED", "GUILD_ADMIN_ROLES_CHANGED"],
     bans: ["GUILD_BAN_ADDED", "GUILD_BAN_REMOVED"],
     submissions: ["SUBMISSION_DELETED"],
-    bot: ["BOT_REMOVED", "BOT_RECONNECTED", "BOT_PERMISSIONS_MISSING", "WEBHOOK_FAILING", "SUBMISSION_DM_FAILED", "GUILD_CONNECTED", "GUILD_LOG_CHANNELS_CREATED"],
+    bot: ["BOT_REMOVED", "BOT_RECONNECTED", "BOT_PERMISSIONS_MISSING", "WEBHOOK_FAILING", "SUBMISSION_DM_FAILED", "GUILD_CONNECTED", "GUILD_LOG_CHANNELS_CREATED", "GUILD_BOT_PROFILE_CHANGED"],
 };
 const PERIODS = [1, 7, 30, 90, 0];
 
@@ -61,6 +61,7 @@ function kindOf(e: GuildAuditEntry): { key: string; icon: IconType; tone: keyof 
         case "GUILD_ROLE_GRANTED":
             return {key: e.action, icon: FiUserPlus, tone: "warn"};
         case "GUILD_ADMIN_ROLES_CHANGED":
+        case "GUILD_BOT_PROFILE_CHANGED":
             return {key: e.action, icon: FiEdit2, tone: "warn"};
         case "WEBHOOK_CREATED":
         case "GUILD_LOG_CHANNELS_CREATED":

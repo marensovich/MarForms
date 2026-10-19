@@ -31,7 +31,8 @@
     "roles": "Roles",
     "logs": "Audit log",
     "system": "System",
-    "settings": "Settings"
+    "settings": "Settings",
+    "feedback": "Feedback"
   },
   "adminLevel": {
     "systemAdmin": "System Admin",
@@ -340,7 +341,8 @@
       "WEBHOOK_CREATED": "Channel connected to a form",
       "GUILD_ADMIN_ROLES_CHANGED": "Admin roles changed",
       "GUILD_ROLE_GRANTED": "Server owner by admin role",
-      "GUILD_LOG_CHANNELS_CREATED": "Log channels created"
+      "GUILD_LOG_CHANNELS_CREATED": "Log channels created",
+      "GUILD_BOT_PROFILE_CHANGED": "Bot profile changed"
     }
   },
   "wizard": {
@@ -719,7 +721,8 @@
     "permission": {
       "VIEW_CHANNEL": "View Channels",
       "MANAGE_WEBHOOKS": "Manage Webhooks",
-      "MANAGE_CHANNEL": "Manage Channels"
+      "MANAGE_CHANNEL": "Manage Channels",
+      "NICKNAME_CHANGE": "Change Nickname"
     },
     "grant": "Grant permissions",
     "inviteAgain": "Invite again",
@@ -1054,7 +1057,8 @@
       "WEBHOOK_CREATED": "Channel connected",
       "GUILD_ADMIN_ROLES_CHANGED": "Admin roles",
       "GUILD_ROLE_GRANTED": "Owner by role",
-      "GUILD_LOG_CHANNELS_CREATED": "Log channels"
+      "GUILD_LOG_CHANNELS_CREATED": "Log channels",
+      "GUILD_BOT_PROFILE_CHANGED": "Bot profile"
     },
     "statusChange": "{{from}} → {{to}}",
     "reason": "Reason: {{reason}}",
@@ -1109,7 +1113,8 @@
       "WEBHOOK_CREATED": "· connected a channel to the form",
       "GUILD_ADMIN_ROLES_CHANGED": "· changed the server's admin roles",
       "GUILD_ROLE_GRANTED": "· became a server owner by admin role:",
-      "GUILD_LOG_CHANNELS_CREATED": "· created the log channels"
+      "GUILD_LOG_CHANNELS_CREATED": "· created the log channels",
+      "GUILD_BOT_PROFILE_CHANGED": "· changed the bot's profile on the server"
     },
     "detail": {
       "comment": "comment: «{{text}}»",
@@ -1124,7 +1129,11 @@
       "webhooks": "notifications",
       "access": "access",
       "review": "response review",
-      "message": "Discord message"
+      "message": "Discord message",
+      "nickname": "nickname",
+      "avatar": "avatar",
+      "banner": "banner",
+      "bio": "About me"
     },
     "edits_one": "{{count}} save",
     "edits_other": "{{count}} saves",
@@ -2119,7 +2128,9 @@
       "webhook": "Log webhook",
       "filters": "Log filters",
       "embed": "Shared embed",
-      "bans": "Bans and restrictions"
+      "bans": "Bans and restrictions",
+      "bot": "Bot status",
+      "feedback": "Feedback"
     },
     "general": {
       "text": "The name shows on the sign-in page and on public forms.",
@@ -2180,7 +2191,40 @@
     "leaveText": "The settings changes will be lost.",
     "leave": "Leave",
     "stay": "Stay",
-    "loadError": "Couldn't load the settings"
+    "loadError": "Couldn't load the settings",
+    "bot": {
+      "sectionText": "The bot's status and activity. Discord shows them the same on every server, so they are set here, not in a server's settings.",
+      "status": "Status",
+      "activity": "Activity",
+      "text": "Activity text",
+      "textPlaceholder": "E.g. MarForms forms",
+      "statuses": {
+        "ONLINE": "Online",
+        "IDLE": "Idle",
+        "DO_NOT_DISTURB": "Do not disturb",
+        "INVISIBLE": "Invisible"
+      },
+      "activities": {
+        "NONE": "None",
+        "PLAYING": "Playing",
+        "LISTENING": "Listening to",
+        "WATCHING": "Watching",
+        "COMPETING": "Competing in",
+        "CUSTOM": "Custom status"
+      },
+      "saved": "Bot status saved",
+      "error": "Couldn't save the bot status"
+    },
+    "feedback": {
+      "text": "The Discord webhook that gets bugs, ideas and reported problems from the Feedback page.",
+      "url": "Webhook URL",
+      "off": "No webhook: feedback is kept but not sent anywhere.",
+      "saved": "Feedback webhook saved",
+      "error": "Couldn't save the webhook",
+      "testOk": "Test message sent",
+      "testFailed": "The webhook didn't take the message",
+      "test": "Test the feedback webhook"
+    }
   },
   "guildSettings": {
     "title": "Server settings",
@@ -2205,11 +2249,111 @@
     "channelsGone": "Channel deleted in Discord",
     "channelsNoPermission": "The bot lacks Manage Channels. Grant it so the bot can create the log channel.",
     "grant": "Grant permissions",
-    "audit": "Audit"
+    "audit": "Audit",
+    "bot": {
+      "title": "The bot on this server",
+      "text": "The bot's nickname, avatar, banner and About me on this server only. On other servers it looks its own way.",
+      "noBio": "No About me",
+      "nickname": "Nickname",
+      "noNicknamePermission": "The bot needs Change Nickname to change its nickname.",
+      "avatar": "Avatar",
+      "banner": "Banner",
+      "bio": "About me",
+      "upload": "Upload",
+      "reset": "Reset",
+      "notImage": "That's not an image",
+      "tooBig": "The image is over 8 MB",
+      "statusHint": "The bot's status is shared by every server — the platform's administrator sets it.",
+      "saved": "Bot profile saved",
+      "error": "Couldn't save the bot profile",
+      "loadError": "Couldn't load the bot profile"
+    }
   },
   "guildSetup": {
     "title": "Set up the server",
     "text": "The server is connected. Choose the admin roles and create the log channel — you can also do this later in Settings.",
     "done": "Done"
+  },
+  "feedback": {
+    "title": "Feedback",
+    "subtitle": "Found a bug, have an idea or see a possible problem? Tell the MarForms team.",
+    "kind": "What it's about",
+    "kinds": {
+      "BUG": {
+        "title": "Bug",
+        "text": "Something doesn't work as it should"
+      },
+      "IDEA": {
+        "title": "Idea",
+        "text": "A new feature or an improvement"
+      },
+      "PROBLEM": {
+        "title": "Potential problem",
+        "text": "A vulnerability, a risk to data or abuse"
+      },
+      "OTHER": {
+        "title": "Other",
+        "text": "A question, a review or anything else"
+      }
+    },
+    "q": {
+      "BUG": {
+        "title": "What broke",
+        "steps": "How to reproduce",
+        "expected": "What you expected",
+        "actual": "What happened",
+        "severity": "How much it gets in the way",
+        "where": "Where it was"
+      },
+      "IDEA": {
+        "title": "The idea in short",
+        "problem": "What it solves",
+        "proposal": "How it should work",
+        "audience": "Who it helps"
+      },
+      "PROBLEM": {
+        "title": "What the problem is",
+        "area": "What's at risk",
+        "description": "Description",
+        "impact": "What it could lead to",
+        "suggestion": "How to fix it"
+      },
+      "OTHER": {
+        "subject": "Subject",
+        "message": "Message"
+      }
+    },
+    "hint": {
+      "BUG": {
+        "steps": "Step by step: what you opened, what you clicked.",
+        "where": "Page, server or form — if it matters."
+      },
+      "IDEA": {
+        "problem": "What is awkward or impossible now."
+      },
+      "PROBLEM": {
+        "description": "Don't post a working exploit — the gist is enough."
+      }
+    },
+    "option": {
+      "severity": {
+        "BLOCKER": "Can't work",
+        "ANNOYING": "In the way, but I get around it",
+        "MINOR": "Minor"
+      },
+      "area": {
+        "SECURITY": "Security",
+        "DATA": "Data",
+        "ABUSE": "Abuse",
+        "USABILITY": "Usability",
+        "OTHER": "Other"
+      }
+    },
+    "required": "Fill this in",
+    "send": "Send",
+    "error": "Couldn't send",
+    "thanks": "Thank you!",
+    "thanksText": "The MarForms team has it. If they need details, they'll message you on Discord.",
+    "another": "Send another"
   }
 }

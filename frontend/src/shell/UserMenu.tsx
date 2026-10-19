@@ -1,6 +1,6 @@
 import {useEffect, useId, useRef, useState} from "react";
 import {useTranslation} from "react-i18next";
-import {FiChevronDown, FiInbox, FiLogOut} from "react-icons/fi";
+import {FiChevronDown, FiInbox, FiLogOut, FiMessageSquare} from "react-icons/fi";
 import {useNavigate} from "react-router-dom";
 import {useAuth} from "../hooks/useAuth";
 import {Avatar, cx} from "../ui";
@@ -59,6 +59,10 @@ export default function UserMenu({variant, collapsed}: { variant: "sidebar" | "t
                     <button type="button" role="menuitem" className={cx(item, "text-tx")}
                             onClick={() => { setOpen(false); navigate("/me/submissions"); }}>
                         <FiInbox size={16} aria-hidden="true"/>{t("shell.mySubmissions")}
+                    </button>
+                    <button type="button" role="menuitem" className={cx(item, "text-tx")}
+                            onClick={() => { setOpen(false); navigate(`/feedback?from=${encodeURIComponent(window.location.pathname)}`); }}>
+                        <FiMessageSquare size={16} aria-hidden="true"/>{t("nav.feedback")}
                     </button>
                     <button type="button" role="menuitem" className={cx(item, "text-rdt")} onClick={logout}>
                         <FiLogOut size={16} aria-hidden="true"/>{t("common.signOut")}

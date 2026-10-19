@@ -88,7 +88,8 @@ public class DiscordBotClient {
 
     /**
      * What the bot needs on a server (ТЗ 7.1): see its channels, create
-     * webhooks in them, and create the server's log channels. Reading members
+     * webhooks in them, create the server's log channels and set its own
+     * nickname there (2026-10-19). Reading members
      * and their roles goes through the API and needs no permission, so a
      * revoked role is noticed without Manage Roles — the bot never changes
      * roles, and doesn't ask for that right (2026-10-19).
@@ -96,7 +97,7 @@ public class DiscordBotClient {
      * @since v.0.1
      */
     public static final List<Permission> REQUIRED_PERMISSIONS =
-            List.of(Permission.VIEW_CHANNEL, Permission.MANAGE_WEBHOOKS, Permission.MANAGE_CHANNEL);
+            List.of(Permission.VIEW_CHANNEL, Permission.MANAGE_WEBHOOKS, Permission.MANAGE_CHANNEL, Permission.NICKNAME_CHANGE);
 
     /** The log category and its channel, as the bot names them. */
     public static final String LOG_CATEGORY_NAME = "MarForms";
@@ -269,6 +270,103 @@ public class DiscordBotClient {
             log.info("Could not change who sees the log channels of guild {}: {}", guildId, e.getMessage());
             return false;
         }
+    }
+
+    /**
+     * How the bot looks on one server (2026-10-19): Discord keeps a nickname,
+     * avatar, banner and «Обо мне» per server; {@code null} = the account's own.
+     *
+     * @param username    the bot account's name
+     * @param nickname    its nickname on the server
+     * @param avatarUrl   its avatar on the server
+     * @param bannerUrl   its banner on the server
+     * @param accountAvatarUrl the account's avatar, shown when there's none on the server
+     */
+    public record BotProfile(String username, String nickname, String avatarUrl, String bannerUrl, String accountAvatarUrl) {
+    }
+
+    /**
+     * The bot's profile on a server.
+     *
+     * @return the profile, empty without a bot session or if the bot isn't on the server
+     * @since v.0.1
+     */
+    public Optional<BotProfile> fetchBotProfile(Long guildId) {
+        if (jda == null) return Optional.empty();
+        Guild guild = jda.getGuildById(guildId);
+        if (guild == null) return Optional.empty();
+        Member self = guild.getSelfMember();
+        return Optional.of(new BotProfile(self.getUser().getName(), self.getNickname(), self.getAvatarUrl(),
+                self.getBannerUrl(), self.getUser().getEffectiveAvatarUrl()));
+    }
+
+    /** How a profile change went. */
+    public enum ProfileResult {
+        OK,
+        /** No bot session, or the bot isn't on the server. */
+        NO_BOT,
+        /** A nickname needs Change Nickname. */
+        MISSING_PERMISSIONS,
+        /** Discord refused it (a bad image, rate limits). */
+        FAILED
+    }
+
+    /**
+     * Changes the bot's profile on one server; the other servers keep theirs.
+     *
+     * @param nickname {@code null} keeps it, empty resets it to the account's name
+     * @param avatar   {@code null} keeps it, empty resets it, else the image's bytes
+     * @param banner   the same, for the banner
+     * @param bio      {@code null} keeps it, empty clears it
+     * @return how it went
+     * @since v.0.1
+     */
+    public ProfileResult updateBotProfile(Long guildId, @Nullable String nickname, @Nullable byte[] avatar,
+                                          @Nullable byte[] banner, @Nullable String bio) {
+        if (jda == null) return ProfileResult.NO_BOT;
+        Guild guild = jda.getGuildById(guildId);
+        if (guild == null) return ProfileResult.NO_BOT;
+        try {
+            var manager = guild.getSelfMember().getManager();
+            if (nickname != null) manager.setNickname(nickname.isBlank() ? null : nickname.trim());
+            if (avatar != null) manager.setAvatar(avatar.length == 0 ? null : net.dv8tion.jda.api.entities.Icon.from(avatar));
+            if (banner != null) manager.setBanner(banner.length == 0 ? null : net.dv8tion.jda.api.entities.Icon.from(banner));
+            if (bio != null) manager.setBio(bio.isBlank() ? null : bio.trim());
+            manager.complete();
+            return ProfileResult.OK;
+        } catch (net.dv8tion.jda.api.exceptions.InsufficientPermissionException e) {
+            return ProfileResult.MISSING_PERMISSIONS;
+        } catch (Exception e) {
+            log.warn("Failed to change the bot's profile on guild {}: {}", guildId, e.getMessage());
+            return ProfileResult.FAILED;
+        }
+    }
+
+    /**
+     * The bot's status and activity — one for every server, a Discord rule.
+     *
+     * @param status   ONLINE, IDLE, DO_NOT_DISTURB or INVISIBLE
+     * @param activity PLAYING, LISTENING, WATCHING, COMPETING or CUSTOM; anything else = none
+     * @param text     the activity's text; blank = none
+     * @since v.0.1
+     */
+    public void setPresence(String status, String activity, String text) {
+        if (jda == null) return;
+        net.dv8tion.jda.api.OnlineStatus online;
+        try {
+            online = net.dv8tion.jda.api.OnlineStatus.valueOf(status);
+        } catch (Exception e) {
+            online = net.dv8tion.jda.api.OnlineStatus.ONLINE;
+        }
+        net.dv8tion.jda.api.entities.Activity shown = text == null || text.isBlank() ? null : switch (activity == null ? "" : activity) {
+            case "PLAYING" -> net.dv8tion.jda.api.entities.Activity.playing(text);
+            case "LISTENING" -> net.dv8tion.jda.api.entities.Activity.listening(text);
+            case "WATCHING" -> net.dv8tion.jda.api.entities.Activity.watching(text);
+            case "COMPETING" -> net.dv8tion.jda.api.entities.Activity.competing(text);
+            case "CUSTOM" -> net.dv8tion.jda.api.entities.Activity.customStatus(text);
+            default -> null;
+        };
+        jda.getPresence().setPresence(online, shown);
     }
 
     /**

@@ -385,3 +385,23 @@ export function joinWorkspace(guildId: string, targetGuildId: string): Promise<B
 export function leaveWorkspace(guildId: string): Promise<BillingStatus> {
     return apiRequest(`/guilds/${guildId}/workspace/leave`, {method: "POST"});
 }
+
+/** How the bot looks on one server (2026-10-19); null = the account's own. */
+export interface BotProfile {
+    username: string;
+    nickname: string | null;
+    avatarUrl: string | null;
+    bannerUrl: string | null;
+    accountAvatarUrl: string | null;
+    bio: string | null;
+    canChangeNickname: boolean;
+}
+
+export function getBotProfile(guildId: string): Promise<BotProfile> {
+    return apiRequest(`/guilds/${guildId}/settings/bot`);
+}
+
+/** Only what changes: an image as a data URL, "" resets it. */
+export function updateBotProfile(guildId: string, change: { nickname?: string; bio?: string; avatar?: string; banner?: string }): Promise<BotProfile> {
+    return apiRequest(`/guilds/${guildId}/settings/bot`, {method: "PUT", body: change});
+}

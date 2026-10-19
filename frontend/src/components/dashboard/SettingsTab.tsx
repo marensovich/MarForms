@@ -6,10 +6,11 @@ import {fetchLogWebhook, fetchSettings, type LogDelivery, type SystemSettings, t
 import type {AuditAction} from "../../types/logs";
 import {Button, ConfirmDialog, cx, ErrorState, Field, Input, SegmentedControl, Skeleton, Switch, Textarea, useToast} from "../../ui";
 import {useLeaveGuard} from "./useLeaveGuard";
+import {BotPresenceForm, FeedbackWebhookForm} from "./PlatformBotSettings";
 
 // Docs: docs/design/mockups/AdminSettings.dc.html; ТЗ 6.7, 7.3.
 
-const SECTIONS = ["general", "webhook", "filters", "embed", "bans"] as const;
+const SECTIONS = ["general", "webhook", "filters", "embed", "bans", "bot", "feedback"] as const;
 type Section = typeof SECTIONS[number];
 
 /** The action types the journal can write, in the order of ТЗ 6.5. */
@@ -18,7 +19,7 @@ const ACTIONS: AuditAction[] = [
     "FORM_CREATED", "FORM_UPDATED", "FORM_STATUS_CHANGED", "FORM_DELETED",
     "SUBMISSION_CREATED", "SUBMISSION_DELETED", "SUBMISSION_DECIDED", "SUBMISSION_DM_FAILED",
     "MODERATOR_ADDED", "MODERATOR_REMOVED", "MODERATOR_FORMS_CHANGED", "GUILD_BAN_ADDED", "GUILD_BAN_REMOVED", "GUILD_CONNECTED", "GUILD_ROLE_REVOKED",
-    "GUILD_ROLE_GRANTED", "GUILD_ADMIN_ROLES_CHANGED", "GUILD_LOG_CHANNELS_CREATED",
+    "GUILD_ROLE_GRANTED", "GUILD_ADMIN_ROLES_CHANGED", "GUILD_LOG_CHANNELS_CREATED", "GUILD_BOT_PROFILE_CHANGED",
     "ROLE_CREATED", "ROLE_UPDATED", "ROLE_DELETED", "SETTINGS_UPDATED",
     "BOT_REMOVED", "BOT_RECONNECTED", "BOT_PERMISSIONS_MISSING", "WEBHOOK_FAILING", "WEBHOOK_CREATED",
 ];
@@ -38,6 +39,9 @@ const FIELDS: Record<Section, (keyof SystemSettings)[]> = {
     embed: ["globalEmbedTitle", "globalEmbedDescription", "globalEmbedColor", "globalEmbedFooterText", "globalEmbedFooterIcon",
         "globalEmbedAuthorName", "globalEmbedAuthorIcon", "globalEmbedAuthorUrl", "globalEmbedThumbnail", "globalEmbedImage"],
     bans: ["banMessage", "banAdminContact"],
+    // These save on their own (PlatformBotSettings).
+    bot: [],
+    feedback: [],
 };
 
 /** The enabled actions; an empty setting means every action, including ones added later. */
@@ -296,6 +300,14 @@ export default function SettingsTab() {
                             </div>
                             <RestrictedPreview message={draft.banMessage ?? ""} contact={draft.banAdminContact ?? ""}/>
                         </div>
+                    </Card>
+
+                    <Card id="bot" title={t("adminSettings.section.bot")} text={t("adminSettings.bot.sectionText")}>
+                        <BotPresenceForm/>
+                    </Card>
+
+                    <Card id="feedback" title={t("adminSettings.section.feedback")} text={t("adminSettings.feedback.text")}>
+                        <FeedbackWebhookForm/>
                     </Card>
                 </div>
             </div>

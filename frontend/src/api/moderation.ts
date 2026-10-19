@@ -176,7 +176,8 @@ export type GuildAuditAction =
     | "WEBHOOK_CREATED"
     | "GUILD_ADMIN_ROLES_CHANGED"
     | "GUILD_ROLE_GRANTED"
-    | "GUILD_LOG_CHANNELS_CREATED";
+    | "GUILD_LOG_CHANNELS_CREATED"
+    | "GUILD_BOT_PROFILE_CHANGED";
 
 export interface GuildAuditEntry {
     id: string;

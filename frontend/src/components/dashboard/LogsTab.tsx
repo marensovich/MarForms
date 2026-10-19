@@ -47,6 +47,7 @@ const CATEGORY: Record<AuditAction, Category> = {
     GUILD_ADMIN_ROLES_CHANGED: "role",
     GUILD_ROLE_GRANTED: "role",
     GUILD_LOG_CHANNELS_CREATED: "sys",
+    GUILD_BOT_PROFILE_CHANGED: "sys",
 };
 const BADGE: Record<Category, string> = {
     ban: "bg-rdb text-rdt", role: "bg-prs text-prt", form: "bg-inb text-int", sub: "bg-gnb text-gnt", mod: "bg-amb text-amt", sys: "bg-s2 text-tx",

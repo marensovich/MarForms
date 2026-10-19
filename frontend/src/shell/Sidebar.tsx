@@ -5,7 +5,7 @@ import {useAuth} from "../hooks/useAuth";
 import {useTheme} from "../theme/theme";
 import {cx} from "../ui";
 import {rememberLanguage} from "../languageChoice";
-import {type NavItem, SERVERS_NAV, visibleAdminNav} from "./navigation";
+import {FEEDBACK_NAV, type NavItem, SERVERS_NAV, visibleAdminNav} from "./navigation";
 import UserMenu from "./UserMenu";
 
 // Docs: docs/design/mockups/Sidebar.dc.html (248 px; collapses to icons, ТЗ ФТ-4.1.1).
@@ -61,6 +61,7 @@ export default function Sidebar({collapsed, onToggle}: { collapsed: boolean; onT
             </div>
 
             <Item item={SERVERS_NAV} collapsed={collapsed}/>
+            <Item item={FEEDBACK_NAV} collapsed={collapsed}/>
 
             {admin.length > 0 && (
                 <>

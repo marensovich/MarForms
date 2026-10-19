@@ -603,6 +603,7 @@ public class AuditLogService {
             case GUILD_ADMIN_ROLES_CHANGED -> "🟡 Server Admin Roles Changed";
             case GUILD_ROLE_GRANTED -> "🟢 Server Owner By Admin Role";
             case GUILD_LOG_CHANNELS_CREATED -> "🟢 Log Channels Created";
+            case GUILD_BOT_PROFILE_CHANGED -> "🔵 Bot Profile Changed";
         };
     }
 
@@ -625,6 +626,7 @@ public class AuditLogService {
             case BOT_REMOVED -> 0xED4245;
             case BOT_RECONNECTED, WEBHOOK_CREATED, GUILD_ROLE_GRANTED, GUILD_LOG_CHANNELS_CREATED -> 0x57F287;
             case GUILD_ADMIN_ROLES_CHANGED -> 0xFEE75C;
+            case GUILD_BOT_PROFILE_CHANGED -> 0x5865F2;
         };
     }
 }

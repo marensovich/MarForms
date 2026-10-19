@@ -30,6 +30,7 @@ import java.util.List;
 public class GuildSettingsController {
 
     private final GuildSettingsService guildSettingsService;
+    private final me.marensovich.gta5rpformapp.backend.service.BotProfileService botProfileService;
 
     /** The admin roles as the client sends them: snowflakes as strings. */
     public record AdminRolesRequest(@NotNull @Size(max = 25) List<@NotNull String> roleIds) {
@@ -57,5 +58,19 @@ public class GuildSettingsController {
     @PostMapping("/log-channels")
     public GuildSettingsDto createLogChannels(@PathVariable Long guildId) {
         return guildSettingsService.createLogChannels(guildId);
+    }
+
+    /** The bot's nickname, avatar, banner and «Обо мне» on the server (2026-10-19). */
+    @PreAuthorize("@guildAccess.hasRole(#guildId, 'OWNER')")
+    @GetMapping("/bot")
+    public me.marensovich.gta5rpformapp.backend.service.BotProfileService.Profile bot(@PathVariable Long guildId) {
+        return botProfileService.profile(guildId);
+    }
+
+    @PreAuthorize("@guildAccess.hasRole(#guildId, 'OWNER')")
+    @PutMapping("/bot")
+    public me.marensovich.gta5rpformapp.backend.service.BotProfileService.Profile updateBot(
+            @PathVariable Long guildId, @RequestBody me.marensovich.gta5rpformapp.backend.service.BotProfileService.ProfileChange change) {
+        return botProfileService.update(guildId, change);
     }
 }

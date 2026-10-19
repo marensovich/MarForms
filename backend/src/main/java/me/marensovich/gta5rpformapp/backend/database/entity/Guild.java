@@ -124,6 +124,10 @@ public class Guild {
     @lombok.ToString.Exclude
     private java.util.Set<Long> adminRoleIds = new java.util.HashSet<>();
 
+    /** The bot's «Обо мне» on this server, as last set from the panel (Discord doesn't give it back). */
+    @Column(name = "bot_bio", length = 190)
+    private String botBio;
+
     /** The category of the log channels the bot created, if any. */
     private Long logCategoryId;
 

@@ -75,3 +75,18 @@ export function fetchLogWebhook(): Promise<{ configured: boolean; lastDelivery: 
 export function testLogWebhook(url?: string): Promise<LogDelivery> {
     return apiRequest("/settings/log-webhook/test", {method: "POST", body: {url: url ?? ""}});
 }
+
+/** The bot's status (2026-10-19): one for every server. */
+export interface BotPresence {
+    status: string;
+    activity: string;
+    text: string;
+}
+
+export function getBotPresence(): Promise<BotPresence> {
+    return apiRequest("/settings/bot-presence");
+}
+
+export function setBotPresence(presence: BotPresence): Promise<BotPresence> {
+    return apiRequest("/settings/bot-presence", {method: "PUT", body: presence});
+}

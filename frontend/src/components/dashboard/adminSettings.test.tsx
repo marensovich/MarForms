@@ -25,6 +25,13 @@ vi.mock("../../api/settings", () => ({
     updateSettings: (s: unknown) => api.updateSettings(s),
     fetchLogWebhook: () => api.fetchLogWebhook(),
     testLogWebhook: (url?: string) => api.testLogWebhook(url),
+    getBotPresence: () => Promise.resolve({status: "ONLINE", activity: "NONE", text: ""}),
+    setBotPresence: (p: unknown) => Promise.resolve(p),
+}));
+vi.mock("../../api/feedback", () => ({
+    getFeedbackWebhook: () => Promise.resolve({webhookUrl: ""}),
+    setFeedbackWebhook: (webhookUrl: string) => Promise.resolve({webhookUrl}),
+    testFeedbackWebhook: () => Promise.resolve({ok: true}),
 }));
 
 describe("platform settings", () => {

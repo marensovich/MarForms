@@ -53,9 +53,9 @@ describe("navigation rules", () => {
 });
 
 describe("Sidebar", () => {
-    it("staff without permissions sees only the servers item", () => {
+    it("staff without permissions sees only the servers and feedback items", () => {
         withAuth(user(["DASHBOARD_ACCESS"]), <Sidebar collapsed={false} onToggle={() => {}}/>);
-        expect(screen.getAllByRole("link").map(a => a.getAttribute("href"))).toEqual(["/dashboard/servers", "/dashboard/servers"]);
+        expect(screen.getAllByRole("link").map(a => a.getAttribute("href"))).toEqual(["/dashboard/servers", "/dashboard/servers", "/feedback"]);
         expect(screen.queryByText("shell.admin")).toBeNull();
     });
 

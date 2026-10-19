@@ -158,7 +158,8 @@ public class GuildLogService {
             case GUILD_ROLE_REVOKED -> "Права на сервере сняты";
             case GUILD_ROLE_GRANTED -> "Новый владелец сервера по админ-роли";
             case GUILD_ADMIN_ROLES_CHANGED -> "Админ-роли изменены";
-            case GUILD_LOG_CHANNELS_CREATED -> "Каналы логов созданы";
+            case GUILD_LOG_CHANNELS_CREATED -> "Канал логов создан";
+            case GUILD_BOT_PROFILE_CHANGED -> "Профиль бота изменён";
             case BOT_REMOVED -> "Бот удалён с сервера";
             case BOT_RECONNECTED -> "Бот снова на сервере";
             case BOT_PERMISSIONS_MISSING -> "Боту не хватает прав";

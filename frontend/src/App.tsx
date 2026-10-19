@@ -10,6 +10,7 @@ import AdminRoute from "./shell/AdminRoute";
 import GuildWorkspaceRoute from "./shell/GuildWorkspaceRoute";
 import ServersTab from "./components/dashboard/ServersTab";
 import MySubmissionsPage from "./pages/MySubmissionsPage";
+import FeedbackPage from "./pages/FeedbackPage";
 import HomeRedirect from "./pages/HomeRedirect";
 import AccessScreen from "./components/access/AccessScreen";
 import FormEditorPage, {NewFormPage} from "./components/builder/FormEditorPage";
@@ -37,6 +38,8 @@ export default function App() {
             <Route element={<ProtectedRoute/>}>
                 <Route path="/home" element={<HomeRedirect/>}/>
                 <Route path="/me/submissions" element={<MySubmissionsPage/>}/>
+                {/* Feedback about MarForms itself (2026-10-19): open to anyone signed in, like their own pages. */}
+                <Route path="/feedback" element={<FeedbackPage/>}/>
                 {/* A time-out closes the panel, not the user's own pages (ТЗ 6.3). */}
                 <Route element={<PanelGate/>}>
                     <Route element={<DashboardLayout/>}>

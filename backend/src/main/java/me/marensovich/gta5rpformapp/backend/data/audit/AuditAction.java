@@ -225,5 +225,8 @@ public enum AuditAction {
     GUILD_ROLE_GRANTED,
 
     /** The bot created the server's log category and channels. */
-    GUILD_LOG_CHANNELS_CREATED
+    GUILD_LOG_CHANNELS_CREATED,
+
+    /** The owner changed the bot's nickname, avatar, banner or «Обо мне» on the server (metadata {@code changes}). */
+    GUILD_BOT_PROFILE_CHANGED
 }

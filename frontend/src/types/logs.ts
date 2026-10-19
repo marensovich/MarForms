@@ -31,7 +31,8 @@ export type AuditAction =
     | "WEBHOOK_CREATED"
     | "GUILD_ADMIN_ROLES_CHANGED"
     | "GUILD_ROLE_GRANTED"
-    | "GUILD_LOG_CHANNELS_CREATED";
+    | "GUILD_LOG_CHANNELS_CREATED"
+    | "GUILD_BOT_PROFILE_CHANGED";
 
 /** A field a change changed (ТЗ 6.5): before and after, secrets masked. */
 export interface AuditChange {
