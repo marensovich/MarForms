@@ -229,7 +229,8 @@ The key decisions are ADRs: [background jobs](docs/adr/0001-background-job-mecha
 
 ## Status
 
-In active development. Forms, moderation, notifications, logs, server settings and the admin
+The current version is **1.0.0**; what it contains is in the [CHANGELOG](CHANGELOG.md) (Russian).
+Forms, moderation, notifications, logs, server settings and the admin
 area are done. **On hold:** the Google Sheets integration (CSV export exists) and paid plans.
 
 ## License

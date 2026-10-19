@@ -102,7 +102,7 @@ class SystemStatusTest {
                 .andExpect(jsonPath("$.cpu.cores").isNumber())
                 .andExpect(jsonPath("$.ram.heapMax").isNumber())
                 .andExpect(jsonPath("$.disk.total").isNumber())
-                .andExpect(jsonPath("$.about.version").value("0.0.1-SNAPSHOT"))
+                .andExpect(jsonPath("$.about.version").value("1.0.0"))
                 .andExpect(jsonPath("$.jobs.queued").value(1))
                 .andExpect(jsonPath("$.jobs.failed").value(1))
                 .andExpect(jsonPath("$.jobs.succeeded24h").value(1))
@@ -115,16 +115,16 @@ class SystemStatusTest {
     @Test
     void comparesTheLatestReleaseAndAsksGitHubAtMostOnceAnHourUnlessForced() throws Exception {
         when(restTemplate.exchange(eq(RELEASES), eq(HttpMethod.GET), any(HttpEntity.class), any(Class.class)))
-                .thenReturn(ResponseEntity.ok(Map.of("tag_name", "v0.1.0", "html_url", "https://github.com/marensovich/MarForms/releases/tag/v0.1.0",
+                .thenReturn(ResponseEntity.ok(Map.of("tag_name", "v1.1.0", "html_url", "https://github.com/marensovich/MarForms/releases/tag/v1.1.0",
                         "body", "## Условия по ролям в вебхуках\n\n- экспорт в CSV")));
 
         mvc.perform(as(root, get("/api/v1/system/updates")))
-                .andExpect(jsonPath("$.current").value("0.0.1-SNAPSHOT"))
-                .andExpect(jsonPath("$.latest").value("0.1.0"))
+                .andExpect(jsonPath("$.current").value("1.0.0"))
+                .andExpect(jsonPath("$.latest").value("1.1.0"))
                 .andExpect(jsonPath("$.available").value(true))
                 .andExpect(jsonPath("$.notes").value("Условия по ролям в вебхуках"))
                 .andExpect(jsonPath("$.checkedAt").isNotEmpty());
-        mvc.perform(as(root, get("/api/v1/system/updates"))).andExpect(jsonPath("$.latest").value("0.1.0"));
+        mvc.perform(as(root, get("/api/v1/system/updates"))).andExpect(jsonPath("$.latest").value("1.1.0"));
         verify(restTemplate, times(1)).exchange(eq(RELEASES), eq(HttpMethod.GET), any(HttpEntity.class), any(Class.class));
 
         when(restTemplate.exchange(eq(RELEASES), eq(HttpMethod.GET), any(HttpEntity.class), any(Class.class)))
