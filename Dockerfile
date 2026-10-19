@@ -18,7 +18,7 @@ FROM eclipse-temurin:25-jdk AS backend
 WORKDIR /src
 COPY backend/gradlew backend/settings.gradle backend/build.gradle ./
 COPY backend/gradle gradle
-RUN ./gradlew --no-daemon dependencies > /dev/null
+RUN chmod +x gradlew && ./gradlew --no-daemon dependencies > /dev/null
 COPY backend/src src
 COPY --from=frontend /src/dist src/main/resources/static
 # The commit for «О системе» (#147): there is no .git in the build context.
