@@ -109,7 +109,7 @@ export function useFormEditor(formId: string) {
     const dirty = state !== null && saved !== null && JSON.stringify(state) !== JSON.stringify(saved);
 
     const save = useCallback(async (): Promise<boolean> => {
-        if (!state || !saved) return false;
+        if (!state || !saved || !definition) return false;
         if (JSON.stringify(state) === JSON.stringify(saved)) return true;
         if (!state.title.trim()) {
             setStatus({kind: "unsaved"});
@@ -117,7 +117,7 @@ export function useFormEditor(formId: string) {
         }
         const sent = state;
         setStatus({kind: "saving"});
-        const request = updateForm(formId, payloadOf(sent, saved, version.current));
+        const request = updateForm(definition.serverId, formId, payloadOf(sent, saved, version.current));
         inFlight.current = request;
         try {
             const def = await request;
@@ -143,7 +143,7 @@ export function useFormEditor(formId: string) {
         } finally {
             inFlight.current = null;
         }
-    }, [formId, state, saved, accept]);
+    }, [formId, definition, state, saved, accept]);
 
     // Autosave a moment after the last change — not after a conflict.
     useEffect(() => {

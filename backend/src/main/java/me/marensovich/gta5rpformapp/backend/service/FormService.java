@@ -13,7 +13,6 @@ import me.marensovich.gta5rpformapp.backend.data.forms.WebhookHealth;
 import me.marensovich.gta5rpformapp.backend.database.entity.Form;
 import me.marensovich.gta5rpformapp.backend.database.repository.FormRepository;
 import me.marensovich.gta5rpformapp.backend.database.repository.SubmissionRepository;
-import me.marensovich.gta5rpformapp.backend.dto.form.CreateFormRequest;
 import me.marensovich.gta5rpformapp.backend.dto.form.CreateGuildFormRequest;
 import me.marensovich.gta5rpformapp.backend.dto.form.FormSettingsRequest;
 import me.marensovich.gta5rpformapp.backend.dto.form.FormSummaryDto;
@@ -140,47 +139,7 @@ public class FormService {
                 submissionRepository.countByFormIdAndStatus(form.getId(), SubmissionStatus.PENDING)));
     }
 
-    /**
-     * Retrieves a paginated list of all forms for the dashboard.
-     * <p>
-     * Each form entry includes the total number of submissions for that form.
-     * </p>
-     *
-     * @param pageable pagination parameters (page, size, sort)
-     * @return a {@link Page} of {@link FormSummaryDto} containing form summaries with submission counts
-     * @since v.0.1
-     */
-    @Transactional(readOnly = true)
-    public Page<FormSummaryDto> listForDashboard(Pageable pageable) {
-        return formRepository.findAll(pageable)
-                .map(form -> FormSummaryDto.from(form, submissionRepository.countByFormId(form.getId())));
-    }
-
     // ── Create / update / delete ────────────────────────────────────────────
-
-    /**
-     * Creates a new form via the legacy platform-admin endpoint.
-     * <p>
-     * Preserves the original behaviour: the form is live right away (it is
-     * published immediately, which also requires at least one field).
-     * </p>
-     *
-     * @param request the {@link CreateFormRequest} containing form details
-     * @return the created {@link Form} entity
-     * @since v.0.1
-     */
-    @Transactional
-    public Form create(CreateFormRequest request) {
-        Long guildId = Long.parseUnsignedLong(request.serverId());
-        // Published straight away, so it counts against the plan like any active form (#103).
-        planLimitService.requireRoomFor(guildId, PlanMetric.ACTIVE_FORMS);
-        Form form = newForm(guildId, request.schema(),
-                request.channelsIds(), request.webhooks(), null);
-        requirePublishable(form);
-        assignSlugIfMissing(form);
-        form.setStatus(FormStatus.PUBLISHED);
-        return saveNew(form);
-    }
 
     /**
      * Creates a new {@code DRAFT} form in a guild (owner panel).
@@ -898,14 +857,6 @@ public class FormService {
             }
         }
         throw new IllegalStateException("Could not generate a unique slug");
-    }
-
-    private static void requirePublishable(Form form) {
-        boolean hasInput = fieldsOf(form).stream()
-                .anyMatch(f -> f != null && f.getType() != null && f.getType().isInput());
-        if (!hasInput) {
-            throw new InvalidStateException("A published form needs at least one field to fill in");
-        }
     }
 
     private static void requireNotArchived(Form form) {

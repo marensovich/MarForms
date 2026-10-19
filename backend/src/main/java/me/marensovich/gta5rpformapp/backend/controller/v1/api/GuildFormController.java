@@ -60,7 +60,7 @@ public class GuildFormController {
                 .body(FormResponseDto.from(formService.createInGuild(guildId, request)));
     }
 
-    @PreAuthorize("@guildAccess.hasRole(#guildId, 'MODERATOR')")
+    @PreAuthorize("hasAuthority('FORMS_MANAGE') or @guildAccess.hasRole(#guildId, 'MODERATOR')")
     @GetMapping("/{formId}")
     public FormResponseDto get(@PathVariable Long guildId, @PathVariable UUID formId) {
         FormResponseDto full = FormResponseDto.from(formService.getInGuild(guildId, formId));
@@ -68,7 +68,8 @@ public class GuildFormController {
         return guildAccessGuard.hasRole(guildId, "OWNER") ? full : full.withMaskedWebhooks();
     }
 
-    @PreAuthorize("@guildAccess.hasRole(#guildId, 'OWNER')")
+    /** The editor's save; platform staff edit forms through it too (#103: one API for forms). */
+    @PreAuthorize("hasAuthority('FORMS_MANAGE') or @guildAccess.hasRole(#guildId, 'OWNER')")
     @PutMapping("/{formId}")
     public FormResponseDto update(@PathVariable Long guildId, @PathVariable UUID formId,
                                   @Valid @RequestBody UpdateFormRequest request) {

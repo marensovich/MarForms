@@ -39,7 +39,7 @@ describe("the editor's autosave", () => {
 
     it("edits the draft of a published form, saves a moment after the last change, and stops on a conflict", async () => {
         getForm.mockResolvedValue(def({draftSchema: {title: "LSPD (правки)", description: "", fields: []}, hasUnpublishedChanges: true}));
-        updateForm.mockImplementation((_id: string, p: { schema: { title: string } }) =>
+        updateForm.mockImplementation((_guild: string, _id: string, p: { schema: { title: string } }) =>
             Promise.resolve(def({version: 2, draftSchema: {...p.schema, description: "", fields: []}})));
         const {result} = renderHook(() => useFormEditor("f1"));
         await waitFor(() => expect(result.current.state).not.toBeNull());
@@ -53,7 +53,8 @@ describe("the editor's autosave", () => {
             await vi.advanceTimersByTimeAsync(1300);
         });
         expect(updateForm).toHaveBeenCalledTimes(1);
-        expect(updateForm.mock.calls[0][1]).toMatchObject({version: 1, schema: {title: "LSPD 2"}});
+        expect(updateForm.mock.calls[0][0]).toBe("9");
+        expect(updateForm.mock.calls[0][2]).toMatchObject({version: 1, schema: {title: "LSPD 2"}});
         expect(result.current.status.kind).toBe("saved");
 
         updateForm.mockRejectedValueOnce(new ApiError(409, JSON.stringify({updatedBy: "Мария S.", updatedAt: "2026-10-18T14:24:00"})));

@@ -1,5 +1,5 @@
 import {apiRequest, downloadFile} from "./client";
-import type {FormAccessMode, FormAnswers, FormDefinition, FormStatus, WebhookConfig, WebhookHealth} from "../types/forms";
+import type {FormAccessMode, FormDefinition, FormStatus, WebhookConfig, WebhookHealth} from "../types/forms";
 
 export interface DashboardForm {
     id: string;
@@ -92,26 +92,6 @@ export function updateRole(
     payload: { name?: string; color?: string; permissions?: string[] }
 ): Promise<DashboardRole> {
     return apiRequest(`/roles/${roleId}`, {method: "PUT", body: payload});
-}
-
-export interface CreateFormPayload {
-    serverId: string;
-    channelsIds?: string[];
-    webhooks?: WebhookConfig[];
-    schema: {
-        title: string;
-        description: string;
-        reviewTime?: string | null;
-        fields: unknown[];
-    };
-}
-
-export function getDashboardForms(page = 0, size = 20): Promise<PageResponse<DashboardForm>> {
-    return apiRequest(`/forms?page=${page}&size=${size}`);
-}
-
-export function createForm(payload: CreateFormPayload): Promise<DashboardForm> {
-    return apiRequest("/forms", {method: "POST", body: payload});
 }
 
 /** The bot's invite; with a server, straight to it («Выдать права», «Пригласить снова», #124). */
@@ -247,10 +227,6 @@ export function createGuildWebhook(
     });
 }
 
-export function toggleFormActive(formId: string, active: boolean): Promise<DashboardForm> {
-    return apiRequest(`/forms/${formId}`, {method: "PUT", body: {active}});
-}
-
 export interface UpdateFormPayload {
     schema?: { title: string; description: string; reviewTime?: string | null; fields: unknown[] };
     webhooks?: WebhookConfig[];
@@ -264,31 +240,13 @@ export interface UpdateFormPayload {
     slug?: string;
 }
 
+/** The editor's save, through the form's server (#103: one API for forms). */
 export function updateForm(
+    guildId: string,
     formId: string,
     payload: UpdateFormPayload
 ): Promise<import("../types/forms").FormDefinition> {
-    return apiRequest(`/forms/${formId}`, {method: "PUT", body: payload});
-}
-
-export function deleteForm(formId: string): Promise<void> {
-    return apiRequest(`/forms/${formId}`, {method: "DELETE"});
-}
-
-export interface DashboardSubmission {
-    id: string;
-    formId: string;
-    discordId: string;
-    createdAt: string;
-    answers: FormAnswers;
-}
-
-export function getFormSubmissions(
-    formId: string,
-    page = 0,
-    size = 20
-): Promise<PageResponse<DashboardSubmission>> {
-    return apiRequest(`/forms/${formId}/submissions?page=${page}&size=${size}`);
+    return apiRequest(`/guilds/${guildId}/forms/${formId}`, {method: "PUT", body: payload});
 }
 
 

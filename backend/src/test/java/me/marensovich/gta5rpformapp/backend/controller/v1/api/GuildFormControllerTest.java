@@ -250,7 +250,7 @@ class GuildFormControllerTest {
     @Test
     void nobodySeesWebhookTokensAndAMaskedUrlSavedBackKeepsTheStoredOne() throws Exception {
         String formId = createDraft(GUILD);
-        mvc.perform(as(owner, put("/api/v1/forms/{f}", formId))
+        mvc.perform(as(owner, put("/api/v1/guilds/{g}/forms/{f}", GUILD, formId))
                         .content("{\"webhooks\": [{\"url\": \"https://discord.com/api/webhooks/77/secret-token\", \"events\": [\"DECISION\"]}]}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.webhooks[0].url").value("https://discord.com/api/webhooks/77/***"))
@@ -260,7 +260,7 @@ class GuildFormControllerTest {
         mvc.perform(as(owner, get("/api/v1/guilds/{g}/forms/{f}", GUILD, formId)))
                 .andExpect(jsonPath("$.webhooks[0].url").value("https://discord.com/api/webhooks/77/***"));
         // The editor sends the masked URL back: the stored token stays.
-        mvc.perform(as(owner, put("/api/v1/forms/{f}", formId))
+        mvc.perform(as(owner, put("/api/v1/guilds/{g}/forms/{f}", GUILD, formId))
                         .content("{\"webhooks\": [{\"url\": \"https://discord.com/api/webhooks/77/***\", \"botName\": \"MF\"}]}"))
                 .andExpect(status().isOk());
         var stored = formRepository.findById(java.util.UUID.fromString(formId)).orElseThrow().getWebhooks().getFirst();
@@ -288,7 +288,7 @@ class GuildFormControllerTest {
                 .andReturn().getResponse().getContentAsString()).get("version").asLong();
 
         // One request, one transaction: fields and access settings together (#103).
-        mvc.perform(as(owner, put("/api/v1/forms/{f}", formId)).content(
+        mvc.perform(as(owner, put("/api/v1/guilds/{g}/forms/{f}", GUILD, formId)).content(
                         "{\"version\": " + version + ", \"settings\": {\"accessMode\": \"OPEN\", \"submissionLimitPerUser\": 2}}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessMode").value("OPEN"))
@@ -296,7 +296,7 @@ class GuildFormControllerTest {
         entityManager.flush(); // the version moves on when the change is written
 
         // A second editor still holding the old version gets a 409 naming who saved, instead of overwriting.
-        mvc.perform(as(owner, put("/api/v1/forms/{f}", formId)).content("{\"version\": " + version + ", \"active\": false}"))
+        mvc.perform(as(owner, put("/api/v1/guilds/{g}/forms/{f}", GUILD, formId)).content("{\"version\": " + version + ", \"active\": false}"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.updatedBy").value("user1"))
                 .andExpect(jsonPath("$.updatedAt").exists());
@@ -309,12 +309,12 @@ class GuildFormControllerTest {
         // SSRF (#103): a webhook can never point the server at another host.
         for (String url : new String[]{"http://127.0.0.1:8090/", "http://169.254.169.254/latest/meta-data",
                 "https://discord.com.evil.example/api/webhooks/1/x", "https://discord.com/api/webhooks/1/x?redirect=http://a"}) {
-            mvc.perform(as(owner, put("/api/v1/forms/{f}", formId)).content("{\"webhooks\": [{\"url\": \"" + url + "\"}]}"))
+            mvc.perform(as(owner, put("/api/v1/guilds/{g}/forms/{f}", GUILD, formId)).content("{\"webhooks\": [{\"url\": \"" + url + "\"}]}"))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.fields['webhooks[0].url']").exists());
         }
 
-        mvc.perform(as(owner, put("/api/v1/forms/{f}", formId))
+        mvc.perform(as(owner, put("/api/v1/guilds/{g}/forms/{f}", GUILD, formId))
                         .content("{\"webhooks\": [{\"url\": \"https://discordapp.com/api/v10/webhooks/123/abc-DEF_9\", \"health\": \"HEALTHY\", \"lastError\": \"spoofed\"}]}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.webhooks[0].url").value("https://discord.com/api/webhooks/123/***"))
