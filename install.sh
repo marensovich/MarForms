@@ -3,8 +3,11 @@
 # the bot token, the first administrator), generates the rest, writes .env and
 # starts MarForms with Postgres in Docker.
 #
-#   ./install.sh                 # from a checkout of the repository: builds the image here
-#   ./install.sh --image         # uses the published image ghcr.io/marensovich/marforms
+#   On a server, nothing else needed (the published image ghcr.io/marensovich/marforms):
+#     sudo mkdir -p /home/marforms && sudo chown "$USER" /home/marforms && cd /home/marforms \
+#       && curl -fsSLO https://github.com/marensovich/MarForms/releases/latest/download/install.sh \
+#       && bash install.sh
+#   In a checkout of the repository it builds the image from source instead; --image forces the published one.
 #
 # Any answer can be given in advance through the environment, e.g.
 #   MARFORMS_URL=https://forms.example.com DISCORD_CLIENT_ID=… ./install.sh
@@ -207,7 +210,20 @@ if [ "$MODE" = build ]; then
     GIT_COMMIT=$(git -C "$DIR" rev-parse --short HEAD 2>/dev/null || true) compose build
 else
     step "Скачиваю образ $IMAGE"
-    compose pull || die "Не удалось скачать образ. Для приватного репозитория: docker login ghcr.io -u <GitHub-логин> (токен с правом read:packages)."
+    if ! compose pull marforms; then
+        # A private repository's image needs a sign-in to GitHub Packages first.
+        [ -t 0 ] || die "Не удалось скачать образ. Выполните docker login ghcr.io и запустите установщик снова."
+        say "Образ закрыт: нужен вход в GitHub Packages. Токен: GitHub → Settings → Developer settings →"
+        say "Personal access tokens → Tokens (classic) → право ${bold}read:packages${reset}."
+        GHCR_USER=${GHCR_USER:-}; GHCR_TOKEN=${GHCR_TOKEN:-}
+        ask GHCR_USER "Логин GitHub"
+        ask GHCR_TOKEN "Токен" "" secret is_secret
+        printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin >/dev/null ||
+            die "GitHub не принял логин или токен."
+        unset GHCR_TOKEN
+        compose pull marforms || die "Образ всё равно не скачивается: у токена есть право read:packages и доступ к репозиторию?"
+    fi
+    compose pull postgres
 fi
 
 step "Запускаю"

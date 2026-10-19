@@ -146,9 +146,12 @@ main administrator's Discord ID, generates the database password and the keys, w
 starts everything in Docker:
 
 ```bash
-git clone https://github.com/marensovich/MarForms.git && cd MarForms
-./install.sh            # builds the image from source; ./install.sh --image uses the published one
+sudo mkdir -p /home/marforms && sudo chown "$USER" /home/marforms && cd /home/marforms \
+  && curl -fsSLO https://github.com/marensovich/MarForms/releases/latest/download/install.sh \
+  && bash install.sh
 ```
+
+In a checkout of the repository `./install.sh` builds the image from source; `./install.sh --image` uses the published one.
 
 The same by hand:
 

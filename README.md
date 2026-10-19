@@ -145,9 +145,12 @@ npm run dev
 администратора, сам сгенерирует пароль базы и ключи, запишет `.env` и запустит всё в Docker:
 
 ```bash
-git clone https://github.com/marensovich/MarForms.git && cd MarForms
-./install.sh            # собирает образ из исходников; ./install.sh --image — готовый из GitHub Packages
+sudo mkdir -p /home/marforms && sudo chown "$USER" /home/marforms && cd /home/marforms \
+  && curl -fsSLO https://github.com/marensovich/MarForms/releases/latest/download/install.sh \
+  && bash install.sh
 ```
+
+В клоне репозитория `./install.sh` собирает образ из исходников, `./install.sh --image` берёт готовый.
 
 Вручную то же самое:
 
