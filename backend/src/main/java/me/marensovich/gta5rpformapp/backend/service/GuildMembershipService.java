@@ -405,6 +405,15 @@ public class GuildMembershipService {
         LocalDateTime verifiedAt = membership.getStaffVerifiedAt();
         if (verifiedAt != null && verifiedAt.isAfter(LocalDateTime.now().minus(staffCheckTtl))) return membership;
 
+        // Callers (the guard) load the row with no session open: read it again
+        // here, so its user and guild can be read and the change is saved.
+        GuildMembership managed = membership.getId() == null ? membership
+                : guildMembershipRepository.findById(membership.getId()).orElse(null);
+        if (managed == null) return membership;
+        return recheck(managed, role);
+    }
+
+    private GuildMembership recheck(GuildMembership membership, GuildRole role) {
         Long guildId = membership.getGuild().getDiscordGuildId();
         Long userId = membership.getUser().getDiscordId();
         DiscordBotClient.MemberStatus status = discordBotClient.memberStatus(guildId, userId);
