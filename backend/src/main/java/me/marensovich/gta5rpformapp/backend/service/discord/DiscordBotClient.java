@@ -87,14 +87,15 @@ public class DiscordBotClient {
     }
 
     /**
-     * What the bot needs on a server (ТЗ 7.1): see its channels, create webhooks
-     * in them, and manage roles (role revocation events). Reading members and
-     * their roles goes through the API and needs no permission.
+     * What the bot needs on a server (ТЗ 7.1): see its channels and create
+     * webhooks in them. Reading members and their roles goes through the API and
+     * needs no permission, so a revoked role is noticed without Manage Roles —
+     * the bot never changes roles, and doesn't ask for that right (2026-10-19).
      *
      * @since v.0.1
      */
     public static final List<Permission> REQUIRED_PERMISSIONS =
-            List.of(Permission.VIEW_CHANNEL, Permission.MANAGE_WEBHOOKS, Permission.MANAGE_ROLES);
+            List.of(Permission.VIEW_CHANNEL, Permission.MANAGE_WEBHOOKS);
 
     /**
      * A server as the bot sees it now (#124).

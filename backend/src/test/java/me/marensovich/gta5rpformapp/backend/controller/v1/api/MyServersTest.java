@@ -104,23 +104,23 @@ class MyServersTest {
     void refreshingReadsMembersAndMissingPermissionsOnceAMinute() throws Exception {
         when(botClient.isAvailable()).thenReturn(true);
         when(botClient.fetchGuildState(GUILD)).thenReturn(Optional.of(
-                new DiscordBotClient.GuildState("Los Santos RP", null, 1240, List.of("MANAGE_ROLES"))));
+                new DiscordBotClient.GuildState("Los Santos RP", null, 1240, List.of("MANAGE_WEBHOOKS"))));
 
         mvc.perform(as(post("/api/v1/me/guilds/refresh")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].guildName").value("Los Santos RP"))
                 .andExpect(jsonPath("$[0].memberCount").value(1240))
                 .andExpect(jsonPath("$[0].botState").value("MISSING_PERMISSIONS"))
-                .andExpect(jsonPath("$[0].missingPermissions[0]").value("MANAGE_ROLES"));
+                .andExpect(jsonPath("$[0].missingPermissions[0]").value("MANAGE_WEBHOOKS"));
         mvc.perform(as(post("/api/v1/me/guilds/refresh"))).andExpect(status().isTooManyRequests());
     }
 
     @Test
     void theInviteCanGoStraightToTheServerWithTheNeededPermissions() throws Exception {
-        // FORMS_MANAGE isn't needed any more (#151); VIEW_CHANNEL | MANAGE_ROLES | MANAGE_WEBHOOKS.
+        // FORMS_MANAGE isn't needed any more (#151), nor MANAGE_ROLES; VIEW_CHANNEL | MANAGE_WEBHOOKS.
         mvc.perform(as(get("/api/v1/guilds/connect").param("guildId", String.valueOf(GUILD))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.url", containsString("&permissions=805307392")))
+                .andExpect(jsonPath("$.url", containsString("&permissions=536871936")))
                 .andExpect(jsonPath("$.url", containsString("&guild_id=" + GUILD + "&disable_guild_select=true")));
     }
 

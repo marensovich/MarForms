@@ -724,8 +724,7 @@
     },
     "permission": {
       "VIEW_CHANNEL": "View Channels",
-      "MANAGE_WEBHOOKS": "Manage Webhooks",
-      "MANAGE_ROLES": "Manage Roles"
+      "MANAGE_WEBHOOKS": "Manage Webhooks"
     },
     "grant": "Выдать права",
     "inviteAgain": "Пригласить снова",

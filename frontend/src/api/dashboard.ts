@@ -111,7 +111,7 @@ export interface MyGuild {
     guildIconUrl?: string | null;
     memberCount?: number | null;
     botState?: BotState;
-    /** VIEW_CHANNEL, MANAGE_WEBHOOKS, MANAGE_ROLES the bot lacks. */
+    /** VIEW_CHANNEL, MANAGE_WEBHOOKS the bot lacks. */
     missingPermissions?: string[];
     activeForms?: number;
     pendingSubmissions?: number;

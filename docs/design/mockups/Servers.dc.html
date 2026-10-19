@@ -73,7 +73,7 @@ class Component extends DCLogic {
   renderVals() {
     const B = {
       ok: { bot: 'Бот подключён', botSt: 'background: var(--gnb); color: var(--gnt)', botIc: 'M20 6 9 17l-5-5' },
-      perm: { bot: 'Не хватает прав: Manage Roles', botSt: 'background: var(--amb); color: var(--amt)', botIc: 'M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01', fix: 'Выдать права' },
+      perm: { bot: 'Не хватает прав: Manage Webhooks', botSt: 'background: var(--amb); color: var(--amt)', botIc: 'M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01', fix: 'Выдать права' },
       gone: { bot: 'Бот удалён с сервера', botSt: 'background: var(--rdb); color: var(--rdt)', botIc: 'M18 6 6 18M6 6l12 12', fix: 'Пригласить снова' }
     };
     const sv = (name, ini, c, members, role, b, forms, pending) => Object.assign({ name, ini, icSt: 'background: ' + c, members, role, forms, pending, hasFix: !!B[b].fix }, B[b]);

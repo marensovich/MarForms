@@ -27,7 +27,7 @@ const guild = (id: string, name: string, role: MyGuild["role"], extra: Partial<M
 });
 
 const GUILDS: MyGuild[] = [
-    guild("1", "Los Santos RP", "OWNER", {botState: "MISSING_PERMISSIONS", missingPermissions: ["MANAGE_ROLES"]}),
+    guild("1", "Los Santos RP", "OWNER", {botState: "MISSING_PERMISSIONS", missingPermissions: ["MANAGE_WEBHOOKS"]}),
     guild("2", "Vinewood Life", "MODERATOR"),
     guild("3", "Grove Street", "OWNER", {botState: "KICKED", botStatus: "KICKED"}),
 ];
@@ -52,7 +52,7 @@ describe("my servers", () => {
             </MemoryRouter>,
         );
         const lsrp = screen.getByRole("heading", {name: "Los Santos RP"}).closest("article")!;
-        expect(within(lsrp).getByText("servers.bot.MISSING_PERMISSIONS:servers.permission.MANAGE_ROLES")).toBeTruthy();
+        expect(within(lsrp).getByText("servers.bot.MISSING_PERMISSIONS:servers.permission.MANAGE_WEBHOOKS")).toBeTruthy();
         await user.click(within(lsrp).getByRole("button", {name: "servers.grant"}));
         expect(connectUrl).toHaveBeenCalledWith("1");
 

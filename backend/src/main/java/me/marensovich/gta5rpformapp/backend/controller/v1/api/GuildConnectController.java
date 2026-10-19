@@ -40,7 +40,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class GuildConnectController {
 
-    /** The bot's permissions of ТЗ 7.1: VIEW_CHANNEL, MANAGE_WEBHOOKS, MANAGE_ROLES. */
+    /** The bot's permissions of ТЗ 7.1: VIEW_CHANNEL, MANAGE_WEBHOOKS. */
     private static final long BOT_PERMISSIONS = net.dv8tion.jda.api.Permission.getRaw(
             me.marensovich.gta5rpformapp.backend.service.discord.DiscordBotClient.REQUIRED_PERMISSIONS);
 
