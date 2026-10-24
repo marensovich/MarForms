@@ -81,8 +81,9 @@ public class TokenCipher {
             Cipher cipher = Cipher.getInstance(TRANSFORMATION);
             cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(TAG_LENGTH_BITS, iv));
             byte[] encrypted = cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8));
+            int payloadLength = Math.addExact(iv.length, encrypted.length);
             return Base64.getEncoder().encodeToString(
-                    ByteBuffer.allocate(iv.length + encrypted.length).put(iv).put(encrypted).array());
+                    ByteBuffer.allocate(payloadLength).put(iv).put(encrypted).array());
         } catch (GeneralSecurityException e) {
             throw new IllegalStateException("Token encryption failed", e);
         }

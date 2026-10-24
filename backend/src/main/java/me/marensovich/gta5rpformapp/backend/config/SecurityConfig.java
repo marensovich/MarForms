@@ -66,7 +66,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .cors(Customizer.withDefaults())
-                .csrf(csrf -> csrf.disable())
+                // API authentication is stateless and uses an explicit Bearer token,
+                // so browser-managed credentials cannot authenticate forged requests.
+                // Keep CSRF protection enabled everywhere else, including any future
+                // session- or cookie-authenticated endpoints.
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
 
                 .oauth2Login(oauth2 -> oauth2
                         // The SPA's own sign-in page: without it Spring draws one at
