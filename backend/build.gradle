@@ -47,7 +47,7 @@ dependencies {
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
     implementation 'org.apache.httpcomponents.client5:httpclient5'
-    implementation 'net.dv8tion:JDA:6.6.0'
+    implementation 'net.dv8tion:JDA:6.7.0'
 }
 
 tasks.javadoc {
