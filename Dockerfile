@@ -5,7 +5,7 @@
 #   docker run -p 8090:8090 --env-file .env -v marforms_uploads:/data/uploads marforms
 # Postgres runs apart (docker-compose.prod.yml), never inside this image.
 
-FROM node:22-alpine AS frontend
+FROM node:25-alpine AS frontend
 WORKDIR /src
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
