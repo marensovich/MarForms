@@ -2,3 +2,7 @@
 .env
 .env.*
 !.env.example
+
+# IDE metadata is local to each contributor.
+.idea/
+**/.idea/
